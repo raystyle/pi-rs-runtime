@@ -195,10 +195,12 @@ install_ghidra() {
 # 不装 apt 的 radare2,不装 knife/rsleigh/Ghidrust;Keystone/Unicorn 走 venv 不走 apt
 install_re() {
     log "逆向链系统库 (apt,tuna)"
+    # libzip-dev 必须给:缺了 meson 会去 libzip.org 拉子项目,国内必失败
     apt-get update -qq
     apt-get install -y --no-install-recommends \
         binutils elfutils file bsdmainutils binwalk \
         yara libyara-dev \
+        libzip-dev \
         libcapstone-dev capstone-tool \
         meson ninja-build cmake pkg-config git gcc g++ \
         python3 python3-pip python3-venv zlib1g-dev
@@ -216,11 +218,17 @@ install_re() {
     fi
     ldconfig
     if ! rizin -qc 'Lc' /bin/ls 2>/dev/null | grep -qi ghidra; then
-        rm -rf /tmp/rz-ghidra && git clone --depth 1 "${gh}/rizinorg/rz-ghidra" /tmp/rz-ghidra
+        rm -rf /tmp/rz-ghidra /tmp/ghidra-src
+        git clone --depth 1 "${gh}/rizinorg/rz-ghidra" /tmp/rz-ghidra
+        # rz-ghidra 需要 Ghidra 反编译器源码(发布 zip 里没有),浅克隆喂给 GHIDRA_SOURCE_DIR;
+        # 让 CMake 自己 FetchContent 会在国内静默失败(ghidra_sleigh 无源)
+        git clone --depth 1 --branch "Ghidra_${GHIDRA_VERSION}_build" "${gh}/NationalSecurityAgency/ghidra" /tmp/ghidra-src \
+            || git clone --depth 1 "${gh}/NationalSecurityAgency/ghidra" /tmp/ghidra-src
         export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
-        cmake -S /tmp/rz-ghidra -B /tmp/rz-ghidra/build -DCMAKE_BUILD_TYPE=Release
+        cmake -S /tmp/rz-ghidra -B /tmp/rz-ghidra/build -DCMAKE_BUILD_TYPE=Release \
+            -DGHIDRA_SOURCE_DIR=/tmp/ghidra-src
         cmake --build /tmp/rz-ghidra/build && cmake --install /tmp/rz-ghidra/build
-        rm -rf /tmp/rz-ghidra
+        rm -rf /tmp/rz-ghidra /tmp/ghidra-src
     fi
     if [ ! -d /usr/share/rizin/sigdb ] && [ ! -d /usr/local/share/rizin/sigdb ]; then
         rm -rf /tmp/sigdb && git clone --depth 1 "${gh}/rizinorg/sigdb" /tmp/sigdb
