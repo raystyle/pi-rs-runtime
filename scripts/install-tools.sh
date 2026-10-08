@@ -201,6 +201,7 @@ install_re() {
         binutils elfutils file bsdmainutils binwalk \
         yara libyara-dev \
         libzip-dev \
+        libpugixml-dev \
         libcapstone-dev capstone-tool \
         meson ninja-build cmake pkg-config git gcc g++ \
         python3 python3-pip python3-venv zlib1g-dev
@@ -226,7 +227,9 @@ install_re() {
         git clone --depth 1 --branch "Ghidra_${GHIDRA_VERSION}_build" "${gh}/NationalSecurityAgency/ghidra" /tmp/rz-ghidra/ghidra/ghidra \
             || git clone --depth 1 "${gh}/NationalSecurityAgency/ghidra" /tmp/rz-ghidra/ghidra/ghidra
         export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
-        cmake -S /tmp/rz-ghidra -B /tmp/rz-ghidra/build -DCMAKE_BUILD_TYPE=Release
+        # USE_SYSTEM_PUGIXML:third-party 的 pugixml 也是子模块,用系统包绕过
+        cmake -S /tmp/rz-ghidra -B /tmp/rz-ghidra/build -DCMAKE_BUILD_TYPE=Release \
+            -DUSE_SYSTEM_PUGIXML=ON
         cmake --build /tmp/rz-ghidra/build && cmake --install /tmp/rz-ghidra/build
         rm -rf /tmp/rz-ghidra
     fi
