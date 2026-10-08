@@ -231,16 +231,27 @@ install_pwsh() {
 
 # ---- jq / yq / shellcheck(JSON/YAML 处理与脚本体检) ---------------------
 install_cli() {
-    log "jq + shellcheck (apt,tuna);yq (go install,mikefarah)"
+    log "git/jq/shellcheck/just (apt,tuna);yq/gh (go install,goproxy.cn)"
     apt-get update -qq
-    apt-get install -y --no-install-recommends jq shellcheck
+    apt-get install -y --no-install-recommends git jq shellcheck just || true
+    export PATH="$PATH:/usr/local/go/bin:/root/go/bin"
+    export GOPROXY GOSUMDB
     if ! have yq; then
-        export PATH="$PATH:/usr/local/go/bin"
-        export GOPROXY GOSUMDB
         go install github.com/mikefarah/yq/v4@latest
         ln -sf /root/go/bin/yq /usr/local/bin/yq
     fi
-    jq --version && yq --version && shellcheck --version | head -1
+    if ! have gh; then
+        go install github.com/cli/cli/v2/cmd/gh@latest   # gh 官方 apt 源国内无镜像,源码编译
+        ln -sf /root/go/bin/gh /usr/local/bin/gh
+    fi
+    # just 在部分套件下无 apt 包,兜底 cargo
+    if ! have just; then
+        . "$HOME/.cargo/env" 2>/dev/null || true
+        cargo install just --locked
+        ln -sf /root/.cargo/bin/just /usr/local/bin/just
+    fi
+    git --version && jq --version && yq --version && shellcheck --version | head -1 \
+        && just --version && gh --version | head -1
 }
 
 # ---- ast-grep(结构化搜索,命令 sg) -------------------------------------
