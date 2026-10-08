@@ -153,7 +153,7 @@ incus exec rt -- bash /root/scripts/install-all.sh
 | 17 | 工具 | gradle + init.d | 8.14.3 | 发行包**阿里云** distributions;依赖/插件**阿里云** init.d(盖 pluginManagement) |
 | 17b | 运行时 | PHP 多版本(webshell 逆向) | 7.4 / 8.1 / 8.3(sury 源,南大镜像) | 全路径切换 `php7.4/php8.1/php8.3`;VLD 逐版本尽力编译;跑样本 `-d opcache.jit=off` |
 | 17c | 工具 | ghidra + 逆向链 re | ghidra 12.1.3(官方 sha256 验) | GitHub 直下;`JAVA_HOME_OVERRIDE` 钉 temurin 21;rizin/rz-ghidra/sigdb 源码编译;`/opt/re-venv`(capstone/keystone/unicorn/lief/yara-python) |
-| 17d | 图形 | vnc-screen(Xvfb :99 → x11vnc) | apt 最新 | 仅 127.0.0.1:5900;宿主经 incus proxy;无 Chrome/noVNC |
+| 17d | 图形 | vnc-screen(Xvfb :99 → x11vnc) | apt 最新 | 仅 127.0.0.1:5900;宿主经 incus proxy;**Chrome/noVNC 不装**——Chrome 用后续定制构建 |
 | 18 | 工具 | projectdiscovery 全家桶 19 CLI | latest | `go install` 源码(goproxy.cn);naabu 已 setcap + libpcap |
 | 19 | 工具 | secgo 组 14 CLI(ffuf/gobuster/dalfox/amass/chisel/gitleaks/tomnomnom 系/gau/gospider/gowitness/AzureHound) | latest | 同上 |
 | 20 | 工具 | secrust 组(rustscan/feroxbuster/findomain) | latest | cargo install(**tuna** crates) |
@@ -187,6 +187,7 @@ incus delete u24
 - **多用户可用性**:rustup/fnm/`go install` 产物在 `/root` 下(`/root` 0700),`ubuntu` 用户用不了;方向是 `CARGO_HOME/RUSTUP_HOME/GOPATH` 迁 `/opt` + 配置双写
 - **zig minisig 验签**:公钥 `RWSGOq2NVecA2UPNdBUZykf1CCb147pkmdtYxgb3Ti+JO/wCYvhbAb/U`
 - **python2**:已通过实测(含 `import ssl`);若换环境构建失败按 pyenv 的 OpenSSL 3 补丁集处理
+- **定制 Chrome**:官方版不装(pi-box 图形层用定制构建,含 CDP 面板);vnc-screen 只提供裸屏幕
 - **pi-box 镜像打包**:`dev-instance.sh` 默认 `pi-box-dev`,需 build.sh 把「钉死运行时 + Pi 二进制 + pi-web」打成该别名(未做)
 - **隔离执行**:PHP 7.4 / python2 样本应在无网络、无生产挂载的容器里跑;当前部署链未强制该隔离面
 
