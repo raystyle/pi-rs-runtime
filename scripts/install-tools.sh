@@ -226,7 +226,7 @@ install_re() {
             || git clone --depth 1 "${gh}/NationalSecurityAgency/ghidra" /tmp/ghidra-src
         export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
         cmake -S /tmp/rz-ghidra -B /tmp/rz-ghidra/build -DCMAKE_BUILD_TYPE=Release \
-            -DGHIDRA_SOURCE_DIR=/tmp/ghidra-src
+            -DFETCHCONTENT_SOURCE_DIR_GHIDRA=/tmp/ghidra-src   # FetchContent 覆盖变量,GHIDRA_SOURCE_DIR 不是这个仓的选项
         cmake --build /tmp/rz-ghidra/build && cmake --install /tmp/rz-ghidra/build
         rm -rf /tmp/rz-ghidra /tmp/ghidra-src
     fi
