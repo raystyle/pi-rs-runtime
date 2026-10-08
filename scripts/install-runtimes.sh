@@ -228,6 +228,21 @@ install_pwsh() {
 }
 
 
+
+# ---- jq / yq / shellcheck(JSON/YAML 处理与脚本体检) ---------------------
+install_cli() {
+    log "jq + shellcheck (apt,tuna);yq (go install,mikefarah)"
+    apt-get update -qq
+    apt-get install -y --no-install-recommends jq shellcheck
+    if ! have yq; then
+        export PATH="$PATH:/usr/local/go/bin"
+        export GOPROXY GOSUMDB
+        go install github.com/mikefarah/yq/v4@latest
+        ln -sf /root/go/bin/yq /usr/local/bin/yq
+    fi
+    jq --version && yq --version && shellcheck --version | head -1
+}
+
 # ---- ast-grep(结构化搜索,命令 sg) -------------------------------------
 install_astgrep() {
     log "ast-grep (cargo 安装,经 tuna crates)"
@@ -365,7 +380,7 @@ EOF
 }
 
 # ---- 入口 -----------------------------------------------------------
-ALL=(c golang rust node bun python uv python2 fd fnm dotnet pwsh zig sdkman pd astgrep)
+ALL=(c golang rust node bun python uv python2 fd fnm dotnet pwsh zig sdkman pd astgrep cli)
 
 main() {
     local targets=("$@")
