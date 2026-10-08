@@ -10,20 +10,27 @@ set -euo pipefail
 export DEBIAN_FRONTEND=noninteractive
 
 # ---- 镜像源(可覆盖)-------------------------------------------------
-export RUSTUP_DIST_SERVER="${RUSTUP_DIST_SERVER:-https://rsproxy.cn}"
-export RUSTUP_UPDATE_ROOT="${RUSTUP_UPDATE_ROOT:-https://rsproxy.cn/rustup}"
-GOPROXY="${GOPROXY:-https://goproxy.cn,direct}"
-NPM_REGISTRY="${NPM_REGISTRY:-https://registry.npmmirror.com}"
-PIP_INDEX="${PIP_INDEX:-https://pypi.tuna.tsinghua.edu.cn/simple}"
-NODE_MIRROR="${NODE_MIRROR:-https://registry.npmmirror.com/-/binary/node}"
-ADOPTIUM_MIRROR="${ADOPTIUM_MIRROR:-https://mirrors.tuna.tsinghua.edu.cn/Adoptium}"
+# 原则:有 tuna 走 tuna;tuna 没有的走该生态自己的国内镜像
+TUNA="${TUNA:-https://mirrors.tuna.tsinghua.edu.cn}"
+export RUSTUP_DIST_SERVER="${RUSTUP_DIST_SERVER:-$TUNA/rustup}"
+export RUSTUP_UPDATE_ROOT="${RUSTUP_UPDATE_ROOT:-$TUNA/rustup/rustup}"
+CRATES_INDEX="${CRATES_INDEX:-$TUNA/crates.io-index}"
+GOPROXY="${GOPROXY:-https://goproxy.cn,direct}"          # tuna 无 golang,用七牛 goproxy
+GOSUMDB="${GOSUMDB:-sum.golang.google.cn}"              # 国内可连的校验和库
+GO_DOWNLOAD="${GO_DOWNLOAD:-https://golang.google.cn/dl}" # tuna 无 golang 二进制,用官方 CN 站
+NPM_REGISTRY="${NPM_REGISTRY:-https://registry.npmmirror.com}"            # tuna 无 npm registry
+NODE_MIRROR="${NODE_MIRROR:-https://registry.npmmirror.com/-/binary/node}" # tuna 无 node 二进制
+PIP_INDEX="${PIP_INDEX:-$TUNA/pypi/simple}"
+ADOPTIUM_MIRROR="${ADOPTIUM_MIRROR:-$TUNA/Adoptium}"
+MAVEN_MIRROR="${MAVEN_MIRROR:-$TUNA/apache/maven}"
 
 # ---- 版本钉 -------------------------------------------------------
 GOLANG_VERSION="${GOLANG_VERSION:-1.23.4}"
 NODE_VERSION="${NODE_VERSION:-22.12.0}"
 DOTNET_SDK="${DOTNET_SDK:-dotnet-sdk-8.0}"
-JAVA_VERSION="${JAVA_VERSION:-21.0.5+11}"   # temurin,注册进 sdkman 的本地版本名后缀
+JAVA_VERSION="${JAVA_VERSION:-21.0.12.1+1}"  # temurin,注册进 sdkman 的本地版本名后缀
 ZIG_VERSION="${ZIG_VERSION:-0.13.0}"
+MAVEN_VERSION="${MAVEN_VERSION:-3.9.16}"
 
 log()  { printf '\n\033[1;32m==> %s\033[0m\n' "$*"; }
 have() { command -v "$1" >/dev/null 2>&1; }
@@ -39,16 +46,17 @@ install_c() {
 
 # ---- golang --------------------------------------------------------
 install_golang() {
-    log "golang $GOLANG_VERSION (下载镜像 golang.google.cn,GOPROXY=$GOPROXY)"
+    log "golang $GOLANG_VERSION (下载 $GO_DOWNLOAD,GOPROXY=$GOPROXY)"
     if have go && [ "$(go env GOVERSION)" = "go$GOLANG_VERSION" ]; then
         echo "已安装 $(go env GOVERSION),跳过"; return
     fi
     local tgz="go${GOLANG_VERSION}.linux-$(dpkg --print-architecture).tar.gz"
-    curl -fSL "https://golang.google.cn/dl/${tgz}" -o "/tmp/${tgz}"
+    curl -fSL "${GO_DOWNLOAD}/${tgz}" -o "/tmp/${tgz}"
     rm -rf /usr/local/go && tar -C /usr/local -xzf "/tmp/${tgz}" && rm "/tmp/${tgz}"
     cat > /etc/profile.d/golang.sh <<EOF
 export PATH=\$PATH:/usr/local/go/bin
 export GOPROXY=${GOPROXY}
+export GOSUMDB=${GOSUMDB}
 export GOPATH=\${GOPATH:-/root/go}
 export PATH=\$PATH:\$GOPATH/bin
 EOF
@@ -58,21 +66,21 @@ EOF
 
 # ---- rust ----------------------------------------------------------
 install_rust() {
-    log "rust (rustup 走 rsproxy,crates 走 rsproxy sparse)"
+    log "rust (rustup 与 crates index 均走 tuna)"
     if have rustc; then rustc --version; echo "已安装,跳过"; return; fi
-    curl -fSL https://rsproxy.cn/rustup-init.sh -o /tmp/rustup-init.sh
-    sh /tmp/rustup-init.sh -y --default-toolchain stable --profile minimal
-    rm /tmp/rustup-init.sh
+    local triple="x86_64-unknown-linux-gnu"
+    [ "$(dpkg --print-architecture)" = arm64 ] && triple="aarch64-unknown-linux-gnu"
+    curl -fSL "${RUSTUP_UPDATE_ROOT}/dist/${triple}/rustup-init" -o /tmp/rustup-init
+    chmod +x /tmp/rustup-init
+    /tmp/rustup-init -y --default-toolchain stable --profile minimal
+    rm /tmp/rustup-init
     mkdir -p "$HOME/.cargo"
-    cat > "$HOME/.cargo/config.toml" <<'EOF'
+    cat > "$HOME/.cargo/config.toml" <<EOF
 [source.crates-io]
-replace-with = 'rsproxy-sparse'
+replace-with = 'tuna-sparse'
 
-[source.rsproxy-sparse]
-registry = "sparse+https://rsproxy.cn/index/"
-
-[registries.rsproxy]
-index = "sparse+https://rsproxy.cn/index/"
+[source.tuna-sparse]
+registry = "sparse+${CRATES_INDEX}/"
 
 [net]
 git-fetch-with-cli = true
@@ -196,8 +204,17 @@ EOF
         yes | sdk install java "${JAVA_VERSION%%+*}-tem" "$jdk_dir" || true
     fi
 
-    log "maven / gradle (sdkman)"
-    sdk install maven  || true
+    log "maven $MAVEN_VERSION (tuna apache 镜像,直装)"
+    if ! have mvn; then
+        local mtgz="apache-maven-${MAVEN_VERSION}-bin.tar.gz"
+        curl -fSL "${MAVEN_MIRROR}/maven-3/${MAVEN_VERSION}/binaries/${mtgz}" -o "/tmp/${mtgz}"
+        rm -rf /opt/maven && mkdir -p /opt/maven
+        tar -C /opt/maven -xzf "/tmp/${mtgz}" --strip-components=1 && rm "/tmp/${mtgz}"
+        ln -sf /opt/maven/bin/mvn /usr/local/bin/mvn
+    fi
+    mvn -version | head -1
+
+    log "gradle (sdkman,无 tuna 镜像)"
     sdk install gradle || true
     sdk current
 }
