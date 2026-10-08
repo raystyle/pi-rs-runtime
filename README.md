@@ -164,6 +164,24 @@ incus exec rt -- bash /root/scripts/install-all.sh
 
 镜像可用性实证(tuna 有 `rustup` `crates.io-index` `pypi` `Adoptium`(8/11/17/21/25,x64+aarch64)`apache/maven`;无 golang/node/npm registry/bun/dotnet/powershell/zig。npmmirror 二进制镜像有 node/bun/python/deno、无 zig。
 
+## 发布运行时镜像(pi-rs-runtime)
+
+镜像名与仓同名:**`pi-rs-runtime`**。重建流水线:
+
+```bash
+./scripts/build-base-image.sh                 # 1. 重造 ubuntu-24.04-base
+incus launch ubuntu-24.04-base rt-build       # 2. 全新容器
+incus file push scripts rt-build/root/ -r
+incus exec rt-build -- bash /root/scripts/install-all.sh   # 3. 全量安装
+# 4. 验收(版本/配置落点/uv venv 隔离/多用户可执行)
+incus stop rt-build
+incus publish rt-build --alias pi-rs-runtime  # 5. 固化为运行时镜像
+incus delete rt-build
+```
+
+发布后开实验实例:`incus launch pi-rs-runtime <名>`。注意 `pi-box-dev` 是另一层
+(pi 二进制 + pi-web + 定制 Chrome,由 build.sh 打,见 ROADMAP),与本镜像不同。
+
 ## 备选路线:incus publish(适合单个 pi agent 实例 / 少量定制)
 
 不用 distrobuilder,直接在 Incus 里做:
