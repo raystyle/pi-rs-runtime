@@ -150,6 +150,10 @@ install_ghidra() {
     local url="https://github.com/NationalSecurityAgency/ghidra/releases/download/Ghidra_${GHIDRA_VERSION}_build/${z}"
     if [ ! -d /opt/ghidra ]; then
         curl -fSL "$url" -o "/tmp/${z}"
+        # 官方发布页给出的 SHA-256(GHIDRA_SHA256 钉在 common.sh,换版本时同步换)
+        if [ -n "${GHIDRA_SHA256:-}" ]; then
+            echo "${GHIDRA_SHA256}  /tmp/${z}" | sha256sum -c - || { echo "ghidra zip 校验失败"; exit 1; }
+        fi
         mkdir -p /opt/ghidra
         unzip -q "/tmp/${z}" -d /opt/ghidra && rm "/tmp/${z}"
     fi
@@ -164,5 +168,57 @@ install_ghidra() {
     echo "headless 用法: analyzeHeadless /tmp/ghidra-proj MyProj -import /path/to/bin"
 }
 
-TOOLS_ALL=(fd astgrep cli ghidra pd secgo secrust)
+
+# ---- 逆向稳定链:系统库 + rizin/rz-ghidra/sigdb + Python RE venv ------------
+# 不装 apt 的 radare2,不装 knife/rsleigh/Ghidrust;Keystone/Unicorn 走 venv 不走 apt
+install_re() {
+    log "逆向链系统库 (apt,tuna)"
+    apt-get update -qq
+    apt-get install -y --no-install-recommends \
+        binutils elfutils file bsdmainutils binwalk \
+        yara libyara-dev \
+        libcapstone-dev capstone-tool \
+        meson ninja-build cmake pkg-config git gcc g++ \
+        python3 python3-pip python3-venv zlib1g-dev
+    for b in readelf objdump eu-readelf yara cstool file binwalk; do
+        have "$b" && printf '  %-12s %s\n' "$b" "$($b --version 2>/dev/null | head -1)"
+    done
+
+    log "rizin + rz-ghidra + sigdb (源码编译;JDK 不另装,temurin 21 已够 ghidra 用)"
+    local gh; gh="${GITHUB_MIRROR}https://github.com"
+    if ! have rizin; then
+        rm -rf /tmp/rizin && git clone --depth 1 "${gh}/rizinorg/rizin" /tmp/rizin
+        meson setup /tmp/rizin/build /tmp/rizin --buildtype=release
+        meson compile -C /tmp/rizin/build && meson install -C /tmp/rizin/build
+        rm -rf /tmp/rizin
+    fi
+    ldconfig
+    if ! rizin -qc 'Lc' /bin/ls 2>/dev/null | grep -qi ghidra; then
+        rm -rf /tmp/rz-ghidra && git clone --depth 1 "${gh}/rizinorg/rz-ghidra" /tmp/rz-ghidra
+        export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
+        cmake -S /tmp/rz-ghidra -B /tmp/rz-ghidra/build -DCMAKE_BUILD_TYPE=Release
+        cmake --build /tmp/rz-ghidra/build && cmake --install /tmp/rz-ghidra/build
+        rm -rf /tmp/rz-ghidra
+    fi
+    if [ ! -d /usr/share/rizin/sigdb ] && [ ! -d /usr/local/share/rizin/sigdb ]; then
+        rm -rf /tmp/sigdb && git clone --depth 1 "${gh}/rizinorg/sigdb" /tmp/sigdb
+        ( cd /tmp/sigdb && ./install.sh ) || echo "sigdb 安装失败(不影响 rizin 本体)"
+        rm -rf /tmp/sigdb
+    fi
+    rizin -v
+    rizin -qc 'Lc' /bin/ls 2>/dev/null | grep -i ghidra || echo "!! rz-ghidra 未进插件目录"
+
+    log "Python RE venv ($RE_VENV;capstone/keystone/unicorn/lief/yara-python)"
+    if [ ! -x "$RE_VENV/bin/python" ]; then
+        python3 -m venv "$RE_VENV"
+    fi
+    "$RE_VENV/bin/pip" install -U pip >/dev/null
+    "$RE_VENV/bin/pip" install capstone keystone-engine unicorn lief yara-python
+    "$RE_VENV/bin/python" -c 'import capstone,keystone,unicorn,lief,yara; print("re-venv ok")'
+    cat <<EOF
+对应关系:capstone 反汇编 / keystone 汇编 / unicorn 模拟执行 / lief 解析改写 PE-ELF-MachO / yara-python 规则扫描
+EOF
+}
+
+TOOLS_ALL=(fd astgrep cli ghidra re pd secgo secrust)
 run_category TOOLS_ALL "$@"
