@@ -327,7 +327,7 @@ install_pivot() {
 # ---- P0 补齐(grok 业界调研;Kali/REMnux/FLARE 重叠缺口) ------------------
 # 分三步:apt 批(全 TUNA)/ re-venv pip 批(TUNA PyPI)/ GitHub 钉版批
 install_p0() {
-    log "P0 apt 批(21 包,TUNA):多架构调试/pwn/流量/分诊/AD/口令"
+    log "P0 apt 批(22 包,TUNA):多架构调试/pwn/流量/分诊/AD/口令"
     apt-get update -qq
     apt-get install -y --no-install-recommends \
         gdb-multiarch qemu-user-static \
