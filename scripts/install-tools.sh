@@ -376,5 +376,52 @@ install_p0() {
     true
 }
 
-TOOLS_ALL=(fd astgrep cli ghidra re pd secgo secrust pivot p0)
+
+# ---- C2 框架(sliver/merlin/empire/covenant) -----------------------------
+# 只装默认骨架;监听/证书配置属部署面,不在安装器里做
+install_c2() {
+    log "C2: sliver + merlin + empire + covenant"
+    local gh="${GITHUB_MIRROR}https://github.com"
+    export PATH="$PATH:/usr/local/go/bin:/root/go/bin:/usr/local/bin"
+
+    # sliver:GitHub Release 预编译,按资产名匹配 linux 包
+    if ! have sliver-server; then
+        curl -fsSL "https://api.github.com/repos/bishopfox/sliver/releases/latest" \
+            | python3 -c "
+import json,sys,urllib.request,os
+rel=json.load(sys.stdin)
+mirror=os.environ.get('GITHUB_MIRROR','')
+for want in ('sliver-server_linux','sliver-client_linux'):
+    for a in rel['assets']:
+        n=a['name']
+        if want in n and not any(x in n for x in ('windows','darwin','mac')):
+            print(mirror+a['browser_download_url']+' '+want)
+" | while read -r url name; do
+            curl -fSL "$url" -o "/tmp/${name}.bin" && install -m755 "/tmp/${name}.bin" "/usr/local/bin/${name}" && rm "/tmp/${name}.bin"
+        done
+    fi
+    have sliver-server && sliver-server version 2>/dev/null | head -1 || echo "sliver-server 装失败(可手动下 release)"
+
+    # merlin:go install(模块经 goproxy.cn)
+    have merlinserver || go install github.com/Ne0nd0g/merlin/cmd/merlinserver@latest \
+        && ln -sf /root/go/bin/merlinserver /usr/local/bin/merlinserver || echo "merlinserver 失败"
+
+    # empire:Python 重型框架,装依赖交互多;克隆钉版,首次启用走 /opt/Empire 的 install
+    if [ ! -d /opt/Empire/.git ]; then
+        rm -rf /opt/Empire && git clone --depth 1 "${gh}/BC-SECURITY/Empire" /opt/Empire
+    fi
+    echo "Empire 已克隆到 /opt/Empire;首次启用: cd /opt/Empire && ./ps-empire install (交互,依赖较多)"
+
+    # covenant:.NET C2(项目已归档,可能编不过新 dotnet);克隆并尽力 build
+    if [ ! -d /opt/Covenant/.git ]; then
+        rm -rf /opt/Covenant && git clone --depth 1 "${gh}/cobbr/Covenant" /opt/Covenant
+    fi
+    if have dotnet && [ ! -f /opt/Covenant/Covenant/bin/Release/net*/Covenant ]; then
+        ( cd /opt/Covenant/Covenant && dotnet build -c Release ) >/dev/null 2>&1 \
+            && echo "covenant 编译完成" || echo "covenant 编译失败(项目归档,旧 target framework;可用 dotnet 10 需自行迁移)"
+    fi
+    true
+}
+
+TOOLS_ALL=(fd astgrep cli ghidra re pd secgo secrust pivot p0 c2)
 run_category TOOLS_ALL "$@"
