@@ -227,16 +227,23 @@ install_re() {
         git clone --depth 1 --branch "Ghidra_${GHIDRA_VERSION}_build" "${gh}/NationalSecurityAgency/ghidra" /tmp/rz-ghidra/ghidra/ghidra \
             || git clone --depth 1 "${gh}/NationalSecurityAgency/ghidra" /tmp/rz-ghidra/ghidra/ghidra
         export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
+        # rz_core.pc 的 plugindir 是相对路径,pkg-config 直取会装到 CWD 相对目录
+        # 然后被 rm 掉;用 rizin 运行时报告的 dir.plugins 为准
+        local plugdir; plugdir="$(rizin -qc 'e dir.plugins' -q 2>/dev/null || true)"
+        [ -n "$plugdir" ] || plugdir="/usr/local/lib/x86_64-linux-gnu/rizin/plugins"
         # USE_SYSTEM_PUGIXML:third-party 的 pugixml 也是子模块,用系统包绕过
         cmake -S /tmp/rz-ghidra -B /tmp/rz-ghidra/build -DCMAKE_BUILD_TYPE=Release \
-            -DUSE_SYSTEM_PUGIXML=ON
+            -DUSE_SYSTEM_PUGIXML=ON \
+            -DRIZIN_INSTALL_PLUGINDIR="${plugdir}"
         cmake --build /tmp/rz-ghidra/build && cmake --install /tmp/rz-ghidra/build
         rm -rf /tmp/rz-ghidra
     fi
-    if [ ! -d /usr/share/rizin/sigdb ] && [ ! -d /usr/local/share/rizin/sigdb ]; then
+    if ! ls -d /usr/share/rizin/sigdb /usr/local/share/rizin/sigdb "$HOME"/.local/share/rizin/sigdb >/dev/null 2>&1; then
         rm -rf /tmp/sigdb && git clone --depth 1 "${gh}/rizinorg/sigdb" /tmp/sigdb
         ( cd /tmp/sigdb && ./install.sh ) || echo "sigdb 安装失败(不影响 rizin 本体)"
         rm -rf /tmp/sigdb
+        ls -d /usr/share/rizin/sigdb /usr/local/share/rizin/sigdb "$HOME"/.local/share/rizin/sigdb >/dev/null 2>&1 \
+            && echo "sigdb 已装" || echo "!! sigdb 未找到,查 install.sh 输出"
     fi
     rizin -v
     rizin -qc 'Lc' /bin/ls 2>/dev/null | grep -i ghidra || echo "!! rz-ghidra 未进插件目录"
