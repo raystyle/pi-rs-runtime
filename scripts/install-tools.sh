@@ -420,6 +420,20 @@ for want in ('sliver-server_linux','sliver-client_linux'):
         ( cd /opt/Covenant/Covenant && dotnet build -c Release ) >/dev/null 2>&1 \
             && echo "covenant 编译完成" || echo "covenant 编译失败(项目归档,旧 target framework;可用 dotnet 10 需自行迁移)"
     fi
+    # ysoserial:Java 反序列化 payload 生成;maven 依赖已走阿里云(settings.xml)
+    if ! have ysoserial; then
+        rm -rf /tmp/ysoserial && git clone --depth 1 "${gh}/frohoff/ysoserial" /tmp/ysoserial
+        if ( cd /tmp/ysoserial && mvn -q package -DskipTests ); then
+            install -d /opt/ysoserial
+            cp /tmp/ysoserial/target/ysoserial-*.jar /opt/ysoserial/ysoserial.jar
+            printf '#!/bin/sh\nexec java -jar /opt/ysoserial/ysoserial.jar "$@"\n' > /usr/local/bin/ysoserial
+            chmod +x /usr/local/bin/ysoserial
+        else
+            echo "ysoserial 打包失败(mvn package;查依赖下载)"
+        fi
+        rm -rf /tmp/ysoserial
+    fi
+    have ysoserial && echo "ysoserial 就绪" || true
     true
 }
 
