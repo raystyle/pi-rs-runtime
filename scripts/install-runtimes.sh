@@ -29,8 +29,12 @@ install_node() {
     fi
     # 写 prefix 级全局 npmrc:对所有用户生效(默认只写 root ~/.npmrc)
     npm config set --location=global registry "$NPM_REGISTRY"
-    npm config set --location=global disturl "https://npmmirror.com/mirrors/node"
-    npm config set --location=global electron_mirror "https://npmmirror.com/mirrors/electron/"
+    # disturl/electron_mirror 不是 npm 11 的合法 option,config set 会拒;
+    # 直写 npmrc 文件——npm 会把任意键以 npm_config_* 形式传给生命周期脚本(node-gyp/electron 正是这么读的)
+    cat >> /opt/node/etc/npmrc <<EOF
+disturl=https://npmmirror.com/mirrors/node
+electron_mirror=https://npmmirror.com/mirrors/electron/
+EOF
     npm install -g typescript          # tsc:pi-rs 基座要求
     ln -sf /opt/node/bin/tsc /usr/local/bin/tsc
     ln -sf /opt/node/bin/tsserver /usr/local/bin/tsserver
