@@ -130,9 +130,52 @@ incus exec rt-build -- bash /root/scripts/install-all.sh
 
 安装面事实（按代码）:
 
-- 编译器：C 工具链（apt)、golang、rust(rustup 与 crates 走 tuna,`RUSTUP_HOME=/opt/rustup`、`CARGO_HOME=/opt/cargo`，含 rustfmt、clippy、rust-analyzer、rust-script、cargo-zigbuild、cargo-audit 与 crate 缓存预热）、zig、vcpkg(GitHub 直下，源码编译默认库集）。
-- 运行时：node(npmmirror 二进制与 SHASUMS256 校验，全局 npmrc 写 registry/disturl/electron_mirror,`typescript`、`prettier`、`eslint`、corepack)、fnm 多版本、`bun`、uv（官方安装器，索引写 `/etc/uv/uv.toml`)、python3(apt，索引写 `/etc/pip.conf`；分析库全进 `/opt/analytics` venv)、duckdb(venv + GitHub release CLI)、python2.7（源码编译，华为云镜像）、PHP 多版本（sury 源 + VLD 尽力编译）、mono(xbuild,`nuget.exe` 在 `/opt/nuget.exe`)、dotnet(NuGet 走华为 v3)、pwsh(packages.microsoft.com)、sdkman(temurin 多版本本地路径注册 + maven + gradle，依赖镜像指阿里云）。
-- 工具：fd 与 ripgrep、ast-grep、基础 CLI 组（git、jq、yq、shellcheck、just、tmux、rclone、aria2、gh)、herdr(terminal workspace 管理器，release 直下钉版 + sha256，装 `/usr/local/bin`)、ghidra（钉版 + sha256,`JAVA_HOME_OVERRIDE` 钉 temurin 21)、逆向稳定链（系统库 + rizin/rz-ghidra/sigdb 源码编译 + `/opt/re-venv`)、projectdiscovery 全家桶（18 个 CLI,nuclei 模板更新尽力，naabu setcap)、Go 安全工具（14 个 CLI)、Rust 安全工具（rustscan、feroxbuster)、代理跳板（gost/frp/wstunnel/rathole/bore)、P0 补齐批（apt 22 包 + re-venv pip 批 + GitHub 钉版批：pwndbg、jadx、apktool、capa、SecLists、yara 规则、pdf 工具）、C2 框架参考（6 个参考仓克隆到 `/opt/c2-ref`，不安装不运行）、BOF 工具链（mingw-w64 + COFFLoader + coffee-ldr + bof-launcher)、Project Zero 沙箱攻击面工具参考（sandbox-attacksurface-analysis-tools、DotNetToJScript、windows-logical-eop-workshop、oleviewdotnet 等，只克隆，oleviewdotnet 需 `--recurse-submodules`)、nushell。各组键名见上文 `TOOLS_ALL` 名单。
+编译器（`install-compilers.sh`）:
+
+| 组 | 内容 | 版本与来源 |
+|------|------|------|
+| c | build-essential、clang、lldb、gdb、cmake、ninja、autoconf、automake、libtool、clang-format、clang-tidy、valgrind、strace、ltrace、ccache、musl-tools、zlib、ssl、ffi 开发库；FASM | apt/tuna；FASM 官方直下 |
+| golang | Go 发行包 | 1.27.1，南大镜像，sha256 校验 |
+| rust | rustup（toolchain 与 nightly）、rustfmt、clippy、rust-analyzer、rust-script、cargo-zigbuild、cargo-audit、crate 缓存预热 | tuna rustup 与 crates；`/opt/rustup`、`/opt/cargo` |
+| zig | zig 编译器；0.15.2 副本供 BOF 工具链 | 0.16.0，ziglang.org 直下，仅 amd64 与 arm64 |
+| vcpkg | openssl、zlib、curl、sqlite3、libpcap、fmt、spdlog、nlohmann-json、rapidjson、cpp-httplib、mbedtls、yara | GitHub 直下，源码编译，库集见 `VCPKG_PKGS` |
+
+运行时（`install-runtimes.sh`）:
+
+| 组 | 内容 | 版本与来源 |
+|------|------|------|
+| node | node；全局 typescript、prettier、eslint、corepack、dotnetjs；全局 npmrc 写 registry、disturl、electron_mirror | 24.21.0，npmmirror，SHASUMS256 校验 |
+| fnm | node 多版本管理器，预装 18、20、22、24 | npmmirror |
+| bun | bun 运行时 | npm 全局安装 |
+| uv | uv 包管理器，索引写 `/etc/uv/uv.toml` | 官方独立安装器 |
+| python | python3（apt，索引写 `/etc/pip.conf`，不装第三方包）；`/opt/analytics` venv：polars、pyarrow、chdb、duckdb | tuna PyPI |
+| duckdb | duckdb CLI；python 绑定在 `/opt/analytics` | GitHub release，latest |
+| python2 | python 2.7，`--enable-shared`，含 ssl | 2.7.18，源码编译，华为云镜像 |
+| php | 多版本 CLI 与 VLD | 7.4、8.1、8.3，sury 南大镜像 |
+| mono | mono-devel、xbuild；`nuget.exe` 在 `/opt/nuget.exe` | apt/tuna |
+| dotnet | .NET SDK，NuGet 走华为 v3 | dotnet-sdk-10.0，noble 源 |
+| pwsh | PowerShell | packages.microsoft.com |
+| sdkman | temurin JDK 8、11、17、21、25 本地路径注册；maven、gradle；依赖镜像指阿里云 | tuna Adoptium |
+
+工具（`install-tools.sh`，组键见上文 `TOOLS_ALL` 名单）:
+
+| 组 | 内容 | 版本与来源 |
+|------|------|------|
+| fd | fd、ripgrep | apt/tuna |
+| ast-grep | ast-grep（`sg`） | cargo，tuna crates |
+| 基础 CLI | git、jq、yq、shellcheck、just、tmux、rclone、aria2、gh | apt/tuna；yq 与 gh 走 go install |
+| herdr | terminal workspace 管理器 | 0.9.3，release 直下钉版加 sha256，装 `/usr/local/bin` |
+| ghidra | 逆向套件，`JAVA_HOME_OVERRIDE` 钉 temurin 21 | 12.1.3，钉版加 sha256 |
+| 逆向稳定链 | 系统库；rizin、rz-ghidra、sigdb 源码编译；`/opt/re-venv`：capstone、keystone-engine、unicorn、lief、yara-python | 见 `install_re` |
+| projectdiscovery 全家桶 | subfinder、dnsx、naabu、httpx、nuclei、katana、uncover、cloudlist、notify、interactsh-client、chaos、mapcidr、asnmap、tlsx、proxify、simplehttpserver、shuffledns、pdtm（18 个） | go install；naabu setcap；nuclei 模板更新尽力 |
+| Go 安全工具 | ffuf、gobuster、dalfox、amass、chisel、gitleaks、assetfinder、httprobe、qsreplace、waybackurls、gau、gospider、gowitness、azurehound（14 个） | go install |
+| Rust 安全工具 | rustscan、feroxbuster | cargo，tuna crates |
+| 代理跳板 | gost、frps、frpc、wstunnel、rathole、bore | go install 加 cargo；frp 走 release 预编译 |
+| P0 补齐批 | apt 22 包：gdb-multiarch、qemu-user-static、pwntools、ROPgadget、checksec、patchelf、nasm、xxd、squashfs-tools、nmap、sqlmap、tcpdump、tshark、mitmproxy、scapy、upx、7zip、exiftool、ssdeep、impacket、john、hashid；re-venv 批：FLOSS、oletools、netexec；GitHub 钉版批：pwndbg、jadx、apktool、capa、SecLists、yara 规则、pdfid 与 pdf-parser | 三批分装，见 `install_p0` |
+| C2 框架参考 | sliver、merlin、Empire、Covenant、ysoserial、ysoserial.net，克隆到 `/opt/c2-ref` | 只克隆，不安装不运行 |
+| BOF 工具链 | mingw-w64、COFFLoader、atomic-bofs、coffee-ldr、bof-launcher、BOF-CATALOG.md | coffee-ldr 需 nightly；bof-launcher 用 zig 0.15.2 |
+| Project Zero 参考 | sandbox-attacksurface-analysis-tools、DotNetToJScript、windows-logical-eop-workshop、oleviewdotnet | 只克隆；oleviewdotnet 需 `--recurse-submodules` |
+| nushell | nushell | GitHub release 预编译 |
 
 ### 4. 发布 pi-rs-runtime 镜像
 
