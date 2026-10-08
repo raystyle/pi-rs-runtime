@@ -20,17 +20,20 @@ GOSUMDB="${GOSUMDB:-sum.golang.google.cn}"              # 国内可连的校验�
 GO_DOWNLOAD="${GO_DOWNLOAD:-https://mirror.nju.edu.cn/golang}" # tuna 无 golang;南大镜像同为高校源,也可用 golang.google.cn
 NPM_REGISTRY="${NPM_REGISTRY:-https://registry.npmmirror.com}"            # tuna 无 npm registry
 NODE_MIRROR="${NODE_MIRROR:-https://registry.npmmirror.com/-/binary/node}" # tuna 无 node 二进制
-PIP_INDEX="${PIP_INDEX:-$TUNA/pypi/simple}"
+PIP_INDEX="${PIP_INDEX:-https://pypi.tuna.tsinghua.edu.cn/simple}" # tuna pypi 独立 vhost;mirrors.tuna.../pypi/ 是 404
 ADOPTIUM_MIRROR="${ADOPTIUM_MIRROR:-$TUNA/Adoptium}"
 MAVEN_MIRROR="${MAVEN_MIRROR:-$TUNA/apache/maven}"
 
 # ---- 版本钉 -------------------------------------------------------
 GOLANG_VERSION="${GOLANG_VERSION:-1.23.4}"
 NODE_VERSION="${NODE_VERSION:-22.12.0}"
+FNM_NODE_VERSIONS="${FNM_NODE_VERSIONS:-18 20 22 24}"   # fnm 预装的流行 node 历史版本(大版本号)
 DOTNET_SDK="${DOTNET_SDK:-dotnet-sdk-8.0}"
-ZIG_VERSION="${ZIG_VERSION:-0.13.0}"
+ZIG_VERSION="${ZIG_VERSION:-0.16.0}"
 MAVEN_VERSION="${MAVEN_VERSION:-3.9.16}"
 JAVA_VERSIONS="${JAVA_VERSIONS:-8 11 17 21 25}"  # sdkman 预装的开源 JDK 主版本(temurin,tuna Adoptium;25 为新 LTS)
+PY2_VERSION="${PY2_VERSION:-2.7.18}"             # 逆向分析用;noble 官方源无 python2,源码编译
+PY2_MIRROR="${PY2_MIRROR:-https://mirrors.huaweicloud.com/python}"
 
 log()  { printf '\n\033[1;32m==> %s\033[0m\n' "$*"; }
 have() { command -v "$1" >/dev/null 2>&1; }
@@ -67,13 +70,14 @@ EOF
 # ---- rust ----------------------------------------------------------
 install_rust() {
     log "rust (rustup 与 crates index 均走 tuna)"
-    if have rustc; then rustc --version; echo "已安装,跳过"; return; fi
-    local triple="x86_64-unknown-linux-gnu"
-    [ "$(dpkg --print-architecture)" = arm64 ] && triple="aarch64-unknown-linux-gnu"
-    curl -fSL "${RUSTUP_UPDATE_ROOT}/dist/${triple}/rustup-init" -o /tmp/rustup-init
-    chmod +x /tmp/rustup-init
-    /tmp/rustup-init -y --default-toolchain stable --profile minimal
-    rm /tmp/rustup-init
+    if ! have rustc; then
+        local triple="x86_64-unknown-linux-gnu"
+        [ "$(dpkg --print-architecture)" = arm64 ] && triple="aarch64-unknown-linux-gnu"
+        curl -fSL "${RUSTUP_UPDATE_ROOT}/dist/${triple}/rustup-init" -o /tmp/rustup-init
+        chmod +x /tmp/rustup-init
+        /tmp/rustup-init -y --default-toolchain stable --profile minimal
+        rm /tmp/rustup-init
+    fi
     mkdir -p "$HOME/.cargo"
     cat > "$HOME/.cargo/config.toml" <<EOF
 [source.crates-io]
@@ -85,26 +89,58 @@ registry = "sparse+${CRATES_INDEX}/"
 [net]
 git-fetch-with-cli = true
 EOF
-    . "$HOME/.cargo/env" && rustc --version && cargo --version
+    . "$HOME/.cargo/env"
+    # pi-rs 件执行链:rust-lld(llvm-tools)+ fmt/clippy + rust-script + cargo-zigbuild
+    rustup component add llvm-tools rustfmt clippy
+    have rust-script      || cargo install rust-script --locked
+    have cargo-zigbuild   || cargo install cargo-zigbuild --locked
+    rustc --version && cargo --version
 }
 
 # ---- node ----------------------------------------------------------
 install_node() {
     log "node $NODE_VERSION (npmmirror 二进制镜像,npm registry=$NPM_REGISTRY)"
-    if have node && [ "$(node -v)" = "v${NODE_VERSION}" ]; then
-        echo "已安装 $(node -v),跳过"; return
+    if ! have node || [ "$(node -v)" != "v${NODE_VERSION}" ]; then
+        local arch ver_dir="node-v${NODE_VERSION}-linux-x64"
+        case "$(dpkg --print-architecture)" in amd64) arch=x64;; arm64) arch=arm64;; *) echo "不支持的架构"; exit 1;; esac
+        local tgz="node-v${NODE_VERSION}-linux-${arch}.tar.xz"
+        curl -fSL "${NODE_MIRROR}/v${NODE_VERSION}/${tgz}" -o "/tmp/${tgz}"
+        rm -rf "/opt/node" && mkdir -p /opt/node
+        tar -C /opt/node -xJf "/tmp/${tgz}" --strip-components=1 && rm "/tmp/${tgz}"
+        ln -sf /opt/node/bin/node /usr/local/bin/node
+        ln -sf /opt/node/bin/npm /usr/local/bin/npm
+        ln -sf /opt/node/bin/npx /usr/local/bin/npx
     fi
-    local arch ver_dir="node-v${NODE_VERSION}-linux-x64"
-    case "$(dpkg --print-architecture)" in amd64) arch=x64;; arm64) arch=arm64;; *) echo "不支持的架构"; exit 1;; esac
-    local tgz="node-v${NODE_VERSION}-linux-${arch}.tar.xz"
-    curl -fSL "${NODE_MIRROR}/v${NODE_VERSION}/${tgz}" -o "/tmp/${tgz}"
-    rm -rf "/opt/node" && mkdir -p /opt/node
-    tar -C /opt/node -xJf "/tmp/${tgz}" --strip-components=1 && rm "/tmp/${tgz}"
-    ln -sf /opt/node/bin/node /usr/local/bin/node
-    ln -sf /opt/node/bin/npm /usr/local/bin/npm
-    ln -sf /opt/node/bin/npx /usr/local/bin/npx
     npm config set registry "$NPM_REGISTRY"
-    node -v && npm -v
+    npm install -g typescript          # tsc:pi-rs 基座要求
+    ln -sf /opt/node/bin/tsc /usr/local/bin/tsc
+    ln -sf /opt/node/bin/tsserver /usr/local/bin/tsserver
+    node -v && npm -v && tsc --version
+}
+
+# ---- fnm + 多版本 node(pnpm-rs 基座:node 经 fnm 管理) ----------------
+install_fnm() {
+    log "fnm + node $FNM_NODE_VERSIONS (fnm 经 cargo 装,node 二进制走 npmmirror 镜像)"
+    . "$HOME/.cargo/env" 2>/dev/null || true
+    if ! have fnm; then
+        cargo install fnm --locked
+    fi
+    fnm --version
+    for v in $FNM_NODE_VERSIONS; do
+        fnm install --node-dist-mirror "$NODE_MIRROR" "$v"
+    done
+    # 最高版本设为默认,并把它的 node/npm/npx 固定到 /usr/local/bin
+    local latest; latest="$(fnm ls | grep -o 'v[0-9.]*' | sort -uV | tail -1 | tr -d v)"
+    fnm default "$latest"
+    local fdir; fdir="$(fnm exec --using="$latest" which node | xargs dirname)"
+    ln -sf "$fdir/node" /usr/local/bin/node
+    ln -sf "$fdir/npm"  /usr/local/bin/npm
+    ln -sf "$fdir/npx"  /usr/local/bin/npx
+    cat > /etc/profile.d/fnm.sh <<'EOF'
+export PATH="$HOME/.local/share/fnm:$PATH"
+eval "$(fnm env 2>/dev/null)" || true
+EOF
+    fnm ls
 }
 
 # ---- bun -----------------------------------------------------------
@@ -138,6 +174,33 @@ export UV_INDEX_URL=${PIP_INDEX}
 EOF
     export UV_INDEX_URL="$PIP_INDEX"
     uv --version
+}
+
+# ---- python2.7(逆向分析;noble 无官方包,源码编译) ----------------------
+install_python2() {
+    log "python $PY2_VERSION (源码编译,$PY2_MIRROR)"
+    if have python2.7; then python2.7 --version; echo "已安装,跳过"; return; fi
+    apt-get update -qq
+    apt-get install -y --no-install-recommends \
+        libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev \
+        libncursesw5-dev xz-utils libffi-dev
+    curl -fSL "${PY2_MIRROR}/${PY2_VERSION}/Python-${PY2_VERSION}.tgz" -o /tmp/py2.tgz
+    rm -rf /tmp/py2build && mkdir -p /tmp/py2build
+    tar -C /tmp/py2build -xzf /tmp/py2.tgz --strip-components=1 && rm /tmp/py2.tgz
+    ( cd /tmp/py2build && ./configure --prefix=/usr/local --enable-shared \
+        && make -j"$(nproc)" && make altinstall )
+    rm -rf /tmp/py2build
+    ln -sf /usr/local/bin/python2.7 /usr/local/bin/python2
+    python2.7 --version
+}
+
+# ---- fd / ripgrep(pi-rs 托管工具:搜索显微镜) --------------------------
+install_fd() {
+    log "fd + ripgrep (apt,tuna)"
+    apt-get update -qq
+    apt-get install -y --no-install-recommends fd-find ripgrep
+    ln -sf /usr/bin/fdfind /usr/local/bin/fd
+    fd --version && rg --version
 }
 
 # ---- dotnet --------------------------------------------------------
@@ -246,7 +309,7 @@ EOF
 }
 
 # ---- 入口 -----------------------------------------------------------
-ALL=(c golang rust node bun python uv dotnet pwsh zig sdkman)
+ALL=(c golang rust node bun python uv python2 fd fnm dotnet pwsh zig sdkman)
 
 main() {
     local targets=("$@")
