@@ -98,9 +98,9 @@ install_python() {
     # 分析 venv:polars/pyarrow/chdb 等全进这里,系统 python 保持干净
     [ -d "$VENV_ANALYTICS" ] || uv venv "$VENV_ANALYTICS"
     VIRTUAL_ENV="$VENV_ANALYTICS" uv pip install polars pyarrow chdb
-    # ruff 用 uv tool 隔离安装(shim 在 ~/.local/bin,链到 /usr/local/bin)
+    # ruff 用 uv tool 隔离安装;UV_TOOL_* 指 /opt 使 ubuntu 可执行(评审 F5)
+    export UV_TOOL_BIN_DIR=/usr/local/bin UV_TOOL_DIR=/opt/uv-tools
     have ruff || uv tool install ruff
-    [ -e "$HOME/.local/bin/ruff" ] && ln -sf "$HOME/.local/bin/ruff" /usr/local/bin/ruff
     # pwntools 只走 apt(p0 批的 python3-pwntools):pip 版会盖住 dist-packages 造成双版本,评审 F8
     python3 --version && uv --version && ruff --version
 }

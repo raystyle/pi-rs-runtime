@@ -93,7 +93,7 @@ EOF
     rm -rf "$gpw"
     cat > /etc/profile.d/golang.sh <<EOF
 export PATH=\$PATH:/usr/local/go/bin
-export GOPATH=\${GOPATH:-/root/go}
+export GOPATH=\${GOPATH:-/opt/go}
 export PATH=\$PATH:\$GOPATH/bin
 EOF
     export PATH=$PATH:/usr/local/go/bin
@@ -101,7 +101,10 @@ EOF
 }
 
 install_rust() {
-    log "rust (rustup 与 crates index 均走 tuna)"
+    log "rust (rustup 与 crates index 均走 tuna;工具链归 /opt 多用户可读)"
+    # RUSTUP_HOME/CARGO_HOME 指 /opt:/root 是 0700,ubuntu 执行不了 /root/.cargo 下
+    # 的 rustc/cargo;fresh 构建从这起装对位置(评审 F5)
+    export RUSTUP_HOME=/opt/rustup CARGO_HOME=/opt/cargo
     if ! have rustc; then
         local triple="x86_64-unknown-linux-gnu"
         [ "$(dpkg --print-architecture)" = arm64 ] && triple="aarch64-unknown-linux-gnu"
@@ -110,8 +113,8 @@ install_rust() {
         /tmp/rustup-init -y --default-toolchain stable --profile minimal
         rm /tmp/rustup-init
     fi
-    mkdir -p "$HOME/.cargo"
-    cat > "$HOME/.cargo/config.toml" <<EOF
+    mkdir -p /opt/cargo
+    cat > /opt/cargo/config.toml <<EOF
 [source.crates-io]
 replace-with = 'tuna-sparse'
 
@@ -129,20 +132,20 @@ EOF
 export RUSTUP_DIST_SERVER=${RUSTUP_DIST_SERVER}
 export RUSTUP_UPDATE_ROOT=${RUSTUP_UPDATE_ROOT}
 EOF
-    . "$HOME/.cargo/env"
+    . /opt/cargo/env
     # pi-rs 件执行链:rust-lld(llvm-tools)+ fmt/clippy + rust-script + cargo-zigbuild
     rustup component add llvm-tools rustfmt clippy rust-analyzer
     have rust-script      || cargo install rust-script --locked
     have cargo-zigbuild   || cargo install cargo-zigbuild --locked
     have cargo-audit      || cargo install cargo-audit --locked   # 依赖漏洞审计
     for b in cargo-audit; do
-        [ -e "$HOME/.cargo/bin/$b" ] && ln -sf "$HOME/.cargo/bin/$b" "/usr/local/bin/$b"
+        [ -e /opt/cargo/bin/$b ] && ln -sf /opt/cargo/bin/$b "/usr/local/bin/$b"
     done
     # rust-lld 进 PATH(pi-rs 件执行链直接当链接器用)
-    local rlld; rlld="$(ls /root/.rustup/toolchains/*/lib/rustlib/*/bin/rust-lld 2>/dev/null | head -1)"
+    local rlld; rlld="$(ls /opt/rustup/toolchains/*/lib/rustlib/*/bin/rust-lld /root/.rustup/toolchains/*/lib/rustlib/*/bin/rust-lld 2>/dev/null | head -1)"
     [ -n "$rlld" ] && ln -sf "$rlld" /usr/local/bin/rust-lld
     for b in rustc cargo rustup rust-script cargo-zigbuild; do
-        [ -e "$HOME/.cargo/bin/$b" ] && ln -sf "$HOME/.cargo/bin/$b" "/usr/local/bin/$b"
+        [ -e /opt/cargo/bin/$b ] && ln -sf /opt/cargo/bin/$b "/usr/local/bin/$b"
     done
     # pi-rs 件生态预热:cargo fetch 拉进 registry 缓存(经 tuna),件首跑不再下载
     local pw=/tmp/rust-prewarm

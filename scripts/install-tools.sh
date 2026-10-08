@@ -36,11 +36,11 @@ install_cli() {
     export GOPROXY GOSUMDB
     if ! have yq; then
         go install github.com/mikefarah/yq/v4@latest
-        ln -sf /root/go/bin/yq /usr/local/bin/yq
+        ln -sf /opt/go/bin/yq /usr/local/bin/yq
     fi
     if ! have gh; then
         go install github.com/cli/cli/v2/cmd/gh@latest   # gh 官方 apt 源国内无镜像,源码编译
-        ln -sf /root/go/bin/gh /usr/local/bin/gh
+        ln -sf /opt/go/bin/gh /usr/local/bin/gh
     fi
     # just 在部分套件下无 apt 包,兜底 cargo
     if ! have just; then
@@ -76,7 +76,7 @@ PD_TOOLS_DEFAULT=(
 install_pd() {
     log "projectdiscovery 全家桶 (go install @${PD_VERSION},经 $GOPROXY)"
     . "$HOME/.cargo/env" 2>/dev/null || true
-    export PATH="$PATH:/usr/local/go/bin:${GOPATH:-/root/go}/bin"
+    export GOPATH=/opt/go PATH="$PATH:/usr/local/go/bin:/opt/go/bin"
     export GOPROXY GOSUMDB
     # shellcheck disable=SC2206
     local tools=( ${PD_TOOLS:-} ); [ ${#tools[@]} -eq 0 ] && tools=("${PD_TOOLS_DEFAULT[@]}")
@@ -287,7 +287,7 @@ install_pivot() {
     have rathole || cargo install rathole \
         || cargo install --git https://github.com/rathole-org/rathole || echo "rathole 失败"
     have bore     || cargo install bore-cli --locked || echo "bore 失败"
-    local gobin; gobin="$(go env GOPATH)/bin"
+    local gobin; gobin="/opt/go/bin"; export GOPATH=/opt/go
     for b in gost frps frpc; do
         [ -e "$gobin/$b" ] && ln -sf "$gobin/$b" "/usr/local/bin/$b"
     done
@@ -329,9 +329,10 @@ install_p0() {
     local gh="${GITHUB_MIRROR}https://github.com"
     # pwndbg: PyPI 有官方包,比 deb 简单且可钉版
     # pwndbg:tuna/PyPI 无包;uv tool 从 git 源装(未钉 rev,上游 dev 分支会漂,见 ROADMAP)
+    # UV_TOOL_BIN_DIR/UV_TOOL_DIR 指到 /opt:shim 与工具体对 ubuntu 可读(评审 F5)
     . "$HOME/.local/bin/env" 2>/dev/null || true
+    export UV_TOOL_BIN_DIR=/usr/local/bin UV_TOOL_DIR=/opt/uv-tools
     have pwndbg || uv tool install "git+${gh}/pwndbg/pwndbg" || echo "pwndbg 失败"
-    [ -e "$HOME/.local/bin/pwndbg" ] && ln -sf "$HOME/.local/bin/pwndbg" /usr/local/bin/pwndbg
     # jadx:CLI zip
     if ! have jadx; then
         local jv; jv="${JADX_VERSION:-1.5.3}"
@@ -381,99 +382,22 @@ install_p0() {
 }
 
 
-# ---- C2 框架(sliver/merlin/empire/covenant) -----------------------------
-# 只装默认骨架;监听/证书配置属部署面,不在安装器里做
+# ---- C2 框架参考(sliver/merlin/empire/covenant/ysoserial 系) ---------------
+# 用户裁定(2026-10-08):C2 代码不安装不编译,只克隆给后渗透参考——
+# 自架 C2 等于在自己基础设施上起 beacon 服务,供给面风险自负
 install_c2() {
-    log "C2: sliver + merlin + empire + covenant"
+    log "C2 参考克隆(不安装不运行): sliver/merlin/empire/covenant/ysoserial/ysoserial.net"
     local gh="${GITHUB_MIRROR}https://github.com"
-    export PATH="$PATH:/usr/local/go/bin:/root/go/bin:/usr/local/bin"
-
-    # sliver:GitHub Release 预编译,按资产名匹配 linux 包
-    if ! have sliver-server; then
-        curl -fsSL "https://api.github.com/repos/bishopfox/sliver/releases/latest" \
-            | python3 -c "
-import json,sys,urllib.request,os
-rel=json.load(sys.stdin)
-mirror=os.environ.get('GITHUB_MIRROR','')
-for want in ('sliver-server_linux','sliver-client_linux'):
-    for a in rel['assets']:
-        n=a['name']
-        if want in n and not any(x in n for x in ('windows','darwin','mac','.sig','.minisig','.pem','SHA256','sbom')):
-            import platform
-            arch = 'arm64' if platform.machine() in ('aarch64','arm64') else 'amd64'
-            if ('-'+arch) in n:
-                print(mirror+a['browser_download_url']+' '+want)
-" | while read -r url name; do
-            curl -fSL "$url" -o "/tmp/${name}.bin" && install -m755 "/tmp/${name}.bin" "/usr/local/bin/${name}" && rm "/tmp/${name}.bin"
-        done
-    fi
-    have sliver-server && sliver-server version 2>/dev/null | head -1 || echo "sliver-server 装失败(可手动下 release)"
-
-    # merlin:latest tag(v1.5.1)没有 cmd/merlinserver,v2 在默认分支(master/main 逐个试)
-    have merlinserver || go install github.com/Ne0nd0g/merlin/cmd/merlinserver@main \
-        || go install github.com/Ne0nd0g/merlin/cmd/merlinserver@master \
-        || go install github.com/Ne0nd0g/merlin/cmd/merlinserver@v2.1.3+incompatible
-    [ -e /root/go/bin/merlinserver ] && ln -sf /root/go/bin/merlinserver /usr/local/bin/merlinserver || echo "merlinserver 失败"
-
-    # empire:Python 重型框架,装依赖交互多;克隆钉版,首次启用走 /opt/Empire 的 install
-    if [ ! -d /opt/Empire/.git ]; then
-        rm -rf /opt/Empire && git clone --depth 1 "${gh}/BC-SECURITY/Empire" /opt/Empire
-    fi
-    echo "Empire 已克隆到 /opt/Empire;首次启用: cd /opt/Empire && ./ps-empire install (交互,依赖较多)"
-
-    # covenant:.NET C2(项目已归档,可能编不过新 dotnet);克隆并尽力 build
-    if [ ! -d /opt/Covenant/.git ]; then
-        rm -rf /opt/Covenant && git clone --depth 1 "${gh}/cobbr/Covenant" /opt/Covenant
-    fi
-    # covenant 只当参考代码克隆(用户裁定);要编译按 dotnetfx-plan 旁路 SDK 3.1.426 方案
-
-    # ysoserial:Java 反序列化 payload 生成;maven 依赖已走阿里云(settings.xml)
-    if ! have ysoserial; then
-        rm -rf /tmp/ysoserial && git clone --depth 1 "${gh}/frohoff/ysoserial" /tmp/ysoserial
-        # JDK 21 删了 java.rmi.activation(JenkinsListener/JRMPListener 要用),
-        # 必须用 JDK 8 构建;temurin-8 已在 sdkman 装好
-        local j8; j8="$(ls -d /opt/jdk/temurin-8* 2>/dev/null | head -1)"
-        [ -n "$j8" ] || { echo "无 JDK 8,先跑 install-runtimes.sh sdkman"; }
-        if ( cd /tmp/ysoserial && JAVA_HOME="$j8" PATH="$j8/bin:$PATH" mvn -q package -DskipTests ); then
-            install -d /opt/ysoserial
-            cp /tmp/ysoserial/target/ysoserial-*.jar /opt/ysoserial/ysoserial.jar
-            printf '#!/bin/sh\nexec java -jar /opt/ysoserial/ysoserial.jar "$@"\n' > /usr/local/bin/ysoserial
-            chmod +x /usr/local/bin/ysoserial
-        else
-            echo "ysoserial 打包失败(mvn package;查依赖下载)"
-        fi
-        rm -rf /tmp/ysoserial
-    fi
-    have ysoserial && echo "ysoserial 就绪" || true
-
-    # ysoserial.net:.NET Framework v4.7.2 老式 csproj,dotnet 10 编不了;
-    # 下 release 预编译 + mono 运行
-    if ! have ysoserial.net; then
-        apt-get install -y --no-install-recommends mono-runtime
-        local ynurl; ynurl="$(curl -fsSL "https://api.github.com/repos/pwntester/ysoserial.net/releases/latest" \
-            | python3 -c "
-import json,sys,os
-rel=json.load(sys.stdin)
-mirror=os.environ.get('GITHUB_MIRROR','')
-for a in rel['assets']:
-    if a['name'].endswith('.zip'):
-        print(mirror+a['browser_download_url']); break
-")"
-        if [ -n "$ynurl" ]; then
-            curl -fSL "$ynurl" -o /tmp/ysoserialnet.zip
-            rm -rf /opt/ysoserial.net && mkdir -p /opt/ysoserial.net
-            unzip -q /tmp/ysoserialnet.zip -d /opt/ysoserial.net && rm /tmp/ysoserialnet.zip
-            local ynexe; ynexe="$(find /opt/ysoserial.net -name 'ysoserial*.exe' | head -1)"
-            if [ -n "$ynexe" ]; then
-                printf '#!/bin/sh\nexec mono %s "$@"\n' "$ynexe" > /usr/local/bin/ysoserial.net
-                chmod +x /usr/local/bin/ysoserial.net
-            fi
-        fi
-    fi
-    [ -x /usr/local/bin/ysoserial.net ] && echo "ysoserial.net 就绪(--help 退出码非 0,不做健康判断)" || echo "ysoserial.net 装失败"
+    install -d /opt/c2-ref
+    local r
+    for r in bishopfox/sliver Ne0nd0g/merlin BC-SECURITY/Empire cobbr/Covenant \
+             frohoff/ysoserial pwntester/ysoserial.net; do
+        local d="/opt/c2-ref/$(basename "$r")"
+        [ -d "$d/.git" ] || git clone --depth 1 "${gh}/${r}" "$d" || echo "$r 克隆失败"
+    done
+    echo "参考就位: /opt/c2-ref/(构建与运行属部署面,参考 grok dotnetfx 方案与各仓库文档)"
     true
 }
-
 
 # ---- BOF(Beacon Object File)工具链:交叉编译 + 脱离 C2 运行 ----------------
 install_bof() {
@@ -493,16 +417,18 @@ install_bof() {
     # atomic-bofs:rasta-mouse 的 COFF 独立运行 harness(带打包参数)
     [ -d /opt/atomic-bofs/.git ] || git clone --depth 1 "${gh}/rasta-mouse/atomic-bofs" /opt/atomic-bofs
     # Coffee(hakaioffsec):Rust 现代 COFF loader,crate 名 coffee-ldr
-    if ! have coffee; then
-        . "$HOME/.cargo/env" 2>/dev/null || true
-        export PATH="$PATH:/root/.cargo/bin"
-        cargo install coffee-ldr --locked \
-            || cargo install --git "${gh}/hakaioffsec/coffee" --locked \
-            || echo "coffee 失败"
-        [ -e "$HOME/.cargo/bin/coffee" ] && ln -sf "$HOME/.cargo/bin/coffee" /usr/local/bin/coffee
+    # 上游 lib.rs 用 #![feature(c_variadic/core_intrinsics)],stable 编不过,需 nightly
+    if ! have coffee-ldr; then
+        . /opt/cargo/env 2>/dev/null || . "$HOME/.cargo/env" 2>/dev/null || true
+        export PATH="$PATH:/opt/cargo/bin:$HOME/.cargo/bin"
+        rustup toolchain install nightly --profile minimal >/dev/null 2>&1 || true
+        cargo +nightly install coffee-ldr --locked \
+            || cargo +nightly install --git "${gh}/hakaioffsec/coffee" --locked \
+            || echo "coffee 失败(nightly 亦不过则上游问题,留档)"
+        [ -e /opt/cargo/bin/coffee-ldr ] && ln -sf /opt/cargo/bin/coffee-ldr /usr/local/bin/coffee-ldr
         [ -e "$HOME/.cargo/bin/coffee-ldr" ] && ln -sf "$HOME/.cargo/bin/coffee-ldr" /usr/local/bin/coffee-ldr
     fi
-    { have coffee || have coffee-ldr; } && echo "coffee 就绪"
+    have coffee-ldr && echo "coffee-ldr 就绪" || echo "coffee-ldr 未装上(BOF 运行还有 bof-launcher 与 mingw/wine 路径)"
     # bof-launcher(The-Z-Labs):Zig 写的 BOF 加载器;仓库钉 zig 0.15.2,
     # 系统 zig 0.16 可能编不过,失败则提示按仓库说明下 0.15.2
     if ! have bof-launcher; then
