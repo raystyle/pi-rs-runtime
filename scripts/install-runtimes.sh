@@ -49,6 +49,8 @@ EOF
     npm install -g prettier eslint
     ln -sf /opt/node/bin/prettier /usr/local/bin/prettier 2>/dev/null || true
     ln -sf /opt/node/bin/eslint /usr/local/bin/eslint 2>/dev/null || true
+    # dotnetjs:.NET Framework BCL 的 JS 实现(pseudocc),分析/复现 .NET 行为用
+    npm install -g dotnetjs || echo "dotnetjs 失败(npmmirror)"
     node -v && npm -v && tsc --version
 }
 
