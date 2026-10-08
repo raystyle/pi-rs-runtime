@@ -171,7 +171,7 @@ install_ghidra() {
     fi
     local gdir; gdir="$(ls -d /opt/ghidra/ghidra_*/ | head -1)"
     # 钉死 JDK 21:多版本共存时防止被默认 JDK(25)抢
-    local j21; j21="$(ls -d /opt/jdk/temurin-21* "$HOME"/.sdkman/candidates/java/21* 2>/dev/null | head -1)"
+    local j21; j21="$(ls -d /opt/jdk/temurin-21* /usr/local/sdkman/candidates/java/21* 2>/dev/null | head -1)"
     [ -n "$j21" ] || { echo "找不到 JDK 21,先跑 install-runtimes.sh sdkman"; exit 1; }
     printf 'JAVA_HOME_OVERRIDE=%s\n' "$j21" >> "${gdir}support/launch.properties"
     ln -sf "${gdir}ghidraRun" /usr/local/bin/ghidraRun
