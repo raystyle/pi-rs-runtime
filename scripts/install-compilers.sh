@@ -25,11 +25,25 @@ install_golang() {
     fi
     local tgz="go${GOLANG_VERSION}.linux-$(dpkg --print-architecture).tar.gz"
     curl -fSL "${GO_DOWNLOAD}/${tgz}" -o "/tmp/${tgz}"
+    # 校验和:官方 JSON 提供每平台 sha256(镜像站不带 .sha256 文件,不从目录取)
+    if have python3; then
+        local want
+        want="$(curl -fsSL "https://golang.google.cn/dl/?mode=json" | python3 -c "
+import json,sys
+for rel in json.load(sys.stdin):
+    for f in rel.get('files',[]):
+        if f['filename']=='${tgz}': print(f['sha256']); break
+")"
+        if [ -n "$want" ]; then
+            echo "${want}  /tmp/${tgz}" | sha256sum -c - || { echo "go tarball 校验失败"; exit 1; }
+        fi
+    fi
     rm -rf /usr/local/go && tar -C /usr/local -xzf "/tmp/${tgz}" && rm "/tmp/${tgz}"
+    ln -sf /usr/local/go/bin/go /usr/local/bin/go
+    # go env -w 落到 $HOME/.config/go/env,go 命令自己读,不依赖 profile(incus exec 生效)
+    /usr/local/bin/go env -w GOPROXY="${GOPROXY}" GOSUMDB="${GOSUMDB}"
     cat > /etc/profile.d/golang.sh <<EOF
 export PATH=\$PATH:/usr/local/go/bin
-export GOPROXY=${GOPROXY}
-export GOSUMDB=${GOSUMDB}
 export GOPATH=\${GOPATH:-/root/go}
 export PATH=\$PATH:\$GOPATH/bin
 EOF
@@ -55,14 +69,25 @@ replace-with = 'tuna-sparse'
 [source.tuna-sparse]
 registry = "sparse+${CRATES_INDEX}/"
 
+[registries.tuna]
+index = "sparse+${CRATES_INDEX}/"
+
 [net]
 git-fetch-with-cli = true
+EOF
+    # rustup 更新通道持久化(tuna 帮助口径),否则 rustup update 回官方源
+    cat > /etc/profile.d/rustup.sh <<EOF
+export RUSTUP_DIST_SERVER=${RUSTUP_DIST_SERVER}
+export RUSTUP_UPDATE_ROOT=${RUSTUP_UPDATE_ROOT}
 EOF
     . "$HOME/.cargo/env"
     # pi-rs 件执行链:rust-lld(llvm-tools)+ fmt/clippy + rust-script + cargo-zigbuild
     rustup component add llvm-tools rustfmt clippy
     have rust-script      || cargo install rust-script --locked
     have cargo-zigbuild   || cargo install cargo-zigbuild --locked
+    for b in rustc cargo rustup rust-script cargo-zigbuild; do
+        [ -e "$HOME/.cargo/bin/$b" ] && ln -sf "$HOME/.cargo/bin/$b" "/usr/local/bin/$b"
+    done
     rustc --version && cargo --version
 }
 

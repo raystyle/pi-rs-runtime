@@ -16,13 +16,16 @@ ADOPTIUM_MIRROR="${ADOPTIUM_MIRROR:-$TUNA/Adoptium}"
 MAVEN_MIRROR="${MAVEN_MIRROR:-$TUNA/apache/maven}"
 
 # ---- 版本钉 -------------------------------------------------------
-GOLANG_VERSION="${GOLANG_VERSION:-1.23.4}"
-NODE_VERSION="${NODE_VERSION:-22.12.0}"
+GOLANG_VERSION="${GOLANG_VERSION:-1.27.1}"   # 两个维护线内取最新;sha256 钉在 install_golang
+NODE_VERSION="${NODE_VERSION:-24.21.0}"   # 当前 Active LTS(Krypton)
 FNM_NODE_VERSIONS="${FNM_NODE_VERSIONS:-18 20 22 24}"   # fnm 预装的流行 node 历史版本(大版本号)
-DOTNET_SDK="${DOTNET_SDK:-dotnet-sdk-8.0}"
+DOTNET_SDK="${DOTNET_SDK:-dotnet-sdk-10.0}"  # noble 自带源(即 tuna);8.0 将于 2026-11 停止支持
+NUGET_MIRROR="${NUGET_MIRROR:-https://repo.huaweicloud.com/repository/nuget/v3/index.json}"
 PD_VERSION="${PD_VERSION:-latest}"          # projectdiscovery 工具编译版本
 ZIG_VERSION="${ZIG_VERSION:-0.16.0}"
 MAVEN_VERSION="${MAVEN_VERSION:-3.9.16}"
+GRADLE_VERSION="${GRADLE_VERSION:-8.14.3}"
+MAVEN_DEP_MIRROR="${MAVEN_DEP_MIRROR:-https://maven.aliyun.com/repository/public}"
 JAVA_VERSIONS="${JAVA_VERSIONS:-8 11 17 21 25}"  # sdkman 预装的开源 JDK 主版本(temurin,tuna Adoptium;25 为新 LTS)
 PY2_VERSION="${PY2_VERSION:-2.7.18}"             # 逆向分析用;noble 官方源无 python2,源码编译
 PY2_MIRROR="${PY2_MIRROR:-https://mirrors.huaweicloud.com/python}"

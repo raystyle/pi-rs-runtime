@@ -17,13 +17,20 @@ install_node() {
         case "$(dpkg --print-architecture)" in amd64) arch=x64;; arm64) arch=arm64;; *) echo "不支持的架构"; exit 1;; esac
         local tgz="node-v${NODE_VERSION}-linux-${arch}.tar.xz"
         curl -fSL "${NODE_MIRROR}/v${NODE_VERSION}/${tgz}" -o "/tmp/${tgz}"
+        # 校验和(npmmirror 镜像带 SHASUMS256.txt)
+        curl -fsSL "${NODE_MIRROR}/v${NODE_VERSION}/SHASUMS256.txt" -o /tmp/SHASUMS256.txt
+        grep " ${tgz}$" /tmp/SHASUMS256.txt | sha256sum -c - || { echo "node tarball 校验失败"; exit 1; }
+        rm -f /tmp/SHASUMS256.txt
         rm -rf "/opt/node" && mkdir -p /opt/node
         tar -C /opt/node -xJf "/tmp/${tgz}" --strip-components=1 && rm "/tmp/${tgz}"
         ln -sf /opt/node/bin/node /usr/local/bin/node
         ln -sf /opt/node/bin/npm /usr/local/bin/npm
         ln -sf /opt/node/bin/npx /usr/local/bin/npx
     fi
-    npm config set registry "$NPM_REGISTRY"
+    # 写 prefix 级全局 npmrc:对所有用户生效(默认只写 root ~/.npmrc)
+    npm config set --location=global registry "$NPM_REGISTRY"
+    npm config set --location=global disturl "https://npmmirror.com/mirrors/node"
+    npm config set --location=global electron_mirror "https://npmmirror.com/mirrors/electron/"
     npm install -g typescript          # tsc:pi-rs 基座要求
     ln -sf /opt/node/bin/tsc /usr/local/bin/tsc
     ln -sf /opt/node/bin/tsserver /usr/local/bin/tsserver
@@ -61,6 +68,10 @@ install_bun() {
     # npm 的 shim 在 /opt/node/bin(非交互 shell 不在 PATH),固定链接到 /usr/local/bin
     ln -sf /opt/node/bin/bun /usr/local/bin/bun
     ln -sf /opt/node/bin/bunx /usr/local/bin/bunx
+    # bun 不读 npmrc,要 bunfig;官方推荐写法(root 与 ubuntu 各一份)
+    for u in /root /home/ubuntu; do
+        [ -d "$u" ] && printf '[install]\nregistry = "%s"\n' "$NPM_REGISTRY" > "$u/.bunfig.toml"
+    done
     bun --version
 }
 
@@ -68,7 +79,8 @@ install_python() {
     log "python3 + pip (索引 $PIP_INDEX)"
     apt-get update -qq
     apt-get install -y --no-install-recommends python3 python3-pip python3-venv python3-dev
-    pip3 config set global.index-url "$PIP_INDEX"
+    # 系统级 pip 配置(root 与 ubuntu 用户都读;不要加 extra-index-url,防依赖混淆)
+    printf '[global]\nindex-url = %s\n' "$PIP_INDEX" > /etc/pip.conf
     python3 --version && pip3 --version
 }
 
@@ -94,23 +106,28 @@ install_uv() {
     if have uv; then uv --version; echo "已安装,跳过"; return; fi
     # noble 的系统 python 标记 externally-managed(PEP 668),容器内允许直装
     pip3 install -U --break-system-packages uv
-    cat > /etc/profile.d/uv.sh <<EOF
-export UV_INDEX_URL=${PIP_INDEX}
-EOF
-    export UV_INDEX_URL="$PIP_INDEX"
+    # uv 0.4.23 起 UV_INDEX_URL 废弃;系统配置写 /etc/uv/uv.toml(tuna 帮助口径)
+    install -d /etc/uv
+    printf '[[index]]\nurl = "%s"\ndefault = true\n' "$PIP_INDEX" > /etc/uv/uv.toml
+    export UV_DEFAULT_INDEX="$PIP_INDEX"
     uv --version
 }
 
 install_dotnet() {
-    log "dotnet ($DOTNET_SDK,packages.microsoft.com,国内无镜像)"
-    if dpkg -l "$DOTNET_SDK" >/dev/null 2>&1; then
-        echo "已安装,跳过"; return
-    fi
-    local uver; uver="$(. /etc/os-release && echo "$VERSION_ID")"
-    curl -fSL "https://packages.microsoft.com/config/ubuntu/${uver}/packages-microsoft-prod.deb" -o /tmp/ms-prod.deb
-    dpkg -i /tmp/ms-prod.deb && rm /tmp/ms-prod.deb
+    log "dotnet ($DOTNET_SDK,noble 自带源=tuna;MS 仓 24.04 起不提供 .NET)"
     apt-get update -qq
-    apt-get install -y "$DOTNET_SDK"
+    apt-get install -y "$DOTNET_SDK" || true
+    # NuGet 库镜像:华为 v3(已实证 200;不要用 azure.cn 旧 CDN,已解析失败)
+    for u in /root /home/ubuntu; do
+        [ -d "$u" ] && install -d "$u/.nuget/NuGet" && cat > "$u/.nuget/NuGet/NuGet.Config" <<EOF
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <packageSources>
+    <add key="huaweicloud" value="${NUGET_MIRROR}" />
+  </packageSources>
+</configuration>
+EOF
+    done
     dotnet --version
 }
 
@@ -127,8 +144,8 @@ install_dotnet_repo() {
 install_pwsh() {
     log "pwsh (packages.microsoft.com,国内无镜像)"
     if have pwsh; then pwsh --version; echo "已安装,跳过"; return; fi
-    install_dotnet_repo   # 复用 MS apt 源
-    apt-get install -y powershell
+    install_dotnet_repo   # MS apt 源只为 pwsh 注册(dotnet 走 Ubuntu 源)
+    apt-get install -y powershell-lts || apt-get install -y powershell
     pwsh --version
 }
 
@@ -141,11 +158,14 @@ install_sdkman() {
         curl -fSL "https://get.sdkman.io" -o /tmp/sdkman-init.sh
         SDKMAN_DIR="$sdk_dir" bash /tmp/sdkman-init.sh
         rm /tmp/sdkman-init.sh
-        sed -i 's|^sdkman_auto_env=.*|sdkman_auto_env=true|' "$sdk_dir/etc/config"
+        sed -i -e 's|^sdkman_auto_env=.*|sdkman_auto_env=true|' \
+               -e 's|^sdkman_auto_selfupdate=.*|sdkman_auto_selfupdate=false|' \
+               -e 's|^sdkman_auto_answer=.*|sdkman_auto_answer=true|' "$sdk_dir/etc/config"
     fi
     cat > /etc/profile.d/sdkman.sh <<EOF
 export SDKMAN_DIR="$sdk_dir"
 [ -s "\$SDKMAN_DIR/bin/sdkman-init.sh" ] && . "\$SDKMAN_DIR/bin/sdkman-init.sh"
+[ -n "\${JAVA_HOME:-}" ] || export JAVA_HOME="\$SDKMAN_DIR/candidates/java/current"
 EOF
     export SDKMAN_DIR="$sdk_dir"
     set +u   # sdkman-init.sh 里有未绑定变量引用,与 set -u 冲突
@@ -174,9 +194,14 @@ EOF
         default_ver="${ver}-tem"
         echo "java $major -> ${ver}-tem"
     done
-    [ -n "$default_ver" ] && sdk default java "$default_ver" || true
+    if [ -n "$default_ver" ]; then
+        sdk default java "$default_ver" || true
+        # java 进默认 PATH(非登录 shell 也能用)
+        ln -sf "$sdk_dir/candidates/java/current/bin/java" /usr/local/bin/java
+        ln -sf "$sdk_dir/candidates/java/current/bin/javac" /usr/local/bin/javac
+    fi
 
-    log "maven $MAVEN_VERSION (tuna apache 镜像,直装)"
+    log "maven $MAVEN_VERSION (tuna apache 镜像,直装;依赖走阿里云)"
     if ! have mvn; then
         local mtgz="apache-maven-${MAVEN_VERSION}-bin.tar.gz"
         curl -fSL "${MAVEN_MIRROR}/maven-3/${MAVEN_VERSION}/binaries/${mtgz}" -o "/tmp/${mtgz}"
@@ -184,10 +209,53 @@ EOF
         tar -C /opt/maven -xzf "/tmp/${mtgz}" --strip-components=1 && rm "/tmp/${mtgz}"
         ln -sf /opt/maven/bin/mvn /usr/local/bin/mvn
     fi
+    # 依赖镜像写安装目录的 settings.xml:对所有调用生效(tuna 只镜像发行包,不镜像 Central)
+    cat > /opt/maven/conf/settings.xml <<EOF
+<settings>
+  <mirrors>
+    <mirror>
+      <id>aliyunmaven</id>
+      <mirrorOf>central</mirrorOf>
+      <name>阿里云公共仓库</name>
+      <url>${MAVEN_DEP_MIRROR}</url>
+    </mirror>
+  </mirrors>
+</settings>
+EOF
+    # 非交互 shell 没有 JAVA_HOME,从 sdkman current 推
+    export JAVA_HOME="${JAVA_HOME:-$sdk_dir/candidates/java/current}"
     mvn -version | head -1
 
-    log "gradle (sdkman)"
-    sdk install gradle || true
+    log "gradle $GRADLE_VERSION (阿里云 distributions 直装;依赖经 init.d 指阿里云)"
+    if ! have gradle; then
+        local gver="$GRADLE_VERSION"
+        local gzip="gradle-${gver}-bin.zip"
+        curl -fSL "https://mirrors.aliyun.com/gradle/distributions/v${gver}/${gzip}" -o "/tmp/${gzip}"
+        rm -rf /opt/gradle && mkdir -p /opt/gradle
+        unzip -q "/tmp/${gzip}" -d /opt/gradle && rm "/tmp/${gzip}"
+        local gdir; gdir="$(ls -d /opt/gradle/gradle-*/ | head -1)"
+        ln -sf "${gdir}bin/gradle" /usr/local/bin/gradle
+    fi
+    # init script:同时盖插件解析与项目依赖(只改 allprojects 盖不住 settings 的 pluginManagement)
+    for u in /root /home/ubuntu; do
+        [ -d "$u" ] && install -d "$u/.gradle/init.d" && cat > "$u/.gradle/init.d/mirrors.gradle" <<'EOF'
+allprojects {
+    repositories {
+        maven { url 'https://maven.aliyun.com/repository/public' }
+        maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
+    }
+}
+settingsEvaluated { settings ->
+    settings.pluginManagement {
+        repositories {
+            maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
+            gradlePluginPortal()
+        }
+    }
+}
+EOF
+    done
+    gradle --version 2>/dev/null | grep -m1 Gradle
     sdk current
 }
 
