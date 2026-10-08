@@ -495,6 +495,18 @@ install_bof() {
         [ -e "$HOME/.cargo/bin/coffee" ] && ln -sf "$HOME/.cargo/bin/coffee" /usr/local/bin/coffee
     fi
     have coffee && coffee --help 2>/dev/null | head -1
+    # bof-launcher(The-Z-Labs):Zig 写的 BOF 加载器;仓库钉 zig 0.15.2,
+    # 系统 zig 0.16 可能编不过,失败则提示按仓库说明下 0.15.2
+    if ! have bof-launcher; then
+        rm -rf /tmp/bof-launcher && git clone --depth 1 "${gh}/The-Z-Labs/bof-launcher" /tmp/bof-launcher
+        if ( cd /tmp/bof-launcher && zig build -Doptimize=ReleaseSafe ); then
+            find /tmp/bof-launcher/zig-out -name bof-launcher -type f -exec install -m755 {} /usr/local/bin/bof-launcher \;
+        else
+            echo "bof-launcher 构建失败(zig 0.16 与仓库钉的 0.15.2 可能不兼容;按 README 下 zig 0.15.2 再编)"
+        fi
+        rm -rf /tmp/bof-launcher
+    fi
+    have bof-launcher && echo "bof-launcher 就绪"
     # 参考目录
     install -d /opt/bofs
     curl -fsSL "${gh}/chryzsh/awesome-bof/raw/main/BOF-CATALOG.md" -o /opt/bofs/BOF-CATALOG.md \
