@@ -227,6 +227,18 @@ install_pwsh() {
     pwsh --version
 }
 
+
+# ---- ast-grep(结构化搜索,命令 sg) -------------------------------------
+install_astgrep() {
+    log "ast-grep (cargo 安装,经 tuna crates)"
+    . "$HOME/.cargo/env" 2>/dev/null || true
+    export PATH="$PATH:/root/.cargo/bin"
+    if have sg; then sg --version; echo "已安装,跳过"; return; fi
+    cargo install ast-grep --locked
+    ln -sf /root/.cargo/bin/sg /usr/local/bin/sg
+    sg --version
+}
+
 # ---- projectdiscovery 全家桶(漏洞分析/外部测绘) ------------------------
 # CLI 全部 go install 从源码编译(GOPROXY=goproxy.cn);库随之进模块缓存
 PD_TOOLS_DEFAULT=(
@@ -353,7 +365,7 @@ EOF
 }
 
 # ---- 入口 -----------------------------------------------------------
-ALL=(c golang rust node bun python uv python2 fd fnm dotnet pwsh zig sdkman pd)
+ALL=(c golang rust node bun python uv python2 fd fnm dotnet pwsh zig sdkman pd astgrep)
 
 main() {
     local targets=("$@")
