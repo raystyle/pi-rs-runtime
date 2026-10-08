@@ -574,5 +574,23 @@ install_pz() {
     true
 }
 
-TOOLS_ALL=(fd astgrep cli ghidra re pd secgo secrust pivot p0 c2 bof pz)
+
+# ---- nushell(结构化 shell) ------------------------------------------------
+install_nu() {
+    log "nushell (GitHub release 预编译)"
+    local gh="${GITHUB_MIRROR}https://github.com"
+    if ! have nu; then
+        local ntag narc; case "$(dpkg --print-architecture)" in amd64) narc=x86_64;; arm64) narc=aarch64;; esac
+        ntag="$(curl -fsSL "https://api.github.com/repos/nushell/nushell/releases/latest" | grep -o '"tag_name": *"[^"]*"' | cut -d'"' -f4)"
+        local ntgz="nu-${ntag}-${narc}-unknown-linux-gnu.tar.gz"
+        curl -fSL "https://github.com/nushell/nushell/releases/download/${ntag}/${ntgz}" -o "/tmp/${ntgz}" \
+            && tar -C /tmp -xzf "/tmp/${ntgz}" \
+            && install -m755 "/tmp/nu-${ntag}-${narc}-unknown-linux-gnu/nu" /usr/local/bin/nu \
+            && rm -rf "/tmp/${ntgz}" "/tmp/nu-${ntag}-${narc}-unknown-linux-gnu"
+    fi
+    nu --version
+    true
+}
+
+TOOLS_ALL=(fd astgrep cli ghidra re pd secgo secrust pivot p0 c2 bof pz nu)
 run_category TOOLS_ALL "$@"
