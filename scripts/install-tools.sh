@@ -150,8 +150,8 @@ install_secrust() {
     have rustscan    || cargo install rustscan --locked
     have feroxbuster || cargo install feroxbuster --locked
     # findomain 依赖多,cargo 失败则提示走 GitHub Releases 预编译
-    have findomain   || cargo install findomain --locked || echo "findomain 编译失败,改走 https://github.com/Findomain/Findomain/releases 预编译"
-    for b in rustscan feroxbuster findomain; do
+    # findomain 依赖多常编不过,要用时走 https://github.com/Findomain/Findomain/releases 预编译
+    for b in rustscan feroxbuster; do
         if have "$b"; then
             ln -sf "$HOME/.cargo/bin/$b" "/usr/local/bin/$b" 2>/dev/null || true
             "$b" --version 2>/dev/null | head -1
@@ -321,14 +321,18 @@ install_p0() {
         || "$RE_VENV/bin/pip" install --no-cache-dir flare-floss oletools
     "$RE_VENV/bin/pip" install netexec \
         || "$RE_VENV/bin/pip" install "git+https://github.com/Pennyw0rth/NetExec"
+    # venv 里的 CLI 进默认 PATH(评审 F6):pd/secgo 约定是 /usr/local/bin
+    for b in floss olevba oleid netexec; do
+        [ -e "$RE_VENV/bin/$b" ] && ln -sf "$RE_VENV/bin/$b" "/usr/local/bin/$b"
+    done
 
     log "P0 GitHub 批(钉版,无国内镜像):pwndbg/jadx/apktool/capa/SecLists/YARA规则/pdf工具"
     local gh="${GITHUB_MIRROR}https://github.com"
     # pwndbg: PyPI 有官方包,比 deb 简单且可钉版
     # pwndbg:tuna 索引没有,pip/uv 从 PyPI 都会空;走 git 源
-    have pwndbg || uv tool install pwndbg 2>/dev/null \
-        || uv tool install "git+https://github.com/pwndbg/pwndbg" \
-        || pip3 install -U --break-system-packages "git+https://github.com/pwndbg/pwndbg" \
+    # pwndbg:tuna/PyPI 无包;uv tool 从 git 源装(未钉 rev,上游 dev 分支会漂,ROADMAP)
+    have pwndbg || uv tool install "${gh/https:\/\/github.com\/pwndbg\/pwndbg}" 2>/dev/null \
+        || uv tool install "git+${gh}/pwndbg/pwndbg" \
         || echo "pwndbg 失败"
     [ -e "$HOME/.local/bin/pwndbg" ] && ln -sf "$HOME/.local/bin/pwndbg" /usr/local/bin/pwndbg
     # jadx:CLI zip
@@ -337,7 +341,8 @@ install_p0() {
         local jz="jadx-${jv}.zip"
         curl -fSL "${gh}/skylot/jadx/releases/download/v${jv}/${jz}" -o "/tmp/${jz}" \
             && unzip -q "/tmp/${jz}" -d /opt/jadx && rm "/tmp/${jz}"
-        ln -sf "/opt/jadx/jadx-${jv}/bin/jadx" /usr/local/bin/jadx 2>/dev/null || true
+        # zip 根布局是 bin/jadx + lib/,没有版本目录
+        ln -sf /opt/jadx/bin/jadx /usr/local/bin/jadx 2>/dev/null || true
     fi
     # apktool:jar + 包装脚本
     if ! have apktool; then
@@ -349,7 +354,7 @@ install_p0() {
     fi
     # capa:独立发行包(带规则);规则库单独克隆便于更新
     if ! have capa; then
-        local cv; cv="${CAPA_VERSION:-9.5.0}"
+        local cv; cv="${CAPA_VERSION:-9.4.0}"   # v9.5.0 上游不存在,latest=v9.4.0(已核)
         local cz="capa-v${cv}-linux.zip"
         curl -fSL "${gh}/mandiant/capa/releases/download/v${cv}/${cz}" -o "/tmp/${cz}" \
             && unzip -q "/tmp/${cz}" -d /opt/capa && rm "/tmp/${cz}"
@@ -362,7 +367,9 @@ install_p0() {
     if ! have pdfid.py; then
         rm -rf /tmp/dss && git clone --depth 1 "${gh}/DidierStevens/DidierStevensSuite" /tmp/dss
         cp /tmp/dss/pdfid.py /tmp/dss/pdf-parser.py /usr/local/bin/ 2>/dev/null \
-            && chmod +x /usr/local/bin/pdfid.py /usr/local/bin/pdf-parser.py
+            && chmod +x /usr/local/bin/pdfid.py /usr/local/bin/pdf-parser.py \
+            # shebang 是 python,noble 无此命令,改成 python3
+            && sed -i '1s|^#!.*|#!/usr/bin/env python3|' /usr/local/bin/pdfid.py /usr/local/bin/pdf-parser.py
         rm -rf /tmp/dss
     fi
     # SecLists 词表(大,depth 1)

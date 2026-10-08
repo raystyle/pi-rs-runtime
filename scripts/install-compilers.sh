@@ -25,7 +25,9 @@ install_c() {
         curl -fSL "https://flatassembler.net/fasm-${fv}.tgz" -o /tmp/fasm.tgz
         rm -rf /opt/fasm && mkdir -p /opt/fasm
         tar -C /opt/fasm -xzf /tmp/fasm.tgz && rm /tmp/fasm.tgz
-        ln -sf /opt/fasm/fasm /usr/local/bin/fasm
+        # 包内顶层是 fasm/ 目录;amd64 要用 fasm.x64(fasm 是 32 位)
+        [ -e /opt/fasm/fasm/fasm.x64 ] && ln -sf /opt/fasm/fasm/fasm.x64 /usr/local/bin/fasm \
+            || ln -sf /opt/fasm/fasm/fasm /usr/local/bin/fasm
     fi
     fasm -v 2>/dev/null | head -1 || true
 }
@@ -52,12 +54,18 @@ for rel in json.load(sys.stdin):
     fi
     rm -rf /usr/local/go && tar -C /usr/local -xzf "/tmp/${tgz}" && rm "/tmp/${tgz}"
     ln -sf /usr/local/go/bin/go /usr/local/bin/go
-    # 黄金三件:调试器 dlv、语言服务器 gopls、静态检查 golangci-lint
     export PATH=$PATH:/usr/local/go/bin
-    have dlv || go install github.com/go-delve/delve/cmd/dlv@latest
-    have gopls || go install golang.org/x/tools/gopls@latest
-    ln -sf /usr/local/go/bin/dlv /usr/local/bin/dlv 2>/dev/null || true
-    ln -sf /usr/local/go/bin/gopls /usr/local/bin/gopls 2>/dev/null || true
+    # go env -w 先于下面的 go install,且 GOPROXY 已 export(common.sh)
+    /usr/local/bin/go env -w GOPROXY="${GOPROXY}" GOSUMDB="${GOSUMDB}" 2>/dev/null || true
+    # 黄金三件:调试器 dlv、语言服务器 gopls、静态检查 golangci-lint
+    # 注意:go install 产物落在 $(go env GOPATH)/bin(root 下 /root/go/bin),不在 /usr/local/go/bin
+    local gobin; gobin="$(/usr/local/bin/go env GOPATH)/bin"
+    have dlv          || go install github.com/go-delve/delve/cmd/dlv@latest
+    have gopls        || go install golang.org/x/tools/gopls@latest
+    have golangci-lint || go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+    for b in dlv gopls golangci-lint; do
+        [ -e "$gobin/$b" ] && ln -sf "$gobin/$b" "/usr/local/bin/$b"
+    done
     # 跳板/代理库预热:进模块缓存,自写隧道工具 go build 不再爬网
     local gpw=/tmp/go-prewarm
     rm -rf "$gpw" && mkdir -p "$gpw"
@@ -83,8 +91,6 @@ EOF
     ( cd "$gpw" && GOFLAGS=-mod=mod go mod tidy >/dev/null 2>&1 && go build ./... ) \
         && echo "go 跳板库已预热" || echo "!! go 库预热失败(不影响链本体)"
     rm -rf "$gpw"
-    # go env -w 落到 $HOME/.config/go/env,go 命令自己读,不依赖 profile(incus exec 生效)
-    /usr/local/bin/go env -w GOPROXY="${GOPROXY}" GOSUMDB="${GOSUMDB}"
     cat > /etc/profile.d/golang.sh <<EOF
 export PATH=\$PATH:/usr/local/go/bin
 export GOPATH=\${GOPATH:-/root/go}

@@ -44,6 +44,7 @@ EOF
     ln -sf /opt/node/bin/tsc /usr/local/bin/tsc
     ln -sf /opt/node/bin/tsserver /usr/local/bin/tsserver
     # 黄金:corepack 启用 pnpm/yarn;prettier/eslint 全局
+    export COREPACK_NPM_REGISTRY="$NPM_REGISTRY"   # pnpm/yarn 首次下载走 npmmirror
     corepack enable 2>/dev/null || true
     npm install -g prettier eslint
     ln -sf /opt/node/bin/prettier /usr/local/bin/prettier 2>/dev/null || true
@@ -95,8 +96,7 @@ install_python() {
     # 黄金:pipx(隔离装 CLI 应用)、ruff(全 Python  fastest  linter/formatter)
     apt-get install -y --no-install-recommends pipx
     pip3 install -U --break-system-packages ruff
-    # pwntools:pwn 常规件(依赖 binutils/libssl 已在 C 链)
-    python3 -c "import pwn" 2>/dev/null || pip3 install --break-system-packages pwntools || echo "pwntools 装失败,可 pipx 重试"
+    # pwntools 只走 apt(p0 批的 python3-pwntools):pip 版会盖住 dist-packages 造成双版本,评审 F8
     python3 --version && pip3 --version && ruff --version
 }
 
