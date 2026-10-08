@@ -7,6 +7,7 @@
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 
-bash "$HERE/install-compilers.sh" "$@"
-bash "$HERE/install-runtimes.sh" "$@"
-bash "$HERE/install-tools.sh" "$@"
+# 全量入口不转发过滤器:单项安装直接用对应分类脚本
+bash "$HERE/install-compilers.sh"
+bash "$HERE/install-runtimes.sh"
+bash "$HERE/install-tools.sh"

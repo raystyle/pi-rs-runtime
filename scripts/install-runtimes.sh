@@ -19,7 +19,9 @@ install_node() {
         curl -fSL "${NODE_MIRROR}/v${NODE_VERSION}/${tgz}" -o "/tmp/${tgz}"
         # 校验和(npmmirror 镜像带 SHASUMS256.txt)
         curl -fsSL "${NODE_MIRROR}/v${NODE_VERSION}/SHASUMS256.txt" -o /tmp/SHASUMS256.txt
-        grep " ${tgz}$" /tmp/SHASUMS256.txt | sha256sum -c - || { echo "node tarball 校验失败"; exit 1; }
+        # 校验行用绝对路径:sha256sum -c 按 CWD 解析裸文件名,裸写会装失败
+        grep " ${tgz}$" /tmp/SHASUMS256.txt | awk -v f="/tmp/${tgz}" '{print $1"  "f}' | sha256sum -c - \
+            || { echo "node tarball 校验失败"; exit 1; }
         rm -f /tmp/SHASUMS256.txt
         rm -rf "/opt/node" && mkdir -p /opt/node
         tar -C /opt/node -xJf "/tmp/${tgz}" --strip-components=1 && rm "/tmp/${tgz}"
@@ -32,6 +34,8 @@ install_node() {
     # disturl/electron_mirror 不是 npm 11 的合法 option,config set 会拒;
     # 直写 npmrc 文件——npm 会把任意键以 npm_config_* 形式传给生命周期脚本(node-gyp/electron 正是这么读的)
     install -d /opt/node/etc
+    # 幂等:先清旧键再写,避免重跑追加
+    sed -i -e '/^disturl=/d' -e '/^electron_mirror=/d' /opt/node/etc/npmrc 2>/dev/null || true
     cat >> /opt/node/etc/npmrc <<EOF
 disturl=https://npmmirror.com/mirrors/node
 electron_mirror=https://npmmirror.com/mirrors/electron/
@@ -52,13 +56,10 @@ install_fnm() {
     for v in $FNM_NODE_VERSIONS; do
         fnm install --node-dist-mirror "$NODE_MIRROR" "$v"
     done
-    # 最高版本设为默认,并把它的 node/npm/npx 固定到 /usr/local/bin
+    # 只设 fnm 默认版本,不改 /usr/local/bin:系统 node 仍是 /opt/node(24.21.0 钉),
+    # 全局 npmrc/bun/tsc 都依赖那个 prefix。项目要切版本:fnm use / fnm exec。
     local latest; latest="$(fnm ls | grep -o 'v[0-9.]*' | sort -uV | tail -1 | tr -d v)"
-    fnm default "$latest"
-    local fdir; fdir="$(fnm exec --using="$latest" which node | xargs dirname)"
-    ln -sf "$fdir/node" /usr/local/bin/node
-    ln -sf "$fdir/npm"  /usr/local/bin/npm
-    ln -sf "$fdir/npx"  /usr/local/bin/npx
+    fnm default "$latest" || true
     cat > /etc/profile.d/fnm.sh <<'EOF'
 export PATH="$HOME/.local/share/fnm:$PATH"
 eval "$(fnm env 2>/dev/null)" || true
@@ -121,13 +122,14 @@ install_uv() {
 install_dotnet() {
     log "dotnet ($DOTNET_SDK,noble 自带源=tuna;MS 仓 24.04 起不提供 .NET)"
     apt-get update -qq
-    apt-get install -y "$DOTNET_SDK" || true
+    apt-get install -y "$DOTNET_SDK"
     # NuGet 库镜像:华为 v3(已实证 200;不要用 azure.cn 旧 CDN,已解析失败)
     for u in /root /home/ubuntu; do
         [ -d "$u" ] && install -d "$u/.nuget/NuGet" && cat > "$u/.nuget/NuGet/NuGet.Config" <<EOF
 <?xml version="1.0" encoding="utf-8"?>
 <configuration>
   <packageSources>
+    <clear />
     <add key="huaweicloud" value="${NUGET_MIRROR}" />
   </packageSources>
 </configuration>
@@ -279,17 +281,19 @@ install_php() {
         have "php${v}" && "php${v}" -v | head -1
     done
     # VLD(opcode dump):PHP 8.0 工具链最稳,8.1+ 常需自行编译;逐个版本尽力而为
+    apt-get install -y --no-install-recommends php-pear
     for v in $PHP_VERSIONS; do
         have "php${v}" || continue
-        if ! "php${v}" -m 2>/dev/null | grep -qi '^vld$'; then
-            "php${v}" -d vld.active=1 -r 'echo 1;' >/dev/null 2>&1 && continue
-            echo "--- 为 php${v} 编译 VLD(pecl vld-beta)"
-            if yes '' | pecl -q install vld-beta >/dev/null 2>&1; then
-                echo "extension=vld.so" > "/etc/php/${v}/mods-available/vld.ini"
-                phpenmod -v "$v" vld 2>/dev/null || true
-            else
-                echo "php${v} 的 VLD 编译失败(可手动 phpize 编译 VLD 0.18.0)"
-            fi
+        if "php${v}" -m 2>/dev/null | grep -qi '^vld$'; then
+            echo "php${v}: VLD 已在"; continue
+        fi
+        echo "--- 为 php${v} 编译 VLD(pecl vld-beta,sury 多版本用 php_suffix)"
+        if yes '' | pecl -q -d "php_suffix=${v}" install vld-beta >/dev/null 2>&1; then
+            echo "extension=vld.so" > "/etc/php/${v}/mods-available/vld.ini"
+            phpenmod -v "$v" vld 2>/dev/null || true
+            "php${v}" -m 2>/dev/null | grep -qi '^vld$' && echo "php${v}: VLD 装好" || echo "php${v}: VLD ini 已写但未加载,查 php${v} -m"
+        else
+            echo "php${v} 的 VLD 编译失败(可手动 phpize 编译 VLD 0.18.0)"
         fi
     done
     # 分析注意:跑样本前关 opcache.jit(VLD 与单步行为会偏);

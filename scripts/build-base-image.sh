@@ -24,8 +24,10 @@ sudo incus image import incus.tar.xz rootfs.squashfs --alias "$ALIAS"
 echo ">> 验证:启动临时容器检查 apt 源与 cloud-init"
 sudo incus launch "$ALIAS" verify-base
 trap 'sudo incus delete -f verify-base >/dev/null 2>&1 || true' EXIT
-sleep 5
+# 等 cloud-init 完成(首启持 apt 锁,固定 sleep 会偶发抢锁失败)
+sudo incus exec verify-base -- sh -c 'cloud-init status --wait >/dev/null 2>&1 || true'
+# 镜像是 deb822 源,键是 URIs:;grep ^deb 什么也匹配不到
 sudo incus exec verify-base -- sh -c \
-  'grep -rh "^deb " /etc/apt/ | head -3; apt-get update -qq && echo APT_UPDATE_OK; cloud-init --version'
+  'grep -rh "URIs:" /etc/apt/sources.list.d/ | head -3; apt-get update -qq && echo APT_UPDATE_OK; cloud-init --version'
 
 echo ">> 完成。之后运行:incus image delete $ALIAS 之前的旧指纹如有需要自行清理"

@@ -151,7 +151,12 @@ install_secrust() {
     have feroxbuster || cargo install feroxbuster --locked
     # findomain 依赖多,cargo 失败则提示走 GitHub Releases 预编译
     have findomain   || cargo install findomain --locked || echo "findomain 编译失败,改走 https://github.com/Findomain/Findomain/releases 预编译"
-    for b in rustscan feroxbuster findomain; do have "$b" && "$b" --version 2>/dev/null | head -1; done
+    for b in rustscan feroxbuster findomain; do
+        if have "$b"; then
+            ln -sf "$HOME/.cargo/bin/$b" "/usr/local/bin/$b" 2>/dev/null || true
+            "$b" --version 2>/dev/null | head -1
+        fi
+    done
 }
 
 
@@ -173,7 +178,12 @@ install_ghidra() {
     # 钉死 JDK 21:多版本共存时防止被默认 JDK(25)抢
     local j21; j21="$(ls -d /opt/jdk/temurin-21* /usr/local/sdkman/candidates/java/21* 2>/dev/null | head -1)"
     [ -n "$j21" ] || { echo "找不到 JDK 21,先跑 install-runtimes.sh sdkman"; exit 1; }
-    printf 'JAVA_HOME_OVERRIDE=%s\n' "$j21" >> "${gdir}support/launch.properties"
+    local lp="${gdir}support/launch.properties"
+    if grep -q '^JAVA_HOME_OVERRIDE=' "$lp" 2>/dev/null; then
+        sed -i "s|^JAVA_HOME_OVERRIDE=.*|JAVA_HOME_OVERRIDE=${j21}|" "$lp"
+    else
+        printf 'JAVA_HOME_OVERRIDE=%s\n' "$j21" >> "$lp"
+    fi
     ln -sf "${gdir}ghidraRun" /usr/local/bin/ghidraRun
     ln -sf "${gdir}support/analyzeHeadless" /usr/local/bin/analyzeHeadless
     echo "JDK21 -> $j21"
