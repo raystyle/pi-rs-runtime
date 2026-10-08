@@ -325,7 +325,11 @@ install_p0() {
     log "P0 GitHub 批(钉版,无国内镜像):pwndbg/jadx/apktool/capa/SecLists/YARA规则/pdf工具"
     local gh="${GITHUB_MIRROR}https://github.com"
     # pwndbg: PyPI 有官方包,比 deb 简单且可钉版
-    have pwndbg || pip3 install -U --break-system-packages pwndbg || echo "pwndbg 失败(可 uv tool install pwndbg 重试)"
+    # pwndbg:tuna 索引没有,pip/uv 从 PyPI 都会空;走 git 源
+    have pwndbg || uv tool install pwndbg 2>/dev/null \
+        || uv tool install "git+https://github.com/pwndbg/pwndbg" \
+        || pip3 install -U --break-system-packages "git+https://github.com/pwndbg/pwndbg" \
+        || echo "pwndbg 失败"
     # jadx:CLI zip
     if ! have jadx; then
         local jv="${JADX_VERSION:-1.5.3}" jz="jadx-${jv}.zip"
