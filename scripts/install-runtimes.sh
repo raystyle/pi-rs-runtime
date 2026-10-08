@@ -112,7 +112,9 @@ install_bun() {
     log "bun (经 npmmirror registry 的 npm 全局安装)"
     if have bun; then bun --version; echo "已安装,跳过"; return; fi
     npm install -g bun
-    ln -sf /opt/node/lib/node_modules/bun/bin/bun /usr/local/bin/bun 2>/dev/null || true
+    # npm 的 shim 在 /opt/node/bin(非交互 shell 不在 PATH),固定链接到 /usr/local/bin
+    ln -sf /opt/node/bin/bun /usr/local/bin/bun
+    ln -sf /opt/node/bin/bunx /usr/local/bin/bunx
     bun --version
 }
 
