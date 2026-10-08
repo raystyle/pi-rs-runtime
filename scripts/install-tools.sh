@@ -268,12 +268,19 @@ install_pivot() {
     # Go 栈
     have gost   || go install github.com/go-gost/gost/cmd/gost@latest \
         || go install github.com/ginuerzh/gost/cmd/gost@latest || echo "gost 失败"
-    # frp 的 go.mod 带 replace,go install @latest 拒装,必须克隆后本地 build
+    # frp:go.mod 带 replace(go install 拒装),源码 build 又缺 web/dist(embed 失败)
+    # → 直接下 GitHub Release 预编译(arm 机器改 FRP_ARCH)
     if ! have frps || ! have frpc; then
-        rm -rf /tmp/frp && git clone --depth 1 "https://github.com/fatedier/frp" /tmp/frp \
-            && ( cd /tmp/frp && go build -o /root/go/bin/frps ./cmd/frps && go build -o /root/go/bin/frpc ./cmd/frpc ) \
-            || echo "frp 失败"
-        rm -rf /tmp/frp
+        local ftag farch="amd64"; [ "$(dpkg --print-architecture)" = arm64 ] && farch="arm64"
+        ftag="$(curl -fsSL "https://api.github.com/repos/fatedier/frp/releases/latest" | grep -o '"tag_name": *"[^"]*"' | cut -d'"' -f4)"
+        if [ -n "$ftag" ]; then
+            local ftgz="frp_${ftag#v}_linux_${farch}.tar.gz"
+            curl -fSL "https://github.com/fatedier/frp/releases/download/${ftag}/${ftgz}" -o "/tmp/${ftgz}" \
+                && tar -C /tmp -xzf "/tmp/${ftgz}" \
+                && install -m755 "/tmp/frp_${ftag#v}_linux_${farch}/frps" "/tmp/frp_${ftag#v}_linux_${farch}/frpc" /usr/local/bin/ \
+                && rm -rf "/tmp/${ftgz}" "/tmp/frp_${ftag#v}_linux_${farch}"
+        fi
+        have frps || echo "frp 失败"
     fi
     # Rust 栈
     # wstunnel 不在 crates.io,cargo install --git 拉源码(依赖走 tuna)
@@ -309,7 +316,11 @@ install_p0() {
     log "P0 re-venv pip 批(TUNA PyPI):FLOSS/oletools/netexec"
     [ -x "$RE_VENV/bin/pip" ] || python3 -m venv "$RE_VENV"
     "$RE_VENV/bin/pip" install -U pip >/dev/null
-    "$RE_VENV/bin/pip" install flare-floss oletools netexec
+    # netexec 在 tuna 索引里可能缺,PyPI 装不上退回 git 源
+    "$RE_VENV/bin/pip" install flare-floss oletools \
+        || "$RE_VENV/bin/pip" install --no-cache-dir flare-floss oletools
+    "$RE_VENV/bin/pip" install netexec \
+        || "$RE_VENV/bin/pip" install "git+https://github.com/Pennyw0rth/NetExec"
 
     log "P0 GitHub 批(钉版,无国内镜像):pwndbg/jadx/apktool/capa/SecLists/YARA规则/pdf工具"
     local gh="${GITHUB_MIRROR}https://github.com"
