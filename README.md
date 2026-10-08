@@ -72,6 +72,34 @@ incus shell mybox
 
 容器内 apt 源已是 tuna,`apt-get update/install` 直接可用。
 
+## 运行时清单(安装,不是打包进镜像)
+
+`scripts/install-runtimes.sh` 在容器内**逐个安装**下列运行时并配置国内镜像源,幂等可重跑。思路与 [ark_rs](https://github.com/raystyle/ark_rs)(Agent Runtime Kit)一致:运行时管理是独立一层,不进基础镜像。
+
+```bash
+incus launch ubuntu-24.04-base rt
+incus file push scripts/install-runtimes.sh rt/root/ --create-dirs
+incus exec rt -- bash /root/install-runtimes.sh            # 全部
+incus exec rt -- bash /root/install-runtimes.sh rust node  # 或只装指定几个
+```
+
+| # | 运行时 | 安装方式 | 默认版本 | 镜像源 |
+|---|--------|----------|----------|--------|
+| 1 | C 工具链 | apt | build-essential/clang/cmake/ninja | tuna apt |
+| 2 | golang | golang.google.cn 官方 tarball | 1.23.4 | 下载 `golang.google.cn`;模块 `GOPROXY=goproxy.cn` |
+| 3 | rust | rustup(`--profile minimal`) | stable | rustup 与 crates 全走 `rsproxy.cn`(sparse) |
+| 4 | node | npmmirror 二进制 tarball | 22.12.0 | 下载与 npm registry 均 `registry.npmmirror.com` |
+| 5 | bun | npm 全局安装 | latest | 经 npmmirror registry |
+| 6 | python | apt + pip | noble 自带 3.12 | pip `pypi.tuna.tsinghua.edu.cn` |
+| 7 | dotnet | packages.microsoft.com apt | sdk-8.0 | 无国内镜像(标注) |
+| 8 | pwsh | packages.microsoft.com apt | LTS | 无国内镜像(标注) |
+| 9 | zig | ziglang.org 官方 tarball | 0.13.0 | 无国内镜像(标注) |
+| 10 | sdkman + JDK | get.sdkman.io;temurin 从 tuna Adoptium 下载后本地路径注册进 sdkman | temurin 21 | JDK 下载 `mirrors.tuna.tsinghua.edu.cn/Adoptium`;maven/gradle 走 sdkman |
+
+环境变量可覆盖版本与镜像:`GOLANG_VERSION NODE_VERSION DOTNET_SDK JAVA_VERSION ZIG_VERSION GOPROXY NPM_REGISTRY PIP_INDEX NODE_MIRROR ADOPTIUM_MIRROR`。
+
+已验证的替代方案:tuna 无 dotnet/powershell/zig 镜像目录;npmmirror 二进制镜像有 node/bun/python/deno、无 zig。
+
 ## 备选路线:incus publish(适合单个 pi agent 实例 / 少量定制)
 
 不用 distrobuilder,直接在 Incus 里做:

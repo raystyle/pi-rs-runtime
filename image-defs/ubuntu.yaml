@@ -743,5 +743,45 @@ actions:
   types:
   - vm
 
+# Use Tsinghua TUNA mirror for apt, and make it survive cloud-init's
+# first-boot rewrite (cloud-init regenerates sources from its templates).
+- trigger: post-packages
+  action: |-
+    #!/bin/sh
+    set -eux
+    MIRROR="https://mirrors.tuna.tsinghua.edu.cn/ubuntu"
+
+    # cloud-init rewrites apt sources on first boot from these templates
+    for f in /etc/cloud/templates/sources.list.ubuntu.deb822.tmpl \
+             /etc/cloud/templates/sources.list.ubuntu.tmpl; do
+        if [ -f "$f" ]; then
+            sed -i -e "s|@MIRROR@|$MIRROR|g" \
+                   -e "s|@SECURITY@|$MIRROR|g" \
+                   -e "s|http://archive.ubuntu.com/ubuntu|$MIRROR|g" \
+                   -e "s|http://security.ubuntu.com/ubuntu|$MIRROR|g" "$f"
+        fi
+    done
+
+    # Write the final deb822 sources pointing at TUNA
+    rm -f /etc/apt/sources.list
+    cat > /etc/apt/sources.list.d/ubuntu.sources <<EOF
+    Types: deb
+    URIs: $MIRROR
+    Suites: {{ image.release }} {{ image.release }}-updates {{ image.release }}-backports
+    Components: main restricted universe multiverse
+    Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
+
+    Types: deb
+    URIs: $MIRROR
+    Suites: {{ image.release }}-security
+    Components: main restricted universe multiverse
+    Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
+    EOF
+
+    # Tell cloud-init to leave the apt sources alone
+    if [ -f /etc/cloud/cloud.cfg ]; then
+        echo "apt_preserve_sources_list: true" >> /etc/cloud/cloud.cfg
+    fi
+
 mappings:
   architecture_map: debian
