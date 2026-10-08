@@ -220,12 +220,9 @@ install_re() {
     ldconfig
     if ! rizin -qc 'Lc' /bin/ls 2>/dev/null | grep -qi ghidra; then
         rm -rf /tmp/rz-ghidra
-        git clone --depth 1 "${gh}/rizinorg/rz-ghidra" /tmp/rz-ghidra
-        # rz-ghidra 硬编码从 <rz-ghidra>/ghidra/ghidra/Ghidra/... 取反编译器源
-        # (ghidra/CMakeLists.txt:146 的 SOURCE_DIR,发布 zip 里没有这些源),
-        # 把 ghidra 源码克隆放到这个嵌套位置
-        git clone --depth 1 --branch "Ghidra_${GHIDRA_VERSION}_build" "${gh}/NationalSecurityAgency/ghidra" /tmp/rz-ghidra/ghidra/ghidra \
-            || git clone --depth 1 "${gh}/NationalSecurityAgency/ghidra" /tmp/rz-ghidra/ghidra/ghidra
+        # ghidra 是 rz-ghidra 的 git 子模块,其提交钉死了匹配的 ghidra ref;
+        # 自己按版本号克隆会 API 不匹配(core_ghidra.cpp 编译错),必须走子模块
+        git clone --depth 1 --recurse-submodules --shallow-submodules "${gh}/rizinorg/rz-ghidra" /tmp/rz-ghidra
         export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
         # rz_core.pc 的 plugindir 是相对路径,pkg-config 直取会装到 CWD 相对目录
         # 然后被 rm 掉;用 rizin 运行时报告的 dir.plugins 为准
