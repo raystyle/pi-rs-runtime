@@ -264,5 +264,5 @@ EOF
     sdk current
 }
 
-RUNTIMES_ALL=(node fnm bun python python2 uv dotnet pwsh sdkman)
+RUNTIMES_ALL=(node fnm bun python python2 uv php dotnet pwsh sdkman)
 run_category RUNTIMES_ALL "$@"
