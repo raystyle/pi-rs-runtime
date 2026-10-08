@@ -132,20 +132,28 @@ incus file push scripts rt/root/ --create-dirs -r
 incus exec rt -- bash /root/scripts/install-all.sh
 ```
 
-| # | 运行时 | 安装方式 | 默认版本 | 镜像源 |
-|---|--------|----------|----------|--------|
-| 1 | C 工具链 | apt | build-essential/clang/cmake/ninja | tuna apt |
-| 2 | golang | 官方 tarball | 1.23.4 | 下载 `mirror.nju.edu.cn/golang`(tuna 无,南大同为高校源;可切 `golang.google.cn`);模块 `GOPROXY=goproxy.cn`;`GOSUMDB=sum.golang.google.cn` |
-| 3 | rust | rustup(`--profile minimal`) | stable | **tuna** `rustup` + `crates.io-index`(sparse) |
-| 4 | node | 二进制 tarball | 22.12.0 | 下载 `npmmirror.com/-/binary/node`(tuna 无);npm registry `registry.npmmirror.com` |
-| 5 | bun | npm 全局安装 | latest | 经 npmmirror registry(tuna 无) |
-| 6 | python | apt + pip | noble 自带 3.12 | pip **tuna** `pypi/simple` |
-| 7 | uv | pip 安装(uv 无独立国内二进制镜像,PyPI 即 tuna) | latest | 库索引 `UV_INDEX_URL`=**tuna** `pypi/simple` |
-| 8 | dotnet | packages.microsoft.com apt | sdk-8.0 | 无国内镜像 |
-| 9 | pwsh | packages.microsoft.com apt | LTS | 无国内镜像 |
-| 10 | zig | ziglang.org 官方 tarball | 0.13.0 | 无国内镜像 |
-| 11 | sdkman + 多版本 JDK | get.sdkman.io;各主版本 temurin 从 **tuna Adoptium** 拉最新,本地路径逐个注册进 sdkman | **8u504 / 11.0.32.1 / 17.0.20.1 / 21.0.12.1 / 25.0.4.1**(x64 与 aarch64 同步) | JDK **tuna** `Adoptium`;maven **tuna** `apache/maven` 直装;gradle 走 sdkman |
-| 12 | projectdiscovery 全家桶 | `go install` 源码编译 19 个 CLI(subfinder/dnsx/naabu/httpx/nuclei/katana/uncover/cloudlist/notify/interactsh/chaos-client/mapcidr/asnmap/tlsx/proxify/simplehttpserver/shuffledns/crlfuzz/pdtm) | latest | 模块/源码经 `goproxy.cn`;库随编译进模块缓存;nuclei 模板另从 GitHub 拉 |
+| # | 类别 | 项 | 版本 | 源 / 配置落点 |
+|---|------|----|------|----------------|
+| 1 | 编译器 | C 工具链 | noble 安全更新 | apt **tuna** |
+| 2 | 编译器 | golang | 1.27.1(官方 JSON 验 sha256) | 下载南大镜像;`go env -w` GOPROXY=goproxy.cn / GOSUMDB=sum.golang.google.cn;`go` 链 /usr/local/bin |
+| 3 | 编译器 | rust + rust-lld/rustfmt/clippy/rust-script/cargo-zigbuild | stable(1.99) | **tuna** rustup(变量已持久化)+ crates sparse(含 `[registries.tuna]`);工具链链 /usr/local/bin |
+| 4 | 编译器 | zig | 0.16.0 | ziglang.org 直下(无机构镜像,未验 minisig,见 ROADMAP) |
+| 5 | 运行时 | node + fnm 多版本(18/20/22/24) | 默认 24.21.0(SHASUMS256 校验) | npmmirror 二进制;registry/disturl/electron_mirror 写 **全局 npmrc**(`/opt/node/etc`) |
+| 6 | 运行时 | bun | latest | npm 全局;**bunfig**(root/ubuntu);shim 链 /usr/local/bin |
+| 7 | 运行时 | python3 + pip | noble 3.12 | 索引 **tuna** `pypi.tuna.../simple`,写 **`/etc/pip.conf`**(全用户) |
+| 8 | 运行时 | python2.7(逆向) | 2.7.18 源码编译 | 华为云源;`--enable-shared` + ldconfig |
+| 9 | 运行时 | uv | latest(pip 装) | **`/etc/uv/uv.toml`** `[[index]]`(UV_INDEX_URL 已废弃) |
+| 10 | 运行时 | dotnet | sdk-10.0 | **noble 自带源(即 tuna)**;NuGet 走**华为 v3**;MS 仓仅 pwsh 用 |
+| 11 | 运行时 | pwsh | powershell-lts | packages.microsoft.com(国内无镜像) |
+| 12 | 运行时 | java ×5(sdkman) | temurin 8u504 / 11.0.32.1 / 17.0.20.1 / 21.0.12.1 / 25.0.4.1(默认 25) | **tuna** Adoptium 本地路径注册;`java/javac` 链 /usr/local/bin;JAVA_HOME 已配 |
+| 13 | 工具 | fd / ripgrep | apt 最新 | apt **tuna**;`fd` 链 /usr/local/bin |
+| 14 | 工具 | ast-grep(sg) | latest | cargo install(**tuna** crates) |
+| 15 | 工具 | cli 组:git / jq / yq / shellcheck / just / gh | apt + go install | jq/shellcheck/just=**tuna** apt;yq/gh=`go install`(goproxy.cn) |
+| 16 | 工具 | maven + settings.xml | 3.9.16 | 发行包 **tuna** apache;依赖镜像**阿里云**(写 `/opt/maven/conf/settings.xml`) |
+| 17 | 工具 | gradle + init.d | 8.14.3 | 发行包**阿里云** distributions;依赖/插件**阿里云** init.d(盖 pluginManagement) |
+| 18 | 工具 | projectdiscovery 全家桶 19 CLI | latest | `go install` 源码(goproxy.cn);naabu 已 setcap + libpcap |
+| 19 | 工具 | secgo 组 14 CLI(ffuf/gobuster/dalfox/amass/chisel/gitleaks/tomnomnom 系/gau/gospider/gowitness/AzureHound) | latest | 同上 |
+| 20 | 工具 | secrust 组(rustscan/feroxbuster/findomain) | latest | cargo install(**tuna** crates) |
 
 原则:**运行时本体可预装(任意源),库源优先 tuna**——crates/pip/JDK/maven/apt 走 tuna;golang 模块(goproxy.cn)与 npm(npmmirror) tuna 没有,用生态自有国内源;dotnet/pwsh/zig 及其库无国内镜像,走官方。
 
