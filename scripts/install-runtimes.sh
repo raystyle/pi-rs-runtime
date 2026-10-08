@@ -337,10 +337,13 @@ EOF
 
 # ---- mono(老 .NET Framework 项目的构建与运行链) --------------------------
 install_mono() {
-    log "mono 工具链 (apt,tuna):msbuild + .NET 4.x 引用程序集 + mono 运行时"
+    log "mono 工具链 (apt,tuna):xbuild + .NET 4.x 引用程序集 + mono 运行时"
+    log "注: noble 没有 msbuild 包(Debian #1033828 wontfix),经典 csproj 用 xbuild"
     apt-get update -qq
-    apt-get install -y --no-install-recommends mono-devel
-    msbuild -version 2>/dev/null | tail -1 || true
+    apt-get install -y --no-install-recommends mono-devel mono-xbuild
+    # nuget.exe:还原 packages.config 型老项目(noble apt 无 nuget 包)
+    [ -f /opt/nuget.exe ] || curl -fSL "https://dist.nuget.org/win-x86-commandline/latest/nuget.exe" -o /opt/nuget.exe
+    xbuild /version 2>/dev/null | tail -1 || true
     mono --version 2>/dev/null | head -1
 }
 
