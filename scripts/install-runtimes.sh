@@ -319,5 +319,15 @@ PHP 逆向提示:
 EOF
 }
 
-RUNTIMES_ALL=(node fnm bun python python2 uv php dotnet pwsh sdkman)
+
+# ---- mono(老 .NET Framework 项目的构建与运行链) --------------------------
+install_mono() {
+    log "mono 工具链 (apt,tuna):msbuild + .NET 4.x 引用程序集 + mono 运行时"
+    apt-get update -qq
+    apt-get install -y --no-install-recommends mono-devel
+    msbuild -version 2>/dev/null | tail -1 || true
+    mono --version 2>/dev/null | head -1
+}
+
+RUNTIMES_ALL=(node fnm bun python python2 uv php mono dotnet pwsh sdkman)
 run_category RUNTIMES_ALL "$@"

@@ -545,8 +545,13 @@ install_pz() {
     if have dotnet; then
         ( cd /opt/oleviewdotnet 2>/dev/null && ls *.sln >/dev/null 2>&1 && dotnet build -c Release ) >/dev/null 2>&1 \
             && echo "oleviewdotnet 编译完成" || echo "oleviewdotnet 编译失败(源码参考不受影响)"
-        ( cd /opt/DotNetToJScript 2>/dev/null && dotnet build -c Release ) >/dev/null 2>&1 \
-            && echo "DotNetToJScript 编译完成" || echo "DotNetToJScript 编译失败(.NET Framework 老式项目,mono/msbuild 另行处理)"
+        if ( cd /opt/DotNetToJScript 2>/dev/null && dotnet build -c Release ) >/dev/null 2>&1; then
+            echo "DotNetToJScript 编译完成(dotnet)"
+        elif have msbuild && ( cd /opt/DotNetToJScript && msbuild /p:Configuration=Release ) >/dev/null 2>&1; then
+            echo "DotNetToJScript 编译完成(mono msbuild)"
+        else
+            echo "DotNetToJScript 编译失败(dotnet 与 mono msbuild 均未过)"
+        fi
     fi
     echo "EOP 教材: /opt/windows-logical-eop-workshop"
     true
