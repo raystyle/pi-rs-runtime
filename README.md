@@ -148,7 +148,7 @@ incus exec rt -- bash /root/scripts/install-all.sh
 | 12 | 运行时 | java ×5(sdkman) | temurin 8u504 / 11.0.32.1 / 17.0.20.1 / 21.0.12.1 / 25.0.4.1(默认 25) | **tuna** Adoptium 本地路径注册;`java/javac` 链 /usr/local/bin;JAVA_HOME 已配 |
 | 13 | 工具 | fd / ripgrep | apt 最新 | apt **tuna**;`fd` 链 /usr/local/bin |
 | 14 | 工具 | ast-grep(sg) | latest | cargo install(**tuna** crates) |
-| 15 | 工具 | cli 组:git / jq / yq / shellcheck / just / gh | apt + go install | jq/shellcheck/just=**tuna** apt;yq/gh=`go install`(goproxy.cn) |
+| 15 | 工具 | cli 组:git / jq / yq / shellcheck / just / tmux / gh | apt + go install | jq/shellcheck/just=**tuna** apt;yq/gh=`go install`(goproxy.cn) |
 | 16 | 工具 | maven + settings.xml | 3.9.16 | 发行包 **tuna** apache;依赖镜像**阿里云**(写 `/opt/maven/conf/settings.xml`) |
 | 17 | 工具 | gradle + init.d | 8.14.3 | 发行包**阿里云** distributions;依赖/插件**阿里云** init.d(盖 pluginManagement) |
 | 17b | 运行时 | PHP 多版本(webshell 逆向) | 7.4 / 8.1 / 8.3(sury 源,南大镜像) | 全路径切换 `php7.4/php8.1/php8.3`;VLD 逐版本尽力编译;跑样本 `-d opcache.jit=off` |
