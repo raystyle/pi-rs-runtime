@@ -30,6 +30,8 @@ JAVA_VERSIONS="${JAVA_VERSIONS:-8 11 17 21 25}"  # sdkman 预装的开源 JDK �
 PY2_VERSION="${PY2_VERSION:-2.7.18}"             # 逆向分析用;noble 官方源无 python2,源码编译
 PY2_MIRROR="${PY2_MIRROR:-https://mirrors.huaweicloud.com/python}"
 PHP_VERSIONS="${PHP_VERSIONS:-7.4 8.1 8.3}"   # webshell 逆向:7.4 兼容老样本,8.x 对现代样本
+GHIDRA_VERSION="${GHIDRA_VERSION:-12.1.4}"        # 官方 releases 无国内镜像,GitHub 直下
+GHIDRA_DATE="${GHIDRA_DATE:-20260921}"
 SURY_MIRROR="${SURY_MIRROR:-https://mirror.nju.edu.cn/sury}"  # tuna 无 sury;南大/中科大有
 
 log()  { printf '\n\033[1;32m==> %s\033[0m\n' "$*"; }
