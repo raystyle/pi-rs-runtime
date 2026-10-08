@@ -425,24 +425,8 @@ for want in ('sliver-server_linux','sliver-client_linux'):
     if [ ! -d /opt/Covenant/.git ]; then
         rm -rf /opt/Covenant && git clone --depth 1 "${gh}/cobbr/Covenant" /opt/Covenant
     fi
-    # Covenant:netcoreapp3.1,dotnet 10 编不了;旁路装 SDK 3.1.426 到 /opt,不进 PATH
-    # + focal 的 libssl1.1(3.1 宿主启动就要;EOL 库,与 libssl3 共存,仅编译验证用)
-    if [ ! -x /opt/dotnet-3.1.426/dotnet ]; then
-        curl -fSL "https://dot.net/v1/dotnet-install.sh" -o /tmp/dotnet-install.sh \
-            && bash /tmp/dotnet-install.sh --version 3.1.426 --install-dir /opt/dotnet-3.1.426 --no-path \
-            && rm /tmp/dotnet-install.sh
-    fi
-    if ! ldconfig -p | grep -q libssl.so.1.1; then
-        curl -fSL "https://mirrors.tuna.tsinghua.edu.cn/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.24_amd64.deb" -o /tmp/libssl1.1.deb \
-            && dpkg -i /tmp/libssl1.1.deb && rm /tmp/libssl1.1.deb
-    fi
-    if [ -x /opt/dotnet-3.1.426/dotnet ] && [ ! -d /opt/Covenant/Covenant/bin ]; then
-        ( cd /opt/Covenant/Covenant \
-            && /opt/dotnet-3.1.426/dotnet restore --source "${NUGET_MIRROR}" >/dev/null 2>&1 \
-            && /opt/dotnet-3.1.426/dotnet build -c Release --no-restore >/dev/null 2>&1 ) \
-            && echo "covenant 编译完成(SDK 3.1.426 旁路)" \
-            || echo "covenant 编译失败(预览版 Blazor 包华为缺时加 --source nuget.org)"
-    fi
+    # covenant 只当参考代码克隆(用户裁定);要编译按 dotnetfx-plan 旁路 SDK 3.1.426 方案
+
     # ysoserial:Java 反序列化 payload 生成;maven 依赖已走阿里云(settings.xml)
     if ! have ysoserial; then
         rm -rf /tmp/ysoserial && git clone --depth 1 "${gh}/frohoff/ysoserial" /tmp/ysoserial
@@ -574,30 +558,9 @@ install_pz() {
     # oleviewdotnet 必须 --recurse-submodules(NtApiDotNet 是嵌套子模块),浅克隆会拉丢
     [ -d /opt/oleviewdotnet/.git ] || git clone --recurse-submodules "${gh}/tyranid/oleviewdotnet" /opt/oleviewdotnet
 
-    # DotNetToJScript:经典 csproj v3.5,唯一 mono 路径 = xbuild + nuget.exe 还原
-    if have xbuild && [ -f /opt/nuget.exe ] && [ ! -f /opt/DotNetToJScript/DotNetToJScript/bin/Release/DotNetToJScript.exe ]; then
-        ( cd /opt/DotNetToJScript \
-            && mono /opt/nuget.exe restore DotNetToJScript/packages.config -PackagesDirectory packages \
-                 -Source "${NUGET_MIRROR}" >/dev/null 2>&1 \
-            && xbuild DotNetToJScript/DotNetToJScript.csproj /p:Configuration=Release >/dev/null 2>&1 ) \
-            && echo "DotNetToJScript 编译完成(xbuild;JScript 生成依赖 Windows CodeDom,mono 上只验编译)" \
-            || echo "DotNetToJScript 编译失败"
-    fi
+    # 用户裁定(2026-10-08):这些 .NET 项目只当参考代码,后渗透用到时再编;
+    # noble 的 mono/xbuild/dotnet10 构建路径见 /tmp/pi-rs-dotnetfx-plan.md(grok 方案,留档)
 
-    if have dotnet; then
-        # oleviewdotnet:net481 + WinForms,EnableWindowsTargeting 只过 NETSDK1100,产物 Windows 用
-        if [ ! -d /opt/oleviewdotnet/OleViewDotNet/bin ]; then
-            ( cd /opt/oleviewdotnet \
-                && dotnet restore OleViewDotNet.sln --source "${NUGET_MIRROR}" >/dev/null 2>&1 \
-                && dotnet build OleViewDotNet.sln -c Release -p:EnableWindowsTargeting=true --no-restore >/dev/null 2>&1 ) \
-                && echo "oleviewdotnet 编译完成(net481,EnableWindowsTargeting)" \
-                || echo "oleviewdotnet 编译失败(源码/子模块参考不受影响)"
-        fi
-        # SAAT:唯一预期能在本容器加载的产物是 NtCoreLib 的 netstandard2.0 切片
-        ( cd /opt/pz-sandbox-tools \
-            && dotnet build NtCoreLib/NtCoreLib.csproj -c Release -f netstandard2.0 --source "${NUGET_MIRROR}" >/dev/null 2>&1 ) \
-            && echo "SAAT NtCoreLib(netstandard2.0)编译完成" || echo "SAAT NtCoreLib 编译失败"
-    fi
     echo "EOP 教材: /opt/windows-logical-eop-workshop"
     true
 }
