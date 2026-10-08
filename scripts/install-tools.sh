@@ -218,17 +218,17 @@ install_re() {
     fi
     ldconfig
     if ! rizin -qc 'Lc' /bin/ls 2>/dev/null | grep -qi ghidra; then
-        rm -rf /tmp/rz-ghidra /tmp/ghidra-src
+        rm -rf /tmp/rz-ghidra
         git clone --depth 1 "${gh}/rizinorg/rz-ghidra" /tmp/rz-ghidra
-        # rz-ghidra 需要 Ghidra 反编译器源码(发布 zip 里没有),浅克隆喂给 GHIDRA_SOURCE_DIR;
-        # 让 CMake 自己 FetchContent 会在国内静默失败(ghidra_sleigh 无源)
-        git clone --depth 1 --branch "Ghidra_${GHIDRA_VERSION}_build" "${gh}/NationalSecurityAgency/ghidra" /tmp/ghidra-src \
-            || git clone --depth 1 "${gh}/NationalSecurityAgency/ghidra" /tmp/ghidra-src
+        # rz-ghidra 硬编码从 <rz-ghidra>/ghidra/ghidra/Ghidra/... 取反编译器源
+        # (ghidra/CMakeLists.txt:146 的 SOURCE_DIR,发布 zip 里没有这些源),
+        # 把 ghidra 源码克隆放到这个嵌套位置
+        git clone --depth 1 --branch "Ghidra_${GHIDRA_VERSION}_build" "${gh}/NationalSecurityAgency/ghidra" /tmp/rz-ghidra/ghidra/ghidra \
+            || git clone --depth 1 "${gh}/NationalSecurityAgency/ghidra" /tmp/rz-ghidra/ghidra/ghidra
         export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
-        cmake -S /tmp/rz-ghidra -B /tmp/rz-ghidra/build -DCMAKE_BUILD_TYPE=Release \
-            -DFETCHCONTENT_SOURCE_DIR_GHIDRA=/tmp/ghidra-src   # FetchContent 覆盖变量,GHIDRA_SOURCE_DIR 不是这个仓的选项
+        cmake -S /tmp/rz-ghidra -B /tmp/rz-ghidra/build -DCMAKE_BUILD_TYPE=Release
         cmake --build /tmp/rz-ghidra/build && cmake --install /tmp/rz-ghidra/build
-        rm -rf /tmp/rz-ghidra /tmp/ghidra-src
+        rm -rf /tmp/rz-ghidra
     fi
     if [ ! -d /usr/share/rizin/sigdb ] && [ ! -d /usr/local/share/rizin/sigdb ]; then
         rm -rf /tmp/sigdb && git clone --depth 1 "${gh}/rizinorg/sigdb" /tmp/sigdb
