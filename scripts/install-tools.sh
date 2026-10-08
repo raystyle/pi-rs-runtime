@@ -518,5 +518,24 @@ install_bof() {
     true
 }
 
-TOOLS_ALL=(fd astgrep cli ghidra re pd secgo secrust pivot p0 c2 bof)
+
+# ---- Project Zero 沙箱攻击面分析工具(Windows 参考系) ----------------------
+# NtObjectManager/NtApiDotNet 系:运行时强依赖 Windows(p/invoke ntdll),
+# Linux 容器里主要价值是源码参考(syscall/结构文档级);尽力 dotnet 编译
+install_pz() {
+    log "Project Zero sandbox-attacksurface-analysis-tools"
+    local gh="${GITHUB_MIRROR}https://github.com"
+    if [ ! -d /opt/pz-sandbox-tools/.git ]; then
+        rm -rf /opt/pz-sandbox-tools
+        git clone --depth 1 "${gh}/googleprojectzero/sandbox-attacksurface-analysis-tools" /opt/pz-sandbox-tools
+    fi
+    if have dotnet; then
+        ( cd /opt/pz-sandbox-tools && dotnet build sandbox-attacksurface-analysis-tools.sln -c Release ) >/dev/null 2>&1 \
+            && echo "编译完成" || echo "编译失败(多目标旧 framework 常见;源码参考不受影响)"
+    fi
+    echo "参考: /opt/pz-sandbox-tools(NtObjectManager/NtApiDotNet 的 syscall 与对象定义)"
+    true
+}
+
+TOOLS_ALL=(fd astgrep cli ghidra re pd secgo secrust pivot p0 c2 bof pz)
 run_category TOOLS_ALL "$@"
