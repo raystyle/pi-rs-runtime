@@ -49,6 +49,31 @@ for rel in json.load(sys.stdin):
     have gopls || go install golang.org/x/tools/gopls@latest
     ln -sf /usr/local/go/bin/dlv /usr/local/bin/dlv 2>/dev/null || true
     ln -sf /usr/local/go/bin/gopls /usr/local/bin/gopls 2>/dev/null || true
+    # 跳板/代理库预热:进模块缓存,自写隧道工具 go build 不再爬网
+    local gpw=/tmp/go-prewarm
+    rm -rf "$gpw" && mkdir -p "$gpw"
+    cat > "$gpw/go.mod" <<'EOF'
+module prewarm
+
+go 1.23
+EOF
+    cat > "$gpw/main.go" <<'EOF'
+package main
+
+import (
+    _ "github.com/elazarl/goproxy"
+    _ "github.com/xtaci/smux"
+    _ "github.com/hashicorp/yamux"
+    _ "github.com/quic-go/quic-go"
+    _ "golang.org/x/net/proxy"
+    _ "github.com/armon/go-socks5"
+)
+
+func main() {}
+EOF
+    ( cd "$gpw" && GOFLAGS=-mod=mod go mod tidy >/dev/null 2>&1 && go build ./... ) \
+        && echo "go 跳板库已预热" || echo "!! go 库预热失败(不影响链本体)"
+    rm -rf "$gpw"
     # go env -w 落到 $HOME/.config/go/env,go 命令自己读,不依赖 profile(incus exec 生效)
     /usr/local/bin/go env -w GOPROXY="${GOPROXY}" GOSUMDB="${GOSUMDB}"
     cat > /etc/profile.d/golang.sh <<EOF
@@ -142,6 +167,8 @@ duct = "*"
 bytes = "*"
 jaq-std = "*"
 jaq-json = "*"
+tokio-socks = "*"   # SOCKS5 客户端(跳板链)
+async-socks5 = "*"
 EOF
     ( cd "$pw" && cargo fetch --quiet ) && echo "件 crate 生态已预热进 cargo 缓存" || echo "!! 预热失败(不影响链本体)"
     rm -rf "$pw"

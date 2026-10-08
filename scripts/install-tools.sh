@@ -257,5 +257,32 @@ install_re() {
 EOF
 }
 
-TOOLS_ALL=(fd astgrep cli ghidra re pd secgo secrust)
+
+# ---- 代理跳板(pivot):隧道/反向代理工具 + 库预热 --------------------------
+install_pivot() {
+    log "代理跳板: gost/frp/wstunnel/rathole/bore (go install + cargo,国内源)"
+    export PATH="$PATH:/usr/local/go/bin:/root/go/bin:/root/.cargo/bin"
+    export GOPROXY GOSUMDB
+    . "$HOME/.cargo/env" 2>/dev/null || true
+    # Go 栈
+    have gost   || go install github.com/go-gost/gost/cmd/gost@latest \
+        || go install github.com/ginuerzh/gost/cmd/gost@latest || echo "gost 失败"
+    have frps   || go install github.com/fatedier/frp/cmd/frps@latest || echo "frps 失败"
+    have frpc   || go install github.com/fatedier/frp/cmd/frpc@latest || echo "frpc 失败"
+    # Rust 栈
+    have wstunnel || cargo install wstunnel --locked || echo "wstunnel 失败"
+    have rathole  || cargo install rathole --locked  || echo "rathole 失败"
+    have bore     || cargo install bore-cli --locked || echo "bore 失败"
+    local gobin; gobin="$(go env GOPATH)/bin"
+    for b in gost frps frpc; do
+        [ -e "$gobin/$b" ] && ln -sf "$gobin/$b" "/usr/local/bin/$b"
+    done
+    for b in wstunnel rathole bore; do
+        [ -e "$HOME/.cargo/bin/$b" ] && ln -sf "$HOME/.cargo/bin/$b" "/usr/local/bin/$b"
+    done
+    for b in gost frps frpc wstunnel rathole bore; do have "$b" && printf '  %s\n' "$b"; done
+    true
+}
+
+TOOLS_ALL=(fd astgrep cli ghidra re pd secgo secrust pivot)
 run_category TOOLS_ALL "$@"
