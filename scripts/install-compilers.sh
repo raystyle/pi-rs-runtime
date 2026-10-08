@@ -98,9 +98,53 @@ EOF
     for b in cargo-audit; do
         [ -e "$HOME/.cargo/bin/$b" ] && ln -sf "$HOME/.cargo/bin/$b" "/usr/local/bin/$b"
     done
+    # rust-lld 进 PATH(pi-rs 件执行链直接当链接器用)
+    local rlld; rlld="$(ls /root/.rustup/toolchains/*/lib/rustlib/*/bin/rust-lld 2>/dev/null | head -1)"
+    [ -n "$rlld" ] && ln -sf "$rlld" /usr/local/bin/rust-lld
     for b in rustc cargo rustup rust-script cargo-zigbuild; do
         [ -e "$HOME/.cargo/bin/$b" ] && ln -sf "$HOME/.cargo/bin/$b" "/usr/local/bin/$b"
     done
+    # pi-rs 件生态预热:cargo fetch 拉进 registry 缓存(经 tuna),件首跑不再下载
+    local pw=/tmp/rust-prewarm
+    rm -rf "$pw" && mkdir -p "$pw/src" && printf 'fn main(){}\n' > "$pw/src/main.rs"
+    cat > "$pw/Cargo.toml" <<'EOF'
+[package]
+name = "prewarm"
+version = "0.0.0"
+edition = "2021"
+
+[dependencies]
+# pi-rs rs-script 件外部 crate(全景清单 29 个,去重;cj-*/cancel-this 为仓内 vendor 不预热)
+ureq = "*"
+url = "*"
+rustls = "*"
+webpki-roots = "*"
+tokio = { version = "*", features = ["full"] }
+tokio-rustls = "*"
+reqwest = "*"
+tungstenite = "*"
+libc = "*"
+hpack = "*"
+sha1 = "*"
+sha2 = "*"
+hmac = "*"
+base64 = "*"
+num-bigint = "*"
+regex = "*"
+ignore = "*"
+grep-matcher = "*"
+grep-regex = "*"
+grep-searcher = "*"
+anyhow = "*"
+chrono = "*"
+serde_json = "*"
+duct = "*"
+bytes = "*"
+jaq-std = "*"
+jaq-json = "*"
+EOF
+    ( cd "$pw" && cargo fetch --quiet ) && echo "件 crate 生态已预热进 cargo 缓存" || echo "!! 预热失败(不影响链本体)"
+    rm -rf "$pw"
     rustc --version && cargo --version
 }
 
