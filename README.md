@@ -19,7 +19,7 @@
 
 ## 参数表
 
-### 构建脚本（`build-base-image.sh`)
+### 构建脚本（`build-base-image.sh`）
 
 | 名称 | 类型 | 必填 | 默认 | 约束 |
 |------|------|------|------|------|
@@ -107,9 +107,9 @@
 
 一次性执行：
 
-1. 安装并初始化 Incus:`sudo apt install -y incus`,然后 `sudo incus admin init --auto`。
+1. 安装并初始化 Incus:`sudo apt install -y incus`，然后 `sudo incus admin init --auto`。
 2. 按前置条件从源码编译并安装 `distrobuilder`。
-3. （可选）把宿主 apt 源换成 tuna(deb822 格式，把 `URIs:` 改为 `https://mirrors.tuna.tsinghua.edu.cn/ubuntu/`)，加快装包。
+3. （可选）把宿主 apt 源换成 tuna（deb822 格式，把 `URIs:` 改为 `https://mirrors.tuna.tsinghua.edu.cn/ubuntu/`），加快装包。
 
 ### 2. 构建基础镜像
 
@@ -128,7 +128,7 @@ sudo incus image import incus.tar.xz rootfs.squashfs --alias ubuntu-24.04-base
 
 脚本随后启动临时容器 `verify-base`，等 cloud-init 完成后检查 apt 源、cloud-init 版本与 `apt-get update`，退出时自动删除该容器。
 
-镜像事实（`image-defs/ubuntu.yaml`):debootstrap 源与 `sources.list` 均指向 tuna(amd64 用 `/ubuntu`,arm 系用 `/ubuntu-ports`);cloud 变体装 cloud-init;netplan DHCP;`ubuntu` 用户 `sudo NOPASSWD`；源是 deb822 格式，键为 `URIs:`;post-packages 动作改写 cloud-init 模板并写 `apt_preserve_sources_list: true`，使 tuna 源在 cloud-init 首启重写后仍生效。
+镜像事实（`image-defs/ubuntu.yaml`）：debootstrap 源与 `sources.list` 均指向 tuna（amd64 用 `/ubuntu`，arm 系用 `/ubuntu-ports`）；cloud 变体装 cloud-init；netplan DHCP；`ubuntu` 用户 `sudo NOPASSWD`；源是 deb822 格式，键为 `URIs:`；post-packages 动作改写 cloud-init 模板并写 `apt_preserve_sources_list: true`，使 tuna 源在 cloud-init 首启重写后仍生效。
 
 症状：`debootstrap: You must specify a suite and a target`。原因：yaml 不写死套件，缺 `-o image.release=`。处理：显式传 `RELEASE`，或用脚本。
 
@@ -142,7 +142,7 @@ incus file push scripts rt-build/root/ -r
 incus exec rt-build -- bash /root/scripts/install-all.sh
 ```
 
-`install-all.sh` 先装隐式依赖（`ca-certificates curl wget gpg unzip zip xz-utils file`)，再按 编译器 → 运行时 → 工具 顺序跑三个分类脚本，不转发过滤器。要装单项用分类脚本，例如 `./install-compilers.sh rust` 或 `./install-runtimes.sh python node`。
+`install-all.sh` 先装隐式依赖（`ca-certificates curl wget gpg unzip zip xz-utils file`），再按 编译器 → 运行时 → 工具 顺序跑三个分类脚本，不转发过滤器。要装单项用分类脚本，例如 `./install-compilers.sh rust` 或 `./install-runtimes.sh python node`。
 
 安装面事实（按代码）:
 
@@ -179,7 +179,7 @@ incus config device add pi-dev src disk \
 incus exec pi-dev -- sudo -u ubuntu -i bash -lc 'cd /home/ubuntu/workspace && pi'
 ```
 
-事实：实例不存在才创建；`src` 设备不存在才添加；镜像别名取 `PI_IMAGE`（默认 `pi-box-dev`，该镜像的构建不在本仓，见“已知限制与未决项”);`shift=true` 需要容器开启 idmap；挂载的是宿主管的仓库，未提交改动不进任何镜像。
+事实：实例不存在才创建；`src` 设备不存在才添加；镜像别名取 `PI_IMAGE`（默认 `pi-box-dev`，该镜像的构建不在本仓，见“已知限制与未决项”）；`shift=true` 需要容器开启 idmap；挂载的是宿主管的仓库，未提交改动不进任何镜像。
 
 ### 6. （可选）给实例加 VNC 屏幕
 
@@ -198,7 +198,7 @@ sudo incus config device add <实例> vnc proxy \
   listen=tcp:127.0.0.1:5900 connect=tcp:127.0.0.1:5900
 ```
 
-事实：Xvfb 起 `:99`(1280x800x24),x11vnc 只绑 `127.0.0.1:5900`;`start` 内置 `status` 校验；屏幕不含浏览器，Chrome 由后续定制构建提供；无 `VNC_PASS` 时生成随机口令并打印一次。
+事实：Xvfb 起 `:99`（1280x800x24），x11vnc 只绑 `127.0.0.1:5900`；`start` 内置 `status` 校验；屏幕不含浏览器，Chrome 由后续定制构建提供；无 `VNC_PASS` 时生成随机口令并打印一次。
 
 ## 已知限制与未决项
 
