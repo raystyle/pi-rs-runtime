@@ -534,6 +534,21 @@ install_pz() {
             && echo "编译完成" || echo "编译失败(多目标旧 framework 常见;源码参考不受影响)"
     fi
     echo "参考: /opt/pz-sandbox-tools(NtObjectManager/NtApiDotNet 的 syscall 与对象定义)"
+
+    # tyranid(James Forshaw)三件套,同属性:Windows 参考系,Linux 下源码价值为主
+    local r
+    for r in tyranid/oleviewdotnet tyranid/DotNetToJScript tyranid/windows-logical-eop-workshop; do
+        local dest="/opt/$(basename "$r")"
+        [ -d "$dest/.git" ] || git clone --depth 1 "${gh}/${r}" "$dest" || echo "$r 克隆失败"
+    done
+    # 尽力编译前两件(老 framework 失败属预期)
+    if have dotnet; then
+        ( cd /opt/oleviewdotnet 2>/dev/null && ls *.sln >/dev/null 2>&1 && dotnet build -c Release ) >/dev/null 2>&1 \
+            && echo "oleviewdotnet 编译完成" || echo "oleviewdotnet 编译失败(源码参考不受影响)"
+        ( cd /opt/DotNetToJScript 2>/dev/null && dotnet build -c Release ) >/dev/null 2>&1 \
+            && echo "DotNetToJScript 编译完成" || echo "DotNetToJScript 编译失败(.NET Framework 老式项目,mono/msbuild 另行处理)"
+    fi
+    echo "EOP 教材: /opt/windows-logical-eop-workshop"
     true
 }
 
