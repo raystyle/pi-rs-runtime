@@ -469,5 +469,32 @@ for a in rel['assets']:
     true
 }
 
-TOOLS_ALL=(fd astgrep cli ghidra re pd secgo secrust pivot p0 c2)
+
+# ---- BOF(Beacon Object File)工具链:交叉编译 + 脱离 C2 运行 ----------------
+install_bof() {
+    log "BOF 工具链: mingw-w64 + COFFLoader + atomic-bofs + 目录"
+    local gh="${GITHUB_MIRROR}https://github.com"
+    apt-get update -qq
+    apt-get install -y --no-install-recommends mingw-w64
+    # COFFLoader:先编 Linux 版(gcc 直编,可跑独立 BOF);mingw 目标也顺带验证编译器
+    if ! have coffloader; then
+        rm -rf /tmp/coffloader && git clone --depth 1 "${gh}/trustedsec/COFFLoader" /tmp/coffloader
+        ( cd /tmp/coffloader && gcc -Wall -DCOFF_STANDALONE beacon_compatibility.c COFFLoader.c -o /usr/local/bin/coffloader ) \
+            || echo "coffloader linux 构建失败"
+        rm -rf /tmp/coffloader
+    fi
+    # atomic-bofs:rasta-mouse 的 COFF 独立运行 harness(带打包参数)
+    [ -d /opt/atomic-bofs/.git ] || git clone --depth 1 "${gh}/rasta-mouse/atomic-bofs" /opt/atomic-bofs
+    # 参考目录
+    install -d /opt/bofs
+    curl -fsSL "${gh}/chryzsh/awesome-bof/raw/main/BOF-CATALOG.md" -o /opt/bofs/BOF-CATALOG.md \
+        || echo "目录下载失败(不影响工具链)"
+    x86_64-w64-mingw32-gcc --version | head -1
+    have coffloader && echo "coffloader 就绪"
+    ls -d /opt/atomic-bofs >/dev/null 2>&1 && echo "atomic-bofs 在 /opt/atomic-bofs"
+    echo "用法: x86_64-w64-mingw32-gcc -c bof.c -o bof.o; coffloader go bof.o <args...>"
+    true
+}
+
+TOOLS_ALL=(fd astgrep cli ghidra re pd secgo secrust pivot p0 c2 bof)
 run_category TOOLS_ALL "$@"
