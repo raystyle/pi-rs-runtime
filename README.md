@@ -203,8 +203,8 @@ sudo incus config device add <实例> vnc proxy \
 ## 已知限制与未决项
 
 - 版本未钉：temurin 小版本随 tuna Adoptium 目录取最新；`dlv`、`gopls`、`golangci-lint` 与 pd/secgo 组用 `@latest`(`have && skip` 意味着“首次装到的那份”);rizin、rz-ghidra、sigdb、SecLists、yara 规则均为 `--depth 1` 未钉提交；pwndbg 从 git 源装、未钉 rev。
-- zig 发行包无国内镜像，直下且无验签；minisig 公钥留档（`RWSGOq2NVecA2UPNdBUZykf1CCb147pkmdtYxgb3Ti+JO/wCYvhbAb/U`)，验签未做。
-- `/root` 0700 的残留面：rust 主链已迁 `/opt`(rustup、cargo),ast-grep、secrust、pivot、coffee-ldr 与 fnm 仍经 root 的 `~/.cargo` 安装再链到 `/usr/local/bin`;tools 各组已 `export GOPATH=/opt/go`（dlv/gopls/golangci-lint、pd/secgo/pivot 产物归 /opt/go 并链出）；cli 组的 yq 与 gh 未设 GOPATH，产物落 /root/go 且只链 yq,`ubuntu` 用户对 gh 不可执行。
+- zig 发行包无国内镜像，直下且无验签。minisig 公钥：`RWSGOq2NVecA2UPNdBUZykf1CCb147pkmdtYxgb3Ti+JO/wCYvhbAb/U`。验签未做。
+- `/root` 0700 的残留面：rust 工具链在 `/opt`（`RUSTUP_HOME=/opt/rustup`、`CARGO_HOME=/opt/cargo`),rust 段新装产物都归 /opt;ast-grep、secrust、pivot、coffee-ldr 与 fnm 经 root 的 `~/.cargo` 安装再链到 `/usr/local/bin`;tools 各组 `GOPATH=/opt/go`（dlv/gopls/golangci-lint、pd/secgo/pivot 归 /opt/go 并链出）；cli 组的 yq 与 gh 未设 GOPATH，产物在 /root/go 且只链 yq,`ubuntu` 用户对 gh 不可执行。已有的 /root/.cargo、/root/go 环境不受影响。
 - `install_secrust` 日志声明装 rustscan、feroxbuster、findomain，实际只装前两个；findomain 注释建议改用 https://github.com/Findomain/Findomain/releases 预编译。
 - `install_php` 中 PHP 7.4 已无官方支持，样本动态执行需在无网络、无生产数据挂载的环境里跑，并加 `-d opcache.jit=off`；当前部署链未强制该隔离面。python2 同理（已通过实测含 `import ssl`)。
 - VNC 屏幕无 Chrome 与 noVNC;Chrome 官方版不装，后续定制构建。
