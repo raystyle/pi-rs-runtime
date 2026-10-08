@@ -351,8 +351,10 @@ export SDKMAN_DIR="$sdk_dir"
 [ -s "\$SDKMAN_DIR/bin/sdkman-init.sh" ] && . "\$SDKMAN_DIR/bin/sdkman-init.sh"
 EOF
     export SDKMAN_DIR="$sdk_dir"
+    set +u   # sdkman-init.sh 里有未绑定变量引用,与 set -u 冲突
     # shellcheck disable=SC1091
     . "$sdk_dir/bin/sdkman-init.sh"
+    set -u
 
     # 从 tuna Adoptium 拉各主版本的最新 temurin,本地路径注册进 sdkman
     local aarchi; case "$(dpkg --print-architecture)" in amd64) aarchi=x64;; arm64) aarchi=aarch64;; *) exit 1;; esac
