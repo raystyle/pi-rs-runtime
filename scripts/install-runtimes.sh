@@ -102,6 +102,19 @@ install_python() {
     python3 --version && pip3 --version && ruff --version
 }
 
+# ---- duckdb(本地分析引擎;apt 无包,PyPI 走 tuna) --------------------------
+install_duckdb() {
+    log "duckdb (pip 走 tuna;CLI 走 GitHub release)"
+    pip3 install -U --break-system-packages duckdb
+    if ! have duckdb; then
+        local dt darch="amd64"; [ "$(dpkg --print-architecture)" = arm64 ] && darch="aarch64"
+        dt="$(curl -fsSL "https://api.github.com/repos/duckdb/duckdb/releases/latest" | grep -o '"tag_name": *"[^"]*"' | cut -d'"' -f4)"
+        [ -n "$dt" ] && curl -fSL "https://github.com/duckdb/duckdb/releases/download/${dt}/duckdb_cli-linux-${darch}.zip" -o /tmp/duckdb.zip \
+            && unzip -q -o /tmp/duckdb.zip -d /tmp && install -m755 /tmp/duckdb /usr/local/bin/duckdb && rm -f /tmp/duckdb.zip /tmp/duckdb
+    fi
+    duckdb --version 2>/dev/null || python3 -c "import duckdb; print('duckdb py', duckdb.__version__)"
+}
+
 install_python2() {
     log "python $PY2_VERSION (源码编译,$PY2_MIRROR)"
     if have python2.7 && python2.7 --version >/dev/null 2>&1; then python2.7 --version; echo "已安装,跳过"; return; fi
@@ -329,5 +342,5 @@ install_mono() {
     mono --version 2>/dev/null | head -1
 }
 
-RUNTIMES_ALL=(node fnm bun python python2 uv php mono dotnet pwsh sdkman)
+RUNTIMES_ALL=(node fnm bun python python2 uv duckdb php mono dotnet pwsh sdkman)
 run_category RUNTIMES_ALL "$@"
