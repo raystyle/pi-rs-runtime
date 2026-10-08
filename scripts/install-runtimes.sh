@@ -261,7 +261,7 @@ settingsEvaluated { settings ->
 EOF
     done
     gradle --version 2>/dev/null | grep -m1 Gradle
-    sdk current
+    set +u; sdk current; set -u   # sdk 主脚本引用未绑定位置参数,与 set -u 冲突
 }
 
 RUNTIMES_ALL=(node fnm bun python python2 uv php dotnet pwsh sdkman)
