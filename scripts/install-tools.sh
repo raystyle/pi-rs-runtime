@@ -31,7 +31,7 @@ install_astgrep() {
 install_cli() {
     log "git/jq/shellcheck/just (apt,tuna);yq/gh (go install,goproxy.cn)"
     apt-get update -qq
-    apt-get install -y --no-install-recommends git jq shellcheck just tmux rclone || true
+    apt-get install -y --no-install-recommends git jq shellcheck just tmux rclone aria2 || true
     export PATH="$PATH:/usr/local/go/bin:/root/go/bin"
     export GOPROXY GOSUMDB
     if ! have yq; then
@@ -50,6 +50,7 @@ install_cli() {
     fi
     git --version && jq --version && yq --version && shellcheck --version | head -1 \
         && just --version && gh --version | head -1
+    aria2c --version | head -1
 }
 
 PD_TOOLS_DEFAULT=(
