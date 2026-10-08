@@ -160,6 +160,30 @@ install_secrust() {
 }
 
 
+# ---- herdr(终端 workspace 管理器;tmux 之外的 agent 编排面) -----------------
+# 官方安装通道是 herdr.dev/install.sh(解析 latest.json 下 GitHub release);
+# 这里等价实现并钉版:装到 /usr/local/bin 全局可用,不走 ~/.local/bin
+install_herdr() {
+    log "herdr $HERDR_VERSION (release 直下,无国内镜像;sha256 钉版)"
+    local gh="${GITHUB_MIRROR}https://github.com"
+    local harch; case "$(dpkg --print-architecture)" in
+        amd64) harch=x86_64 ;;
+        arm64) harch=aarch64 ;;
+        *) echo "不支持的架构"; return 1 ;;
+    esac
+    if ! have herdr; then
+        curl -fSL "${gh}/herdrdev/herdr/releases/download/v${HERDR_VERSION}/herdr-linux-${harch}" -o /tmp/herdr
+        # sha256 只钉了 x86_64 资产;arm64 换版本时重算补钉
+        if [ "$harch" = x86_64 ] && [ -n "${HERDR_SHA256:-}" ]; then
+            echo "${HERDR_SHA256}  /tmp/herdr" | sha256sum -c - || { echo "herdr 校验失败"; exit 1; }
+        fi
+        install -m755 /tmp/herdr /usr/local/bin/herdr && rm /tmp/herdr
+    fi
+    herdr --version
+    true
+}
+
+
 # ---- Ghidra(逆向;硬依赖 64 位 JDK 21,temurin 21 已在 runtimes 装好) -------
 install_ghidra() {
     log "ghidra $GHIDRA_VERSION (GitHub Releases 直下,无国内镜像)"
@@ -509,5 +533,5 @@ install_nu() {
     true
 }
 
-TOOLS_ALL=(fd astgrep cli ghidra re pd secgo secrust pivot p0 c2 bof pz nu)
+TOOLS_ALL=(fd astgrep cli herdr ghidra re pd secgo secrust pivot p0 c2 bof pz nu)
 run_category TOOLS_ALL "$@"

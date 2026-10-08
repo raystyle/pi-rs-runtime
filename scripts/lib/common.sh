@@ -37,6 +37,8 @@ RE_VENV="${RE_VENV:-/opt/re-venv}"                # 逆向 Python 独立环境(u
 VENV_ANALYTICS="${VENV_ANALYTICS:-/opt/analytics}"   # 数据分析栈 uv venv(不碰系统 python3)
 GITHUB_MIRROR="${GITHUB_MIRROR:-}"                # 可选,如 https://ghfast.top/
 SURY_MIRROR="${SURY_MIRROR:-https://mirror.nju.edu.cn/sury}"  # tuna 无 sury;南大/中科大有
+HERDR_VERSION="${HERDR_VERSION:-0.9.3}"   # herdr.dev stable 频道;release 资产在 GitHub,无国内镜像
+HERDR_SHA256="${HERDR_SHA256:-18a8dc65f1c2fa485884344356dea1cfd911c6f06cf46fa78e193f4087f4dba7}"  # linux-x86_64 资产;换版本重算
 
 log()  { printf '\n\033[1;32m==> %s\033[0m\n' "$*"; }
 have() { command -v "$1" >/dev/null 2>&1; }

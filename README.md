@@ -62,6 +62,7 @@
 | `GHIDRA_VERSION` / `GHIDRA_DATE` / `GHIDRA_SHA256` | `12.1.3` / `20260817` / `93a5d11a9ad510622acaaf908c556a7b9b764d338e78a7567f3689bf5081fd54` | 三者配套，换版本时同步换 |
 | `FASM_VERSION` | `1.73.32` | 见 `install-compilers.sh` 内 `install_c` |
 | `JADX_VERSION` / `APKTOOL_VERSION` / `CAPA_VERSION` | `1.5.3` / `2.12.0` / `9.4.0` | 见 `install-tools.sh` 内 `install_p0` |
+| `HERDR_VERSION` / `HERDR_SHA256` | `0.9.3` / `18a8dc65f1c2fa485884344356dea1cfd911c6f06cf46fa78e193f4087f4dba7` | herdr.dev stable 频道；校验和只覆盖 linux-x86_64 资产，换版本重算 |
 | `SECGO_VERSION` | `latest` | secgo 组 `go install` 版本 |
 
 ### 路径与工具集
@@ -82,7 +83,7 @@
 
 - `install-compilers.sh`:`COMPILERS_ALL=(c golang rust zig vcpkg)`
 - `install-runtimes.sh`:`RUNTIMES_ALL=(node fnm bun uv python python2 duckdb php mono dotnet pwsh sdkman)`
-- `install-tools.sh`:`TOOLS_ALL=(fd astgrep cli ghidra re pd secgo secrust pivot p0 c2 bof pz nu)`
+- `install-tools.sh`:`TOOLS_ALL=(fd astgrep cli herdr ghidra re pd secgo secrust pivot p0 c2 bof pz nu)`
 
 ## 错误表
 
@@ -92,6 +93,7 @@
 | golang tarball sha256 校验失败 | `go tarball 校验失败`,退出码 1 | 校验和取自 golang.google.cn 官方 JSON；检查 `GO_DOWNLOAD` 镜像完整性后重跑 |
 | node tarball sha256 校验失败 | `node tarball 校验失败`,退出码 1 | 校验和取自 npmmirror `SHASUMS256.txt`；重跑 |
 | Ghidra zip 校验失败 | `ghidra zip 校验失败`,退出码 1 | `GHIDRA_VERSION`、`GHIDRA_DATE`、`GHIDRA_SHA256` 三者需配套，核对后重跑 |
+| herdr 校验失败 | `herdr 校验失败`,退出码 1 | `HERDR_SHA256` 只覆盖 linux-x86_64 资产；核对版本与校验和后重跑 |
 | Ghidra 找不到 JDK 21 | `找不到 JDK 21,先跑 install-runtimes.sh sdkman`,退出码 1 | 先跑 `./install-runtimes.sh sdkman` 再跑 `install_ghidra` |
 | 首启容器 cloud-init 持有 apt 锁 | 手工 `apt-get` 报锁占用 | `build-base-image.sh` 已内置 `cloud-init status --wait`；手工场景等待 cloud-init 完成 |
 | pd/secgo 单个工具编译失败 | `!! X 编译失败(留待排查)`,继续其余工具，整组不退出 | 脚本幂等，重跑同命令补装（已装的 `have && skip`) |
@@ -148,7 +150,7 @@ incus exec rt-build -- bash /root/scripts/install-all.sh
 
 - 编译器：C 工具链（apt)、golang、rust(rustup 与 crates 走 tuna,`RUSTUP_HOME=/opt/rustup`、`CARGO_HOME=/opt/cargo`，含 rustfmt、clippy、rust-analyzer、rust-script、cargo-zigbuild、cargo-audit 与 crate 缓存预热）、zig、vcpkg(GitHub 直下，源码编译默认库集）。
 - 运行时：node(npmmirror 二进制与 SHASUMS256 校验，全局 npmrc 写 registry/disturl/electron_mirror,`typescript`、`prettier`、`eslint`、corepack)、fnm 多版本、`bun`、uv（官方安装器，索引写 `/etc/uv/uv.toml`)、python3(apt，索引写 `/etc/pip.conf`；分析库全进 `/opt/analytics` venv)、duckdb(venv + GitHub release CLI)、python2.7（源码编译，华为云镜像）、PHP 多版本（sury 源 + VLD 尽力编译）、mono(xbuild,`nuget.exe` 在 `/opt/nuget.exe`)、dotnet(NuGet 走华为 v3)、pwsh(packages.microsoft.com)、sdkman(temurin 多版本本地路径注册 + maven + gradle，依赖镜像指阿里云）。
-- 工具：fd、ast-grep、cli 组（git、jq、yq、shellcheck、just、tmux、gh)、ghidra（钉版 + sha256,`JAVA_HOME_OVERRIDE` 钉 temurin 21)、re 组（系统库 + rizin/rz-ghidra/sigdb 源码编译 + `/opt/re-venv`)、pd 全家桶（19 个 CLI,nuclei 模板更新尽力，naabu setcap)、secgo 组（14 个 CLI)、secrust(rustscan、feroxbuster)、pivot(gost/frp/wstunnel/rathole/bore)、p0(apt 批 + re-venv pip 批 + GitHub 钉版批：pwndbg、jadx、apktool、capa、SecLists、yara 规则、pdf 工具）、c2(6 个参考仓克隆到 `/opt/c2-ref`，不安装不运行）、bof(mingw-w64 + COFFLoader + coffee-ldr + bof-launcher)、pz(sandbox-attacksurface-analysis-tools、DotNetToJScript、windows-logical-eop-workshop、oleviewdotnet 等，只克隆参考，oleviewdotnet 需 `--recurse-submodules`)、nushell。
+- 工具：fd、ast-grep、cli 组（git、jq、yq、shellcheck、just、tmux、gh)、herdr(terminal workspace 管理器，release 直下钉版 + sha256，装 `/usr/local/bin`)、ghidra（钉版 + sha256,`JAVA_HOME_OVERRIDE` 钉 temurin 21)、re 组（系统库 + rizin/rz-ghidra/sigdb 源码编译 + `/opt/re-venv`)、pd 全家桶（19 个 CLI,nuclei 模板更新尽力，naabu setcap)、secgo 组（14 个 CLI)、secrust(rustscan、feroxbuster)、pivot(gost/frp/wstunnel/rathole/bore)、p0(apt 批 + re-venv pip 批 + GitHub 钉版批：pwndbg、jadx、apktool、capa、SecLists、yara 规则、pdf 工具）、c2(6 个参考仓克隆到 `/opt/c2-ref`，不安装不运行）、bof(mingw-w64 + COFFLoader + coffee-ldr + bof-launcher)、pz(sandbox-attacksurface-analysis-tools、DotNetToJScript、windows-logical-eop-workshop、oleviewdotnet 等，只克隆参考，oleviewdotnet 需 `--recurse-submodules`)、nushell。
 
 ### 4. 发布 pi-rs-runtime 镜像
 
