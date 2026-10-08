@@ -329,11 +329,8 @@ install_p0() {
     log "P0 GitHub 批(钉版,无国内镜像):pwndbg/jadx/apktool/capa/SecLists/YARA规则/pdf工具"
     local gh="${GITHUB_MIRROR}https://github.com"
     # pwndbg: PyPI 有官方包,比 deb 简单且可钉版
-    # pwndbg:tuna 索引没有,pip/uv 从 PyPI 都会空;走 git 源
-    # pwndbg:tuna/PyPI 无包;uv tool 从 git 源装(未钉 rev,上游 dev 分支会漂,ROADMAP)
-    have pwndbg || uv tool install "${gh/https:\/\/github.com\/pwndbg\/pwndbg}" 2>/dev/null \
-        || uv tool install "git+${gh}/pwndbg/pwndbg" \
-        || echo "pwndbg 失败"
+    # pwndbg:tuna/PyPI 无包;uv tool 从 git 源装(未钉 rev,上游 dev 分支会漂,见 ROADMAP)
+    have pwndbg || uv tool install "git+${gh}/pwndbg/pwndbg" || echo "pwndbg 失败"
     [ -e "$HOME/.local/bin/pwndbg" ] && ln -sf "$HOME/.local/bin/pwndbg" /usr/local/bin/pwndbg
     # jadx:CLI zip
     if ! have jadx; then
@@ -366,9 +363,9 @@ install_p0() {
     # pdfid / pdf-parser(DidierStevens,只拷两只脚本)
     if ! have pdfid.py; then
         rm -rf /tmp/dss && git clone --depth 1 "${gh}/DidierStevens/DidierStevensSuite" /tmp/dss
+        # shebang 是 python,noble 无此命令,拷完改成 python3
         cp /tmp/dss/pdfid.py /tmp/dss/pdf-parser.py /usr/local/bin/ 2>/dev/null \
             && chmod +x /usr/local/bin/pdfid.py /usr/local/bin/pdf-parser.py \
-            # shebang 是 python,noble 无此命令,改成 python3
             && sed -i '1s|^#!.*|#!/usr/bin/env python3|' /usr/local/bin/pdfid.py /usr/local/bin/pdf-parser.py
         rm -rf /tmp/dss
     fi
