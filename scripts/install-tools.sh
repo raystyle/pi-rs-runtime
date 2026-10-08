@@ -440,6 +440,32 @@ for want in ('sliver-server_linux','sliver-client_linux'):
         rm -rf /tmp/ysoserial
     fi
     have ysoserial && echo "ysoserial 就绪" || true
+
+    # ysoserial.net:.NET Framework v4.7.2 老式 csproj,dotnet 10 编不了;
+    # 下 release 预编译 + mono 运行
+    if ! have ysoserial.net; then
+        apt-get install -y --no-install-recommends mono-runtime
+        local ynurl; ynurl="$(curl -fsSL "https://api.github.com/repos/pwntester/ysoserial.net/releases/latest" \
+            | python3 -c "
+import json,sys,os
+rel=json.load(sys.stdin)
+mirror=os.environ.get('GITHUB_MIRROR','')
+for a in rel['assets']:
+    if a['name'].endswith('.zip'):
+        print(mirror+a['browser_download_url']); break
+")"
+        if [ -n "$ynurl" ]; then
+            curl -fSL "$ynurl" -o /tmp/ysoserialnet.zip
+            rm -rf /opt/ysoserial.net && mkdir -p /opt/ysoserial.net
+            unzip -q /tmp/ysoserialnet.zip -d /opt/ysoserial.net && rm /tmp/ysoserialnet.zip
+            local ynexe; ynexe="$(find /opt/ysoserial.net -name 'ysoserial*.exe' | head -1)"
+            if [ -n "$ynexe" ]; then
+                printf '#!/bin/sh\nexec mono %s "$@"\n' "$ynexe" > /usr/local/bin/ysoserial.net
+                chmod +x /usr/local/bin/ysoserial.net
+            fi
+        fi
+    fi
+    have ysoserial.net && ysoserial.net --help 2>/dev/null | head -1 || echo "ysoserial.net 装失败"
     true
 }
 
