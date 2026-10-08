@@ -267,11 +267,19 @@ install_pivot() {
     # Go 栈
     have gost   || go install github.com/go-gost/gost/cmd/gost@latest \
         || go install github.com/ginuerzh/gost/cmd/gost@latest || echo "gost 失败"
-    have frps   || go install github.com/fatedier/frp/cmd/frps@latest || echo "frps 失败"
-    have frpc   || go install github.com/fatedier/frp/cmd/frpc@latest || echo "frpc 失败"
+    # frp 的 go.mod 带 replace,go install @latest 拒装,必须克隆后本地 build
+    if ! have frps || ! have frpc; then
+        rm -rf /tmp/frp && git clone --depth 1 "https://github.com/fatedier/frp" /tmp/frp \
+            && ( cd /tmp/frp && go build -o /root/go/bin/frps ./cmd/frps && go build -o /root/go/bin/frpc ./cmd/frpc ) \
+            || echo "frp 失败"
+        rm -rf /tmp/frp
+    fi
     # Rust 栈
-    have wstunnel || cargo install wstunnel --locked || echo "wstunnel 失败"
-    have rathole  || cargo install rathole --locked  || echo "rathole 失败"
+    # wstunnel 不在 crates.io,cargo install --git 拉源码(依赖走 tuna)
+    have wstunnel || cargo install --git https://github.com/erebe/wstunnel --locked || echo "wstunnel 失败"
+    # rathole 0.5.0 老锁在新 rustc 上编不过,先去 --locked,再退回 git 主干
+    have rathole || cargo install rathole \
+        || cargo install --git https://github.com/rathole-org/rathole || echo "rathole 失败"
     have bore     || cargo install bore-cli --locked || echo "bore 失败"
     local gobin; gobin="$(go env GOPATH)/bin"
     for b in gost frps frpc; do
@@ -284,5 +292,70 @@ install_pivot() {
     true
 }
 
-TOOLS_ALL=(fd astgrep cli ghidra re pd secgo secrust pivot)
+
+# ---- P0 补齐(grok 业界调研;Kali/REMnux/FLARE 重叠缺口) ------------------
+# 分三步:apt 批(全 TUNA)/ re-venv pip 批(TUNA PyPI)/ GitHub 钉版批
+install_p0() {
+    log "P0 apt 批(21 包,TUNA):多架构调试/pwn/流量/分诊/AD/口令"
+    apt-get update -qq
+    apt-get install -y --no-install-recommends \
+        gdb-multiarch qemu-user-static \
+        python3-pwntools python3-ropgadget checksec patchelf nasm xxd squashfs-tools \
+        nmap sqlmap tcpdump tshark mitmproxy python3-scapy \
+        upx-ucl 7zip libimage-exiftool-perl ssdeep python3-impacket \
+        john hashid
+
+    log "P0 re-venv pip 批(TUNA PyPI):FLOSS/oletools/netexec"
+    [ -x "$RE_VENV/bin/pip" ] || python3 -m venv "$RE_VENV"
+    "$RE_VENV/bin/pip" install -U pip >/dev/null
+    "$RE_VENV/bin/pip" install flare-floss oletools netexec
+
+    log "P0 GitHub 批(钉版,无国内镜像):pwndbg/jadx/apktool/capa/SecLists/YARA规则/pdf工具"
+    local gh="${GITHUB_MIRROR}https://github.com"
+    # pwndbg: PyPI 有官方包,比 deb 简单且可钉版
+    have pwndbg || pip3 install -U --break-system-packages pwndbg || echo "pwndbg 失败(可 uv tool install pwndbg 重试)"
+    # jadx:CLI zip
+    if ! have jadx; then
+        local jv="${JADX_VERSION:-1.5.3}" jz="jadx-${jv}.zip"
+        curl -fSL "${gh}/skylot/jadx/releases/download/v${jv}/${jz}" -o "/tmp/${jz}" \
+            && unzip -q "/tmp/${jz}" -d /opt/jadx && rm "/tmp/${jz}"
+        ln -sf "/opt/jadx/jadx-${jv}/bin/jadx" /usr/local/bin/jadx 2>/dev/null || true
+    fi
+    # apktool:jar + 包装脚本
+    if ! have apktool; then
+        local av="${APKTOOL_VERSION:-2.12.0}"
+        install -d /opt/apktool
+        curl -fSL "${gh}/iBotPeaches/Apktool/releases/download/v${av}/apktool_${av}.jar" -o /opt/apktool/apktool.jar
+        printf '#!/bin/sh\nexec java -jar /opt/apktool/apktool.jar "$@"\n' > /usr/local/bin/apktool
+        chmod +x /usr/local/bin/apktool
+    fi
+    # capa:独立发行包(带规则);规则库单独克隆便于更新
+    if ! have capa; then
+        local cv="${CAPA_VERSION:-9.5.0}" cz="capa-v${cv}-linux.zip"
+        curl -fSL "${gh}/mandiant/capa/releases/download/v${cv}/${cz}" -o "/tmp/${cz}" \
+            && unzip -q "/tmp/${cz}" -d /opt/capa && rm "/tmp/${cz}"
+        find /opt/capa -name capa -type f -exec ln -sf {} /usr/local/bin/capa \; 2>/dev/null || true
+    fi
+    [ -d /opt/capa-rules ] || git clone --depth 1 "${gh}/mandiant/capa-rules" /opt/capa-rules
+    # YARA 规则集(REMnux v8 选 yara-forge;经典集 Yara-Rules/rules)
+    [ -d /opt/yara-rules ] || git clone --depth 1 "${gh}/Yara-Rules/rules" /opt/yara-rules
+    # pdfid / pdf-parser(DidierStevens,只拷两只脚本)
+    if ! have pdfid.py; then
+        rm -rf /tmp/dss && git clone --depth 1 "${gh}/DidierStevens/DidierStevensSuite" /tmp/dss
+        cp /tmp/dss/pdfid.py /tmp/dss/pdf-parser.py /usr/local/bin/ 2>/dev/null \
+            && chmod +x /usr/local/bin/pdfid.py /usr/local/bin/pdf-parser.py
+        rm -rf /tmp/dss
+    fi
+    # SecLists 词表(大,depth 1)
+    [ -d /opt/SecLists ] || git clone --depth 1 "${gh}/danielmiessler/SecLists" /opt/SecLists
+
+    echo "P0 核对:"
+    for b in gdb-multiarch checksec patchelf nasm ROPgadget nmap sqlmap tshark capa jadx apktool john hashid; do
+        have "$b" && printf '  %s\n' "$b"
+    done
+    ls -d /opt/SecLists /opt/capa-rules /opt/yara-rules >/dev/null 2>&1 && echo "  词表与规则库就位(/opt/{SecLists,capa-rules,yara-rules})"
+    true
+}
+
+TOOLS_ALL=(fd astgrep cli ghidra re pd secgo secrust pivot p0)
 run_category TOOLS_ALL "$@"
