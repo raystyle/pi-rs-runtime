@@ -15,7 +15,10 @@ install_c() {
     apt-get update -qq
     apt-get install -y --no-install-recommends \
         build-essential clang lldb gdb cmake ninja-build pkg-config \
-        autoconf automake libtool m4
+        autoconf automake libtool m4 \
+        clang-format clang-tidy valgrind strace ltrace ccache musl-tools \
+        zlib1g-dev libssl-dev libffi-dev
+    # strace/ltrace/valgrind:逆向与行为分析常规件;musl-tools:静态链接;ccache:编译缓存
 }
 
 install_golang() {
@@ -40,6 +43,12 @@ for rel in json.load(sys.stdin):
     fi
     rm -rf /usr/local/go && tar -C /usr/local -xzf "/tmp/${tgz}" && rm "/tmp/${tgz}"
     ln -sf /usr/local/go/bin/go /usr/local/bin/go
+    # 黄金三件:调试器 dlv、语言服务器 gopls、静态检查 golangci-lint
+    export PATH=$PATH:/usr/local/go/bin
+    have dlv || go install github.com/go-delve/delve/cmd/dlv@latest
+    have gopls || go install golang.org/x/tools/gopls@latest
+    ln -sf /usr/local/go/bin/dlv /usr/local/bin/dlv 2>/dev/null || true
+    ln -sf /usr/local/go/bin/gopls /usr/local/bin/gopls 2>/dev/null || true
     # go env -w 落到 $HOME/.config/go/env,go 命令自己读,不依赖 profile(incus exec 生效)
     /usr/local/bin/go env -w GOPROXY="${GOPROXY}" GOSUMDB="${GOSUMDB}"
     cat > /etc/profile.d/golang.sh <<EOF
@@ -82,9 +91,13 @@ export RUSTUP_UPDATE_ROOT=${RUSTUP_UPDATE_ROOT}
 EOF
     . "$HOME/.cargo/env"
     # pi-rs 件执行链:rust-lld(llvm-tools)+ fmt/clippy + rust-script + cargo-zigbuild
-    rustup component add llvm-tools rustfmt clippy
+    rustup component add llvm-tools rustfmt clippy rust-analyzer
     have rust-script      || cargo install rust-script --locked
     have cargo-zigbuild   || cargo install cargo-zigbuild --locked
+    have cargo-audit      || cargo install cargo-audit --locked   # 依赖漏洞审计
+    for b in cargo-audit; do
+        [ -e "$HOME/.cargo/bin/$b" ] && ln -sf "$HOME/.cargo/bin/$b" "/usr/local/bin/$b"
+    done
     for b in rustc cargo rustup rust-script cargo-zigbuild; do
         [ -e "$HOME/.cargo/bin/$b" ] && ln -sf "$HOME/.cargo/bin/$b" "/usr/local/bin/$b"
     done

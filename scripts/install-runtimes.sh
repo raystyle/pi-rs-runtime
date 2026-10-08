@@ -43,6 +43,11 @@ EOF
     npm install -g typescript          # tsc:pi-rs 基座要求
     ln -sf /opt/node/bin/tsc /usr/local/bin/tsc
     ln -sf /opt/node/bin/tsserver /usr/local/bin/tsserver
+    # 黄金:corepack 启用 pnpm/yarn;prettier/eslint 全局
+    corepack enable 2>/dev/null || true
+    npm install -g prettier eslint
+    ln -sf /opt/node/bin/prettier /usr/local/bin/prettier 2>/dev/null || true
+    ln -sf /opt/node/bin/eslint /usr/local/bin/eslint 2>/dev/null || true
     node -v && npm -v && tsc --version
 }
 
@@ -87,7 +92,12 @@ install_python() {
     apt-get install -y --no-install-recommends python3 python3-pip python3-venv python3-dev
     # 系统级 pip 配置(root 与 ubuntu 用户都读;不要加 extra-index-url,防依赖混淆)
     printf '[global]\nindex-url = %s\n' "$PIP_INDEX" > /etc/pip.conf
-    python3 --version && pip3 --version
+    # 黄金:pipx(隔离装 CLI 应用)、ruff(全 Python  fastest  linter/formatter)
+    apt-get install -y --no-install-recommends pipx
+    pip3 install -U --break-system-packages ruff
+    # pwntools:pwn 常规件(依赖 binutils/libssl 已在 C 链)
+    python3 -c "import pwn" 2>/dev/null || pip3 install --break-system-packages pwntools || echo "pwntools 装失败,可 pipx 重试"
+    python3 --version && pip3 --version && ruff --version
 }
 
 install_python2() {
