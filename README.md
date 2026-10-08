@@ -1,8 +1,8 @@
 # pi-rs-runtime
 
-pi-rs 运行时的基础镜像维护仓。用 [distrobuilder](https://github.com/lxc/distrobuilder) 从源码构建带清华 tuna 源的 Ubuntu 24.04 Incus 基础镜像(cloud 变体,含 cloud-init),导入本地 Incus 后作为各运行实例的基线。
+pi agent(pi-rs)运行时环境的基础镜像维护仓。用 [distrobuilder](https://github.com/lxc/distrobuilder) 从源码构建带清华 tuna 源的 Ubuntu 24.04 Incus 基础镜像(cloud 变体,含 cloud-init),导入本地 Incus 后作为 pi agent 运行实例的基线。
 
-> **Pi 运行时不必走这条路。** 树莓派基线直接 `incus launch ubuntu:24.04`,装完所需软件后用 `incus publish` 固化即可(见下文"备选路线")。本仓的路线适合 x86 构建机批量产出可复现的基础镜像。
+> **pi agent 运行时不必走这条路。** 单个实例直接 `incus launch ubuntu:24.04`,装完所需软件后用 `incus publish` 固化即可(见下文"备选路线")。本仓的路线适合 x86 构建机批量产出可复现的基础镜像。
 
 ## 产物
 
@@ -72,7 +72,7 @@ incus shell mybox
 
 容器内 apt 源已是 tuna,`apt-get update/install` 直接可用。
 
-## 备选路线:incus publish(适合 Pi / 少量定制)
+## 备选路线:incus publish(适合单个 pi agent 实例 / 少量定制)
 
 不用 distrobuilder,直接在 Incus 里做:
 
