@@ -76,11 +76,22 @@ incus shell mybox
 
 `scripts/install-runtimes.sh` 在容器内**逐个安装**下列运行时并配置国内镜像源,幂等可重跑。思路与 [ark_rs](https://github.com/raystyle/ark_rs)(Agent Runtime Kit)一致:运行时管理是独立一层,不进基础镜像。**镜像源原则:有清华 tuna 走 tuna,tuna 没有的走该生态自己的国内镜像**(已实测 tuna 无 golang/node/bun/dotnet/powershell/zig 镜像)。
 
+按三类解耦,各自独立可跑(`lib/common.sh` 提供共享镜像源/版本钉/入口):
+
 ```bash
+# 全量(顺序:编译器 → 运行时 → 工具)
+./scripts/install-all.sh
+
+# 或按类单独跑,也可只装类内某几项
+./scripts/install-compilers.sh              # c golang rust zig
+./scripts/install-compilers.sh rust         # 只装 rust
+./scripts/install-runtimes.sh               # node(fnm 多版本) bun python python2 uv dotnet pwsh sdkman
+./scripts/install-tools.sh                  # fd astgrep cli pd secgo secrust
+
+# 容器内使用
 incus launch ubuntu-24.04-base rt
-incus file push scripts/install-runtimes.sh rt/root/ --create-dirs
-incus exec rt -- bash /root/install-runtimes.sh            # 全部
-incus exec rt -- bash /root/install-runtimes.sh rust node  # 或只装指定几个
+incus file push scripts rt/root/ --create-dirs -r
+incus exec rt -- bash /root/scripts/install-all.sh
 ```
 
 | # | 运行时 | 安装方式 | 默认版本 | 镜像源 |

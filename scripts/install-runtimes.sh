@@ -1,104 +1,15 @@
 #!/usr/bin/env bash
-# pi-rs-runtime 运行时安装器
+# 运行时安装器:node(fnm 多版本)/bun/python3/python2/uv/dotnet/pwsh/java(sdkman 多版本)
 # 在 Ubuntu 24.04 容器(或宿主)内运行,幂等,可重复执行。
 # 用法:
-#   ./install-runtimes.sh              # 安装全部
-#   ./install-runtimes.sh rust node    # 只装指定运行时(可多个)
-#   VERSIONS 通过环境变量覆盖,如 GOLANG_VERSION=1.23.4
+#   ./install-runtimes.sh            # 装全部
+#   ./install-runtimes.sh python node  # 只装指定项(可多个)
+# 镜像源与版本经环境变量覆盖,见 lib/common.sh
 set -euo pipefail
+HERE="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck disable=SC1091
+. "$HERE/lib/common.sh"
 
-export DEBIAN_FRONTEND=noninteractive
-
-# ---- 镜像源(可覆盖)-------------------------------------------------
-# 原则:有 tuna 走 tuna;tuna 没有的走该生态自己的国内镜像
-TUNA="${TUNA:-https://mirrors.tuna.tsinghua.edu.cn}"
-export RUSTUP_DIST_SERVER="${RUSTUP_DIST_SERVER:-$TUNA/rustup}"
-export RUSTUP_UPDATE_ROOT="${RUSTUP_UPDATE_ROOT:-$TUNA/rustup/rustup}"
-CRATES_INDEX="${CRATES_INDEX:-$TUNA/crates.io-index}"
-GOPROXY="${GOPROXY:-https://goproxy.cn,direct}"          # tuna 无 golang 模块代理,用七牛 goproxy
-GOSUMDB="${GOSUMDB:-sum.golang.google.cn}"              # 国内可连的校验和库
-GO_DOWNLOAD="${GO_DOWNLOAD:-https://mirror.nju.edu.cn/golang}" # tuna 无 golang;南大镜像同为高校源,也可用 golang.google.cn
-NPM_REGISTRY="${NPM_REGISTRY:-https://registry.npmmirror.com}"            # tuna 无 npm registry
-NODE_MIRROR="${NODE_MIRROR:-https://registry.npmmirror.com/-/binary/node}" # tuna 无 node 二进制
-PIP_INDEX="${PIP_INDEX:-https://pypi.tuna.tsinghua.edu.cn/simple}" # tuna pypi 独立 vhost;mirrors.tuna.../pypi/ 是 404
-ADOPTIUM_MIRROR="${ADOPTIUM_MIRROR:-$TUNA/Adoptium}"
-MAVEN_MIRROR="${MAVEN_MIRROR:-$TUNA/apache/maven}"
-
-# ---- 版本钉 -------------------------------------------------------
-GOLANG_VERSION="${GOLANG_VERSION:-1.23.4}"
-NODE_VERSION="${NODE_VERSION:-22.12.0}"
-FNM_NODE_VERSIONS="${FNM_NODE_VERSIONS:-18 20 22 24}"   # fnm 预装的流行 node 历史版本(大版本号)
-DOTNET_SDK="${DOTNET_SDK:-dotnet-sdk-8.0}"
-PD_VERSION="${PD_VERSION:-latest}"          # projectdiscovery 工具编译版本
-ZIG_VERSION="${ZIG_VERSION:-0.16.0}"
-MAVEN_VERSION="${MAVEN_VERSION:-3.9.16}"
-JAVA_VERSIONS="${JAVA_VERSIONS:-8 11 17 21 25}"  # sdkman 预装的开源 JDK 主版本(temurin,tuna Adoptium;25 为新 LTS)
-PY2_VERSION="${PY2_VERSION:-2.7.18}"             # 逆向分析用;noble 官方源无 python2,源码编译
-PY2_MIRROR="${PY2_MIRROR:-https://mirrors.huaweicloud.com/python}"
-
-log()  { printf '\n\033[1;32m==> %s\033[0m\n' "$*"; }
-have() { command -v "$1" >/dev/null 2>&1; }
-
-# ---- C 工具链 ------------------------------------------------------
-install_c() {
-    log "C 工具链 (apt: build-essential clang cmake ninja …)"
-    apt-get update -qq
-    apt-get install -y --no-install-recommends \
-        build-essential clang lldb gdb cmake ninja-build pkg-config \
-        autoconf automake libtool m4
-}
-
-# ---- golang --------------------------------------------------------
-install_golang() {
-    log "golang $GOLANG_VERSION (下载 $GO_DOWNLOAD,GOPROXY=$GOPROXY)"
-    if have go && [ "$(go env GOVERSION)" = "go$GOLANG_VERSION" ]; then
-        echo "已安装 $(go env GOVERSION),跳过"; return
-    fi
-    local tgz="go${GOLANG_VERSION}.linux-$(dpkg --print-architecture).tar.gz"
-    curl -fSL "${GO_DOWNLOAD}/${tgz}" -o "/tmp/${tgz}"
-    rm -rf /usr/local/go && tar -C /usr/local -xzf "/tmp/${tgz}" && rm "/tmp/${tgz}"
-    cat > /etc/profile.d/golang.sh <<EOF
-export PATH=\$PATH:/usr/local/go/bin
-export GOPROXY=${GOPROXY}
-export GOSUMDB=${GOSUMDB}
-export GOPATH=\${GOPATH:-/root/go}
-export PATH=\$PATH:\$GOPATH/bin
-EOF
-    export PATH=$PATH:/usr/local/go/bin
-    go version
-}
-
-# ---- rust ----------------------------------------------------------
-install_rust() {
-    log "rust (rustup 与 crates index 均走 tuna)"
-    if ! have rustc; then
-        local triple="x86_64-unknown-linux-gnu"
-        [ "$(dpkg --print-architecture)" = arm64 ] && triple="aarch64-unknown-linux-gnu"
-        curl -fSL "${RUSTUP_UPDATE_ROOT}/dist/${triple}/rustup-init" -o /tmp/rustup-init
-        chmod +x /tmp/rustup-init
-        /tmp/rustup-init -y --default-toolchain stable --profile minimal
-        rm /tmp/rustup-init
-    fi
-    mkdir -p "$HOME/.cargo"
-    cat > "$HOME/.cargo/config.toml" <<EOF
-[source.crates-io]
-replace-with = 'tuna-sparse'
-
-[source.tuna-sparse]
-registry = "sparse+${CRATES_INDEX}/"
-
-[net]
-git-fetch-with-cli = true
-EOF
-    . "$HOME/.cargo/env"
-    # pi-rs 件执行链:rust-lld(llvm-tools)+ fmt/clippy + rust-script + cargo-zigbuild
-    rustup component add llvm-tools rustfmt clippy
-    have rust-script      || cargo install rust-script --locked
-    have cargo-zigbuild   || cargo install cargo-zigbuild --locked
-    rustc --version && cargo --version
-}
-
-# ---- node ----------------------------------------------------------
 install_node() {
     log "node $NODE_VERSION (npmmirror 二进制镜像,npm registry=$NPM_REGISTRY)"
     if ! have node || [ "$(node -v)" != "v${NODE_VERSION}" ]; then
@@ -119,7 +30,6 @@ install_node() {
     node -v && npm -v && tsc --version
 }
 
-# ---- fnm + 多版本 node(pnpm-rs 基座:node 经 fnm 管理) ----------------
 install_fnm() {
     log "fnm + node $FNM_NODE_VERSIONS (fnm 经 cargo 装,node 二进制走 npmmirror 镜像)"
     . "$HOME/.cargo/env" 2>/dev/null || true
@@ -144,7 +54,6 @@ EOF
     fnm ls
 }
 
-# ---- bun -----------------------------------------------------------
 install_bun() {
     log "bun (经 npmmirror registry 的 npm 全局安装)"
     if have bun; then bun --version; echo "已安装,跳过"; return; fi
@@ -155,7 +64,6 @@ install_bun() {
     bun --version
 }
 
-# ---- python --------------------------------------------------------
 install_python() {
     log "python3 + pip (索引 $PIP_INDEX)"
     apt-get update -qq
@@ -164,20 +72,6 @@ install_python() {
     python3 --version && pip3 --version
 }
 
-# ---- uv (python 包/运行时管理器) --------------------------------------
-install_uv() {
-    log "uv (经 tuna pypi 的 pip 安装;库索引 UV_INDEX_URL=$PIP_INDEX)"
-    if have uv; then uv --version; echo "已安装,跳过"; return; fi
-    # noble 的系统 python 标记 externally-managed(PEP 668),容器内允许直装
-    pip3 install -U --break-system-packages uv
-    cat > /etc/profile.d/uv.sh <<EOF
-export UV_INDEX_URL=${PIP_INDEX}
-EOF
-    export UV_INDEX_URL="$PIP_INDEX"
-    uv --version
-}
-
-# ---- python2.7(逆向分析;noble 无官方包,源码编译) ----------------------
 install_python2() {
     log "python $PY2_VERSION (源码编译,$PY2_MIRROR)"
     if have python2.7 && python2.7 --version >/dev/null 2>&1; then python2.7 --version; echo "已安装,跳过"; return; fi
@@ -195,16 +89,18 @@ install_python2() {
     python2.7 --version
 }
 
-# ---- fd / ripgrep(pi-rs 托管工具:搜索显微镜) --------------------------
-install_fd() {
-    log "fd + ripgrep (apt,tuna)"
-    apt-get update -qq
-    apt-get install -y --no-install-recommends fd-find ripgrep
-    ln -sf /usr/bin/fdfind /usr/local/bin/fd
-    fd --version && rg --version
+install_uv() {
+    log "uv (经 tuna pypi 的 pip 安装;库索引 UV_INDEX_URL=$PIP_INDEX)"
+    if have uv; then uv --version; echo "已安装,跳过"; return; fi
+    # noble 的系统 python 标记 externally-managed(PEP 668),容器内允许直装
+    pip3 install -U --break-system-packages uv
+    cat > /etc/profile.d/uv.sh <<EOF
+export UV_INDEX_URL=${PIP_INDEX}
+EOF
+    export UV_INDEX_URL="$PIP_INDEX"
+    uv --version
 }
 
-# ---- dotnet --------------------------------------------------------
 install_dotnet() {
     log "dotnet ($DOTNET_SDK,packages.microsoft.com,国内无镜像)"
     if dpkg -l "$DOTNET_SDK" >/dev/null 2>&1; then
@@ -218,146 +114,6 @@ install_dotnet() {
     dotnet --version
 }
 
-# ---- pwsh ----------------------------------------------------------
-install_pwsh() {
-    log "pwsh (packages.microsoft.com,国内无镜像)"
-    if have pwsh; then pwsh --version; echo "已安装,跳过"; return; fi
-    install_dotnet_repo   # 复用 MS apt 源
-    apt-get install -y powershell
-    pwsh --version
-}
-
-
-
-# ---- jq / yq / shellcheck(JSON/YAML 处理与脚本体检) ---------------------
-install_cli() {
-    log "git/jq/shellcheck/just (apt,tuna);yq/gh (go install,goproxy.cn)"
-    apt-get update -qq
-    apt-get install -y --no-install-recommends git jq shellcheck just || true
-    export PATH="$PATH:/usr/local/go/bin:/root/go/bin"
-    export GOPROXY GOSUMDB
-    if ! have yq; then
-        go install github.com/mikefarah/yq/v4@latest
-        ln -sf /root/go/bin/yq /usr/local/bin/yq
-    fi
-    if ! have gh; then
-        go install github.com/cli/cli/v2/cmd/gh@latest   # gh 官方 apt 源国内无镜像,源码编译
-        ln -sf /root/go/bin/gh /usr/local/bin/gh
-    fi
-    # just 在部分套件下无 apt 包,兜底 cargo
-    if ! have just; then
-        . "$HOME/.cargo/env" 2>/dev/null || true
-        cargo install just --locked
-        ln -sf /root/.cargo/bin/just /usr/local/bin/just
-    fi
-    git --version && jq --version && yq --version && shellcheck --version | head -1 \
-        && just --version && gh --version | head -1
-}
-
-
-# ---- 其余 Go 安全 CLI(ffuf/gobuster/dalfox/amass/…) -------------------
-SECGO_TOOLS_DEFAULT=(
-    ffuf/v2@github.com/ffuf
-    gobuster/v3@github.com/OJ
-    dalfox/v2@github.com/hahwul
-    amass/v4/...@github.com/owasp-amass
-    chisel@github.com/jpillora
-    gitleaks/v8@github.com/gitleaks
-    assetfinder@github.com/tomnomnom
-    httprobe@github.com/tomnomnom
-    qsreplace@github.com/tomnomnom
-    waybackurls@github.com/tomnomnom
-    gau/v2/cmd/gau@github.com/lc
-    gospider@github.com/jaeles-project
-    gowitness@github.com/sensepost
-    AzureHound/v2@github.com/BloodHoundAD
-)
-install_secgo() {
-    log "Go 安全 CLI (go install @${SECGO_VERSION:-latest},经 $GOPROXY)"
-    export PATH="$PATH:/usr/local/go/bin:/root/go/bin"
-    export GOPROXY GOSUMDB
-    # shellcheck disable=SC2206
-    local tools=( ${SECGO_TOOLS:-} ); [ ${#tools[@]} -eq 0 ] && tools=("${SECGO_TOOLS_DEFAULT[@]}")
-    local spec path repo bin
-    for spec in "${tools[@]}"; do
-        path="${spec%@*}"; repo="${spec#*@}"
-        bin="${path##*/}"; [ "$bin" = "..." ] && bin="${path%%/*}"
-        if have "$bin"; then echo "$bin 已装,跳过"; continue; fi
-        echo "--- go install $repo/$path@${SECGO_VERSION:-latest}"
-        go install "${repo}/${path}@${SECGO_VERSION:-latest}" || echo "!! $bin 编译失败(留待排查)"
-    done
-    echo "已装:"; for spec in "${tools[@]}"; do path="${spec%@*}"; bin="${path##*/}"; [ "$bin" = "..." ] && bin="${path%%/*}"; command -v "$bin" >/dev/null && printf '  %s\n' "$bin"; done
-}
-
-# ---- Rust 安全工具(rustscan/feroxbuster/findomain) ---------------------
-install_secrust() {
-    log "rustscan / feroxbuster / findomain (cargo,经 tuna crates)"
-    . "$HOME/.cargo/env" 2>/dev/null || true
-    export PATH="$PATH:/root/.cargo/bin"
-    have rustscan    || cargo install rustscan --locked
-    have feroxbuster || cargo install feroxbuster --locked
-    # findomain 依赖多,cargo 失败则提示走 GitHub Releases 预编译
-    have findomain   || cargo install findomain --locked || echo "findomain 编译失败,改走 https://github.com/Findomain/Findomain/releases 预编译"
-    for b in rustscan feroxbuster findomain; do have "$b" && "$b" --version 2>/dev/null | head -1; done
-}
-
-# ---- ast-grep(结构化搜索,命令 sg) -------------------------------------
-install_astgrep() {
-    log "ast-grep (cargo 安装,经 tuna crates)"
-    . "$HOME/.cargo/env" 2>/dev/null || true
-    export PATH="$PATH:/root/.cargo/bin"
-    if have sg; then sg --version; echo "已安装,跳过"; return; fi
-    cargo install ast-grep --locked
-    ln -sf /root/.cargo/bin/sg /usr/local/bin/sg
-    sg --version
-}
-
-# ---- projectdiscovery 全家桶(漏洞分析/外部测绘) ------------------------
-# CLI 全部 go install 从源码编译(GOPROXY=goproxy.cn);库随之进模块缓存
-PD_TOOLS_DEFAULT=(
-    subfinder/v2/cmd/subfinder
-    dnsx/v2/cmd/dnsx
-    naabu/v2/cmd/naabu
-    httpx/v2/cmd/httpx
-    nuclei/v3/cmd/nuclei
-    katana/cmd/katana
-    uncover/cmd/uncover
-    cloudlist/cmd/cloudlist
-    notify/cmd/notify
-    interactsh/cmd/interactsh-client
-    chaos-client/cmd/chaos-client
-    mapcidr/cmd/mapcidr
-    asnmap/cmd/asnmap
-    tlsx/cmd/tlsx
-    proxify/cmd/proxify
-    simplehttpserver/cmd/simplehttpserver
-    shuffledns/cmd/shuffledns
-    crlfuzz/cmd/crlfuzz
-    pdtm/cmd/pdtm
-)
-install_pd() {
-    log "projectdiscovery 全家桶 (go install @${PD_VERSION},经 $GOPROXY)"
-    . "$HOME/.cargo/env" 2>/dev/null || true
-    export PATH="$PATH:/usr/local/go/bin:${GOPATH:-/root/go}/bin"
-    export GOPROXY GOSUMDB
-    # shellcheck disable=SC2206
-    local tools=( ${PD_TOOLS:-} ); [ ${#tools[@]} -eq 0 ] && tools=("${PD_TOOLS_DEFAULT[@]}")
-    local t bin
-    for t in "${tools[@]}"; do
-        bin="${t##*/}"
-        if have "$bin"; then echo "$bin 已装,跳过"; continue; fi
-        echo "--- go install $t@${PD_VERSION}"
-        go install "github.com/projectdiscovery/${t}@${PD_VERSION}" || echo "!! $bin 编译失败(留待排查)" 
-        have "$bin" && ln -sf "$(command -v "$bin")" "/usr/local/bin/$bin"
-    done
-    echo "已装 PD 工具:"; for t in "${tools[@]}"; do command -v "${t##*/}" >/dev/null && printf '  %s\n' "${t##*/}"; done
-    # nuclei 模板(从 GitHub 拉,国内可能慢,失败不影响工具本体)
-    if have nuclei; then nuclei -update-templates 2>/dev/null || echo "nuclei 模板更新失败,可稍后重试"; fi
-    # naabu SYN 扫描需要 libpcap 与 cap_net_raw
-    apt-get install -y --no-install-recommends libpcap-dev
-    if have naabu; then setcap cap_net_raw,cap_net_admin+eip "$(command -v naabu)" 2>/dev/null || true; fi
-}
-
 install_dotnet_repo() {
     if [ -f /etc/apt/sources.list.d/microsoft-prod.list ] || [ -f /etc/apt/sources.list.d/microsoft-prod.sources ]; then
         return
@@ -368,23 +124,14 @@ install_dotnet_repo() {
     apt-get update -qq
 }
 
-# ---- zig -----------------------------------------------------------
-install_zig() {
-    log "zig $ZIG_VERSION (ziglang.org 直下,国内无镜像)"
-    if have zig && zig version | grep -q "^${ZIG_VERSION}"; then
-        echo "已安装 $(zig version),跳过"; return
-    fi
-    local arch; case "$(dpkg --print-architecture)" in amd64) arch=x86_64;; arm64) arch=aarch64;; *) exit 1;; esac
-    local tgz="zig-${arch}-linux-${ZIG_VERSION}.tar.xz"
-    curl -fSL "https://ziglang.org/download/${ZIG_VERSION}/${tgz}" -o "/tmp/${tgz}"
-    rm -rf /opt/zig && mkdir -p /opt/zig
-    tar -C /opt/zig -xJf "/tmp/${tgz}" --strip-components=1 && rm "/tmp/${tgz}"
-    ln -sf /opt/zig/zig /usr/local/bin/zig
-    zig version
+install_pwsh() {
+    log "pwsh (packages.microsoft.com,国内无镜像)"
+    if have pwsh; then pwsh --version; echo "已安装,跳过"; return; fi
+    install_dotnet_repo   # 复用 MS apt 源
+    apt-get install -y powershell
+    pwsh --version
 }
 
-# ---- sdkman + 多版本 JDK ---------------------------------------------
-# sdkman 的定位:各种开源 JDK 的统一切换入口(temurin 从 tuna Adoptium 预装)
 install_sdkman() {
     log "sdkman (多版本 java 管理入口,temurin 走 tuna Adoptium)"
     apt-get update -qq
@@ -444,19 +191,5 @@ EOF
     sdk current
 }
 
-# ---- 入口 -----------------------------------------------------------
-ALL=(c golang rust node bun python uv python2 fd fnm dotnet pwsh zig sdkman pd secgo secrust astgrep cli)
-
-main() {
-    local targets=("$@")
-    [ ${#targets[@]} -eq 0 ] && targets=("${ALL[@]}")
-    for t in "${targets[@]}"; do
-        case " ${ALL[*]} " in
-            *" $t "*) "install_$t" ;;
-            *) echo "未知运行时: $t(可选: ${ALL[*]})"; exit 1 ;;
-        esac
-    done
-    log "全部完成"
-}
-
-main "$@"
+RUNTIMES_ALL=(node fnm bun python python2 uv dotnet pwsh sdkman)
+run_category RUNTIMES_ALL "$@"
