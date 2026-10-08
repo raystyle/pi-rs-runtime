@@ -54,9 +54,9 @@ install_cli() {
 
 PD_TOOLS_DEFAULT=(
     subfinder/v2/cmd/subfinder
-    dnsx/v2/cmd/dnsx
+    dnsx/cmd/dnsx
     naabu/v2/cmd/naabu
-    httpx/v2/cmd/httpx
+    httpx/cmd/httpx
     nuclei/v3/cmd/nuclei
     katana/cmd/katana
     uncover/cmd/uncover
