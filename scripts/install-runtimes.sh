@@ -189,7 +189,7 @@ install_python2() {
     rm -rf /tmp/py2build && mkdir -p /tmp/py2build
     tar -C /tmp/py2build -xzf /tmp/py2.tgz --strip-components=1 && rm /tmp/py2.tgz
     ( cd /tmp/py2build && ./configure --prefix=/usr/local --enable-shared \
-        && make -j"$(nproc)" && make altinstall )
+        && make -j"$(nproc)" && make altinstall && ldconfig )
     rm -rf /tmp/py2build
     ln -sf /usr/local/bin/python2.7 /usr/local/bin/python2
     python2.7 --version
