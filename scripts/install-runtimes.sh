@@ -29,6 +29,7 @@ GOLANG_VERSION="${GOLANG_VERSION:-1.23.4}"
 NODE_VERSION="${NODE_VERSION:-22.12.0}"
 FNM_NODE_VERSIONS="${FNM_NODE_VERSIONS:-18 20 22 24}"   # fnm 预装的流行 node 历史版本(大版本号)
 DOTNET_SDK="${DOTNET_SDK:-dotnet-sdk-8.0}"
+PD_VERSION="${PD_VERSION:-latest}"          # projectdiscovery 工具编译版本
 ZIG_VERSION="${ZIG_VERSION:-0.16.0}"
 MAVEN_VERSION="${MAVEN_VERSION:-3.9.16}"
 JAVA_VERSIONS="${JAVA_VERSIONS:-8 11 17 21 25}"  # sdkman 预装的开源 JDK 主版本(temurin,tuna Adoptium;25 为新 LTS)
@@ -226,6 +227,49 @@ install_pwsh() {
     pwsh --version
 }
 
+# ---- projectdiscovery 全家桶(漏洞分析/外部测绘) ------------------------
+# CLI 全部 go install 从源码编译(GOPROXY=goproxy.cn);库随之进模块缓存
+PD_TOOLS_DEFAULT=(
+    subfinder/v2/cmd/subfinder
+    dnsx/v2/cmd/dnsx
+    naabu/v2/cmd/naabu
+    httpx/v2/cmd/httpx
+    nuclei/v3/cmd/nuclei
+    katana/cmd/katana
+    uncover/cmd/uncover
+    cloudlist/cmd/cloudlist
+    notify/cmd/notify
+    interactsh/cmd/interactsh-client
+    chaos-client/cmd/chaos-client
+    mapcidr/cmd/mapcidr
+    asnmap/cmd/asnmap
+    tlsx/cmd/tlsx
+    proxify/cmd/proxify
+    simplehttpserver/cmd/simplehttpserver
+    shuffledns/cmd/shuffledns
+    crlfuzz/cmd/crlfuzz
+    pdtm/cmd/pdtm
+)
+install_pd() {
+    log "projectdiscovery 全家桶 (go install @${PD_VERSION},经 $GOPROXY)"
+    . "$HOME/.cargo/env" 2>/dev/null || true
+    export PATH="$PATH:/usr/local/go/bin:${GOPATH:-/root/go}/bin"
+    export GOPROXY GOSUMDB
+    # shellcheck disable=SC2206
+    local tools=( ${PD_TOOLS:-} ); [ ${#tools[@]} -eq 0 ] && tools=("${PD_TOOLS_DEFAULT[@]}")
+    local t bin
+    for t in "${tools[@]}"; do
+        bin="${t##*/}"
+        if have "$bin"; then echo "$bin 已装,跳过"; continue; fi
+        echo "--- go install $t@${PD_VERSION}"
+        go install "github.com/projectdiscovery/${t}@${PD_VERSION}" || echo "!! $bin 编译失败(留待排查)" 
+        have "$bin" && ln -sf "$(command -v "$bin")" "/usr/local/bin/$bin"
+    done
+    echo "已装 PD 工具:"; for t in "${tools[@]}"; do command -v "${t##*/}" >/dev/null && printf '  %s\n' "${t##*/}"; done
+    # nuclei 模板(从 GitHub 拉,国内可能慢,失败不影响工具本体)
+    if have nuclei; then nuclei -update-templates 2>/dev/null || echo "nuclei 模板更新失败,可稍后重试"; fi
+}
+
 install_dotnet_repo() {
     if [ -f /etc/apt/sources.list.d/microsoft-prod.list ] || [ -f /etc/apt/sources.list.d/microsoft-prod.sources ]; then
         return
@@ -309,7 +353,7 @@ EOF
 }
 
 # ---- 入口 -----------------------------------------------------------
-ALL=(c golang rust node bun python uv python2 fd fnm dotnet pwsh zig sdkman)
+ALL=(c golang rust node bun python uv python2 fd fnm dotnet pwsh zig sdkman pd)
 
 main() {
     local targets=("$@")

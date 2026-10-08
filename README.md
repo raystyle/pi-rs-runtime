@@ -96,6 +96,7 @@ incus exec rt -- bash /root/install-runtimes.sh rust node  # 或只装指定几�
 | 9 | pwsh | packages.microsoft.com apt | LTS | 无国内镜像 |
 | 10 | zig | ziglang.org 官方 tarball | 0.13.0 | 无国内镜像 |
 | 11 | sdkman + 多版本 JDK | get.sdkman.io;各主版本 temurin 从 **tuna Adoptium** 拉最新,本地路径逐个注册进 sdkman | **8u504 / 11.0.32.1 / 17.0.20.1 / 21.0.12.1 / 25.0.4.1**(x64 与 aarch64 同步) | JDK **tuna** `Adoptium`;maven **tuna** `apache/maven` 直装;gradle 走 sdkman |
+| 12 | projectdiscovery 全家桶 | `go install` 源码编译 19 个 CLI(subfinder/dnsx/naabu/httpx/nuclei/katana/uncover/cloudlist/notify/interactsh/chaos-client/mapcidr/asnmap/tlsx/proxify/simplehttpserver/shuffledns/crlfuzz/pdtm) | latest | 模块/源码经 `goproxy.cn`;库随编译进模块缓存;nuclei 模板另从 GitHub 拉 |
 
 原则:**运行时本体可预装(任意源),库源优先 tuna**——crates/pip/JDK/maven/apt 走 tuna;golang 模块(goproxy.cn)与 npm(npmmirror) tuna 没有,用生态自有国内源;dotnet/pwsh/zig 及其库无国内镜像,走官方。
 
