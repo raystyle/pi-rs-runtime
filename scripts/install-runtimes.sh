@@ -131,7 +131,8 @@ install_python() {
 install_uv() {
     log "uv (经 tuna pypi 的 pip 安装;库索引 UV_INDEX_URL=$PIP_INDEX)"
     if have uv; then uv --version; echo "已安装,跳过"; return; fi
-    pip3 install -U uv
+    # noble 的系统 python 标记 externally-managed(PEP 668),容器内允许直装
+    pip3 install -U --break-system-packages uv
     cat > /etc/profile.d/uv.sh <<EOF
 export UV_INDEX_URL=${PIP_INDEX}
 EOF
