@@ -102,7 +102,7 @@ SECGO_TOOLS_DEFAULT=(
     dalfox/v2@github.com/hahwul
     amass/v4/...@github.com/owasp-amass
     chisel@github.com/jpillora
-    gitleaks/v8@github.com/gitleaks
+    gitleaks/v8@github.com/zricethezav
     assetfinder@github.com/tomnomnom
     httprobe@github.com/tomnomnom
     qsreplace@github.com/tomnomnom
@@ -110,7 +110,7 @@ SECGO_TOOLS_DEFAULT=(
     gau/v2/cmd/gau@github.com/lc
     gospider@github.com/jaeles-project
     gowitness@github.com/sensepost
-    AzureHound/v2@github.com/BloodHoundAD
+    azurehound/v2@github.com/bloodhoundad
 )
 
 install_secgo() {
