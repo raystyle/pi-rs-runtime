@@ -212,4 +212,4 @@ sudo incus config device add <实例> vnc proxy \
 - `pi-box-dev` 镜像（pi 二进制、pi-web、定制 Chrome）的构建脚本不在本仓，`build.sh` 未做。
 - 备选路线：单个实例可直接 `incus launch images:ubuntu/24.04`,`incus stop` 后 `incus publish --alias <名>` 固化，不经 distrobuilder。
 
-运行时管理独立一层的思路与 https://github.com/raystyle/ark_rs 一致：本体可预装，库源优先 tuna。本仓只维护 yaml、脚本与文档；镜像产物不入库；distrobuilder 构建缓存与根目录在 `/tmp/distrobuilder`，失败后可手动清理。
+本仓只维护 yaml、脚本与文档；镜像产物不入库；distrobuilder 构建缓存与根目录在 `/tmp/distrobuilder`，失败后可手动清理。
