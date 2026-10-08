@@ -98,6 +98,8 @@ install_python() {
     # 黄金:pipx(隔离装 CLI 应用)、ruff(全 Python  fastest  linter/formatter)
     apt-get install -y --no-install-recommends pipx
     pip3 install -U --break-system-packages ruff
+    # 数据分析栈:polars(Rust DataFrame)+ pyarrow;与 duckdb 组互补
+    pip3 install -U --break-system-packages polars pyarrow
     # pwntools 只走 apt(p0 批的 python3-pwntools):pip 版会盖住 dist-packages 造成双版本,评审 F8
     python3 --version && pip3 --version && ruff --version
 }
