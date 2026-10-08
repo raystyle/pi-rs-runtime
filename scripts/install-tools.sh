@@ -63,14 +63,13 @@ PD_TOOLS_DEFAULT=(
     cloudlist/cmd/cloudlist
     notify/cmd/notify
     interactsh/cmd/interactsh-client
-    chaos-client/cmd/chaos-client
+    chaos-client/cmd/chaos
     mapcidr/cmd/mapcidr
     asnmap/cmd/asnmap
     tlsx/cmd/tlsx
     proxify/cmd/proxify
     simplehttpserver/cmd/simplehttpserver
     shuffledns/cmd/shuffledns
-    crlfuzz/cmd/crlfuzz
     pdtm/cmd/pdtm
 )
 
@@ -120,15 +119,28 @@ install_secgo() {
     export GOPROXY GOSUMDB
     # shellcheck disable=SC2206
     local tools=( ${SECGO_TOOLS:-} ); [ ${#tools[@]} -eq 0 ] && tools=("${SECGO_TOOLS_DEFAULT[@]}")
-    local spec path repo bin
+    local spec path repo bin first last produced
+    local gobin; gobin="$(go env GOBIN 2>/dev/null || true)"; [ -n "$gobin" ] || gobin="$HOME/go/bin"
     for spec in "${tools[@]}"; do
         path="${spec%@*}"; repo="${spec#*@}"
-        bin="${path##*/}"; [ "$bin" = "..." ] && bin="${path%%/*}"
+        first="${path%%/*}"; last="${path##*/}"
+        # 目标二进制名:带版本目录的模块(ffuf/v2)产物名是版本号(v2),要改名
+        bin="$first"
+        produced="$last"
+        [ "$last" = "..." ] && produced="$first"
         if have "$bin"; then echo "$bin 已装,跳过"; continue; fi
         echo "--- go install $repo/$path@${SECGO_VERSION:-latest}"
-        go install "${repo}/${path}@${SECGO_VERSION:-latest}" || echo "!! $bin 编译失败(留待排查)"
+        if go install "${repo}/${path}@${SECGO_VERSION:-latest}"; then
+            if ! have "$bin" && [ "$produced" != "$bin" ] && [ -f "$gobin/$produced" ]; then
+                mv "$gobin/$produced" "$gobin/$bin"   # v2/v3/v8 -> ffuf/gobuster/gitleaks
+            fi
+            have "$bin" && ln -sf "$gobin/$bin" "/usr/local/bin/$bin"
+        else
+            echo "!! $bin 编译失败(留待排查)"
+        fi
     done
-    echo "已装:"; for spec in "${tools[@]}"; do path="${spec%@*}"; bin="${path##*/}"; [ "$bin" = "..." ] && bin="${path%%/*}"; command -v "$bin" >/dev/null && printf '  %s\n' "$bin"; done
+    echo "已装:"; for spec in "${tools[@]}"; do path="${spec%@*}"; bin="${path%%/*}"; have "$bin" && printf '  %s\n' "$bin"; done
+    true   # 循环尾可能是 command -v 失败,吞掉以防 set -e 中断后续组
 }
 
 install_secrust() {
