@@ -399,16 +399,21 @@ for want in ('sliver-server_linux','sliver-client_linux'):
     for a in rel['assets']:
         n=a['name']
         if want in n and not any(x in n for x in ('windows','darwin','mac','.sig','.minisig','.pem','SHA256','sbom')):
-            print(mirror+a['browser_download_url']+' '+want)
+            import platform
+            arch = 'arm64' if platform.machine() in ('aarch64','arm64') else 'amd64'
+            if ('-'+arch) in n:
+                print(mirror+a['browser_download_url']+' '+want)
 " | while read -r url name; do
             curl -fSL "$url" -o "/tmp/${name}.bin" && install -m755 "/tmp/${name}.bin" "/usr/local/bin/${name}" && rm "/tmp/${name}.bin"
         done
     fi
     have sliver-server && sliver-server version 2>/dev/null | head -1 || echo "sliver-server 装失败(可手动下 release)"
 
-    # merlin:latest tag(v1.5.1)没有 cmd/merlinserver,v2 在 master
-    have merlinserver || go install github.com/Ne0nd0g/merlin/cmd/merlinserver@master \
-        && ln -sf /root/go/bin/merlinserver /usr/local/bin/merlinserver || echo "merlinserver 失败"
+    # merlin:latest tag(v1.5.1)没有 cmd/merlinserver,v2 在默认分支(master/main 逐个试)
+    have merlinserver || go install github.com/Ne0nd0g/merlin/cmd/merlinserver@main \
+        || go install github.com/Ne0nd0g/merlin/cmd/merlinserver@master \
+        || go install github.com/Ne0nd0g/merlin/cmd/merlinserver@v2.1.3+incompatible
+    [ -e /root/go/bin/merlinserver ] && ln -sf /root/go/bin/merlinserver /usr/local/bin/merlinserver || echo "merlinserver 失败"
 
     # empire:Python 重型框架,装依赖交互多;克隆钉版,首次启用走 /opt/Empire 的 install
     if [ ! -d /opt/Empire/.git ]; then
@@ -427,9 +432,11 @@ for want in ('sliver-server_linux','sliver-client_linux'):
     # ysoserial:Java 反序列化 payload 生成;maven 依赖已走阿里云(settings.xml)
     if ! have ysoserial; then
         rm -rf /tmp/ysoserial && git clone --depth 1 "${gh}/frohoff/ysoserial" /tmp/ysoserial
-        # 项目钉 Java 1.6,javac 21 拒编;pom 升到 1.8 再打包
-        sed -i 's/1\.6/1.8/g' /tmp/ysoserial/pom.xml
-        if ( cd /tmp/ysoserial && mvn -q package -DskipTests ); then
+        # JDK 21 删了 java.rmi.activation(JenkinsListener/JRMPListener 要用),
+        # 必须用 JDK 8 构建;temurin-8 已在 sdkman 装好
+        local j8; j8="$(ls -d /opt/jdk/temurin-8* 2>/dev/null | head -1)"
+        [ -n "$j8" ] || { echo "无 JDK 8,先跑 install-runtimes.sh sdkman"; }
+        if ( cd /tmp/ysoserial && JAVA_HOME="$j8" PATH="$j8/bin:$PATH" mvn -q package -DskipTests ); then
             install -d /opt/ysoserial
             cp /tmp/ysoserial/target/ysoserial-*.jar /opt/ysoserial/ysoserial.jar
             printf '#!/bin/sh\nexec java -jar /opt/ysoserial/ysoserial.jar "$@"\n' > /usr/local/bin/ysoserial
@@ -465,7 +472,7 @@ for a in rel['assets']:
             fi
         fi
     fi
-    have ysoserial.net && ysoserial.net --help 2>/dev/null | head -1 || echo "ysoserial.net 装失败"
+    [ -x /usr/local/bin/ysoserial.net ] && echo "ysoserial.net 就绪(--help 退出码非 0,不做健康判断)" || echo "ysoserial.net 装失败"
     true
 }
 
@@ -476,11 +483,13 @@ install_bof() {
     local gh="${GITHUB_MIRROR}https://github.com"
     apt-get update -qq
     apt-get install -y --no-install-recommends mingw-w64
-    # COFFLoader:先编 Linux 版(gcc 直编,可跑独立 BOF);mingw 目标也顺带验证编译器
-    if ! have coffloader; then
+    # COFFLoader 的 standalone 仍依赖 Windows 类型(BOOL/InternalFunctions),
+    # Linux 直编过不了上游也没支持;交叉编 Windows 版(wine 下可用),
+    # Linux 上跑 BOF 用 coffee / bof-launcher
+    if [ ! -f /opt/COFFLoader/COFFLoader64.exe ]; then
         rm -rf /tmp/coffloader && git clone --depth 1 "${gh}/trustedsec/COFFLoader" /tmp/coffloader
-        ( cd /tmp/coffloader && gcc -Wall -DCOFF_STANDALONE beacon_compatibility.c COFFLoader.c -o /usr/local/bin/coffloader ) \
-            || echo "coffloader linux 构建失败"
+        ( cd /tmp/coffloader && make bof && install -d /opt/COFFLoader \
+            && install -m644 COFFLoader64.exe test64.out /opt/COFFLoader/ ) || echo "coffloader mingw 构建失败"
         rm -rf /tmp/coffloader
     fi
     # atomic-bofs:rasta-mouse 的 COFF 独立运行 harness(带打包参数)
@@ -493,16 +502,24 @@ install_bof() {
             || cargo install --git "${gh}/hakaioffsec/coffee" --locked \
             || echo "coffee 失败"
         [ -e "$HOME/.cargo/bin/coffee" ] && ln -sf "$HOME/.cargo/bin/coffee" /usr/local/bin/coffee
+        [ -e "$HOME/.cargo/bin/coffee-ldr" ] && ln -sf "$HOME/.cargo/bin/coffee-ldr" /usr/local/bin/coffee-ldr
     fi
-    have coffee && coffee --help 2>/dev/null | head -1
+    { have coffee || have coffee-ldr; } && echo "coffee 就绪"
     # bof-launcher(The-Z-Labs):Zig 写的 BOF 加载器;仓库钉 zig 0.15.2,
     # 系统 zig 0.16 可能编不过,失败则提示按仓库说明下 0.15.2
     if ! have bof-launcher; then
+        # 仓库钉 zig 0.15.2,系统 0.16 编不过;下载 0.15.2 专用副本构建
+        local z152=/opt/zig-0.15.2
+        if [ ! -x "$z152/zig" ]; then
+            local za; case "$(dpkg --print-architecture)" in amd64) za=x86_64;; arm64) za=aarch64;; esac
+            curl -fSL "https://ziglang.org/download/0.15.2/zig-${za}-linux-0.15.2.tar.xz" -o /tmp/zig152.tar.xz \
+                && mkdir -p "$z152" && tar -C "$z152" -xJf /tmp/zig152.tar.xz --strip-components=1 && rm /tmp/zig152.tar.xz
+        fi
         rm -rf /tmp/bof-launcher && git clone --depth 1 "${gh}/The-Z-Labs/bof-launcher" /tmp/bof-launcher
-        if ( cd /tmp/bof-launcher && zig build -Doptimize=ReleaseSafe ); then
+        if [ -x "$z152/zig" ] && ( cd /tmp/bof-launcher && "$z152/zig" build -Doptimize=ReleaseSafe ); then
             find /tmp/bof-launcher/zig-out -name bof-launcher -type f -exec install -m755 {} /usr/local/bin/bof-launcher \;
         else
-            echo "bof-launcher 构建失败(zig 0.16 与仓库钉的 0.15.2 可能不兼容;按 README 下 zig 0.15.2 再编)"
+            echo "bof-launcher 构建失败"
         fi
         rm -rf /tmp/bof-launcher
     fi
@@ -512,9 +529,9 @@ install_bof() {
     curl -fsSL "${gh}/chryzsh/awesome-bof/raw/main/BOF-CATALOG.md" -o /opt/bofs/BOF-CATALOG.md \
         || echo "目录下载失败(不影响工具链)"
     x86_64-w64-mingw32-gcc --version | head -1
-    have coffloader && echo "coffloader 就绪"
+    [ -f /opt/COFFLoader/COFFLoader64.exe ] && echo "COFFLoader64.exe 在 /opt/COFFLoader(wine 用);Linux 直跑 BOF 用 coffee/bof-launcher"
     ls -d /opt/atomic-bofs >/dev/null 2>&1 && echo "atomic-bofs 在 /opt/atomic-bofs"
-    echo "用法: x86_64-w64-mingw32-gcc -c bof.c -o bof.o; coffloader go bof.o <args...>"
+    echo "用法: x86_64-w64-mingw32-gcc -c bof.c -o bof.o; coffee run bof.o / bof-launcher run bof.o"
     true
 }
 
