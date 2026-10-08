@@ -180,7 +180,7 @@ EOF
 # ---- python2.7(逆向分析;noble 无官方包,源码编译) ----------------------
 install_python2() {
     log "python $PY2_VERSION (源码编译,$PY2_MIRROR)"
-    if have python2.7; then python2.7 --version; echo "已安装,跳过"; return; fi
+    if have python2.7 && python2.7 --version >/dev/null 2>&1; then python2.7 --version; echo "已安装,跳过"; return; fi
     apt-get update -qq
     apt-get install -y --no-install-recommends \
         libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev \
