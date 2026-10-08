@@ -15,9 +15,9 @@ TUNA="${TUNA:-https://mirrors.tuna.tsinghua.edu.cn}"
 export RUSTUP_DIST_SERVER="${RUSTUP_DIST_SERVER:-$TUNA/rustup}"
 export RUSTUP_UPDATE_ROOT="${RUSTUP_UPDATE_ROOT:-$TUNA/rustup/rustup}"
 CRATES_INDEX="${CRATES_INDEX:-$TUNA/crates.io-index}"
-GOPROXY="${GOPROXY:-https://goproxy.cn,direct}"          # tuna 无 golang,用七牛 goproxy
+GOPROXY="${GOPROXY:-https://goproxy.cn,direct}"          # tuna 无 golang 模块代理,用七牛 goproxy
 GOSUMDB="${GOSUMDB:-sum.golang.google.cn}"              # 国内可连的校验和库
-GO_DOWNLOAD="${GO_DOWNLOAD:-https://golang.google.cn/dl}" # tuna 无 golang 二进制,用官方 CN 站
+GO_DOWNLOAD="${GO_DOWNLOAD:-https://mirror.nju.edu.cn/golang}" # tuna 无 golang;南大镜像同为高校源,也可用 golang.google.cn
 NPM_REGISTRY="${NPM_REGISTRY:-https://registry.npmmirror.com}"            # tuna 无 npm registry
 NODE_MIRROR="${NODE_MIRROR:-https://registry.npmmirror.com/-/binary/node}" # tuna 无 node 二进制
 PIP_INDEX="${PIP_INDEX:-$TUNA/pypi/simple}"
@@ -28,9 +28,9 @@ MAVEN_MIRROR="${MAVEN_MIRROR:-$TUNA/apache/maven}"
 GOLANG_VERSION="${GOLANG_VERSION:-1.23.4}"
 NODE_VERSION="${NODE_VERSION:-22.12.0}"
 DOTNET_SDK="${DOTNET_SDK:-dotnet-sdk-8.0}"
-JAVA_VERSION="${JAVA_VERSION:-21.0.12.1+1}"  # temurin,注册进 sdkman 的本地版本名后缀
 ZIG_VERSION="${ZIG_VERSION:-0.13.0}"
 MAVEN_VERSION="${MAVEN_VERSION:-3.9.16}"
+JAVA_VERSIONS="${JAVA_VERSIONS:-8 11 17 21 25}"  # sdkman 预装的开源 JDK 主版本(temurin,tuna Adoptium;25 为新 LTS)
 
 log()  { printf '\n\033[1;32m==> %s\033[0m\n' "$*"; }
 have() { command -v "$1" >/dev/null 2>&1; }
@@ -173,9 +173,10 @@ install_zig() {
     zig version
 }
 
-# ---- sdkman + JDK ---------------------------------------------------
+# ---- sdkman + 多版本 JDK ---------------------------------------------
+# sdkman 的定位:各种开源 JDK 的统一切换入口(temurin 从 tuna Adoptium 预装)
 install_sdkman() {
-    log "sdkman (JVM 生态: java/maven/gradle/kotlin/scala 的入口)"
+    log "sdkman (多版本 java 管理入口,temurin 走 tuna Adoptium)"
     local sdk_dir="/usr/local/sdkman"
     if [ ! -d "$sdk_dir" ]; then
         curl -fSL "https://get.sdkman.io" -o /tmp/sdkman-init.sh
@@ -191,18 +192,28 @@ EOF
     # shellcheck disable=SC1091
     . "$sdk_dir/bin/sdkman-init.sh"
 
-    log "temurin JDK ${JAVA_VERSION%%+*} (tuna Adoptium 镜像,本地路径注册进 sdkman)"
-    local jdk_dir="/opt/jdk/temurin-${JAVA_VERSION%%+*}"
-    if [ ! -d "$jdk_dir" ]; then
-        mkdir -p "$jdk_dir"
-        local major; major="$(echo "$JAVA_VERSION" | cut -d. -f1)"
-        local tgz="OpenJDK${major}U-jdk_x64_linux_hotspot_${JAVA_VERSION//+/_}.tar.gz"
-        curl -fSL "${ADOPTIUM_MIRROR}/${major}/jdk/x64/linux/${tgz}" -o /tmp/jdk.tar.gz
-        tar -C "$jdk_dir" -xzf /tmp/jdk.tar.gz --strip-components=1 && rm /tmp/jdk.tar.gz
-    fi
-    if ! sdk list java | grep -q "local only"; then
-        yes | sdk install java "${JAVA_VERSION%%+*}-tem" "$jdk_dir" || true
-    fi
+    # 从 tuna Adoptium 拉各主版本的最新 temurin,本地路径注册进 sdkman
+    local aarchi; case "$(dpkg --print-architecture)" in amd64) aarchi=x64;; arm64) aarchi=aarch64;; *) exit 1;; esac
+    local default_ver=""
+    for major in $JAVA_VERSIONS; do
+        local listing tgz ver jdk_dir
+        listing="$(curl -fsSL "${ADOPTIUM_MIRROR}/${major}/jdk/${aarchi}/linux/")"
+        tgz="$(printf '%s' "$listing" | grep -o "OpenJDK${major}U-jdk_${aarchi}_linux_hotspot_[0-9a-zA-Z._]*\.tar\.gz" | sort -uV | tail -1)"
+        [ -n "$tgz" ] || { echo "tuna Adoptium 找不到 JDK $major,跳过"; continue; }
+        ver="${tgz#OpenJDK${major}U-jdk_${aarchi}_linux_hotspot_}"; ver="${ver%.tar.gz}"
+        jdk_dir="/opt/jdk/temurin-${ver}"
+        if [ ! -d "$jdk_dir" ]; then
+            mkdir -p "$jdk_dir"
+            curl -fSL "${ADOPTIUM_MIRROR}/${major}/jdk/${aarchi}/linux/${tgz}" -o /tmp/jdk.tar.gz
+            tar -C "$jdk_dir" -xzf /tmp/jdk.tar.gz --strip-components=1 && rm /tmp/jdk.tar.gz
+        fi
+        if ! sdk list java 2>/dev/null | grep -q "${ver}-tem"; then
+            yes | sdk install java "${ver}-tem" "$jdk_dir" || true
+        fi
+        default_ver="${ver}-tem"
+        echo "java $major -> ${ver}-tem"
+    done
+    [ -n "$default_ver" ] && sdk default java "$default_ver" || true
 
     log "maven $MAVEN_VERSION (tuna apache 镜像,直装)"
     if ! have mvn; then
@@ -214,7 +225,7 @@ EOF
     fi
     mvn -version | head -1
 
-    log "gradle (sdkman,无 tuna 镜像)"
+    log "gradle (sdkman)"
     sdk install gradle || true
     sdk current
 }

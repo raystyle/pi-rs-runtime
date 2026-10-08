@@ -86,19 +86,21 @@ incus exec rt -- bash /root/install-runtimes.sh rust node  # 或只装指定几�
 | # | 运行时 | 安装方式 | 默认版本 | 镜像源 |
 |---|--------|----------|----------|--------|
 | 1 | C 工具链 | apt | build-essential/clang/cmake/ninja | tuna apt |
-| 2 | golang | 官方 tarball | 1.23.4 | 下载 `golang.google.cn`(tuna 无);模块 `GOPROXY=goproxy.cn`;`GOSUMDB=sum.golang.google.cn` |
+| 2 | golang | 官方 tarball | 1.23.4 | 下载 `mirror.nju.edu.cn/golang`(tuna 无,南大同为高校源;可切 `golang.google.cn`);模块 `GOPROXY=goproxy.cn`;`GOSUMDB=sum.golang.google.cn` |
 | 3 | rust | rustup(`--profile minimal`) | stable | **tuna** `rustup` + `crates.io-index`(sparse) |
 | 4 | node | 二进制 tarball | 22.12.0 | 下载 `npmmirror.com/-/binary/node`(tuna 无);npm registry `registry.npmmirror.com` |
 | 5 | bun | npm 全局安装 | latest | 经 npmmirror registry(tuna 无) |
 | 6 | python | apt + pip | noble 自带 3.12 | pip **tuna** `pypi/simple` |
-| 7 | dotnet | packages.microsoft.com apt | sdk-8.0 | 无国内镜像(标注) |
-| 8 | pwsh | packages.microsoft.com apt | LTS | 无国内镜像(标注) |
-| 9 | zig | ziglang.org 官方 tarball | 0.13.0 | 无国内镜像(标注) |
-| 10 | sdkman + JDK | get.sdkman.io;temurin 从 **tuna Adoptium** 下载后本地路径注册进 sdkman | temurin 21.0.12.1 | JDK **tuna** `Adoptium`;maven **tuna** `apache/maven` 直装;gradle 走 sdkman(无 tuna) |
+| 7 | dotnet | packages.microsoft.com apt | sdk-8.0 | 无国内镜像 |
+| 8 | pwsh | packages.microsoft.com apt | LTS | 无国内镜像 |
+| 9 | zig | ziglang.org 官方 tarball | 0.13.0 | 无国内镜像 |
+| 10 | sdkman + 多版本 JDK | get.sdkman.io;各主版本 temurin 从 **tuna Adoptium** 拉最新,本地路径逐个注册进 sdkman | **8u504 / 11.0.32.1 / 17.0.20.1 / 21.0.12.1 / 25.0.4.1**(x64 与 aarch64 同步) | JDK **tuna** `Adoptium`;maven **tuna** `apache/maven` 直装;gradle 走 sdkman |
 
-环境变量可覆盖版本与镜像:`GOLANG_VERSION NODE_VERSION DOTNET_SDK JAVA_VERSION ZIG_VERSION MAVEN_VERSION` 与 `TUNA GOPROXY GOSUMDB GO_DOWNLOAD NPM_REGISTRY NODE_MIRROR PIP_INDEX CRATES_INDEX ADOPTIUM_MIRROR MAVEN_MIRROR`。
+原则:**运行时本体可预装(任意源),库源优先 tuna**——crates/pip/JDK/maven/apt 走 tuna;golang 模块(goproxy.cn)与 npm(npmmirror) tuna 没有,用生态自有国内源;dotnet/pwsh/zig 及其库无国内镜像,走官方。
 
-已验证的替代方案:tuna 无 dotnet/powershell/zig 镜像目录;npmmirror 二进制镜像有 node/bun/python/deno、无 zig。
+环境变量可覆盖版本与镜像:`GOLANG_VERSION NODE_VERSION DOTNET_SDK ZIG_VERSION MAVEN_VERSION JAVA_VERSIONS` 与 `TUNA GOPROXY GOSUMDB GO_DOWNLOAD NPM_REGISTRY NODE_MIRROR PIP_INDEX CRATES_INDEX ADOPTIUM_MIRROR MAVEN_MIRROR`。
+
+已验证的镜像可用性:tuna 有 `rustup` `crates.io-index` `pypi` `Adoptium`(8/11/17/21/25,x64+aarch64)`apache/maven`;无 golang/node/npm registry/bun/dotnet/powershell/zig。npmmirror 二进制镜像有 node/bun/python/deno、无 zig。
 
 ## 备选路线:incus publish(适合单个 pi agent 实例 / 少量定制)
 
