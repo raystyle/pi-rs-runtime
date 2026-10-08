@@ -53,7 +53,7 @@
 | `NODE_VERSION` | `24.21.0` | npmmirror `SHASUMS256.txt` 校验 |
 | `FNM_NODE_VERSIONS` | `18 20 22 24` | fnm 预装的 node 大版本，空格分隔 |
 | `DOTNET_SDK` | `dotnet-sdk-10.0` | noble 自带源（即 tuna);MS 仓仅 pwsh 注册 |
-| `ZIG_VERSION` | `0.16.0` | ziglang.org 直下，无国内镜像 |
+| `ZIG_VERSION` | `0.16.0` | ziglang.org 直下，无国内镜像；仅 amd64/arm64 |
 | `MAVEN_VERSION` / `GRADLE_VERSION` | `3.9.16` / `8.14.3` | |
 | `JAVA_VERSIONS` | `8 11 17 21 25` | sdkman 预装的 temurin 主版本；小版本随 tuna 目录取最新 |
 | `PD_VERSION` | `latest` | projectdiscovery 全家桶 `go install` 版本 |
@@ -84,24 +84,6 @@
 - `install-compilers.sh`:`COMPILERS_ALL=(c golang rust zig vcpkg)`
 - `install-runtimes.sh`:`RUNTIMES_ALL=(node fnm bun uv python python2 duckdb php mono dotnet pwsh sdkman)`
 - `install-tools.sh`:`TOOLS_ALL=(fd astgrep cli herdr ghidra re pd secgo secrust pivot p0 c2 bof pz nu)`
-
-## 错误表
-
-| 条件 | 调用方收到什么 | 下一步 |
-|------|--------------|--------|
-| 分类脚本收到未知名 | `未知项: X(可选: …)`,退出码 1 | 对照对应脚本尾部 `*_ALL` 名单 |
-| golang tarball sha256 校验失败 | `go tarball 校验失败`,退出码 1 | 校验和取自 golang.google.cn 官方 JSON；检查 `GO_DOWNLOAD` 镜像完整性后重跑 |
-| node tarball sha256 校验失败 | `node tarball 校验失败`,退出码 1 | 校验和取自 npmmirror `SHASUMS256.txt`；重跑 |
-| Ghidra zip 校验失败 | `ghidra zip 校验失败`,退出码 1 | `GHIDRA_VERSION`、`GHIDRA_DATE`、`GHIDRA_SHA256` 三者需配套，核对后重跑 |
-| herdr 校验失败 | `herdr 校验失败`,退出码 1 | `HERDR_SHA256` 只覆盖 linux-x86_64 资产；核对版本与校验和后重跑 |
-| Ghidra 找不到 JDK 21 | `找不到 JDK 21,先跑 install-runtimes.sh sdkman`,退出码 1 | 先跑 `./install-runtimes.sh sdkman` 再跑 `install_ghidra` |
-| 首启容器 cloud-init 持有 apt 锁 | 手工 `apt-get` 报锁占用 | `build-base-image.sh` 已内置 `cloud-init status --wait`；手工场景等待 cloud-init 完成 |
-| pd/secgo 单个工具编译失败 | `!! X 编译失败(留待排查)`,继续其余工具，整组不退出 | 脚本幂等，重跑同命令补装（已装的 `have && skip`) |
-| PHP 某版本安装失败 | `phpX 安装失败,跳过`,继续其余版本 | 检查 sury 源可用性后重跑 `install_php` |
-| sigdb 安装失败 | `sigdb 安装失败(不影响 rizin 本体)`,继续 | rizin 与 rz-ghidra 不受影响；需要签名库时重跑 `install_re` |
-| `vnc-screen.sh` 无参或未知子命令 | 打印头部注释中的用法，退出码 1 | 子命令为 `setup`、`start`、`stop`、`status` |
-| zig 目标架构不是 amd64/arm64 | `install_zig` 退出码 1 | 当前仅支持两种架构 |
-| 引用未定义变量 | `set -u` 中止，退出码非 0 | 检查环境变量拼写；所有覆盖变量均有默认值，正常路径不会触发 |
 
 ## 步骤
 
