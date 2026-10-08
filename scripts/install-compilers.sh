@@ -204,6 +204,8 @@ install_zig() {
 # 量大时配 VCPKG_BINARY_SOURCES(azurl/blob)或 X_VCPKG_ASSET_SOURCES 做缓存
 install_vcpkg() {
     log "vcpkg (GitHub 直下,装 /opt/vcpkg)"
+    apt-get update -qq
+    apt-get install -y --no-install-recommends flex bison   # vcpkg 的 libpcap 等源码构建依赖
     if [ ! -d /opt/vcpkg/.git ]; then
         rm -rf /opt/vcpkg
         git clone --depth 1 https://github.com/microsoft/vcpkg /opt/vcpkg

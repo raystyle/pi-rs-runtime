@@ -330,16 +330,18 @@ install_p0() {
         || uv tool install "git+https://github.com/pwndbg/pwndbg" \
         || pip3 install -U --break-system-packages "git+https://github.com/pwndbg/pwndbg" \
         || echo "pwndbg 失败"
+    [ -e "$HOME/.local/bin/pwndbg" ] && ln -sf "$HOME/.local/bin/pwndbg" /usr/local/bin/pwndbg
     # jadx:CLI zip
     if ! have jadx; then
-        local jv="${JADX_VERSION:-1.5.3}" jz="jadx-${jv}.zip"
+        local jv; jv="${JADX_VERSION:-1.5.3}"
+        local jz="jadx-${jv}.zip"
         curl -fSL "${gh}/skylot/jadx/releases/download/v${jv}/${jz}" -o "/tmp/${jz}" \
             && unzip -q "/tmp/${jz}" -d /opt/jadx && rm "/tmp/${jz}"
         ln -sf "/opt/jadx/jadx-${jv}/bin/jadx" /usr/local/bin/jadx 2>/dev/null || true
     fi
     # apktool:jar + 包装脚本
     if ! have apktool; then
-        local av="${APKTOOL_VERSION:-2.12.0}"
+        local av; av="${APKTOOL_VERSION:-2.12.0}"
         install -d /opt/apktool
         curl -fSL "${gh}/iBotPeaches/Apktool/releases/download/v${av}/apktool_${av}.jar" -o /opt/apktool/apktool.jar
         printf '#!/bin/sh\nexec java -jar /opt/apktool/apktool.jar "$@"\n' > /usr/local/bin/apktool
@@ -347,7 +349,8 @@ install_p0() {
     fi
     # capa:独立发行包(带规则);规则库单独克隆便于更新
     if ! have capa; then
-        local cv="${CAPA_VERSION:-9.5.0}" cz="capa-v${cv}-linux.zip"
+        local cv; cv="${CAPA_VERSION:-9.5.0}"
+        local cz="capa-v${cv}-linux.zip"
         curl -fSL "${gh}/mandiant/capa/releases/download/v${cv}/${cz}" -o "/tmp/${cz}" \
             && unzip -q "/tmp/${cz}" -d /opt/capa && rm "/tmp/${cz}"
         find /opt/capa -name capa -type f -exec ln -sf {} /usr/local/bin/capa \; 2>/dev/null || true
