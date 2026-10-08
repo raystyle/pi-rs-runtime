@@ -63,7 +63,7 @@
 | `FASM_VERSION` | `1.73.32` | 见 `install-compilers.sh` 内 `install_c` |
 | `JADX_VERSION` / `APKTOOL_VERSION` / `CAPA_VERSION` | `1.5.3` / `2.12.0` / `9.4.0` | 见 `install-tools.sh` 内 `install_p0` |
 | `HERDR_VERSION` / `HERDR_SHA256` | `0.9.3` / `18a8dc65f1c2fa485884344356dea1cfd911c6f06cf46fa78e193f4087f4dba7` | herdr.dev stable 频道；校验和只覆盖 linux-x86_64 资产，换版本重算 |
-| `SECGO_VERSION` | `latest` | secgo 组 `go install` 版本 |
+| `SECGO_VERSION` | `latest` | Go 安全工具组 `go install` 版本 |
 
 ### 路径与工具集
 
@@ -132,7 +132,7 @@ incus exec rt-build -- bash /root/scripts/install-all.sh
 
 - 编译器：C 工具链（apt)、golang、rust(rustup 与 crates 走 tuna,`RUSTUP_HOME=/opt/rustup`、`CARGO_HOME=/opt/cargo`，含 rustfmt、clippy、rust-analyzer、rust-script、cargo-zigbuild、cargo-audit 与 crate 缓存预热）、zig、vcpkg(GitHub 直下，源码编译默认库集）。
 - 运行时：node(npmmirror 二进制与 SHASUMS256 校验，全局 npmrc 写 registry/disturl/electron_mirror,`typescript`、`prettier`、`eslint`、corepack)、fnm 多版本、`bun`、uv（官方安装器，索引写 `/etc/uv/uv.toml`)、python3(apt，索引写 `/etc/pip.conf`；分析库全进 `/opt/analytics` venv)、duckdb(venv + GitHub release CLI)、python2.7（源码编译，华为云镜像）、PHP 多版本（sury 源 + VLD 尽力编译）、mono(xbuild,`nuget.exe` 在 `/opt/nuget.exe`)、dotnet(NuGet 走华为 v3)、pwsh(packages.microsoft.com)、sdkman(temurin 多版本本地路径注册 + maven + gradle，依赖镜像指阿里云）。
-- 工具：fd、ast-grep、cli 组（git、jq、yq、shellcheck、just、tmux、rclone、aria2、gh)、herdr(terminal workspace 管理器，release 直下钉版 + sha256，装 `/usr/local/bin`)、ghidra（钉版 + sha256,`JAVA_HOME_OVERRIDE` 钉 temurin 21)、re 组（系统库 + rizin/rz-ghidra/sigdb 源码编译 + `/opt/re-venv`)、pd 全家桶（18 个 CLI,nuclei 模板更新尽力，naabu setcap)、secgo 组（14 个 CLI)、secrust(rustscan、feroxbuster)、pivot(gost/frp/wstunnel/rathole/bore)、p0(apt 批 + re-venv pip 批 + GitHub 钉版批：pwndbg、jadx、apktool、capa、SecLists、yara 规则、pdf 工具）、c2(6 个参考仓克隆到 `/opt/c2-ref`，不安装不运行）、bof(mingw-w64 + COFFLoader + coffee-ldr + bof-launcher)、pz(sandbox-attacksurface-analysis-tools、DotNetToJScript、windows-logical-eop-workshop、oleviewdotnet 等，只克隆参考，oleviewdotnet 需 `--recurse-submodules`)、nushell。
+- 工具：fd 与 ripgrep、ast-grep、基础 CLI 组（git、jq、yq、shellcheck、just、tmux、rclone、aria2、gh)、herdr(terminal workspace 管理器，release 直下钉版 + sha256，装 `/usr/local/bin`)、ghidra（钉版 + sha256,`JAVA_HOME_OVERRIDE` 钉 temurin 21)、逆向稳定链（系统库 + rizin/rz-ghidra/sigdb 源码编译 + `/opt/re-venv`)、projectdiscovery 全家桶（18 个 CLI,nuclei 模板更新尽力，naabu setcap)、Go 安全工具（14 个 CLI)、Rust 安全工具（rustscan、feroxbuster)、代理跳板（gost/frp/wstunnel/rathole/bore)、P0 补齐批（apt 22 包 + re-venv pip 批 + GitHub 钉版批：pwndbg、jadx、apktool、capa、SecLists、yara 规则、pdf 工具）、C2 框架参考（6 个参考仓克隆到 `/opt/c2-ref`，不安装不运行）、BOF 工具链（mingw-w64 + COFFLoader + coffee-ldr + bof-launcher)、Project Zero 沙箱攻击面工具参考（sandbox-attacksurface-analysis-tools、DotNetToJScript、windows-logical-eop-workshop、oleviewdotnet 等，只克隆，oleviewdotnet 需 `--recurse-submodules`)、nushell。各组键名见上文 `TOOLS_ALL` 名单。
 
 ### 4. 发布 pi-rs-runtime 镜像
 
@@ -186,9 +186,9 @@ sudo incus config device add <实例> vnc proxy \
 
 ## 已知限制与未决项
 
-- 版本未钉：temurin 小版本随 tuna Adoptium 目录取最新；`dlv`、`gopls`、`golangci-lint` 与 pd/secgo 组用 `@latest`(`have && skip` 意味着“首次装到的那份”);rizin、rz-ghidra、sigdb、SecLists、yara 规则均为 `--depth 1` 未钉提交；pwndbg 从 git 源装、未钉 rev。
+- 版本未钉：temurin 小版本随 tuna Adoptium 目录取最新；`dlv`、`gopls`、`golangci-lint` 与 projectdiscovery 全家桶、Go 安全工具组用 `@latest`(`have && skip` 意味着“首次装到的那份”);rizin、rz-ghidra、sigdb、SecLists、yara 规则均为 `--depth 1` 未钉提交；pwndbg 从 git 源装、未钉 rev。
 - zig 发行包无国内镜像，直下且无验签。minisig 公钥：`RWSGOq2NVecA2UPNdBUZykf1CCb147pkmdtYxgb3Ti+JO/wCYvhbAb/U`。验签未做。
-- `/root` 0700 的残留面：rust 工具链在 `/opt`（`RUSTUP_HOME=/opt/rustup`、`CARGO_HOME=/opt/cargo`),rust 段新装产物都归 /opt;ast-grep、secrust、pivot、coffee-ldr 与 fnm 经 root 的 `~/.cargo` 安装再链到 `/usr/local/bin`;tools 各组 `GOPATH=/opt/go`（dlv/gopls/golangci-lint、pd/secgo/pivot 归 /opt/go 并链出）；cli 组的 yq 与 gh 未设 GOPATH，产物在 /root/go 且只链 yq,`ubuntu` 用户对 gh 不可执行。已有的 /root/.cargo、/root/go 环境不受影响。
+- `/root` 0700 的残留面：rust 工具链在 `/opt`（`RUSTUP_HOME=/opt/rustup`、`CARGO_HOME=/opt/cargo`),rust 段新装产物都归 /opt;ast-grep、Rust 安全工具、代理跳板、coffee-ldr 与 fnm 经 root 的 `~/.cargo` 安装再链到 `/usr/local/bin`;tools 各组 `GOPATH=/opt/go`(dlv/gopls/golangci-lint、projectdiscovery 全家桶、Go 安全工具、代理跳板归 /opt/go 并链出）；基础 CLI 组的 yq 与 gh 未设 GOPATH，产物在 /root/go 且只链 yq,`ubuntu` 用户对 gh 不可执行。已有的 /root/.cargo、/root/go 环境不受影响。
 - `install_secrust` 日志声明装 rustscan、feroxbuster、findomain，实际只装前两个；findomain 注释建议改用 https://github.com/Findomain/Findomain/releases 预编译。
 - `install_php` 中 PHP 7.4 已无官方支持，样本动态执行需在无网络、无生产数据挂载的环境里跑，并加 `-d opcache.jit=off`；当前部署链未强制该隔离面。python2 同理（已通过实测含 `import ssl`)。
 - VNC 屏幕无 Chrome 与 noVNC;Chrome 官方版不装，后续定制构建。
