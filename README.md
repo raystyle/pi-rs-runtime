@@ -91,14 +91,15 @@ incus exec rt -- bash /root/install-runtimes.sh rust node  # 或只装指定几�
 | 4 | node | 二进制 tarball | 22.12.0 | 下载 `npmmirror.com/-/binary/node`(tuna 无);npm registry `registry.npmmirror.com` |
 | 5 | bun | npm 全局安装 | latest | 经 npmmirror registry(tuna 无) |
 | 6 | python | apt + pip | noble 自带 3.12 | pip **tuna** `pypi/simple` |
-| 7 | dotnet | packages.microsoft.com apt | sdk-8.0 | 无国内镜像 |
-| 8 | pwsh | packages.microsoft.com apt | LTS | 无国内镜像 |
-| 9 | zig | ziglang.org 官方 tarball | 0.13.0 | 无国内镜像 |
-| 10 | sdkman + 多版本 JDK | get.sdkman.io;各主版本 temurin 从 **tuna Adoptium** 拉最新,本地路径逐个注册进 sdkman | **8u504 / 11.0.32.1 / 17.0.20.1 / 21.0.12.1 / 25.0.4.1**(x64 与 aarch64 同步) | JDK **tuna** `Adoptium`;maven **tuna** `apache/maven` 直装;gradle 走 sdkman |
+| 7 | uv | pip 安装(uv 无独立国内二进制镜像,PyPI 即 tuna) | latest | 库索引 `UV_INDEX_URL`=**tuna** `pypi/simple` |
+| 8 | dotnet | packages.microsoft.com apt | sdk-8.0 | 无国内镜像 |
+| 9 | pwsh | packages.microsoft.com apt | LTS | 无国内镜像 |
+| 10 | zig | ziglang.org 官方 tarball | 0.13.0 | 无国内镜像 |
+| 11 | sdkman + 多版本 JDK | get.sdkman.io;各主版本 temurin 从 **tuna Adoptium** 拉最新,本地路径逐个注册进 sdkman | **8u504 / 11.0.32.1 / 17.0.20.1 / 21.0.12.1 / 25.0.4.1**(x64 与 aarch64 同步) | JDK **tuna** `Adoptium`;maven **tuna** `apache/maven` 直装;gradle 走 sdkman |
 
 原则:**运行时本体可预装(任意源),库源优先 tuna**——crates/pip/JDK/maven/apt 走 tuna;golang 模块(goproxy.cn)与 npm(npmmirror) tuna 没有,用生态自有国内源;dotnet/pwsh/zig 及其库无国内镜像,走官方。
 
-环境变量可覆盖版本与镜像:`GOLANG_VERSION NODE_VERSION DOTNET_SDK ZIG_VERSION MAVEN_VERSION JAVA_VERSIONS` 与 `TUNA GOPROXY GOSUMDB GO_DOWNLOAD NPM_REGISTRY NODE_MIRROR PIP_INDEX CRATES_INDEX ADOPTIUM_MIRROR MAVEN_MIRROR`。
+环境变量可覆盖版本与镜像:`GOLANG_VERSION NODE_VERSION DOTNET_SDK ZIG_VERSION MAVEN_VERSION JAVA_VERSIONS` 与 `TUNA GOPROXY GOSUMDB GO_DOWNLOAD NPM_REGISTRY NODE_MIRROR PIP_INDEX CRATES_INDEX ADOPTIUM_MIRROR MAVEN_MIRROR`(uv 的索引用 `PIP_INDEX`)。
 
 已验证的镜像可用性:tuna 有 `rustup` `crates.io-index` `pypi` `Adoptium`(8/11/17/21/25,x64+aarch64)`apache/maven`;无 golang/node/npm registry/bun/dotnet/powershell/zig。npmmirror 二进制镜像有 node/bun/python/deno、无 zig。
 

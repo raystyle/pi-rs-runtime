@@ -125,6 +125,18 @@ install_python() {
     python3 --version && pip3 --version
 }
 
+# ---- uv (python 包/运行时管理器) --------------------------------------
+install_uv() {
+    log "uv (经 tuna pypi 的 pip 安装;库索引 UV_INDEX_URL=$PIP_INDEX)"
+    if have uv; then uv --version; echo "已安装,跳过"; return; fi
+    pip3 install -U uv
+    cat > /etc/profile.d/uv.sh <<EOF
+export UV_INDEX_URL=${PIP_INDEX}
+EOF
+    export UV_INDEX_URL="$PIP_INDEX"
+    uv --version
+}
+
 # ---- dotnet --------------------------------------------------------
 install_dotnet() {
     log "dotnet ($DOTNET_SDK,packages.microsoft.com,国内无镜像)"
@@ -231,7 +243,7 @@ EOF
 }
 
 # ---- 入口 -----------------------------------------------------------
-ALL=(c golang rust node bun python dotnet pwsh zig sdkman)
+ALL=(c golang rust node bun python uv dotnet pwsh zig sdkman)
 
 main() {
     local targets=("$@")
