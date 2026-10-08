@@ -28,6 +28,6 @@ trap 'sudo incus delete -f verify-base >/dev/null 2>&1 || true' EXIT
 sudo incus exec verify-base -- sh -c 'cloud-init status --wait >/dev/null 2>&1 || true'
 # 镜像是 deb822 源,键是 URIs:;grep ^deb 什么也匹配不到
 sudo incus exec verify-base -- sh -c \
-  'grep -rh "URIs:" /etc/apt/sources.list.d/ | head -3; apt-get update -qq && echo APT_UPDATE_OK; cloud-init --version'
+  'grep -rh "URIs:" /etc/apt/sources.list.d/ | head -3; cloud-init --version; apt-get update -qq && echo APT_UPDATE_OK'
 
 echo ">> 完成。之后运行:incus image delete $ALIAS 之前的旧指纹如有需要自行清理"
