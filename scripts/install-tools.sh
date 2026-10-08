@@ -398,7 +398,7 @@ mirror=os.environ.get('GITHUB_MIRROR','')
 for want in ('sliver-server_linux','sliver-client_linux'):
     for a in rel['assets']:
         n=a['name']
-        if want in n and not any(x in n for x in ('windows','darwin','mac')):
+        if want in n and not any(x in n for x in ('windows','darwin','mac','.sig','.minisig','.pem','SHA256','sbom')):
             print(mirror+a['browser_download_url']+' '+want)
 " | while read -r url name; do
             curl -fSL "$url" -o "/tmp/${name}.bin" && install -m755 "/tmp/${name}.bin" "/usr/local/bin/${name}" && rm "/tmp/${name}.bin"
@@ -406,8 +406,8 @@ for want in ('sliver-server_linux','sliver-client_linux'):
     fi
     have sliver-server && sliver-server version 2>/dev/null | head -1 || echo "sliver-server 装失败(可手动下 release)"
 
-    # merlin:go install(模块经 goproxy.cn)
-    have merlinserver || go install github.com/Ne0nd0g/merlin/cmd/merlinserver@latest \
+    # merlin:latest tag(v1.5.1)没有 cmd/merlinserver,v2 在 master
+    have merlinserver || go install github.com/Ne0nd0g/merlin/cmd/merlinserver@master \
         && ln -sf /root/go/bin/merlinserver /usr/local/bin/merlinserver || echo "merlinserver 失败"
 
     # empire:Python 重型框架,装依赖交互多;克隆钉版,首次启用走 /opt/Empire 的 install
@@ -427,6 +427,8 @@ for want in ('sliver-server_linux','sliver-client_linux'):
     # ysoserial:Java 反序列化 payload 生成;maven 依赖已走阿里云(settings.xml)
     if ! have ysoserial; then
         rm -rf /tmp/ysoserial && git clone --depth 1 "${gh}/frohoff/ysoserial" /tmp/ysoserial
+        # 项目钉 Java 1.6,javac 21 拒编;pom 升到 1.8 再打包
+        sed -i 's/1\.6/1.8/g' /tmp/ysoserial/pom.xml
         if ( cd /tmp/ysoserial && mvn -q package -DskipTests ); then
             install -d /opt/ysoserial
             cp /tmp/ysoserial/target/ysoserial-*.jar /opt/ysoserial/ysoserial.jar
