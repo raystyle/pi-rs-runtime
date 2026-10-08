@@ -90,32 +90,33 @@ install_bun() {
 }
 
 install_python() {
-    log "python3 + pip (索引 $PIP_INDEX)"
+    log "python3 基座(apt) + uv venv 隔离(用户裁定:不碰系统 python3 的 site-packages)"
     apt-get update -qq
     apt-get install -y --no-install-recommends python3 python3-pip python3-venv python3-dev
-    # 系统级 pip 配置(root 与 ubuntu 用户都读;不要加 extra-index-url,防依赖混淆)
+    # 系统级 pip 配置(apt 装的 python3-* 包和 venv 共用索引;不加 extra-index-url 防依赖混淆)
     printf '[global]\nindex-url = %s\n' "$PIP_INDEX" > /etc/pip.conf
-    # 黄金:pipx(隔离装 CLI 应用)、ruff(全 Python  fastest  linter/formatter)
-    apt-get install -y --no-install-recommends pipx
-    pip3 install -U --break-system-packages ruff
-    # 数据分析栈:polars(Rust DataFrame)+ pyarrow + chdb(嵌入式 ClickHouse);
-    # 与 duckdb 组互补
-    pip3 install -U --break-system-packages polars pyarrow chdb
+    # 分析 venv:polars/pyarrow/chdb 等全进这里,系统 python 保持干净
+    [ -d "$VENV_ANALYTICS" ] || uv venv "$VENV_ANALYTICS"
+    VIRTUAL_ENV="$VENV_ANALYTICS" uv pip install polars pyarrow chdb
+    # ruff 用 uv tool 隔离安装(shim 在 ~/.local/bin,链到 /usr/local/bin)
+    have ruff || uv tool install ruff
+    [ -e "$HOME/.local/bin/ruff" ] && ln -sf "$HOME/.local/bin/ruff" /usr/local/bin/ruff
     # pwntools 只走 apt(p0 批的 python3-pwntools):pip 版会盖住 dist-packages 造成双版本,评审 F8
-    python3 --version && pip3 --version && ruff --version
+    python3 --version && uv --version && ruff --version
 }
 
-# ---- duckdb(本地分析引擎;apt 无包,PyPI 走 tuna) --------------------------
+# ---- duckdb(本地分析引擎;python 进分析 venv,CLI 走 GitHub release) ----------
 install_duckdb() {
-    log "duckdb (pip 走 tuna;CLI 走 GitHub release)"
-    pip3 install -U --break-system-packages duckdb
+    log "duckdb (python 进 $VENV_ANALYTICS;CLI 走 GitHub release)"
+    [ -d "$VENV_ANALYTICS" ] || uv venv "$VENV_ANALYTICS"
+    VIRTUAL_ENV="$VENV_ANALYTICS" uv pip install -U duckdb
     if ! have duckdb; then
         local dt darch="amd64"; [ "$(dpkg --print-architecture)" = arm64 ] && darch="aarch64"
         dt="$(curl -fsSL "https://api.github.com/repos/duckdb/duckdb/releases/latest" | grep -o '"tag_name": *"[^"]*"' | cut -d'"' -f4)"
         [ -n "$dt" ] && curl -fSL "https://github.com/duckdb/duckdb/releases/download/${dt}/duckdb_cli-linux-${darch}.zip" -o /tmp/duckdb.zip \
             && unzip -q -o /tmp/duckdb.zip -d /tmp && install -m755 /tmp/duckdb /usr/local/bin/duckdb && rm -f /tmp/duckdb.zip /tmp/duckdb
     fi
-    duckdb --version 2>/dev/null || python3 -c "import duckdb; print('duckdb py', duckdb.__version__)"
+    duckdb --version 2>/dev/null || "$VENV_ANALYTICS/bin/python" -c "import duckdb; print('duckdb py', duckdb.__version__)"
 }
 
 install_python2() {
@@ -136,10 +137,11 @@ install_python2() {
 }
 
 install_uv() {
-    log "uv (经 tuna pypi 的 pip 安装;库索引 UV_INDEX_URL=$PIP_INDEX)"
+    log "uv (独立安装器,不经过系统 pip;库索引 /etc/uv/uv.toml=$PIP_INDEX)"
     if have uv; then uv --version; echo "已安装,跳过"; return; fi
-    # noble 的系统 python 标记 externally-managed(PEP 668),容器内允许直装
-    pip3 install -U --break-system-packages uv
+    # 用户裁定:不碰系统 python3,uv 用官方独立安装器(装到 ~/.local/bin)
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    [ -e "$HOME/.local/bin/uv" ] && ln -sf "$HOME/.local/bin/uv" /usr/local/bin/uv
     # uv 0.4.23 起 UV_INDEX_URL 废弃;系统配置写 /etc/uv/uv.toml(tuna 帮助口径)
     install -d /etc/uv
     printf '[[index]]\nurl = "%s"\ndefault = true\n' "$PIP_INDEX" > /etc/uv/uv.toml
@@ -348,5 +350,5 @@ install_mono() {
     mono --version 2>/dev/null | head -1
 }
 
-RUNTIMES_ALL=(node fnm bun python python2 uv duckdb php mono dotnet pwsh sdkman)
+RUNTIMES_ALL=(node fnm bun uv python python2 duckdb php mono dotnet pwsh sdkman)
 run_category RUNTIMES_ALL "$@"

@@ -246,12 +246,10 @@ install_re() {
     rizin -v
     rizin -qc 'Lc' /bin/ls 2>/dev/null | grep -i ghidra || echo "!! rz-ghidra 未进插件目录"
 
-    log "Python RE venv ($RE_VENV;capstone/keystone/unicorn/lief/yara-python)"
-    if [ ! -x "$RE_VENV/bin/python" ]; then
-        python3 -m venv "$RE_VENV"
-    fi
-    "$RE_VENV/bin/pip" install -U pip >/dev/null
-    "$RE_VENV/bin/pip" install capstone keystone-engine unicorn lief yara-python
+    log "Python RE venv ($RE_VENV;uv venv;capstone/keystone/unicorn/lief/yara-python)"
+    . "$HOME/.local/bin/env" 2>/dev/null || true
+    [ -x "$RE_VENV/bin/python" ] || uv venv "$RE_VENV"
+    VIRTUAL_ENV="$RE_VENV" uv pip install capstone keystone-engine unicorn lief yara-python
     "$RE_VENV/bin/python" -c 'import capstone,keystone,unicorn,lief,yara; print("re-venv ok")'
     cat <<EOF
 对应关系:capstone 反汇编 / keystone 汇编 / unicorn 模拟执行 / lief 解析改写 PE-ELF-MachO / yara-python 规则扫描
@@ -313,14 +311,15 @@ install_p0() {
         upx-ucl 7zip libimage-exiftool-perl ssdeep python3-impacket \
         john hashid
 
-    log "P0 re-venv pip 批(TUNA PyPI):FLOSS/oletools/netexec"
-    [ -x "$RE_VENV/bin/pip" ] || python3 -m venv "$RE_VENV"
-    "$RE_VENV/bin/pip" install -U pip >/dev/null
-    # netexec 在 tuna 索引里可能缺,PyPI 装不上退回 git 源
-    "$RE_VENV/bin/pip" install flare-floss oletools \
-        || "$RE_VENV/bin/pip" install --no-cache-dir flare-floss oletools
-    "$RE_VENV/bin/pip" install netexec \
-        || "$RE_VENV/bin/pip" install "git+https://github.com/Pennyw0rth/NetExec"
+    log "P0 re-venv 批(uv venv + uv pip,TUNA):FLOSS/oletools/netexec"
+    . "$HOME/.local/bin/env" 2>/dev/null || true
+    export PATH="$PATH:/usr/local/bin"
+    [ -x "$RE_VENV/bin/python" ] || uv venv "$RE_VENV"
+    # netexec 在 tuna 索引里可能缺,退回 git 源
+    VIRTUAL_ENV="$RE_VENV" uv pip install flare-floss oletools \
+        || VIRTUAL_ENV="$RE_VENV" uv pip install --no-cache flare-floss oletools
+    VIRTUAL_ENV="$RE_VENV" uv pip install netexec \
+        || VIRTUAL_ENV="$RE_VENV" uv pip install "git+https://github.com/Pennyw0rth/NetExec"
     # venv 里的 CLI 进默认 PATH(评审 F6):pd/secgo 约定是 /usr/local/bin
     for b in floss olevba oleid netexec; do
         [ -e "$RE_VENV/bin/$b" ] && ln -sf "$RE_VENV/bin/$b" "/usr/local/bin/$b"
@@ -330,6 +329,7 @@ install_p0() {
     local gh="${GITHUB_MIRROR}https://github.com"
     # pwndbg: PyPI 有官方包,比 deb 简单且可钉版
     # pwndbg:tuna/PyPI 无包;uv tool 从 git 源装(未钉 rev,上游 dev 分支会漂,见 ROADMAP)
+    . "$HOME/.local/bin/env" 2>/dev/null || true
     have pwndbg || uv tool install "git+${gh}/pwndbg/pwndbg" || echo "pwndbg 失败"
     [ -e "$HOME/.local/bin/pwndbg" ] && ln -sf "$HOME/.local/bin/pwndbg" /usr/local/bin/pwndbg
     # jadx:CLI zip

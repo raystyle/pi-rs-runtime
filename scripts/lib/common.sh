@@ -33,7 +33,8 @@ PHP_VERSIONS="${PHP_VERSIONS:-7.4 8.1 8.3}"   # webshell 逆向:7.4 兼容老样
 GHIDRA_VERSION="${GHIDRA_VERSION:-12.1.3}"        # 官方 releases 无国内镜像,GitHub 直下
 GHIDRA_DATE="${GHIDRA_DATE:-20260817}"
 GHIDRA_SHA256="${GHIDRA_SHA256:-93a5d11a9ad510622acaaf908c556a7b9b764d338e78a7567f3689bf5081fd54}"
-RE_VENV="${RE_VENV:-/opt/re-venv}"                # 逆向 Python 绑定独立环境
+RE_VENV="${RE_VENV:-/opt/re-venv}"                # 逆向 Python 独立环境(uv venv)
+VENV_ANALYTICS="${VENV_ANALYTICS:-/opt/venv/analytics}"  # 数据分析栈 uv venv(不碰系统 python3)
 GITHUB_MIRROR="${GITHUB_MIRROR:-}"                # 可选,如 https://ghfast.top/
 SURY_MIRROR="${SURY_MIRROR:-https://mirror.nju.edu.cn/sury}"  # tuna 无 sury;南大/中科大有
 
