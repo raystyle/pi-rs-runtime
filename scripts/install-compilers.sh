@@ -19,6 +19,15 @@ install_c() {
         clang-format clang-tidy valgrind strace ltrace ccache musl-tools \
         zlib1g-dev libssl-dev libffi-dev
     # strace/ltrace/valgrind:逆向与行为分析常规件;musl-tools:静态链接;ccache:编译缓存
+    # FASM:Ubuntu 源没有,官方小 tarball 直下(nasm 在 P0 apt 批)
+    if ! have fasm; then
+        local fv="${FASM_VERSION:-1.73.32}"
+        curl -fSL "https://flatassembler.net/fasm-${fv}.tgz" -o /tmp/fasm.tgz
+        rm -rf /opt/fasm && mkdir -p /opt/fasm
+        tar -C /opt/fasm -xzf /tmp/fasm.tgz && rm /tmp/fasm.tgz
+        ln -sf /opt/fasm/fasm /usr/local/bin/fasm
+    fi
+    fasm -v 2>/dev/null | head -1 || true
 }
 
 install_golang() {
@@ -189,5 +198,24 @@ install_zig() {
     zig version
 }
 
-COMPILERS_ALL=(c golang rust zig)
+
+# ---- vcpkg(C/C++ 包管理) ----------------------------------------------
+# 本体 GitHub 直下;所装库的下载走各上游(GitHub 居多),
+# 量大时配 VCPKG_BINARY_SOURCES(azurl/blob)或 X_VCPKG_ASSET_SOURCES 做缓存
+install_vcpkg() {
+    log "vcpkg (GitHub 直下,装 /opt/vcpkg)"
+    if [ ! -d /opt/vcpkg/.git ]; then
+        rm -rf /opt/vcpkg
+        git clone --depth 1 https://github.com/microsoft/vcpkg /opt/vcpkg
+    fi
+    ( cd /opt/vcpkg && ./bootstrap-vcpkg.sh -disableMetrics )
+    ln -sf /opt/vcpkg/vcpkg /usr/local/bin/vcpkg
+    cat > /etc/profile.d/vcpkg.sh <<'EOF'
+export VCPKG_ROOT=/opt/vcpkg
+export PATH=$PATH:/opt/vcpkg
+EOF
+    vcpkg version | head -1
+}
+
+COMPILERS_ALL=(c golang rust zig vcpkg)
 run_category COMPILERS_ALL "$@"
