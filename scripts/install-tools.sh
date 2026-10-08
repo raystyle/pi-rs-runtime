@@ -236,11 +236,12 @@ install_re() {
         rm -rf /tmp/rz-ghidra
     fi
     if ! ls -d /usr/share/rizin/sigdb /usr/local/share/rizin/sigdb "$HOME"/.local/share/rizin/sigdb >/dev/null 2>&1; then
+        # sigdb 已改版为纯数据仓库(elf/pe + meson),旧 install.sh 不存在,用 meson 装
         rm -rf /tmp/sigdb && git clone --depth 1 "${gh}/rizinorg/sigdb" /tmp/sigdb
-        ( cd /tmp/sigdb && ./install.sh ) || echo "sigdb 安装失败(不影响 rizin 本体)"
+        meson setup /tmp/sigdb/build /tmp/sigdb --prefix=/usr/local >/dev/null \
+            && meson install -C /tmp/sigdb/build || echo "sigdb 安装失败(不影响 rizin 本体)"
         rm -rf /tmp/sigdb
-        ls -d /usr/share/rizin/sigdb /usr/local/share/rizin/sigdb "$HOME"/.local/share/rizin/sigdb >/dev/null 2>&1 \
-            && echo "sigdb 已装" || echo "!! sigdb 未找到,查 install.sh 输出"
+        ls -d /usr/local/share/rizin/sigdb >/dev/null 2>&1 && echo "sigdb 已装" || echo "!! sigdb 未找到"
     fi
     rizin -v
     rizin -qc 'Lc' /bin/ls 2>/dev/null | grep -i ghidra || echo "!! rz-ghidra 未进插件目录"
