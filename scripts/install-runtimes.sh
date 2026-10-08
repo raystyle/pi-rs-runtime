@@ -337,6 +337,8 @@ install_zig() {
 # sdkman 的定位:各种开源 JDK 的统一切换入口(temurin 从 tuna Adoptium 预装)
 install_sdkman() {
     log "sdkman (多版本 java 管理入口,temurin 走 tuna Adoptium)"
+    apt-get update -qq
+    apt-get install -y --no-install-recommends unzip zip   # sdkman 安装器与候选包解包依赖
     local sdk_dir="/usr/local/sdkman"
     if [ ! -d "$sdk_dir" ]; then
         curl -fSL "https://get.sdkman.io" -o /tmp/sdkman-init.sh
