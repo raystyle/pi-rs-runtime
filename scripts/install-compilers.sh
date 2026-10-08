@@ -215,6 +215,10 @@ export VCPKG_ROOT=/opt/vcpkg
 export PATH=$PATH:/opt/vcpkg
 EOF
     vcpkg version | head -1
+    # 常用库集(RE/安全方向实用集;boost/grpc 这类编译时长过高的不进默认清单)
+    local pkgs="${VCPKG_PKGS:-openssl zlib curl sqlite3 libpcap fmt spdlog nlohmann-json rapidjson cpp-httplib mbedtls yara}"
+    echo ">> vcpkg install $pkgs (源码编译,耗时较长)"
+    vcpkg install $pkgs
 }
 
 COMPILERS_ALL=(c golang rust zig vcpkg)
