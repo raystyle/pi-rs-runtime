@@ -264,5 +264,44 @@ EOF
     set +u; sdk current; set -u   # sdk 主脚本引用未绑定位置参数,与 set -u 冲突
 }
 
+# ---- PHP 多版本(webshell 逆向:7.4 复现老样本,8.x 对照现代样本) ------------
+# 依据样本兼容性选版本,不是"哪个更安全"。7.4 已无官方支持,只放隔离机。
+install_php() {
+    log "PHP 多版本 $PHP_VERSIONS (Ondřej Surý 源,$SURY_MIRROR)"
+    # sury 源 GPG key(官方分发;镜像只镜像仓库,key 仍从官方取一次)
+    curl -fsSL "https://packages.sury.org/php/apt.gpg" -o /usr/share/keyrings/sury-php.gpg
+    echo "deb [signed-by=/usr/share/keyrings/sury-php.gpg] ${SURY_MIRROR}/php noble main" \
+        > /etc/apt/sources.list.d/sury-php.list
+    apt-get update -qq
+    local v
+    for v in $PHP_VERSIONS; do
+        apt-get install -y --no-install-recommends "php${v}-cli" "php${v}-dev" || echo "php${v} 安装失败,跳过"
+        have "php${v}" && "php${v}" -v | head -1
+    done
+    # VLD(opcode dump):PHP 8.0 工具链最稳,8.1+ 常需自行编译;逐个版本尽力而为
+    for v in $PHP_VERSIONS; do
+        have "php${v}" || continue
+        if ! "php${v}" -m 2>/dev/null | grep -qi '^vld$'; then
+            "php${v}" -d vld.active=1 -r 'echo 1;' >/dev/null 2>&1 && continue
+            echo "--- 为 php${v} 编译 VLD(pecl vld-beta)"
+            if yes '' | pecl -q install vld-beta >/dev/null 2>&1; then
+                echo "extension=vld.so" > "/etc/php/${v}/mods-available/vld.ini"
+                phpenmod -v "$v" vld 2>/dev/null || true
+            else
+                echo "php${v} 的 VLD 编译失败(可手动 phpize 编译 VLD 0.18.0)"
+            fi
+        fi
+    done
+    # 分析注意:跑样本前关 opcache.jit(VLD 与单步行为会偏);
+    # 不要用 2021-03 被植入后门的 8.1.0-dev 快照当分析运行时。
+    cat <<'EOF'
+PHP 逆向提示:
+  - 多版本并存:/usr/bin/php7.4、php8.1、php8.3 直接写全路径切换
+  - opcode:php -d vld.active=1 <样本>;VLD 输出对齐公开数据集用 PHP 8.0 + VLD 0.18.0 最稳
+  - 动态执行前:-d opcache.jit=off
+  - 样本只在无网络、无生产数据挂载的环境里跑;静态先用 php-malware-finder(YARA)过一遍
+EOF
+}
+
 RUNTIMES_ALL=(node fnm bun python python2 uv php dotnet pwsh sdkman)
 run_category RUNTIMES_ALL "$@"
