@@ -132,50 +132,119 @@ incus exec rt-build -- bash /root/scripts/install-all.sh
 
 编译器（`install-compilers.sh`）:
 
-| 组 | 内容 | 版本与来源 |
-|------|------|------|
-| c | build-essential、clang、lldb、gdb、cmake、ninja、autoconf、automake、libtool、clang-format、clang-tidy、valgrind、strace、ltrace、ccache、musl-tools、zlib、ssl、ffi 开发库；FASM | apt/tuna；FASM 官方直下 |
-| golang | Go 发行包 | 1.27.1，南大镜像，sha256 校验 |
-| rust | rustup（toolchain 与 nightly）、rustfmt、clippy、rust-analyzer、rust-script、cargo-zigbuild、cargo-audit、crate 缓存预热 | tuna rustup 与 crates；`/opt/rustup`、`/opt/cargo` |
-| zig | zig 编译器；0.15.2 副本供 BOF 工具链 | 0.16.0，ziglang.org 直下，仅 amd64 与 arm64 |
-| vcpkg | openssl、zlib、curl、sqlite3、libpcap、fmt、spdlog、nlohmann-json、rapidjson、cpp-httplib、mbedtls、yara | GitHub 直下，源码编译，库集见 `VCPKG_PKGS` |
+| 组 | 项目 | 版本 | 来源 |
+|------|------|------|------|
+| c | build-essential、clang、lldb、gdb、cmake、ninja、autoconf、automake、libtool、clang-format、clang-tidy、valgrind、strace、ltrace、ccache、musl-tools、zlib1g-dev、libssl-dev、libffi-dev | noble 随源 | Ubuntu apt（tuna） |
+| c | FASM | 1.73.32（`FASM_VERSION`） | flatassembler.net 直下，无镜像 |
+| golang | Go 工具链 | 1.27.1（`GOLANG_VERSION`） | go.dev 发行包，南大镜像，sha256 校验 |
+| rust | rustup、rustc、nightly、llvm-tools、rustfmt、clippy、rust-analyzer | 随源最新 | rustup.rs（tuna rustup）；`/opt/rustup`、`/opt/cargo` |
+| rust | rust-script、cargo-zigbuild、cargo-audit | cargo 未钉 | crates.io（tuna crates） |
+| zig | zig | 0.16.0（`ZIG_VERSION`）；0.15.2 副本供 BOF 工具链 | ziglang.org 直下，仅 amd64 与 arm64 |
+| vcpkg | vcpkg 与 12 库（`VCPKG_PKGS`） | 未钉 | github.com/microsoft/vcpkg，GitHub 直下，源码编译 |
 
 运行时（`install-runtimes.sh`）:
 
-| 组 | 内容 | 版本与来源 |
-|------|------|------|
-| node | node；全局 typescript、prettier、eslint、corepack、dotnetjs；全局 npmrc 写 registry、disturl、electron_mirror | 24.21.0，npmmirror，SHASUMS256 校验 |
-| fnm | node 多版本管理器，预装 18、20、22、24 | npmmirror |
-| bun | bun 运行时 | npm 全局安装 |
-| uv | uv 包管理器，索引写 `/etc/uv/uv.toml` | 官方独立安装器 |
-| python | python3（apt，索引写 `/etc/pip.conf`，不装第三方包）；`/opt/analytics` venv：polars、pyarrow、chdb、duckdb | tuna PyPI |
-| duckdb | duckdb CLI；python 绑定在 `/opt/analytics` | GitHub release，latest |
-| python2 | python 2.7，`--enable-shared`，含 ssl | 2.7.18，源码编译，华为云镜像 |
-| php | 多版本 CLI 与 VLD | 7.4、8.1、8.3，sury 南大镜像 |
-| mono | mono-devel、xbuild；`nuget.exe` 在 `/opt/nuget.exe` | apt/tuna |
-| dotnet | .NET SDK，NuGet 走华为 v3 | dotnet-sdk-10.0，noble 源 |
-| pwsh | PowerShell | packages.microsoft.com |
-| sdkman | temurin JDK 8、11、17、21、25 本地路径注册；maven、gradle；依赖镜像指阿里云 | tuna Adoptium |
+| 组 | 项目 | 版本 | 来源 |
+|------|------|------|------|
+| node | node、npm、npx | 24.21.0（`NODE_VERSION`） | nodejs/node 二进制，npmmirror，`SHASUMS256.txt` 校验；装 `/opt/node` |
+| node | typescript、prettier、eslint | npm 全局未钉 | npmmirror |
+| node | corepack（pnpm、yarn） | 随 node | `COREPACK_NPM_REGISTRY` 指 npmmirror |
+| node | dotnetjs | npm 全局未钉 | github.com/pseudocc/dotnetjs，npmmirror |
+| fnm | fnm | cargo 未钉 | github.com/Schniz/fnm，crates 走 tuna |
+| fnm | node 18、20、22、24 | 大版本内最新（`FNM_NODE_VERSIONS`） | npmmirror 二进制（`--node-dist-mirror`） |
+| bun | bun | npm 全局未钉 | github.com/oven-sh/bun，npmmirror |
+| uv | uv | 安装器最新 | astral.sh/uv（github.com/astral-sh/uv）；索引写 `/etc/uv/uv.toml`（tuna） |
+| python | python3 | noble 随源 | Ubuntu apt（tuna）；索引写 `/etc/pip.conf`，不装第三方包 |
+| python | polars、pyarrow、chdb | 未钉 | PyPI（tuna），`/opt/analytics` venv |
+| duckdb | duckdb（python 与 CLI） | CLI 取 release latest | github.com/duckdb/duckdb release；python 绑定在 `/opt/analytics` |
+| python2 | python | 2.7.18（`PY2_VERSION`），`--enable-shared` | python.org 源码包，华为云镜像 |
+| php | php-cli、php-dev、VLD | 7.4、8.1、8.3（`PHP_VERSIONS`） | sury 源（南大镜像 `SURY_MIRROR`）；VLD 逐版本尽力编译 |
+| mono | mono-devel、mono-xbuild | noble 随源 | Ubuntu apt（tuna） |
+| mono | nuget.exe | latest | dist.nuget.org，存 `/opt/nuget.exe` |
+| dotnet | .NET SDK | dotnet-sdk-10.0（`DOTNET_SDK`） | Ubuntu noble 源（即 tuna） |
+| pwsh | PowerShell | powershell-lts 随仓 | packages.microsoft.com |
+| sdkman | sdkman 本体 | 安装器最新 | get.sdkman.io，装 `/usr/local/sdkman` |
+| sdkman | temurin JDK | 8、11、17、21、25（`JAVA_VERSIONS`），小版本随目录取最新 | Adoptium（tuna `ADOPTIUM_MIRROR`），本地路径注册 |
+| sdkman | maven | 3.9.16（`MAVEN_VERSION`） | tuna apache 镜像；依赖写 settings.xml 指阿里云 |
+| sdkman | gradle | 8.14.3（`GRADLE_VERSION`） | 阿里云 distributions；依赖经 init.d 指阿里云 |
 
 工具（`install-tools.sh`，组键见上文 `TOOLS_ALL` 名单）:
 
-| 组 | 内容 | 版本与来源 |
-|------|------|------|
-| fd | fd、ripgrep | apt/tuna |
-| ast-grep | ast-grep（`sg`） | cargo，tuna crates |
-| 基础 CLI | git、jq、yq、shellcheck、just、tmux、rclone、aria2、gh | apt/tuna；yq 与 gh 走 go install |
-| herdr | terminal workspace 管理器 | 0.9.3，release 直下钉版加 sha256，装 `/usr/local/bin` |
-| ghidra | 逆向套件，`JAVA_HOME_OVERRIDE` 钉 temurin 21 | 12.1.3，钉版加 sha256 |
-| 逆向稳定链 | 系统库；rizin、rz-ghidra、sigdb 源码编译；`/opt/re-venv`：capstone、keystone-engine、unicorn、lief、yara-python | 见 `install_re` |
-| projectdiscovery 全家桶 | subfinder、dnsx、naabu、httpx、nuclei、katana、uncover、cloudlist、notify、interactsh-client、chaos、mapcidr、asnmap、tlsx、proxify、simplehttpserver、shuffledns、pdtm（18 个） | go install；naabu setcap；nuclei 模板更新尽力 |
-| Go 安全工具 | ffuf、gobuster、dalfox、amass、chisel、gitleaks、assetfinder、httprobe、qsreplace、waybackurls、gau、gospider、gowitness、azurehound（14 个） | go install |
-| Rust 安全工具 | rustscan、feroxbuster | cargo，tuna crates |
-| 代理跳板 | gost、frps、frpc、wstunnel、rathole、bore | go install 加 cargo；frp 走 release 预编译 |
-| P0 补齐批 | apt 22 包：gdb-multiarch、qemu-user-static、pwntools、ROPgadget、checksec、patchelf、nasm、xxd、squashfs-tools、nmap、sqlmap、tcpdump、tshark、mitmproxy、scapy、upx、7zip、exiftool、ssdeep、impacket、john、hashid；re-venv 批：FLOSS、oletools、netexec；GitHub 钉版批：pwndbg、jadx、apktool、capa、SecLists、yara 规则、pdfid 与 pdf-parser | 三批分装，见 `install_p0` |
-| C2 框架参考 | sliver、merlin、Empire、Covenant、ysoserial、ysoserial.net，克隆到 `/opt/c2-ref` | 只克隆，不安装不运行 |
-| BOF 工具链 | mingw-w64、COFFLoader、atomic-bofs、coffee-ldr、bof-launcher、BOF-CATALOG.md | coffee-ldr 需 nightly；bof-launcher 用 zig 0.15.2 |
-| Project Zero 参考 | sandbox-attacksurface-analysis-tools、DotNetToJScript、windows-logical-eop-workshop、oleviewdotnet | 只克隆；oleviewdotnet 需 `--recurse-submodules` |
-| nushell | nushell | GitHub release 预编译 |
+| 组 | 项目 | 版本 | 来源 |
+|------|------|------|------|
+| fd | fd、ripgrep | noble 随源 | Ubuntu apt（tuna） |
+| ast-grep | ast-grep（`sg`） | cargo 未钉 | github.com/ast-grep/ast-grep，crates 走 tuna |
+| 基础 CLI | git、jq、shellcheck、just、tmux、rclone、aria2 | noble 随源 | Ubuntu apt（tuna） |
+| 基础 CLI | yq | `go install` 未钉 | github.com/mikefarah/yq，goproxy.cn |
+| 基础 CLI | gh | `go install` 未钉 | github.com/cli/cli，goproxy.cn |
+| herdr | herdr | 0.9.3（`HERDR_VERSION`），sha256 校验 | github.com/herdrdev/herdr release，装 `/usr/local/bin` |
+| ghidra | ghidra | 12.1.3（`GHIDRA_VERSION`/`GHIDRA_DATE`），sha256 校验 | github.com/NationalSecurityAgency/ghidra release；`JAVA_HOME_OVERRIDE` 钉 temurin 21 |
+| 逆向稳定链 | 系统库（binutils、elfutils、file、bsdmainutils、binwalk、yara、libyara-dev、libzip-dev、libpugixml-dev、libcapstone-dev、capstone-tool、meson、ninja、cmake、pkg-config、gcc、g++、python3、python3-pip、python3-venv、zlib1g-dev） | noble 随源 | Ubuntu apt（tuna） |
+| 逆向稳定链 | rizin | `--depth 1` 未钉 | github.com/rizinorg/rizin，源码编译 |
+| 逆向稳定链 | rz-ghidra | `--depth 1` 未钉（子模块钉 ghidra ref） | github.com/rizinorg/rz-ghidra，源码编译 |
+| 逆向稳定链 | sigdb | `--depth 1` 未钉 | github.com/rizinorg/sigdb |
+| 逆向稳定链 | re-venv 五库（capstone、keystone-engine、unicorn、lief、yara-python） | 未钉 | PyPI（tuna），`/opt/re-venv` |
+| projectdiscovery 全家桶 | subfinder | `@latest`（`PD_VERSION`） | github.com/projectdiscovery/subfinder |
+| projectdiscovery 全家桶 | dnsx | 同上 | github.com/projectdiscovery/dnsx |
+| projectdiscovery 全家桶 | naabu | 同上 | github.com/projectdiscovery/naabu；setcap cap_net_raw |
+| projectdiscovery 全家桶 | httpx | 同上 | github.com/projectdiscovery/httpx |
+| projectdiscovery 全家桶 | nuclei | 同上 | github.com/projectdiscovery/nuclei；模板 `-update-templates` 尽力 |
+| projectdiscovery 全家桶 | katana | 同上 | github.com/projectdiscovery/katana |
+| projectdiscovery 全家桶 | uncover | 同上 | github.com/projectdiscovery/uncover |
+| projectdiscovery 全家桶 | cloudlist | 同上 | github.com/projectdiscovery/cloudlist |
+| projectdiscovery 全家桶 | notify | 同上 | github.com/projectdiscovery/notify |
+| projectdiscovery 全家桶 | interactsh-client | 同上 | github.com/projectdiscovery/interactsh |
+| projectdiscovery 全家桶 | chaos | 同上 | github.com/projectdiscovery/chaos-client |
+| projectdiscovery 全家桶 | mapcidr | 同上 | github.com/projectdiscovery/mapcidr |
+| projectdiscovery 全家桶 | asnmap | 同上 | github.com/projectdiscovery/asnmap |
+| projectdiscovery 全家桶 | tlsx | 同上 | github.com/projectdiscovery/tlsx |
+| projectdiscovery 全家桶 | proxify | 同上 | github.com/projectdiscovery/proxify |
+| projectdiscovery 全家桶 | simplehttpserver | 同上 | github.com/projectdiscovery/simplehttpserver |
+| projectdiscovery 全家桶 | shuffledns | 同上 | github.com/projectdiscovery/shuffledns |
+| projectdiscovery 全家桶 | pdtm | 同上 | github.com/projectdiscovery/pdtm |
+| Go 安全工具 | ffuf | `@latest`（`SECGO_VERSION`） | github.com/ffuf/ffuf |
+| Go 安全工具 | gobuster | 同上 | github.com/OJ/gobuster |
+| Go 安全工具 | dalfox | 同上 | github.com/hahwul/dalfox |
+| Go 安全工具 | amass | 同上 | github.com/owasp-amass/amass |
+| Go 安全工具 | chisel | 同上 | github.com/jpillora/chisel |
+| Go 安全工具 | gitleaks | 同上 | github.com/zricethezav/gitleaks |
+| Go 安全工具 | assetfinder | 同上 | github.com/tomnomnom/assetfinder |
+| Go 安全工具 | httprobe | 同上 | github.com/tomnomnom/httprobe |
+| Go 安全工具 | qsreplace | 同上 | github.com/tomnomnom/qsreplace |
+| Go 安全工具 | waybackurls | 同上 | github.com/tomnomnom/waybackurls |
+| Go 安全工具 | gau | 同上 | github.com/lc/gau |
+| Go 安全工具 | gospider | 同上 | github.com/jaeles-project/gospider |
+| Go 安全工具 | gowitness | 同上 | github.com/sensepost/gowitness |
+| Go 安全工具 | azurehound | 同上 | github.com/BloodHoundAD/AzureHound |
+| Rust 安全工具 | rustscan | cargo 未钉 | github.com/rustscan/rustscan，crates 走 tuna |
+| Rust 安全工具 | feroxbuster | cargo 未钉 | github.com/epi052/feroxbuster，crates 走 tuna |
+| 代理跳板 | gost | `go install` 未钉 | github.com/go-gost/gost（退回 ginuerzh/gost） |
+| 代理跳板 | frps、frpc | release latest | github.com/fatedier/frp release 预编译 |
+| 代理跳板 | wstunnel | cargo 未钉 | github.com/erebe/wstunnel |
+| 代理跳板 | rathole | cargo 未钉 | github.com/rathole-org/rathole |
+| 代理跳板 | bore | cargo 未钉 | bore-cli crate（github.com/ekzhang/bore） |
+| P0 补齐批 | apt 22 包（gdb-multiarch、qemu-user-static、python3-pwntools、python3-ropgadget、checksec、patchelf、nasm、xxd、squashfs-tools、nmap、sqlmap、tcpdump、tshark、mitmproxy、python3-scapy、upx-ucl、7zip、libimage-exiftool-perl、ssdeep、python3-impacket、john、hashid） | noble 随源 | Ubuntu apt（tuna） |
+| P0 补齐批 | flare-floss、oletools、netexec | 未钉 | PyPI（tuna），`/opt/re-venv`；netexec 缺包退回 github.com/Pennyw0rth/NetExec |
+| P0 补齐批 | pwndbg | git 源未钉 | github.com/pwndbg/pwndbg，uv tool |
+| P0 补齐批 | jadx | 1.5.3（`JADX_VERSION`） | github.com/skylot/jadx release |
+| P0 补齐批 | apktool | 2.12.0（`APKTOOL_VERSION`） | github.com/iBotPeaches/Apktool release |
+| P0 补齐批 | capa | 9.4.0（`CAPA_VERSION`） | github.com/mandiant/capa release |
+| P0 补齐批 | capa-rules | `--depth 1` 未钉 | github.com/mandiant/capa-rules |
+| P0 补齐批 | SecLists | `--depth 1` 未钉 | github.com/danielmiessler/SecLists |
+| P0 补齐批 | yara 规则 | `--depth 1` 未钉 | github.com/Yara-Rules/rules |
+| P0 补齐批 | pdfid、pdf-parser | `--depth 1` 未钉 | github.com/DidierStevens/DidierStevensSuite |
+| C2 框架参考 | sliver、merlin、Empire、Covenant、ysoserial、ysoserial.net | `--depth 1` 未钉 | github.com/bishopfox/sliver、Ne0nd0g/merlin、BC-SECURITY/Empire、cobbr/Covenant、frohoff/ysoserial、pwntester/ysoserial.net；只克隆到 `/opt/c2-ref`，不安装不运行 |
+| BOF 工具链 | mingw-w64 | noble 随源 | Ubuntu apt（tuna） |
+| BOF 工具链 | COFFLoader | `--depth 1` 未钉 | github.com/trustedsec/COFFLoader，交叉编 COFFLoader64.exe |
+| BOF 工具链 | atomic-bofs | `--depth 1` 未钉 | github.com/rasta-mouse/atomic-bofs |
+| BOF 工具链 | coffee-ldr | cargo nightly | github.com/hakaioffsec/coffee |
+| BOF 工具链 | bof-launcher | `--depth 1` 未钉 | github.com/The-Z-Labs/bof-launcher，用 zig 0.15.2 构建 |
+| BOF 工具链 | BOF-CATALOG.md | main  raw | github.com/chryzsh/awesome-bof |
+| Project Zero 参考 | sandbox-attacksurface-analysis-tools | `--depth 1` 未钉 | github.com/googleprojectzero/sandbox-attacksurface-analysis-tools；只克隆 |
+| Project Zero 参考 | DotNetToJScript | `--depth 1` 未钉 | github.com/tyranid/DotNetToJScript；只克隆 |
+| Project Zero 参考 | windows-logical-eop-workshop | `--depth 1` 未钉 | github.com/tyranid/windows-logical-eop-workshop；只克隆 |
+| Project Zero 参考 | oleviewdotnet | 全克隆含子模块 | github.com/tyranid/oleviewdotnet；只克隆 |
+| nushell | nu | release latest | github.com/nushell/nushell release 预编译 |
 
 ### 4. 发布 pi-rs-runtime 镜像
 
