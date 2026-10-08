@@ -485,6 +485,16 @@ install_bof() {
     fi
     # atomic-bofs:rasta-mouse 的 COFF 独立运行 harness(带打包参数)
     [ -d /opt/atomic-bofs/.git ] || git clone --depth 1 "${gh}/rasta-mouse/atomic-bofs" /opt/atomic-bofs
+    # Coffee(hakaioffsec):Rust 现代 COFF loader,crate 名 coffee-ldr
+    if ! have coffee; then
+        . "$HOME/.cargo/env" 2>/dev/null || true
+        export PATH="$PATH:/root/.cargo/bin"
+        cargo install coffee-ldr --locked \
+            || cargo install --git "${gh}/hakaioffsec/coffee" --locked \
+            || echo "coffee 失败"
+        [ -e "$HOME/.cargo/bin/coffee" ] && ln -sf "$HOME/.cargo/bin/coffee" /usr/local/bin/coffee
+    fi
+    have coffee && coffee --help 2>/dev/null | head -1
     # 参考目录
     install -d /opt/bofs
     curl -fsSL "${gh}/chryzsh/awesome-bof/raw/main/BOF-CATALOG.md" -o /opt/bofs/BOF-CATALOG.md \
