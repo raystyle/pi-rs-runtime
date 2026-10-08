@@ -72,6 +72,44 @@ incus shell mybox
 
 容器内 apt 源已是 tuna,`apt-get update/install` 直接可用。
 
+## 开发模式:镜像只钉运行时,业务走挂载
+
+pi agent 的开发/发布与运行时安装**彻底分开**:
+
+| 放哪 | 内容 | 改完怎么生效 |
+|------|------|--------------|
+| **pi-box 镜像** | Node、Pi 二进制、pi-web、Chrome、VNC | 重新 pack(build.sh) |
+| **仓库 `.pi/`** | 扩展、技能、提示词(`pi install --local` 写 `.pi/settings.json`) | 挂载后 Pi 里 `/reload`,不停容器、不 publish |
+| **实例家目录** | `~/.pi/agent` 会话、密钥、浏览器配置 | 不进镜像,升级时单独拷 |
+
+两层配置:用户层 `~/.pi/agent` 随实例走;项目层 `.pi/` 信任项目后才加载,随 git 走。
+
+### 开发:挂仓库,不发布
+
+```bash
+./scripts/dev-instance.sh pi-dev /path/to/pi/app
+# 或手动:
+incus launch pi-box-dev pi-dev
+incus config device add pi-dev src disk \
+  source=/path/to/pi/app path=/home/ubuntu/workspace shift=true
+incus exec pi-dev -- sudo -u ubuntu -i bash -lc \
+  'cd /home/ubuntu/workspace && pi'
+```
+
+扩展放 `workspace/.pi/extensions/`,改完 `/reload` 立即生效;`pi install --local ./my-extension` 把声明写进项目,随 git 提交。
+
+### 发布:build.sh 只拷钉死的版本和仓库
+
+```bash
+pi install --local ./
+install -d /opt/app
+cp -a /src/app/. /opt/app/      # 只拷钉住版本的 Pi + 该仓库
+```
+
+候选镜像烟测的是「钉住的 Pi 版本 + 当时的 `.pi/`」。线上实例(如 pi-01)**不挂开发目录**,避免未提交改动进生产;会话仍在 `~/.pi/agent`,升级镜像时单独拷,不跟镜像走。
+
+`shift=true` 需要 idmap:Incus 容器默认安全式 idmap 即可支持,若挂载后权限不对,检查 `incus config show <实例> | grep security.idmap`。
+
 ## 运行时清单(安装,不是打包进镜像)
 
 `scripts/install-runtimes.sh` 在容器内**逐个安装**下列运行时并配置国内镜像源,幂等可重跑。思路与 [ark_rs](https://github.com/raystyle/ark_rs)(Agent Runtime Kit)一致:运行时管理是独立一层,不进基础镜像。**镜像源原则:有清华 tuna 走 tuna,tuna 没有的走该生态自己的国内镜像**(已实测 tuna 无 golang/node/bun/dotnet/powershell/zig 镜像)。
