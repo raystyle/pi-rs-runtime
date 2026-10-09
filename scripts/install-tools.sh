@@ -20,12 +20,16 @@ install_fd() {
 
 install_astgrep() {
     log "ast-grep (cargo 安装,经 tuna crates)"
-    . "$HOME/.cargo/env" 2>/dev/null || true
-    export PATH="$PATH:/root/.cargo/bin"
-    if have sg; then sg --version; echo "已安装,跳过"; return; fi
+    # sg 与 shadow 包的 /usr/bin/sg(switch group)撞名,have sg 恒真会跳过安装;
+    # 判装与链接都用全名 ast-grep
+    export RUSTUP_HOME=/opt/rustup CARGO_HOME=/opt/cargo
+    . /opt/cargo/env 2>/dev/null || true
+    export PATH="$PATH:/opt/cargo/bin"
+    if have ast-grep; then ast-grep --version; echo "已安装,跳过"; return; fi
     cargo install ast-grep --locked
-    ln -sf /root/.cargo/bin/sg /usr/local/bin/sg
-    sg --version
+    ln -sf /opt/cargo/bin/ast-grep /usr/local/bin/ast-grep
+    ln -sf /opt/cargo/bin/sg /usr/local/bin/sg
+    ast-grep --version
 }
 
 install_cli() {
@@ -148,15 +152,16 @@ install_secgo() {
 
 install_secrust() {
     log "rustscan / feroxbuster / findomain (cargo,经 tuna crates)"
-    . "$HOME/.cargo/env" 2>/dev/null || true
-    export PATH="$PATH:/root/.cargo/bin"
+    export RUSTUP_HOME=/opt/rustup CARGO_HOME=/opt/cargo
+    . /opt/cargo/env 2>/dev/null || true
+    export PATH="$PATH:/opt/cargo/bin"
     have rustscan    || cargo install rustscan --locked
     have feroxbuster || cargo install feroxbuster --locked
     # findomain 依赖多,cargo 失败则提示走 GitHub Releases 预编译
     # findomain 依赖多常编不过,要用时走 https://github.com/Findomain/Findomain/releases 预编译
     for b in rustscan feroxbuster; do
         if have "$b"; then
-            ln -sf "$HOME/.cargo/bin/$b" "/usr/local/bin/$b" 2>/dev/null || true
+            ln -sf "/opt/cargo/bin/$b" "/usr/local/bin/$b" 2>/dev/null || true
             "$b" --version 2>/dev/null | head -1 || true
         fi
     done
@@ -288,9 +293,11 @@ EOF
 # ---- 代理跳板(pivot):隧道/反向代理工具 + 库预热 --------------------------
 install_pivot() {
     log "代理跳板: gost/frp/wstunnel/rathole/bore (go install + cargo,国内源)"
-    export PATH="$PATH:/usr/local/go/bin:/root/go/bin:/root/.cargo/bin"
-    export GOPROXY GOSUMDB
-    . "$HOME/.cargo/env" 2>/dev/null || true
+    export PATH="$PATH:/usr/local/go/bin:/opt/go/bin"
+    export GOPATH=/opt/go GOPROXY GOSUMDB
+    export RUSTUP_HOME=/opt/rustup CARGO_HOME=/opt/cargo
+    . /opt/cargo/env 2>/dev/null || true
+    export PATH="$PATH:/opt/cargo/bin"
     # Go 栈
     have gost   || go install github.com/go-gost/gost/cmd/gost@latest \
         || go install github.com/ginuerzh/gost/cmd/gost@latest || echo "gost 失败"
@@ -320,7 +327,7 @@ install_pivot() {
         [ -e "$gobin/$b" ] && ln -sf "$gobin/$b" "/usr/local/bin/$b"
     done
     for b in wstunnel rathole bore; do
-        [ -e "$HOME/.cargo/bin/$b" ] && ln -sf "$HOME/.cargo/bin/$b" "/usr/local/bin/$b"
+        [ -e "$HOME/.cargo/bin/$b" ] && ln -sf "/opt/cargo/bin/$b" "/usr/local/bin/$b"
     done
     for b in gost frps frpc wstunnel rathole bore; do have "$b" && printf '  %s\n' "$b"; done
     true
@@ -447,8 +454,9 @@ install_bof() {
     # Coffee(hakaioffsec):Rust 现代 COFF loader,crate 名 coffee-ldr
     # 上游 lib.rs 用 #![feature(c_variadic/core_intrinsics)],stable 编不过,需 nightly
     if ! have coffee-ldr; then
-        . /opt/cargo/env 2>/dev/null || . "$HOME/.cargo/env" 2>/dev/null || true
-        export PATH="$PATH:/opt/cargo/bin:$HOME/.cargo/bin"
+        export RUSTUP_HOME=/opt/rustup CARGO_HOME=/opt/cargo
+        . /opt/cargo/env 2>/dev/null || true
+        export PATH="$PATH:/opt/cargo/bin"
         rustup toolchain install nightly --profile minimal >/dev/null 2>&1 || true
         cargo +nightly install coffee-ldr --locked \
             || cargo +nightly install --git "${gh}/hakaioffsec/coffee" --locked \

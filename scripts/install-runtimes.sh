@@ -56,7 +56,10 @@ EOF
 
 install_fnm() {
     log "fnm + node $FNM_NODE_VERSIONS (fnm 经 cargo 装,node 二进制走 npmmirror 镜像)"
-    . "$HOME/.cargo/env" 2>/dev/null || true
+    # fresh 布局:cargo/rustup 在 /opt;不导出 RUSTUP_HOME 则 shim 找 /root/.rustup 报 no default
+    export RUSTUP_HOME=/opt/rustup CARGO_HOME=/opt/cargo
+    . /opt/cargo/env 2>/dev/null || true
+    export PATH="$PATH:/opt/cargo/bin"
     if ! have fnm; then
         cargo install fnm --locked
     fi
