@@ -988,21 +988,27 @@ install_red() {
     done
     VIRTUAL_ENV= uv tool install --index-url https://pypi.org/simple bloodhound-ce >/dev/null 2>&1 \
         || echo "bloodhound-ce 失败(留待排查)"
-    for t in certipy-ad bloodyAD bofhound bloodhound-ce; do
-        for c in "/opt/uv-tools/$t/bin"/*; do
-            local cb; cb="$(basename "$c")"
-            # 排除 venv 内部件:python*/pip*/activate 链出去会劫持 /usr/local/bin/python3(实证成环 ELOOP)
-            case "$cb" in python*|pip*|*activate*|*.bat|__pycache__) continue ;; esac
-            [ -f "$c" ] && ln -sf "$c" "/usr/local/bin/$cb" 2>/dev/null
+    # uv tool 已把各工具入口链进 /usr/local/bin(UV_TOOL_BIN_DIR);这里只补 venv 里依赖叉的 *.py 脚本
+    # (bloodhound-ce/bofhound 内的 impacket 叉:secretsdump.py/GetADUsers.py 等;bloodhound-ce 殿后保持其优先)
+    # 不许全目录链:依赖带的同名 CLI(httpx/idna/normalizer/pygmentize/cffi-gen-src 等,实证散在
+    # certipy-ad/bofhound/bloodhound-ce 三个 venv)会盖掉 pd 组 Go httpx 与其他系统件(grok 评审 F1 深挖)
+    for t in certipy-ad bloodyad bofhound bloodhound-ce; do
+        for c in "/opt/uv-tools/$t/bin"/*.py; do
+            [ -f "$c" ] && ln -sf "$c" "/usr/local/bin/$(basename "$c")" 2>/dev/null
         done
     done
-    # semgrep 不进全目录循环:其依赖 CLI(httpx/uvicorn/mcp 等)会盖掉 pd 组 Go httpx(grok 评审 F1 实证);只链入口
+    # bloodhound-python 无 console entrypoint,入口是 re-venv wrapper;曾被 bofhound 依赖链盖掉,无条件重写
+    printf '#!/bin/sh\nexec %s/bin/python -m bloodhound "$@"\n' "$RE_VENV" > /usr/local/bin/bloodhound-python
+    chmod +x /usr/local/bin/bloodhound-python
+    # 旧批残留清理:非入口依赖 CLI 指向任一 uv-tools venv 的一律删;httpx 还回 pd 的 Go 产物
+    local depjunk="httpx uvicorn dotenv glom idna jsonschema markdown-it mcp normalizer pwiz pygmentize cffi-gen-src opentelemetry-bootstrap opentelemetry-instrument chardetect futurize pasteurize gql-cli cmark activate-global-python-argcomplete register-python-argcomplete python-argcomplete-check-easy-install-script"
+    # shellcheck disable=SC2086
+    for c in $depjunk; do
+        [ -L "/usr/local/bin/$c" ] && case "$(readlink "/usr/local/bin/$c")" in /opt/uv-tools/*) rm -f "/usr/local/bin/$c";; esac
+    done
+    # semgrep 只链入口名(依赖 CLI 同害,不进任何循环)
     for c in semgrep pysemgrep; do
         [ -e "/opt/uv-tools/semgrep/bin/$c" ] && ln -sf "/opt/uv-tools/semgrep/bin/$c" "/usr/local/bin/$c"
-    done
-    # 旧批残留清理:曾被全链的 semgrep 依赖 CLI,指向 semgrep venv 才删;httpx 还回 pd 的 Go 产物
-    for c in httpx uvicorn dotenv glom idna jsonschema markdown-it mcp normalizer pwiz pygmentize cffi-gen-src opentelemetry-bootstrap opentelemetry-instrument; do
-        [ -L "/usr/local/bin/$c" ] && [ "$(readlink "/usr/local/bin/$c")" = "/opt/uv-tools/semgrep/bin/$c" ] && rm -f "/usr/local/bin/$c"
     done
     [ -e /opt/go/bin/httpx ] && [ ! -e /usr/local/bin/httpx ] && ln -sf /opt/go/bin/httpx /usr/local/bin/httpx
     # 命名差异:kerbrute/Coercer 等二进名与包名可能不同,统一链接检查
