@@ -775,7 +775,7 @@ install_red() {
         # api.github.com 限流改用 git ls-remote(nushell 同款)
         local ctag; ctag="$(git ls-remote --tags "${gh2}/CyberChef" 2>/dev/null | grep -oE 'refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$' | sort -t. -k1,1n -k2,2n -k3,3n | tail -1 | sed 's|refs/tags/||' || true)"
         if [ -n "$ctag" ]; then
-            local cz="CyberChef_${ctag#v}.zip"
+            local cz="CyberChef_${ctag}.zip"   # 资产名保留 v 前缀(fresh 实证 404 根因)
             curl -fSL "${gh2}/gchq/CyberChef/releases/download/${ctag}/${cz}" -o "/tmp/${cz}" \
                 && install -d /opt/cyberchef && unzip -q -o "/tmp/${cz}" -d /opt/cyberchef && rm "/tmp/${cz}" \
                 && echo "CyberChef 就位: /opt/cyberchef(用 python3 -m http.server 起本地页)" \
