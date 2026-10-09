@@ -166,6 +166,15 @@ EOF
     for b in rustc cargo rustup rust-script cargo-zigbuild; do
         [ -e /opt/cargo/bin/$b ] && ln -sf /opt/cargo/bin/$b "/usr/local/bin/$b"
     done
+    # 家目录兼容链:非登录 shell(incus exec/systemd/cron)不读 profile.d,
+    # rustup shim 回落 \$HOME/.rustup 会报 no default;链到 /opt 共享布局(fresh 验收实证)
+    for _h in /root /home/ubuntu; do
+        [ -d "$_h" ] || continue
+        [ -e "$_h/.rustup" ] && [ ! -L "$_h/.rustup" ] && mv "$_h/.rustup" "$_h/.rustup.bak"
+        [ -e "$_h/.cargo" ] && [ ! -L "$_h/.cargo" ] && mv "$_h/.cargo" "$_h/.cargo.bak"
+        ln -sfn /opt/rustup "$_h/.rustup"
+        ln -sfn /opt/cargo "$_h/.cargo"
+    done
     # pi-rs 件生态预热:cargo fetch 拉进 registry 缓存(经 tuna),件首跑不再下载
     local pw=/tmp/rust-prewarm
     rm -rf "$pw" && mkdir -p "$pw/src" && printf 'fn main(){}\n' > "$pw/src/main.rs"
