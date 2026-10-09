@@ -14,6 +14,10 @@ apt-get update -qq
 apt-get install -y --no-install-recommends \
     ca-certificates curl wget gpg unzip zip xz-utils file git
 
+# cloud 镜像的后台自动升级会与构建抢 dpkg 锁(fresh 验证实证:fd 组被 unattended-upgrades
+# 卡死);构建容器不需要自动升级,停掉计时器(不卸载,保留工具)
+systemctl disable --now unattended-upgrades.service apt-daily.timer apt-daily-upgrade.timer >/dev/null 2>&1 || true
+
 # 全量入口不转发过滤器:单项安装直接用对应分类脚本
 bash "$HERE/install-compilers.sh"
 bash "$HERE/install-runtimes.sh"
