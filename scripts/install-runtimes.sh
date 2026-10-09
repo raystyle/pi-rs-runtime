@@ -116,8 +116,9 @@ install_duckdb() {
     if ! have duckdb; then
         local dt darch="amd64"; [ "$(dpkg --print-architecture)" = arm64 ] && darch="aarch64"
         dt="$(curl -fsSL "https://api.github.com/repos/duckdb/duckdb/releases/latest" | grep -o '"tag_name": *"[^"]*"' | cut -d'"' -f4)"
+        # api.github.com 限流 403 时整条链失败会 set -e 退出,|| true 兜底下轮补
         [ -n "$dt" ] && curl -fSL "https://github.com/duckdb/duckdb/releases/download/${dt}/duckdb_cli-linux-${darch}.zip" -o /tmp/duckdb.zip \
-            && unzip -q -o /tmp/duckdb.zip -d /tmp && install -m755 /tmp/duckdb /usr/local/bin/duckdb && rm -f /tmp/duckdb.zip /tmp/duckdb
+            && unzip -q -o /tmp/duckdb.zip -d /tmp && install -m755 /tmp/duckdb /usr/local/bin/duckdb && rm -f /tmp/duckdb.zip /tmp/duckdb || true
     fi
     duckdb --version 2>/dev/null || "$VENV_ANALYTICS/bin/python" -c "import duckdb; print('duckdb py', duckdb.__version__)"
 }
