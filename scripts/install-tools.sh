@@ -729,7 +729,7 @@ install_red() {
     log "git 克隆批(钉 /opt,依赖进 re-venv 尽力)"
     local gh="${GITHUB_MIRROR}https://github.com"
     local r
-    for r in mubix/jwt-tool sensepost/LinkFinder dirkjanm/krbrelayx CarHaeck/enum4linux-ng; do
+    for r in ticarpi/jwt_tool GerbenJavado/LinkFinder dirkjanm/krbrelayx cddmp/enum4linux-ng; do
         local d="/opt/$(basename "$r")"
         if [ ! -d "$d/.git" ]; then
             # GitHub 直连间歇性失败,重试 2 次
@@ -743,9 +743,14 @@ install_red() {
         && VIRTUAL_ENV="$RE_VENV" uv pip install -r /opt/LinkFinder/requirements.txt >/dev/null 2>&1 || true
     [ -f /opt/enum4linux-ng/requirements.txt ] \
         && VIRTUAL_ENV="$RE_VENV" uv pip install -r /opt/enum4linux-ng/requirements.txt >/dev/null 2>&1 || true
-    for b in jwt-tool linkfinder enum4linux-ng krbrelayx; do
+    # jwt_tool 是单文件脚本(非 pip 包),wrapper 直调;enum4linux-ng 有 console script
+    [ -f /opt/jwt_tool/jwt_tool.py ] && printf '#!/bin/sh\nexec python3 /opt/jwt_tool/jwt_tool.py "$@"\n' > /usr/local/bin/jwt-tool \
+        && chmod +x /usr/local/bin/jwt-tool
+    for b in enum4linux-ng krbrelayx; do
         [ -e "$RE_VENV/bin/$b" ] && ln -sf "$RE_VENV/bin/$b" "/usr/local/bin/$b" 2>/dev/null
     done
+    [ -f /opt/LinkFinder/linkfinder.py ] && printf '#!/bin/sh\nexec python3 /opt/LinkFinder/linkfinder.py "$@"\n' > /usr/local/bin/linkfinder \
+        && chmod +x /usr/local/bin/linkfinder
 
     log "Ruby 生态引入(gems.ruby-china;解锁 CeWL)"
     apt-get update -qq
