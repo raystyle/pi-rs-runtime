@@ -123,6 +123,20 @@ install_duckdb() {
     duckdb --version 2>/dev/null || "$VENV_ANALYTICS/bin/python" -c "import duckdb; print('duckdb py', duckdb.__version__)"
 }
 
+install_clickhouse() {
+    log "clickhouse 单二进制(官方 curl 脚本;用法 clickhouse local,无 clickhouse-local 软链)"
+    # 官方规定:curl https://clickhouse.com/ | sh 只产一个 clickhouse 二进制,
+    # 裸跑即交互式 clickhouse-local;CLICKHOUSE_ONLY=1 不附带 clickhousectl
+    if ! have clickhouse; then
+        rm -f /tmp/clickhouse
+        (cd /tmp && curl -fsSL https://clickhouse.com/ | CLICKHOUSE_ONLY=1 sh) \
+            && install -m755 /tmp/clickhouse /usr/local/bin/clickhouse && rm -f /tmp/clickhouse \
+            || echo "clickhouse 下载失败(clickhouse.com 直连抖动,下轮补)"
+    fi
+    clickhouse local -q "SELECT version()" 2>/dev/null || echo "clickhouse 未装上(下轮补)"
+    true
+}
+
 install_python2() {
     log "python $PY2_VERSION (源码编译,$PY2_MIRROR)"
     if have python2.7 && python2.7 --version >/dev/null 2>&1; then python2.7 --version; echo "已安装,跳过"; return; fi
@@ -366,5 +380,5 @@ install_mono() {
     mono --version 2>/dev/null | head -1
 }
 
-RUNTIMES_ALL=(node fnm bun uv python python2 duckdb php mono dotnet pwsh sdkman)
+RUNTIMES_ALL=(node fnm bun uv python python2 duckdb clickhouse php mono dotnet pwsh sdkman)
 run_category RUNTIMES_ALL "$@"

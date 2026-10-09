@@ -265,5 +265,24 @@ EOF
     vcpkg install $pkgs
 }
 
-COMPILERS_ALL=(c golang rust zig vcpkg)
+# ---- nim(OffensiveNim 等 maldev 模板的编译器;choosenim 官方安装器) ----------
+# choosenim 归 CHOOSENIM_DIR=/opt/nim;noble apt 的 nim 停 1.6.x 过旧不取
+install_nim() {
+    log "nim (choosenim stable,工具链归 /opt/nim)"
+    if ! have nim; then
+        export CHOOSENIM_DIR=/opt/nim
+        curl -fsSL https://nim-lang.org/choosenim/init.sh | sh -s -- -y \
+            || echo "choosenim 失败(nim-lang.org 直连抖动,下轮补)"
+        # 最新工具链的 bin 整批链出;nim 经 /proc/self/exe 定位 stdlib,软链安全
+        local tc; tc="$(ls -d /opt/nim/toolchains/nim-* 2>/dev/null | sort -V | tail -1)"
+        [ -n "$tc" ] && for b in "$tc"/bin/*; do ln -sf "$b" /usr/local/bin/; done
+        cat > /etc/profile.d/nim.sh <<'EOF'
+export PATH=$PATH:/opt/nim/bin
+EOF
+    fi
+    nim --version 2>/dev/null | head -1 || echo "nim 未装上(下轮补)"
+    true
+}
+
+COMPILERS_ALL=(c golang rust zig nim vcpkg)
 run_category COMPILERS_ALL "$@"
