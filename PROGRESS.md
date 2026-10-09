@@ -8,7 +8,7 @@
 
 ## 当前状态
 
-- 最新发布链:9c63a0288d34(三缺口修复)→ f0bc3ee442c2(nasm 3.02 源码钉版 + donut 1.1)→ **正在发布第三版**(rt-edit2,内容见下)。
+- 最新发布链:9c63a0288d34(三缺口修复)→ f0bc3ee442c2(nasm 3.02 源码钉版 + donut 1.1)→ **`fd5b78bd8ec0`(当前线上版,19.8 GB)**;旧镜像与构建容器均已清,磁盘 49%。
 - 本版新增(全部 ubuntu 复验绿):nim 2.2.12(choosenim,/opt/nim)、clickhouse 26.10(官方单二进制,`clickhouse local`)、nasm 3.02、donut 1.1、RustHound-CE(补 libkrb5-dev 后构建过)、praetorian 三件 nerva/brutus(走 /cmd 子路径)/aurelian(根模块)、fff-search 0.11 进 rust 库预热(fff-mcp 二进制用户裁定不装)。
 - 归档三轴分类(grok 评审裁定,全文曾落 /tmp/grok-maldev-classification.md):`c2dev-ref/`(sliver/merlin/Empire/Covenant/mythic/SILENTTRINITY)、`payload-ref/`(generators{deserialization,pe-to-shellcode}、loaders{droppers,inproc}、evasion{ShellcodeFluctuation,crystal-palace}、curricula{zig,rust,nim,go}、analysis{donut-decryptor})、`tradecraft-ref/`(ad/bof/opsec);COFFLoader/bof-launcher 源码在 loaders/inproc 原地编译;atomic-bofs/BOF-CATALOG 在 tradecraft-ref/bof;Crystal Palace(cpsrc+cpdist)与 Tradecraft Garden(tcg-latest.tgz)官网源码归档;新 recon 组 /opt/recon-ref(mac-tracker/recog/hickory-dns)。语言只做教材次轴,SILENTTRINITY 是 C2 不是 Nim 教材,ysoserial 是反序列化生成器不是 C2。
 - 网络面:proxy.ohmygh.com 实测**只代理 GitHub 系**(nim-lang.org/clickhouse.com/tradecraftgarden.org 均 TLS 重置),非 GitHub 站走直连;宿主 DNS 曾整挂(路由器 192.168.88.2 对 github.com 等返回无记录),wlo1 已指 223.5.5.5/223.6.6.6(DHCP 续约会恢复,复发照此处理)。
