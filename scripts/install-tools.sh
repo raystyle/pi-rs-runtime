@@ -178,7 +178,10 @@ install_secrust() {
     # findomain 依赖多常编不过,要用时走 https://github.com/Findomain/Findomain/releases 预编译
     # RustHound-CE:BloodHound CE 采集器(Linux 直跑);crates.io 无此包,源码构建,
     # 源码归 tradecraft-ref/ad(grok 裁定:操作员 AD 工具,源码位置与编不编译脱钩)
+    # libgssapi-sys 要 gssapi.h(libkrb5-dev),缺失则 bindgen 致命错
     if ! have rusthound-ce; then
+        apt-get update -qq
+        apt-get install -y --no-install-recommends libkrb5-dev
         local gh="${GITHUB_MIRROR}https://github.com"
         install -d /opt/tradecraft-ref/ad
         [ -d /opt/tradecraft-ref/ad/RustHound-CE/.git ] || git clone --depth 1 "${gh}/g0h4n/RustHound-CE" /opt/tradecraft-ref/ad/RustHound-CE
