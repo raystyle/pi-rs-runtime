@@ -9,6 +9,7 @@
 ## 当前状态
 
 - 镜像 `pi-rs-runtime` 正在发布:`incus publish rt-verify --alias pi-rs-runtime`(后台任务,rt-verify 已 stop)。发布完成后核对 `incus image list`。
+- 文档重组:README 689 行拆为 132 行薄入口(定位/前置条件/文档索引/步骤)+ `docs/` 四分册:`params.md`(参数表)、`install-surfaces.md`(安装面清单)、`software-inventory.md`(软件清单归档)、`known-issues.md`(已知限制)。
 - 脚本全量 fresh 验证通过,验收绿(版本输出、wrapper、/opt 缓存落点、ubuntu 用户可执行)。
 - main 最新提交 `f9c3821`,工作区干净。
 
