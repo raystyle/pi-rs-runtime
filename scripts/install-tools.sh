@@ -703,7 +703,7 @@ install_red() {
     export GOPATH=/opt/go GOPROXY GOSUMDB
     # ghauri 不在任何 pypi(官方源/ tuna /阿里云均 404),只发 git 仓;r0oth3x49/ghauri
     if ! have ghauri; then
-        VIRTUAL_ENV= uv tool install "git+${gh}/r0oth3x49/ghauri" >/dev/null 2>&1 \
+        VIRTUAL_ENV= uv tool install "git+${GITHUB_MIRROR}https://github.com/r0oth3x49/ghauri" >/dev/null 2>&1 \
             && echo "ghauri 已装(git 源)" || echo "ghauri 失败(git 源;GitHub 限流窗口重试)"
     fi
     local t
