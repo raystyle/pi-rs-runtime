@@ -1,6 +1,6 @@
 # pi-rs-runtime
 
-本仓是 pi agent 的运行时环境维护仓，仓库地址为 [raystyle/pi-rs-runtime](https://github.com/raystyle/pi-rs-runtime)。输入是 Ubuntu 24.04（noble）与 `image-defs/ubuntu.yaml` 镜像定义；输出是 Incus 基础镜像 `ubuntu-24.04-base` 与发布别名 `pi-rs-runtime` 的运行时镜像；副作用包括：构建时删除同名旧镜像、在 `image-defs/` 下生成 `incus.tar.xz` 与 `rootfs.squashfs`、启动并删除临时验证容器、在容器内改写 apt 源与各类工具链配置。
+本仓是智能体渗透测试运行时系统（pi-rs-runtime）的环境维护仓，仓库地址为 [raystyle/pi-rs-runtime](https://github.com/raystyle/pi-rs-runtime)。输入是 Ubuntu 24.04（noble）与 `image-defs/ubuntu.yaml` 镜像定义；输出是 Incus 基础镜像 `ubuntu-24.04-base` 与发布别名 `pi-rs-runtime` 的运行时镜像；副作用包括：构建时删除同名旧镜像、在 `image-defs/` 下生成 `incus.tar.xz` 与 `rootfs.squashfs`、启动并删除临时验证容器、在容器内改写 apt 源与各类工具链配置。
 
 ## 前置条件
 
@@ -83,7 +83,7 @@
 
 - `install-compilers.sh`:`COMPILERS_ALL=(c golang rust zig vcpkg)`
 - `install-runtimes.sh`:`RUNTIMES_ALL=(node fnm bun uv python python2 duckdb php mono dotnet pwsh sdkman)`
-- `install-tools.sh`:`TOOLS_ALL=(fd astgrep cli herdr ghidra re pd secgo secrust pivot p0 c2 bof pz nu)`
+- `install-tools.sh`:`TOOLS_ALL=(fd astgrep cli herdr ghidra re pd secgo secrust pivot p0 c2 bof pz nu pentest)`
 
 ## 步骤
 
@@ -178,7 +178,7 @@ incus exec rt-build -- bash /root/scripts/install-all.sh
 
 
 
-工具（`install-tools.sh`）。组列为中文名，脚本键对照：文件与内容搜索=`fd`、结构化代码搜索=`ast-grep`、基础命令行工具=`cli`、终端工作区管理器=`herdr`、逆向分析套件=`ghidra`、逆向分析稳定链=`re`、攻击面测绘工具集=`pd`、Go 安全工具集=`secgo`、Rust 安全工具集=`secrust`、代理与隧道工具集=`pivot`、安全分析工具集=`p0`、命令与控制框架参考=`c2`、信标对象文件工具链=`bof`、Project Zero 工具参考=`pz`、结构化 Shell=`nu`。
+工具（`install-tools.sh`）。组列为中文名，脚本键对照：文件与内容搜索=`fd`、结构化代码搜索=`ast-grep`、基础命令行工具=`cli`、终端工作区管理器=`herdr`、逆向分析套件=`ghidra`、逆向分析稳定链=`re`、攻击面测绘工具集=`pd`、Go 安全工具集=`secgo`、Rust 安全工具集=`secrust`、代理与隧道工具集=`pivot`、安全分析工具集=`p0`、命令与控制框架参考=`c2`、信标对象文件工具链=`bof`、Project Zero 工具参考=`pz`、结构化 Shell=`nu`、渗透测试运行时底线=`pentest`。
 
 | 组 | 项目 | 版本 | 官方来源 | 安装命令（脚本实际执行） |
 |------|------|------|------|
@@ -261,6 +261,10 @@ incus exec rt-build -- bash /root/scripts/install-all.sh
 | Project Zero 工具参考 | windows-logical-eop-workshop | `--depth 1` 未钉 | [tyranid/windows-logical-eop-workshop](https://github.com/tyranid/windows-logical-eop-workshop) | `git clone --depth 1 ${GITHUB_MIRROR}https://github.com/tyranid/windows-logical-eop-workshop /opt/windows-logical-eop-workshop`；只克隆 |
 | Project Zero 工具参考 | oleviewdotnet | 全克隆含子模块 | [tyranid/oleviewdotnet](https://github.com/tyranid/oleviewdotnet) | `git clone --recurse-submodules ${GITHUB_MIRROR}https://github.com/tyranid/oleviewdotnet /opt/oleviewdotnet`；只克隆（NtApiDotNet 是嵌套子模块） |
 | 结构化 Shell（Nushell） | nu | release latest | [nushell.sh](https://www.nushell.sh)（[nushell/nushell](https://github.com/nushell/nushell)） | api.github.com 取 latest tag；`curl …/download/<tag>/nu-<tag>-x86_64-unknown-linux-gnu.tar.gz`；`install -m755 nu /usr/local/bin/nu` |
+| 渗透测试运行时底线 | lab apt 批 24 包（dnsutils、whois、socat、netcat-openbsd、telnet、ftp、snmp、proxychains4、ldap-utils、smbclient、default-mysql-client、postgresql-client、redis-tools、sqlite3、freerdp2-x11、sshuttle、hashcat、pocl-opencl-icd、ocl-icd-libopencl1、hydra、android-tools-adb、android-tools-fastboot、sleuthkit、testdisk、poppler-utils、unar、cabextract、qpdf、zbar-tools、hcxtools、aircrack-ng、steghide、osslsigncode） | noble 随源 | Ubuntu apt（tuna）；sasquatch 为源码构建（[onekey-sec/sasquatch](https://github.com/onekey-sec/sasquatch) `./build.sh`） | `apt-get install -y --no-install-recommends …`；hashcat CPU 走 pocl |
+| 渗透测试运行时底线 | Responder | `--depth 1` 未钉 | [lgandx/Responder](https://github.com/lgandx/Responder) | `git clone --depth 1 … /opt/Responder`；运行 `python3 /opt/Responder/Responder.py -I eth0` |
+| 渗透测试运行时底线 | frida 全链（客户端与全架构 frida-server 版本对齐） | 客户端构建日最新；server 与客户端同版本 | [frida/frida](https://github.com/frida/frida) releases（GitHub 直下，无 tuna） | `uv tool install frida-tools`；`frida --version` 取版本号；`curl …/download/<ver>/frida-server-<ver>-{windows,android,linux}-<arch>.xz` 解到 `/opt/frida-server/<ver>/` |
+| 渗透测试运行时底线 | 离线固化接线（nuclei 模板、capa 规则、词表、pwndbg gdbinit、时区 locale、offline 函数） | 模板与规则 `--depth 1` 未钉 | [projectdiscovery/nuclei-templates](https://github.com/projectdiscovery/nuclei-templates)；规则见安全分析工具集 | nuclei 模板克隆 `/opt/nuclei-templates` 并软链各用户 `~/nuclei-templates`；`/usr/local/bin/nuclei` 改 wrapper 加 `-duc`；capa 改 wrapper 加 `-r /opt/capa-rules`；`/usr/share/wordlists` 软链 SecLists 并解包 rockyou；`/etc/gdb/gdbinit` 接 pwndbg 并冒烟；时区 `Asia/Shanghai`、生成 `zh_CN.UTF-8`（默认 LANG 不动）；`/etc/profile.d/offline.sh` 提供 `offline()` 快失败函数 |
 ### 4. 发布 pi-rs-runtime 镜像
 
 ```bash
@@ -607,6 +611,49 @@ sudo incus config device add <实例> vnc proxy \
 | wstunnel | cargo 未钉 | [erebe/wstunnel](https://github.com/erebe/wstunnel) |
 | rathole | cargo 未钉 | [rathole-org/rathole](https://github.com/rathole-org/rathole) |
 | bore | cargo 未钉 | [ekzhang/bore](https://github.com/ekzhang/bore)（bore-cli crate） |
+
+### 渗透测试运行时底线
+
+| 软件 | 版本 | 来源 |
+|------|------|------|
+| dnsutils（dig） | noble 随源 | Ubuntu noble 源（tuna） |
+| whois | noble 随源 | Ubuntu noble 源（tuna） |
+| socat | noble 随源 | Ubuntu noble 源（tuna） |
+| netcat-openbsd | noble 随源 | Ubuntu noble 源（tuna） |
+| telnet | noble 随源 | Ubuntu noble 源（tuna） |
+| ftp | noble 随源 | Ubuntu noble 源（tuna） |
+| snmp | noble 随源 | Ubuntu noble 源（tuna） |
+| proxychains4 | noble 随源 | Ubuntu noble 源（tuna） |
+| ldap-utils | noble 随源 | Ubuntu noble 源（tuna） |
+| smbclient | noble 随源 | Ubuntu noble 源（tuna） |
+| default-mysql-client | noble 随源 | Ubuntu noble 源（tuna） |
+| postgresql-client | noble 随源 | Ubuntu noble 源（tuna） |
+| redis-tools | noble 随源 | Ubuntu noble 源（tuna） |
+| sqlite3 | noble 随源 | Ubuntu noble 源（tuna） |
+| freerdp2-x11 | noble 随源 | Ubuntu noble 源（tuna） |
+| sshuttle | noble 随源 | Ubuntu noble 源（tuna） |
+| hashcat | noble 随源（6.2.6） | Ubuntu noble 源（tuna） |
+| pocl-opencl-icd | noble 随源（CPU OpenCL） | Ubuntu noble 源（tuna） |
+| ocl-icd-libopencl1 | noble 随源 | Ubuntu noble 源（tuna） |
+| hydra | noble 随源（9.5） | Ubuntu noble 源（tuna） |
+| android-tools-adb | noble 随源 | Ubuntu noble 源（tuna） |
+| android-tools-fastboot | noble 随源 | Ubuntu noble 源（tuna） |
+| sleuthkit | noble 随源 | Ubuntu noble 源（tuna） |
+| testdisk | noble 随源 | Ubuntu noble 源（tuna） |
+| poppler-utils | noble 随源 | Ubuntu noble 源（tuna） |
+| unar | noble 随源 | Ubuntu noble 源（tuna） |
+| cabextract | noble 随源 | Ubuntu noble 源（tuna） |
+| qpdf | noble 随源 | Ubuntu noble 源（tuna） |
+| zbar-tools | noble 随源 | Ubuntu noble 源（tuna） |
+| hcxtools | noble 随源 | Ubuntu noble 源（tuna） |
+| aircrack-ng | noble 随源（1.7） | Ubuntu noble 源（tuna） |
+| steghide | noble 随源 | Ubuntu noble 源（tuna） |
+| osslsigncode | noble 随源（2.8-2，PE 签名替代） | Ubuntu noble 源（tuna） |
+| sasquatch | `--depth 1` 未钉 | [onekey-sec/sasquatch](https://github.com/onekey-sec/sasquatch) 源码构建 |
+| Responder | `--depth 1` 未钉 | [lgandx/Responder](https://github.com/lgandx/Responder) → /opt/Responder |
+| frida-tools | uv tool 构建日最新 | [frida/frida](https://github.com/frida/frida)（tuna PyPI） |
+| frida-server 全架构 | 与客户端严格同版本 | [frida/frida](https://github.com/frida/frida) releases → /opt/frida-server/<ver>/ |
+| nuclei-templates | `--depth 1` 未钉 | [projectdiscovery/nuclei-templates](https://github.com/projectdiscovery/nuclei-templates) → /opt/nuclei-templates |
 
 ### 参考克隆（只克隆，不安装不运行）
 

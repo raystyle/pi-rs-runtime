@@ -154,6 +154,13 @@ install_dotnet() {
     apt-get update -qq
     apt-get install -y "$DOTNET_SDK"
     # NuGet 库镜像:华为 v3(已实证 200;不要用 azure.cn 旧 CDN,已解析失败)
+    # 全局包目录指 /opt/nuget-packages:默认 ~/.nuget 在 /root 下,ubuntu 离线 restore 失败
+    install -d /opt/nuget-packages
+    cat > /etc/profile.d/dotnet.sh <<'EOF'
+export NUGET_PACKAGES=/opt/nuget-packages
+export DOTNET_CLI_TELEMETRY_OPTOUT=1
+EOF
+    export NUGET_PACKAGES=/opt/nuget-packages
     for u in /root /home/ubuntu; do
         [ -d "$u" ] && install -d "$u/.nuget/NuGet" && cat > "$u/.nuget/NuGet/NuGet.Config" <<EOF
 <?xml version="1.0" encoding="utf-8"?>
@@ -247,8 +254,10 @@ EOF
         ln -sf /opt/maven/bin/mvn /usr/local/bin/mvn
     fi
     # 依赖镜像写安装目录的 settings.xml:对所有调用生效(tuna 只镜像发行包,不镜像 Central)
+    # localRepository 指 /opt/m2:留默认 ~/.m2 则 ubuntu 与 root 各一份,离线都救不了
     cat > /opt/maven/conf/settings.xml <<EOF
 <settings>
+  <localRepository>/opt/m2</localRepository>
   <mirrors>
     <mirror>
       <id>aliyunmaven</id>
@@ -274,8 +283,12 @@ EOF
         ln -sf "${gdir}bin/gradle" /usr/local/bin/gradle
     fi
     # init script:同时盖插件解析与项目依赖(只改 allprojects 盖不住 settings 的 pluginManagement)
-    for u in /root /home/ubuntu; do
-        [ -d "$u" ] && install -d "$u/.gradle/init.d" && cat > "$u/.gradle/init.d/mirrors.gradle" <<'EOF'
+    # GRADLE_USER_HOME 指 /opt/gradle-home:默认 ~/.gradle 在 /root 下,ubuntu 离线无解
+    install -d /opt/gradle-home/init.d
+    cat > /etc/profile.d/gradle.sh <<'EOF'
+export GRADLE_USER_HOME=/opt/gradle-home
+EOF
+    cat > /opt/gradle-home/init.d/mirrors.gradle <<'EOF'
 allprojects {
     repositories {
         maven { url 'https://maven.aliyun.com/repository/public' }
@@ -291,7 +304,6 @@ settingsEvaluated { settings ->
     }
 }
 EOF
-    done
     gradle --version 2>/dev/null | grep -m1 Gradle
     set +u; sdk current; set -u   # sdk 主脚本引用未绑定位置参数,与 set -u 冲突
 }

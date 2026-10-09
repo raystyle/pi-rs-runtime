@@ -32,7 +32,9 @@ install_cli() {
     log "git/jq/shellcheck/just (apt,tuna);yq/gh (go install,goproxy.cn)"
     apt-get update -qq
     apt-get install -y --no-install-recommends git jq shellcheck just tmux rclone aria2 || true
-    export PATH="$PATH:/usr/local/go/bin:/root/go/bin"
+    # GOPATH 指 /opt/go:不设则 go install 产物落 /root/go(0700),ubuntu 不可执行
+    export PATH="$PATH:/usr/local/go/bin:/opt/go/bin"
+    export GOPATH=/opt/go
     export GOPROXY GOSUMDB
     if ! have yq; then
         go install github.com/mikefarah/yq/v4@latest
@@ -534,5 +536,125 @@ install_nu() {
     true
 }
 
-TOOLS_ALL=(fd astgrep cli herdr ghidra re pd secgo secrust pivot p0 c2 bof pz nu)
+# ---- 渗透测试运行时底线(智能体渗透测试运行时系统的底线件;claude 体检 P0 + grok 评审吸收) --
+# 内网客户端批 + hashcat + Responder + frida 全链 + 离线固化接线
+# 原则:全部 apt(tuna)或构建期钉版下载;离线期新装失败是显式报错,缓存必须进 /opt
+install_pentest() {
+    log "lab apt 批(24 包,tuna):内网客户端/远程/爆破/取证/移动/无线/签名"
+    apt-get update -qq
+    apt-get install -y --no-install-recommends \
+        dnsutils whois socat netcat-openbsd telnet ftp snmp proxychains4 \
+        ldap-utils smbclient \
+        default-mysql-client postgresql-client redis-tools sqlite3 \
+        freerdp2-x11 sshuttle \
+        hashcat pocl-opencl-icd ocl-icd-libopencl1 \
+        hydra \
+        android-tools-adb android-tools-fastboot \
+        sleuthkit testdisk poppler-utils unar cabextract qpdf zbar-tools \
+        hcxtools aircrack-ng steghide osslsigncode || true
+    # sasquatch:binwalk 解非标准 SquashFS 的补丁版,源码构建
+    if ! have sasquatch; then
+        local gh="${GITHUB_MIRROR}https://github.com"
+        rm -rf /tmp/sasquatch && git clone --depth 1 "${gh}/onekey-sec/sasquatch" /tmp/sasquatch \
+            && ( cd /tmp/sasquatch && ./build.sh ) || echo "sasquatch 构建失败(不影响 binwalk 本体)"
+        rm -rf /tmp/sasquatch
+    fi
+    hashcat -I 2>/dev/null | head -3 || echo "hashcat 装不上(查 pocl)"
+
+    log "Responder(LLMNR/NBT-NS 毒化,内网测试起点)"
+    local gh="${GITHUB_MIRROR}https://github.com"
+    [ -d /opt/Responder/.git ] || git clone --depth 1 "${gh}/lgandx/Responder" /opt/Responder || echo "Responder 克隆失败"
+    ls -d /opt/Responder >/dev/null 2>&1 && echo "Responder 在 /opt/Responder(运行:python3 /opt/Responder/Responder.py -I eth0)"
+
+    log "frida 全链:客户端 + 全架构 frida-server(版本严格对齐)"
+    . "$HOME/.local/bin/env" 2>/dev/null || true
+    export UV_TOOL_BIN_DIR=/usr/local/bin UV_TOOL_DIR=/opt/uv-tools
+    have frida || uv tool install frida-tools || echo "frida-tools 失败"
+    if have frida; then
+        local fv; fv="$(frida --version 2>/dev/null | tr -d ' ')"
+        # frida-server 与客户端同版本;GitHub Releases 直下(可用 GITHUB_MIRROR),无 tuna
+        local d="/opt/frida-server/${fv}"
+        install -d "$d"
+        local plat
+        for plat in windows-x86_64 windows-x86 windows-arm64 \
+                    android-arm64 android-arm android-x86_64 android-x86 \
+                    linux-x86_64 linux-arm64; do
+            local f="frida-server-${fv}-${plat}.xz"
+            [ -e "${d}/${f%.xz}" ] && continue
+            curl -fSL --connect-timeout 10 --max-time 300 "${gh}/frida/frida/releases/download/${fv}/${f}" -o "/tmp/${f}" \
+                && xz -d "/tmp/${f}" && mv "/tmp/${f%.xz}" "$d/" || echo "$plat server 下载失败"
+        done
+        ls "$d" | wc -l
+    fi
+
+    log "离线固化接线:nuclei 模板 / capa 规则 / 词表 / pwndbg gdbinit / 时区 locale"
+    # nuclei 模板:在线 -update-templates 落家目录且失败容忍,离线静默坏;改钉 /opt
+    [ -d /opt/nuclei-templates/.git ] || git clone --depth 1 "${gh}/projectdiscovery/nuclei-templates" /opt/nuclei-templates || echo "nuclei-templates 克隆失败"
+    for u in /root /home/ubuntu; do
+        [ -d "$u" ] && install -d "$u/nuclei-templates" && rmdir "$u/nuclei-templates" 2>/dev/null; \
+            [ -d "$u" ] && ln -sfn /opt/nuclei-templates "$u/nuclei-templates"
+    done
+    # nuclei wrapper:-duc 禁版本检查,离线期不卡更新
+    if have nuclei && [ ! -e /usr/local/bin/nuclei.real ]; then
+        local real; real="$(readlink -f "$(command -v nuclei)")"
+        if [ "$real" != /usr/local/bin/nuclei ] && [ "$real" != /usr/local/bin/nuclei.real ]; then
+            mv "$real" /usr/local/bin/nuclei.real
+        fi
+        printf '#!/bin/sh\nexec /usr/local/bin/nuclei.real -duc "$@"\n' > /usr/local/bin/nuclei
+        chmod +x /usr/local/bin/nuclei
+    fi
+    # capa 规则接线:不指定时 capa 会自下载规则到 ~/.local/share/capa,离线报晦涩错
+    if have capa && [ ! -e /usr/local/bin/capa.real ]; then
+        local capa_bin; capa_bin="$(find /opt/capa -name capa -type f 2>/dev/null | head -1)"
+        [ -n "$capa_bin" ] && ln -sf "$capa_bin" /usr/local/bin/capa.real
+        printf '#!/bin/sh\nexec /usr/local/bin/capa.real -r /opt/capa-rules "$@"\n' > /usr/local/bin/capa
+        chmod +x /usr/local/bin/capa
+    fi
+    # 词表约定:/usr/share/wordlists 软链入口 + rockyou 解包(chmod 644 供 hashcat/john)
+    install -d /usr/share/wordlists
+    ln -sfn /opt/SecLists /usr/share/wordlists/SecLists
+    if [ ! -f /usr/share/wordlists/rockyou.txt ]; then
+        local ry; ry="$(find /opt/SecLists/Passwords -name 'rockyou.txt*' 2>/dev/null | head -1)"
+        if [ -n "$ry" ]; then
+            case "$ry" in
+                *.tar.gz|*.tgz) tar -C /usr/share/wordlists -xzf "$ry" rockyou.txt 2>/dev/null ;;
+                *) cp "$ry" /usr/share/wordlists/rockyou.txt ;;
+            esac
+            chmod 644 /usr/share/wordlists/rockyou.txt 2>/dev/null || true
+        fi
+    fi
+    ls -l /usr/share/wordlists/rockyou.txt 2>/dev/null || echo "rockyou 未解出(SecLists 路径变了再查)"
+    # pwndbg 系统 gdbinit:不接线则 gdb 静默降级为裸 gdb
+    local gdbinit_py; gdbinit_py="$(find /opt/uv-tools -name gdbinit.py -path '*pwndbg*' 2>/dev/null | head -1)"
+    if [ -n "$gdbinit_py" ]; then
+        cat > /etc/gdb/gdbinit <<EOF
+source ${gdbinit_py}
+set auto-load safe-path /
+set history save on
+set pagination off
+EOF
+        gdb --batch -ex quit 2>&1 | grep -qi pwndbg && echo "pwndbg gdbinit 冒烟通过" || echo "!! pwndbg 冒烟未见 banner,查 gdbinit"
+    else
+        echo "pwndbg gdbinit.py 未找到(p0 组先跑)"
+    fi
+    # 时区与 locale:时区钉上海;生成 zh_CN.UTF-8 但默认 LANG 保持 en_US(工具输出可解析性)
+    ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+    echo "Asia/Shanghai" > /etc/timezone
+    apt-get install -y --no-install-recommends locales || true
+    sed -i 's/^# *\(zh_CN.UTF-8 UTF-8\)/\1/' /etc/locale.gen 2>/dev/null || true
+    locale-gen 2>/dev/null || true
+    # offline 快失败函数:离线期新依赖解析默认长超时挂起,半静默最伤现场
+    cat > /etc/profile.d/offline.sh <<'EOF'
+offline() {
+    export GOPROXY=off CARGO_NET_OFFLINE=true NPM_CONFIG_PREFER_OFFLINE=true UV_OFFLINE=1
+    echo "offline mode: go/cargo/npm/uv 新依赖将立即失败而不是挂起"
+}
+EOF
+    timedatectl show -p Timezone 2>/dev/null || cat /etc/timezone
+    locale -a 2>/dev/null | grep -i zh_CN | head -2
+    true
+}
+
+
+TOOLS_ALL=(fd astgrep cli herdr ghidra re pd secgo secrust pivot p0 c2 bof pz nu pentest)
 run_category TOOLS_ALL "$@"

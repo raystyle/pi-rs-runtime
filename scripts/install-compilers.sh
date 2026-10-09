@@ -56,10 +56,12 @@ for rel in json.load(sys.stdin):
     ln -sf /usr/local/go/bin/go /usr/local/bin/go
     export PATH=$PATH:/usr/local/go/bin
     # go env -w 先于下面的 go install,且 GOPROXY 已 export(common.sh)
-    /usr/local/bin/go env -w GOPROXY="${GOPROXY}" GOSUMDB="${GOSUMDB}" 2>/dev/null || true
+    # 共享缓存:GOPATH/GOMODCACHE 持久化到 /opt,root(0700)家目录里的缓存 ubuntu 用不了
+    /usr/local/bin/go env -w GOPROXY="${GOPROXY}" GOSUMDB="${GOSUMDB}" GOPATH=/opt/go GOMODCACHE=/opt/go/pkg/mod 2>/dev/null || true
     # 黄金三件:调试器 dlv、语言服务器 gopls、静态检查 golangci-lint
-    # 注意:go install 产物落在 $(go env GOPATH)/bin(root 下 /root/go/bin),不在 /usr/local/go/bin
-    local gobin; gobin="$(/usr/local/bin/go env GOPATH)/bin"
+    # 注意:go install 产物落在 $(go env GOPATH)/bin(持久化后为 /opt/go/bin),不在 /usr/local/go/bin
+    export GOPATH=/opt/go
+    local gobin; gobin="/opt/go/bin"
     have dlv          || go install github.com/go-delve/delve/cmd/dlv@latest
     have gopls        || go install golang.org/x/tools/gopls@latest
     have golangci-lint || go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
@@ -128,13 +130,28 @@ index = "sparse+${CRATES_INDEX}/"
 git-fetch-with-cli = true
 EOF
     # rustup 更新通道持久化(tuna 帮助口径),否则 rustup update 回官方源
+    # RUSTUP_HOME/CARGO_HOME 一并导出:不导出则 ubuntu 会在自己家目录再下一套,断网即挂
     cat > /etc/profile.d/rustup.sh <<EOF
+export RUSTUP_HOME=${RUSTUP_HOME}
+export CARGO_HOME=${CARGO_HOME}
 export RUSTUP_DIST_SERVER=${RUSTUP_DIST_SERVER}
 export RUSTUP_UPDATE_ROOT=${RUSTUP_UPDATE_ROOT}
+export CARGO_ZIGBUILD_CACHE_DIR=/opt/cargo-zigbuild-cache
 EOF
     . /opt/cargo/env
     # pi-rs 件执行链:rust-lld(llvm-tools)+ fmt/clippy + rust-script + cargo-zigbuild
     rustup component add llvm-tools rustfmt clippy rust-analyzer
+    # 全平台交叉 target(grok 全平台矩阵):rust-std 必须构建期进 /opt/rustup,离线才链得上
+    # 宿主那一档由 stable 默认自带;windows-gnu 链接用 mingw,apple-darwin 纯 Rust 链接用 zig 桩
+    local _t
+    for _t in x86_64-unknown-linux-gnu aarch64-unknown-linux-gnu \
+              x86_64-unknown-linux-musl aarch64-unknown-linux-musl \
+              armv7-unknown-linux-gnueabihf riscv64gc-unknown-linux-gnu \
+              x86_64-pc-windows-gnu i686-pc-windows-gnu \
+              x86_64-apple-darwin aarch64-apple-darwin; do
+        rustup target add "$_t" 2>/dev/null || echo "target $_t 预加失败(留待排查)"
+    done
+    rustup target list --installed
     have rust-script      || cargo install rust-script --locked
     have cargo-zigbuild   || cargo install cargo-zigbuild --locked
     have cargo-audit      || cargo install cargo-audit --locked   # 依赖漏洞审计
@@ -204,6 +221,11 @@ install_zig() {
     rm -rf /opt/zig && mkdir -p /opt/zig
     tar -C /opt/zig -xJf "/tmp/${tgz}" --strip-components=1 && rm "/tmp/${tgz}"
     ln -sf /opt/zig/zig /usr/local/bin/zig
+    # 全局缓存进 /opt:zig fetch 的包缓存默认在 ~/.cache/zig,留在 /root 则 ubuntu 离线不可用
+    cat > /etc/profile.d/zig.sh <<EOF
+export ZIG_GLOBAL_CACHE_DIR=/opt/zig-cache
+EOF
+    export ZIG_GLOBAL_CACHE_DIR=/opt/zig-cache
     zig version
 }
 
