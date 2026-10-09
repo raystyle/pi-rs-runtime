@@ -87,7 +87,7 @@ install_rust() {
       for c in aes-gcm chacha20poly1305 rsa p256 x25519-dalek md-5 pbkdf2 argon2 \
                jsonwebtoken rcgen x509-parser pem rasn goblin object iced-x86 nom \
                ldap3 pnet quinn tokio-tungstenite clap serde thiserror tracing \
-               flate2 zip memmap2 nix fff-search; do
+               flate2 zip memmap2 nix fff-search windows-sys; do
           cargo add "$c" 2>/dev/null || echo "cargo add $c 失败"
       done
       cargo fetch --locked 2>/dev/null || cargo fetch \

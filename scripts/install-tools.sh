@@ -657,6 +657,9 @@ install_maldev() {
         "fancycode/MemoryModule:payload-ref/loaders/inproc" \
         "DarthTon/Blackbone:payload-ref/loaders/inproc" \
         "mgeeky/ShellcodeFluctuation:payload-ref/evasion" \
+        "Cracked5pider/Stardust:payload-ref/evasion" \
+        "Maldev-Academy/ApiHashing:payload-ref/curricula/cpp" \
+        "Maldev-Academy/HellHall:payload-ref/curricula/cpp" \
         "volexity/donut-decryptor:payload-ref/analysis" \
     ; do
         local r="${m%%:*}" leaf="${m#*:}"
