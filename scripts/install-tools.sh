@@ -601,6 +601,18 @@ install_pentest() {
     [ -d /opt/Responder/.git ] || git clone --depth 1 "${gh}/lgandx/Responder" /opt/Responder || echo "Responder 克隆失败"
     ls -d /opt/Responder >/dev/null 2>&1 && echo "Responder 在 /opt/Responder(运行:python3 /opt/Responder/Responder.py -I eth0)"
 
+    # donut:PE/.NET/VBS/JS 转 shellcode;release 预编译钉版(banner 不带小版本,用 .version 标记幂等)
+    local dv; dv="${DONUT_VERSION:-1.1}"
+    if [ "$(cat /opt/donut/.version 2>/dev/null)" != "$dv" ]; then
+        local dtgz="donut_v${dv}.tar.gz"
+        curl -fSL "${gh}/TheWover/donut/releases/download/v${dv}/${dtgz}" -o "/tmp/${dtgz}" \
+            && rm -rf /opt/donut && install -d /opt/donut \
+            && tar -xzf "/tmp/${dtgz}" -C /opt/donut && rm "/tmp/${dtgz}" \
+            && ln -sf /opt/donut/donut /usr/local/bin/donut \
+            && echo "$dv" > /opt/donut/.version
+    fi
+    donut 2>&1 | head -1 || echo "donut 未装上(下轮补)"
+
     log "frida 全链:客户端 + 全架构 frida-server(版本严格对齐)"
     . "$HOME/.local/bin/env" 2>/dev/null || true
     export UV_TOOL_BIN_DIR=/usr/local/bin UV_TOOL_DIR=/opt/uv-tools

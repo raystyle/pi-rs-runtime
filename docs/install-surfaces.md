@@ -700,6 +700,7 @@ install -m755 nu /usr/local/bin/nu
 |------|------|----------|
 | lab apt 批 24 包（dnsutils、whois、socat、netcat-openbsd、telnet、ftp、snmp、proxychains4、ldap-utils、smbclient、default-mysql-client、postgresql-client、redis-tools、sqlite3、freerdp2-x11、sshuttle、hashcat、pocl-opencl-icd、ocl-icd-libopencl1、hydra、android-tools-adb、android-tools-fastboot、sleuthkit、testdisk、poppler-utils、unar、cabextract、qpdf、zbar-tools、hcxtools、aircrack-ng、steghide、osslsigncode） | noble 随源 | Ubuntu apt（tuna）；sasquatch 为源码构建（[onekey-sec/sasquatch](https://github.com/onekey-sec/sasquatch) `./build.sh`） |
 | Responder | `--depth 1` 未钉 | [lgandx/Responder](https://github.com/lgandx/Responder) |
+| donut（PE/.NET/VBS/JS 转 shellcode，含 libdonut 与头文件） | 1.1（`DONUT_VERSION`），release 预编译 | [TheWover/donut](https://github.com/TheWover/donut) releases |
 | frida 全链（客户端与全架构 frida-server 版本对齐） | 客户端构建日最新；server 与客户端同版本 | [frida/frida](https://github.com/frida/frida) releases（GitHub 直下，无 tuna） |
 | 离线固化接线（nuclei 模板、capa 规则、词表、pwndbg gdbinit、时区 locale、offline 函数） | 模板与规则 `--depth 1` 未钉 | [projectdiscovery/nuclei-templates](https://github.com/projectdiscovery/nuclei-templates)；规则见安全分析工具集 |
 
@@ -708,6 +709,9 @@ install -m755 nu /usr/local/bin/nu
 apt-get install -y --no-install-recommends …
 # Responder:运行 python3 /opt/Responder/Responder.py -I eth0
 git clone --depth 1 … /opt/Responder
+# donut:解到 /opt/donut(含 lib/ 静态动态库与 donut.h),.version 标记幂等
+curl -fSL …/TheWover/donut/releases/download/v${DONUT_VERSION}/donut_v${DONUT_VERSION}.tar.gz
+ln -sf /opt/donut/donut /usr/local/bin/donut
 # frida 全链:frida --version 取版本号;server 包解到 /opt/frida-server/<ver>/
 uv tool install frida-tools
 frida --version
