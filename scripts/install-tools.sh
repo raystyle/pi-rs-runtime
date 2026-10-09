@@ -527,7 +527,10 @@ install_bof() {
         rm -rf "$inproc/bof-launcher"
         git clone --depth 1 "${gh}/The-Z-Labs/bof-launcher" "$inproc/bof-launcher"
         if [ -x "$z152/zig" ] && ( cd "$inproc/bof-launcher" && "$z152/zig" build -Doptimize=ReleaseSafe ); then
-            find "$inproc/bof-launcher/zig-out" -name bof-launcher -type f -exec install -m755 {} /usr/local/bin/bof-launcher \;
+            # 上游是库(C/Zig API)不是 CLI;可跑的 BOF 执行器是示例二进制 bof_lin_<arch>,装为 bof-launcher
+            local bz; case "$(dpkg --print-architecture)" in amd64) bz=bof_lin_x64;; arm64) bz=bof_lin_aarch64;; esac
+            [ -f "$inproc/bof-launcher/zig-out/bin/$bz" ] \
+                && install -m755 "$inproc/bof-launcher/zig-out/bin/$bz" /usr/local/bin/bof-launcher
         else
             echo "bof-launcher 构建失败"
         fi
