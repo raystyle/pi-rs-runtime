@@ -241,9 +241,9 @@ install_vcpkg() {
     apt-get install -y --no-install-recommends flex bison   # vcpkg 的 libpcap 等源码构建依赖
     if [ ! -d /opt/vcpkg/.git ]; then
         rm -rf /opt/vcpkg
-        git clone --depth 1 https://github.com/microsoft/vcpkg /opt/vcpkg
+        git clone --depth 1 https://github.com/microsoft/vcpkg /opt/vcpkg || { echo "vcpkg 克隆失败(git 缺?先跑 install-all 前置批)"; return 1; }
     fi
-    ( cd /opt/vcpkg && ./bootstrap-vcpkg.sh -disableMetrics )
+    ( cd /opt/vcpkg && ./bootstrap-vcpkg.sh -disableMetrics ) || { echo "vcpkg bootstrap 失败"; return 1; }
     ln -sf /opt/vcpkg/vcpkg /usr/local/bin/vcpkg
     cat > /etc/profile.d/vcpkg.sh <<'EOF'
 export VCPKG_ROOT=/opt/vcpkg

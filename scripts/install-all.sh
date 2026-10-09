@@ -12,7 +12,7 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 # 极简 cloud 镜像里没有;全量入口先兜底(用户实证:全新容器 unzip 缺失)
 apt-get update -qq
 apt-get install -y --no-install-recommends \
-    ca-certificates curl wget gpg unzip zip xz-utils file
+    ca-certificates curl wget gpg unzip zip xz-utils file git
 
 # 全量入口不转发过滤器:单项安装直接用对应分类脚本
 bash "$HERE/install-compilers.sh"
