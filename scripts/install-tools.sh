@@ -78,6 +78,8 @@ PD_TOOLS_DEFAULT=(
     simplehttpserver/cmd/simplehttpserver
     shuffledns/cmd/shuffledns
     pdtm/cmd/pdtm
+    urlfinder/cmd/urlfinder
+    cvemap/cmd/cvemap
 )
 
 install_pd() {
@@ -354,15 +356,23 @@ install_pivot() {
 # ---- P0 补齐(grok 业界调研;Kali/REMnux/FLARE 重叠缺口) ------------------
 # 分三步:apt 批(全 TUNA)/ re-venv pip 批(TUNA PyPI)/ GitHub 钉版批
 install_p0() {
-    log "P0 apt 批(21 包,TUNA):多架构调试/pwn/流量/分诊/AD/口令(nasm 走源码钉版,见下)"
+    log "P0 apt 批(20 包,TUNA):多架构调试/pwn/流量/分诊/AD/口令(nasm 走源码钉版,impacket 走 uv 上游,见下)"
     apt-get update -qq
     apt-get install -y --no-install-recommends \
         gdb-multiarch qemu-user-static \
         python3-pwntools python3-ropgadget checksec patchelf xxd squashfs-tools \
         nmap sqlmap tcpdump tshark mitmproxy python3-scapy \
-        upx-ucl 7zip libimage-exiftool-perl ssdeep python3-impacket \
+        upx-ucl 7zip libimage-exiftool-perl ssdeep \
         john hashid || echo "!! p0 apt 批部分失败(网络抖动可重跑,已装的会跳过)"
     # 批失败不退出:后续 pip 批与 GitHub 批与 apt 包相互独立
+    # impacket:noble apt 是发行版冻结版,红队实操用上游脚本;改 uv 装上游(用户裁定)
+    # 增量迁移:老镜像里有 apt 版则卸掉
+    dpkg -s python3-impacket >/dev/null 2>&1 && apt-get remove -y python3-impacket || true
+    have uv || . "$HOME/.local/bin/env" 2>/dev/null || true
+    export UV_TOOL_BIN_DIR=/usr/local/bin UV_TOOL_DIR=/opt/uv-tools
+    VIRTUAL_ENV= uv tool install impacket >/dev/null 2>&1 \
+        || VIRTUAL_ENV= uv tool install --index-url "https://pypi.tuna.tsinghua.edu.cn/simple" impacket >/dev/null 2>&1 \
+        || echo "impacket uv 安装失败(下轮补)"
 
     # nasm:apt 版停在 2.16.01,官网源码钉版(nasm.us 无国内镜像,包小直连)
     # 幂等 + 可升级:当前版本与钉版一致才跳过
@@ -456,7 +466,7 @@ install_c2() {
     install -d /opt/c2dev-ref
     local r
     for r in bishopfox/sliver Ne0nd0g/merlin BC-SECURITY/Empire cobbr/Covenant \
-             its-a-feature/mythic byt3bl33d3r/SILENTTRINITY; do
+             its-a-feature/mythic byt3bl33d3r/SILENTTRINITY Adaptix-Framework/AdaptixC2; do
         local d="/opt/c2dev-ref/$(basename "$r")"
         [ -d "$d/.git" ] || git clone --depth 1 "${gh}/${r}" "$d" || echo "$r 克隆失败"
     done
@@ -486,6 +496,11 @@ install_bof() {
     fi
     # atomic-bofs:rasta-mouse 的 COFF 独立运行 harness(带打包参数)
     [ -d "$bofref/atomic-bofs/.git" ] || git clone --depth 1 "${gh}/rasta-mouse/atomic-bofs" "$bofref/atomic-bofs"
+    # TrustedSec 现役 BOF 源码两套(2026-09 仍在出构建;atomic-bofs 是示例集替代不了)
+    local tb
+    for tb in CS-Situational-Awareness-BOF CS-Remote-OPs-BOF; do
+        [ -d "$bofref/$tb/.git" ] || git clone --depth 1 "${gh}/trustedsec/$tb" "$bofref/$tb" || echo "$tb 克隆失败"
+    done
     # Coffee(hakaioffsec):Rust 现代 COFF loader,crate 名 coffee-ldr
     # 上游 lib.rs 用 #![feature(c_variadic/core_intrinsics)],stable 编不过,需 nightly
     if ! have coffee-ldr; then
@@ -619,6 +634,9 @@ install_maldev() {
         "g0h4n/PassTheCert-rs:tradecraft-ref/ad" \
         "icedracon/dcerpc:tradecraft-ref/ad" \
         "icedracon/adhammer:tradecraft-ref/ad" \
+        "GhostPack/Rubeus:tradecraft-ref/ad" \
+        "SpecterOps/skills:tradecraft-ref/skills" \
+        "praetorian-inc/goffloader:payload-ref/loaders/inproc" \
         "g0h4n/dende-rs:tradecraft-ref/opsec" \
         "wabzsy/gonut:payload-ref/generators/pe-to-shellcode" \
         "Zuigetzu/Donut-CustomHost:payload-ref/generators/pe-to-shellcode" \
@@ -677,7 +695,7 @@ install_recon() {
     local gh="${GITHUB_MIRROR}https://github.com"
     install -d /opt/recon-ref
     local r
-    for r in runZeroInc/mac-tracker rapid7/recog hickory-dns/hickory-dns; do
+    for r in runZeroInc/mac-tracker rapid7/recog hickory-dns/hickory-dns nomi-sec/PoC-in-GitHub; do
         local d="/opt/recon-ref/$(basename "$r")"
         if [ ! -d "$d/.git" ]; then
             git clone --depth 1 "${gh}/${r}" "$d" 2>/dev/null || git clone --depth 1 "${gh}/${r}" "$d" \
@@ -865,6 +883,18 @@ install_red() {
             VIRTUAL_ENV= uv tool install --index-url "https://pypi.tuna.tsinghua.edu.cn/simple" "$t" >/dev/null 2>&1 \
                 && echo "$t 已装(tuna 兜底)" || echo "$t 失败(留待排查)"
         fi
+    done
+    # AD 现役批(grok 红队评审补充):CE 采集与 ADCS;与 Legacy bloodhound-python 并存(维护者明示可共存)
+    # bloodhound-ce 在 tuna 镜像缺失(实证),显式回退官方索引
+    for t in certipy-ad bloodyAD bofhound; do
+        VIRTUAL_ENV= uv tool install "$t" >/dev/null 2>&1 \
+            || VIRTUAL_ENV= uv tool install --index-url "https://pypi.tuna.tsinghua.edu.cn/simple" "$t" >/dev/null 2>&1 \
+            || echo "$t 失败(留待排查)"
+    done
+    VIRTUAL_ENV= uv tool install --index-url https://pypi.org/simple bloodhound-ce >/dev/null 2>&1 \
+        || echo "bloodhound-ce 失败(留待排查)"
+    for t in certipy-ad bloodyAD bofhound bloodhound-ce; do
+        for c in "/opt/uv-tools/$t/bin"/*; do [ -f "$c" ] && ln -sf "$c" "/usr/local/bin/$(basename "$c")" 2>/dev/null; done
     done
     # 命名差异:kerbrute/Coercer 等二进名与包名可能不同,统一链接检查
     for t in kerbrute wafw00f arjun ghauri bloodhound-python coercer Coercer mitm6 objection apkleaks; do
