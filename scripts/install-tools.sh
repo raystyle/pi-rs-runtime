@@ -502,8 +502,10 @@ install_bof() {
     log "BOF 工具链: mingw-w64 + wine64 + COFFLoader + atomic-bofs + 目录(源码随三轴归档)"
     local gh="${GITHUB_MIRROR}https://github.com"
     apt-get update -qq
-    # wine64:跑交叉编出的 Windows PE(COFFLoader64.exe 等);只要 64 位件,不开 i386
-    apt-get install -y --no-install-recommends mingw-w64 wine64 || true
+    # wine:noble 的 wine64 包不带 PATH 命令(实证 dpkg -L 无 bin/),/usr/bin/wine 在 wine 包里;
+    # wine 依赖 wine64|wine32,wine64 已满足不会拉 i386;wine64 命令名由 wine 链出
+    apt-get install -y --no-install-recommends mingw-w64 wine64 wine || true
+    have wine64 || { have wine && ln -sf "$(command -v wine)" /usr/local/bin/wine64; }
     wine64 --version 2>/dev/null || echo "wine64 未装上(PE 验证路径缺,下轮补)"
     # COFFLoader/bof-launcher 是进程内执行基底(grok 裁定)→ payload-ref/loaders/inproc;
     # atomic-bofs/BOF-CATALOG 是后渗透内容 → tradecraft-ref/bof
@@ -979,7 +981,12 @@ install_red() {
     VIRTUAL_ENV= uv tool install --index-url https://pypi.org/simple bloodhound-ce >/dev/null 2>&1 \
         || echo "bloodhound-ce 失败(留待排查)"
     for t in certipy-ad bloodyAD bofhound bloodhound-ce semgrep; do
-        for c in "/opt/uv-tools/$t/bin"/*; do [ -f "$c" ] && ln -sf "$c" "/usr/local/bin/$(basename "$c")" 2>/dev/null; done
+        for c in "/opt/uv-tools/$t/bin"/*; do
+            local cb; cb="$(basename "$c")"
+            # 排除 venv 内部件:python*/pip*/activate 链出去会劫持 /usr/local/bin/python3(实证成环 ELOOP)
+            case "$cb" in python*|pip*|*activate*|*.bat|__pycache__) continue ;; esac
+            [ -f "$c" ] && ln -sf "$c" "/usr/local/bin/$cb" 2>/dev/null
+        done
     done
     # 命名差异:kerbrute/Coercer 等二进名与包名可能不同,统一链接检查
     for t in kerbrute wafw00f arjun ghauri bloodhound-python coercer Coercer mitm6 objection apkleaks; do
@@ -1019,7 +1026,7 @@ install_red() {
         gem sources --add https://gems.ruby-china.com/ --remove https://rubygems.org/ >/dev/null 2>&1 || true
     fi
     # CeWL 不在 rubygems(实测搜索无此 gem),官方分发是 git 仓 + 依赖 gem
-    if [ ! -d /opt/CeWL/cewl.rb ]; then
+    if [ ! -f /opt/CeWL/cewl.rb ]; then
         git clone --depth 1 "${gh}/digiNinja/CeWL" /opt/CeWL 2>/dev/null || echo "CeWL 克隆失败"
     fi
     if [ -f /opt/CeWL/cewl.rb ]; then
