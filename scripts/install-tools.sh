@@ -633,14 +633,18 @@ install_pentest() {
         if [ "$real" != /usr/local/bin/nuclei ] && [ "$real" != /usr/local/bin/nuclei.real ]; then
             mv "$real" /usr/local/bin/nuclei.real
         fi
+        rm -f /usr/local/bin/nuclei   # 删 dangling 软链,避免 printf 穿透写回 /opt/go/bin
         printf '#!/bin/sh\nexec /usr/local/bin/nuclei.real -duc "$@"\n' > /usr/local/bin/nuclei
         chmod +x /usr/local/bin/nuclei
     fi
     # capa 规则接线:不指定时 capa 会自下载规则到 ~/.local/share/capa,离线报晦涩错
+    # wrapper 写法同 nuclei:真二进制挪为 capa.real 文件,再删链写 wrapper;
+    # 直接 printf > 软链会穿透改写 /opt/capa 里的真身(fresh 实证递归 exec)
     if have capa && [ ! -e /usr/local/bin/capa.real ]; then
         local capa_bin; capa_bin="$(find /opt/capa -name capa -type f 2>/dev/null | head -1)"
         if [ -n "$capa_bin" ]; then
-            ln -sf "$capa_bin" /usr/local/bin/capa.real
+            mv "$capa_bin" /usr/local/bin/capa.real
+            rm -f /usr/local/bin/capa
             printf '#!/bin/sh\nexec /usr/local/bin/capa.real -r /opt/capa-rules "$@"\n' > /usr/local/bin/capa
             chmod +x /usr/local/bin/capa
         else

@@ -216,14 +216,15 @@ EOF
     true
 }
 
-# ---- PowerShell:Save-Module 固化(PSGallery 无国内镜像,构建期直连) ----------
+# ---- PowerShell:Save-PSResource 固化(PSGallery 无国内镜像,构建期直连) ----------
 install_pwsh() {
-    log "PowerShell 模块固化(grok 清单:Posh-SSH/ImportExcel/Pester 等,Save-Module 含依赖)"
+    log "PowerShell 模块固化(grok 清单:Posh-SSH/ImportExcel/Pester 等,Save-PSResource 含依赖)"
     have pwsh || { echo "pwsh 未装,先跑 install-runtimes.sh pwsh"; return 0; }
+    # 旧 PackageManagement(Save-Module)在 noble + pwsh 7.4 上段错误;走 inbox PSResourceGet
+    install -d /opt/psmodules
     pwsh -NoProfile -Command "
-        Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
-        Save-Module -Name Posh-SSH,powershell-yaml,ImportExcel,PowerHTML,Pester,PSScriptAnalyzer,Microsoft.PowerShell.SecretManagement,Microsoft.PowerShell.SecretStore -Path /opt/psmodules -ErrorAction SilentlyContinue
-    " || echo "Save-Module 部分失败(Gallery 国内不稳,重跑可补)"
+        Save-PSResource -Name Posh-SSH,powershell-yaml,ImportExcel,PowerHTML,Pester,PSScriptAnalyzer,Microsoft.PowerShell.SecretManagement,Microsoft.PowerShell.SecretStore -Path /opt/psmodules -TrustRepository -Quiet -ErrorAction SilentlyContinue
+    " || echo "Save-PSResource 部分失败(Gallery 国内不稳,重跑可补)"
     cat > /etc/profile.d/psmodules.sh <<'EOF'
 export PSModulePath=/opt/psmodules:${PSModulePath:-}
 EOF
