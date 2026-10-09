@@ -8,7 +8,7 @@
 
 - `install-compilers.sh`:`COMPILERS_ALL=(c golang rust zig nim vcpkg)`
 - `install-runtimes.sh`:`RUNTIMES_ALL=(node fnm bun uv python python2 duckdb clickhouse php mono dotnet pwsh sdkman)`
-- `install-tools.sh`:`TOOLS_ALL=(fd astgrep cli herdr ghidra re pd secgo secrust pivot p0 c2 bof pz maldev recon nu pentest red)`
+- `install-tools.sh`:`TOOLS_ALL=(fd astgrep cli herdr ghidra re pd secgo secrust pivot p0 c2 bof pz maldev recon nu pentest red msf)`
 - `install-libcache.sh`:`LIBCACHE_ALL=(go rust python node java pwsh dotnet zig)`(八生态库缓存固化,独立分类)
 
 ## 分册
@@ -17,7 +17,7 @@
 |------|------|
 | [compilers.md](compilers.md) | 编译器 6 组:c、golang、rust、zig、nim、vcpkg |
 | [runtimes.md](runtimes.md) | 运行时 13 组:node、fnm、bun、uv、python、python2、duckdb、clickhouse、php、mono、dotnet、pwsh、sdkman |
-| [tools.md](tools.md) | 工具 19 组:fd、astgrep、cli、herdr、ghidra、re、pd、secgo、secrust、pivot、p0、c2、bof、pz、maldev、recon、nu、pentest、red |
+| [tools.md](tools.md) | 工具 20 组:fd、astgrep、cli、herdr、ghidra、re、pd、secgo、secrust、pivot、p0、c2、bof、pz、maldev、recon、nu、pentest、red、msf |
 
 ## 口径说明
 

@@ -106,6 +106,11 @@ install_python() {
     local pkgs="pycryptodome cryptography gmpy2 sympy z3-solver construct pefile pyelftools dnfile pypykatz malduck volatility3 r2pipe httpx beautifulsoup4 lxml pyjwt dpkt xortool"
     # shellcheck disable=SC2086
     VIRTUAL_ENV="$RE_VENV" uv pip install $pkgs || echo "部分 python 库失败(逐个 tolerant)"
+    # volatility3 的 CLI(vol/volshell)随包装进 venv,链出来才可用
+    local vb
+    for vb in vol volshell; do
+        [ -e "$RE_VENV/bin/$vb" ] && ln -sf "$RE_VENV/bin/$vb" "/usr/local/bin/$vb"
+    done
     # wheelhouse:离线重装源(只锁 requirements 不够,断网后没有索引)
     # uv 无 pip download 子命令;给 venv 装 pip 后用 pip download 拉轮子
     install -d /opt/wheelhouse

@@ -17,7 +17,7 @@
 - 工作流原则(用户定):脚本幂等部署 + pin + 可升级;走「从发布镜像开实例 → 增量跑分类脚本 → 重 publish」路线。
 - `GITHUB_MIRROR` 默认 `https://proxy.ohmygh.com/`(置空回直连)。
 - 文档:`docs/install-surfaces/` 拆成四件(index/compilers/runtimes/tools),p0 逐项重写(21 包各一行带用途),inventory 同步三轴与全部新增;README 132 行薄入口。
-- main 最新提交 `bc07faa`,工作区干净。
+- main 最新提交 `555750e`,工作区干净。
 
 ## 已完成的里程碑(按时间)
 

@@ -8,7 +8,7 @@
 - `install_secrust` 装 rustscan、feroxbuster、RustHound-CE 三件；findomain 不装，依赖多常编不过，注释建议改用 [Findomain/Findomain releases](https://github.com/Findomain/Findomain/releases) 预编译。
 - `install_php` 中 PHP 7.4 已无官方支持，样本动态执行需在无网络、无生产数据挂载的环境里跑，并加 `-d opcache.jit=off`；当前部署链未强制该隔离面。python2 同理（已通过实测含 `import ssl`)。
 - VNC 屏幕无 Chrome 与 noVNC;Chrome 官方版不装，后续定制构建。
-- C2 框架（sliver、merlin、Empire、Covenant、mythic、SILENTTRINITY、AdaptixC2）只克隆到 `/opt/c2dev-ref` 作参考，不安装不运行；载荷与开发模板（maldev 组 39 仓，外加 Crystal Palace/Tradecraft Garden 官网 tgz）同样只克隆，按工件角色轴归档 `/opt/payload-ref` 与 `/opt/tradecraft-ref`；侦察指纹库（recon 组 4 仓）只克隆到 `/opt/recon-ref`；.NET 参考项目（pz 组）同样只克隆。
+- C2 框架（sliver、merlin、Empire、Covenant、mythic、SILENTTRINITY、AdaptixC2）只克隆到 `/opt/c2dev-ref` 作参考，不安装不运行；载荷与开发模板（maldev 组 41 仓，外加 Crystal Palace/Tradecraft Garden 官网 tgz）同样只克隆，按工件角色轴归档 `/opt/payload-ref` 与 `/opt/tradecraft-ref`；侦察指纹库（recon 组 4 仓）只克隆到 `/opt/recon-ref`；.NET 参考项目（pz 组）同样只克隆。
 - 用户裁定留痕（grok 评审建议后裁定）：移除批（gospider、httprobe、assetfinder、waybackurls、Covenant、SILENTTRINITY）与 EOL 运行时（python2、PHP 7.4/8.1、JDK 11、Node 18/20）**全保留**；impacket 不用 noble apt 冻结版，改 `uv tool install impacket` 上游版（老镜像 apt 版增量迁移自动卸）；fff-mcp 不装二进制，fff-search 只进 rust 库预热；grok 库评审的 BananaPhone、go-clr、garble、obfstr、boost、Detours、JsonSpirit、webshell 样本库与哥斯拉/冰蝎/蚁剑操作台均裁定不进镜像。
 - `pi-box-dev` 镜像（pi 二进制、pi-web、定制 Chrome）的构建脚本不在本仓，`build.sh` 未做。
 - 备选路线：单个实例可直接 `incus launch images:ubuntu/24.04`,`incus stop` 后 `incus publish --alias <名>` 固化，不经 distrobuilder。

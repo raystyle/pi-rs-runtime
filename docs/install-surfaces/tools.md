@@ -1,6 +1,6 @@
 # 安装面清单 · 工具（`install-tools.sh`）
 
-组列中文名与脚本键对照：文件与内容搜索=`fd`、结构化代码搜索=`astgrep`、基础命令行工具=`cli`、终端工作区管理器=`herdr`、逆向分析套件=`ghidra`、逆向分析稳定链=`re`、攻击面测绘工具集=`pd`、Go 安全工具集=`secgo`、Rust 安全工具集=`secrust`、代理与隧道工具集=`pivot`、安全分析工具集=`p0`、命令与控制框架参考=`c2`、信标对象文件工具链=`bof`、Project Zero 工具参考=`pz`、恶意开发模板库=`maldev`、侦察指纹参考=`recon`、结构化 Shell=`nu`、渗透测试运行时底线=`pentest`、渗透测试工具增补=`red`。返回 [安装面清单索引](index.md)。
+组列中文名与脚本键对照：文件与内容搜索=`fd`、结构化代码搜索=`astgrep`、基础命令行工具=`cli`、终端工作区管理器=`herdr`、逆向分析套件=`ghidra`、逆向分析稳定链=`re`、攻击面测绘工具集=`pd`、Go 安全工具集=`secgo`、Rust 安全工具集=`secrust`、代理与隧道工具集=`pivot`、安全分析工具集=`p0`、命令与控制框架参考=`c2`、信标对象文件工具链=`bof`、Project Zero 工具参考=`pz`、恶意开发模板库=`maldev`、侦察指纹参考=`recon`、结构化 Shell=`nu`、渗透测试运行时底线=`pentest`、渗透测试工具增补=`red`、渗透测试框架=`msf`。返回 [安装面清单索引](index.md)。
 
 ## 组目录
 
@@ -23,6 +23,7 @@
 - [结构化 Shell（nu）](#结构化-shellnu)
 - [渗透测试运行时底线（pentest）](#渗透测试运行时底线pentest)
 - [渗透测试工具增补（red）](#渗透测试工具增补red)
+- [渗透测试框架（msf）](#渗透测试框架msf)
 
 ## 文件与内容搜索（`fd`）
 
@@ -53,12 +54,14 @@ ln -sf /root/.cargo/bin/sg /usr/local/bin/sg
 | 项目 | 版本 | 官方来源 |
 |------|------|----------|
 | git、jq、shellcheck、just、tmux、rclone、aria2 | noble 随源 | git-scm.com、jqlang.github.io、shellcheck.net、just.systems、tmux、rclone.org、aria2.github.io（Ubuntu 打包，tuna） |
+| fzf、bat、htop、ncdu、moreutils、vim | noble 随源 | [junegunn/fzf](https://github.com/junegunn/fzf)、[sharkdp/bat](https://github.com/sharkdp/bat)、htop.dev、[stigtsp/moreutils](https://joeyh.name/code/moreutils/)、[vim.org](https://www.vim.org)（Ubuntu 打包，tuna；bat 二进制名 batcat，链 /usr/local/bin/bat） |
 | yq | `go install` 未钉 | [mikefarah/yq](https://github.com/mikefarah/yq)（goproxy.cn） |
 | gh（GitHub CLI） | `go install` 未钉 | [cli/cli](https://github.com/cli/cli)（goproxy.cn；官方 apt 源国内无镜像） |
 
 ```bash
-# git、jq、shellcheck、just、tmux、rclone、aria2
-apt-get install -y --no-install-recommends git jq shellcheck just tmux rclone aria2
+# git、jq、shellcheck、just、tmux、rclone、aria2、fzf、bat、htop、ncdu、moreutils、vim
+apt-get install -y --no-install-recommends git jq shellcheck just tmux rclone aria2 fzf bat htop ncdu moreutils vim
+ln -sf /usr/bin/batcat /usr/local/bin/bat
 # just 无 apt 包时兜底
 cargo install just --locked
 # yq
@@ -217,6 +220,7 @@ go install github.com/projectdiscovery/cvemap/cmd/cvemap@${PD_VERSION}
 | nerva | `@${SECGO_VERSION}`（默认 latest） | [praetorian-inc/nerva](https://github.com/praetorian-inc/nerva)（goproxy.cn） |
 | brutus | `@${SECGO_VERSION}`（默认 latest） | [praetorian-inc/brutus](https://github.com/praetorian-inc/brutus)（goproxy.cn） |
 | aurelian | `@${SECGO_VERSION}`（默认 latest） | [praetorian-inc/aurelian](https://github.com/praetorian-inc/aurelian)（goproxy.cn） |
+| trufflehog | `@${SECGO_VERSION}`（默认 latest） | [trufflesecurity/trufflehog](https://github.com/trufflesecurity/trufflehog)（goproxy.cn） |
 
 ```bash
 # ffuf
@@ -253,6 +257,8 @@ go install github.com/praetorian-inc/nerva/cmd/nerva@${SECGO_VERSION:-latest}
 go install github.com/praetorian-inc/brutus/cmd/brutus@${SECGO_VERSION:-latest}
 # aurelian
 go install github.com/praetorian-inc/aurelian@${SECGO_VERSION:-latest}
+# trufflehog:git 历史与云密钥扫描(与 gitleaks 互补)
+go install github.com/trufflesecurity/trufflehog/v3@${SECGO_VERSION:-latest}
 ```
 
 ## Rust 安全工具集（`secrust`）
@@ -411,6 +417,7 @@ git clone --depth 1 …/Adaptix-Framework/AdaptixC2 /opt/c2dev-ref/AdaptixC2
 | 项目 | 版本 | 官方来源 |
 |------|------|----------|
 | mingw-w64 | noble 随源 | Ubuntu 打包（tuna） |
+| wine64（只 64 位件，不开 i386） | noble 随源 | [winehq.org](https://www.winehq.org)（Ubuntu 打包，tuna；跑交叉编出的 Windows PE，如 COFFLoader64.exe） |
 | COFFLoader（COFFLoader64.exe） | `--depth 1` 未钉 | [trustedsec/COFFLoader](https://github.com/trustedsec/COFFLoader) |
 | atomic-bofs | `--depth 1` 未钉 | [rasta-mouse/atomic-bofs](https://github.com/rasta-mouse/atomic-bofs) |
 | CS-Situational-Awareness-BOF | `--depth 1` 未钉 | [trustedsec/CS-Situational-Awareness-BOF](https://github.com/trustedsec/CS-Situational-Awareness-BOF) |
@@ -420,8 +427,8 @@ git clone --depth 1 …/Adaptix-Framework/AdaptixC2 /opt/c2dev-ref/AdaptixC2
 | BOF-CATALOG.md | main raw | [chryzsh/awesome-bof](https://github.com/chryzsh/awesome-bof) |
 
 ```bash
-# mingw-w64
-apt-get install -y --no-install-recommends mingw-w64
+# mingw-w64、wine64(PE 验证路径:wine64 COFFLoader64.exe <bof.o>)
+apt-get install -y --no-install-recommends mingw-w64 wine64
 # COFFLoader:make bof 交叉编 Windows 版;源码归档 payload-ref/loaders/inproc
 git clone --depth 1 …/trustedsec/COFFLoader /opt/payload-ref/loaders/inproc/COFFLoader
 make bof
@@ -463,7 +470,7 @@ git clone --recurse-submodules ${GITHUB_MIRROR}https://github.com/tyranid/olevie
 
 ## 恶意开发模板库（`maldev`）
 
-只克隆不编译不运行，按 grok 评审裁定的工件角色轴归档三根：`/opt/c2dev-ref`（产物是会话的框架，SILENTTRINITY 走 c2 组）、`/opt/payload-ref`（generators 产物是字节或变形二进制 / loaders 产物是执行字节的进程 / evasion 是往 loader 贴的原语 / curricula 教材架按语言分叶 / analysis 防御向）、`/opt/tradecraft-ref`（产物是上线后的操作员动作，ad/bof/opsec/skills 分叶）。有编译产物的仓（COFFLoader、bof-launcher、atomic-bofs、RustHound-CE）由 bof/secrust 组各自克隆构建，落点同轴，见对应组。Crystal Palace（PIC 链接器）与 Tradecraft Garden（能力加载器集）无 Git 仓，官网 tgz 归档源码。
+只克隆不编译不运行，按 grok 评审裁定的工件角色轴归档三根：`/opt/c2dev-ref`（产物是会话的框架，SILENTTRINITY 走 c2 组）、`/opt/payload-ref`（generators 产物是字节或变形二进制 / loaders 产物是执行字节的进程 / evasion 是往 loader 贴的原语 / curricula 教材架按语言分叶 / analysis 防御向）、`/opt/tradecraft-ref`（产物是上线后的操作员动作，ad/bof/opsec/privesc/skills 分叶）。有编译产物的仓（COFFLoader、bof-launcher、atomic-bofs、RustHound-CE）由 bof/secrust 组各自克隆构建，落点同轴，见对应组。Crystal Palace（PIC 链接器）与 Tradecraft Garden（能力加载器集）无 Git 仓，官网 tgz 归档源码。
 
 | 项目 | 版本 | 官方来源 |
 |------|------|----------|
@@ -483,6 +490,8 @@ git clone --recurse-submodules ${GITHUB_MIRROR}https://github.com/tyranid/olevie
 | skills | `--depth 1` 未钉 | [SpecterOps/skills](https://github.com/SpecterOps/skills) → /opt/tradecraft-ref/skills/skills |
 | goffloader | `--depth 1` 未钉 | [praetorian-inc/goffloader](https://github.com/praetorian-inc/goffloader) → /opt/payload-ref/loaders/inproc/goffloader |
 | dende-rs | `--depth 1` 未钉 | [g0h4n/dende-rs](https://github.com/g0h4n/dende-rs) → /opt/tradecraft-ref/opsec/dende-rs |
+| PEASS-ng（linpeas/winpeas 提权枚举脚本集） | `--depth 1` 未钉 | [carlospolop/PEASS-ng](https://github.com/carlospolop/PEASS-ng) → /opt/tradecraft-ref/privesc/PEASS-ng |
+| linux-exploit-suggester | `--depth 1` 未钉 | [mzet-/linux-exploit-suggester](https://github.com/mzet-/linux-exploit-suggester) → /opt/tradecraft-ref/privesc/linux-exploit-suggester |
 | gonut | `--depth 1` 未钉 | [wabzsy/gonut](https://github.com/wabzsy/gonut) → /opt/payload-ref/generators/pe-to-shellcode/gonut |
 | Donut-CustomHost | `--depth 1` 未钉 | [Zuigetzu/Donut-CustomHost](https://github.com/Zuigetzu/Donut-CustomHost) → /opt/payload-ref/generators/pe-to-shellcode/Donut-CustomHost |
 | donutCS | `--depth 1` 未钉 | [n1xbyte/donutCS](https://github.com/n1xbyte/donutCS) → /opt/payload-ref/generators/pe-to-shellcode/donutCS |
@@ -510,7 +519,7 @@ git clone --recurse-submodules ${GITHUB_MIRROR}https://github.com/tyranid/olevie
 | Tradecraft Garden（tcg） | latest tgz 未钉 | [tradecraftgarden.org](https://tradecraftgarden.org) 官网 tgz（资产内含 tcg/ 顶层目录） → /opt/payload-ref/loaders/tradecraft-garden |
 
 ```bash
-# 39 仓按叶克隆,--depth 1 未钉;失败重试一次,仍败下轮补
+# 41 仓按叶克隆,--depth 1 未钉;失败重试一次,仍败下轮补
 git clone --depth 1 ${GITHUB_MIRROR}https://github.com/<org>/<repo> /opt/<leaf>/<repo>
 # Crystal Palace 与 Tradecraft Garden:官网 tgz 归档源码
 curl -fSL https://tradecraftgarden.org/download/cpsrc-latest.tgz
@@ -529,6 +538,8 @@ tar -xzf -C /opt/payload-ref/loaders/tradecraft-garden
 | recog | `--depth 1` 未钉 | [rapid7/recog](https://github.com/rapid7/recog) |
 | hickory-dns | `--depth 1` 未钉 | [hickory-dns/hickory-dns](https://github.com/hickory-dns/hickory-dns) |
 | PoC-in-GitHub | `--depth 1` 未钉（只克隆索引，不递归） | [nomi-sec/PoC-in-GitHub](https://github.com/nomi-sec/PoC-in-GitHub) |
+| poc-search（索引查询 wrapper） | 随脚本 | 本仓 scripts/install-tools.sh 生成 → /usr/local/bin/poc-search（只查索引信息，不拉任何 PoC 代码） |
+| poc-index.parquet（clickhouse 离线索引） | 构建期生成 | `clickhouse local` 把 `<年>/*.json` 按 JSONAsObject 整读灌成单文件 → /opt/recon-ref/poc-index.parquet |
 
 ```bash
 # mac-tracker:MAC 地址厂商指纹库;只克隆
@@ -539,7 +550,13 @@ git clone --depth 1 …/rapid7/recog /opt/recon-ref/recog
 git clone --depth 1 …/hickory-dns/hickory-dns /opt/recon-ref/hickory-dns
 # PoC-in-GitHub:CVE PoC 索引仓;只克隆索引不递归,README 含恶意样本警示
 git clone --depth 1 …/nomi-sec/PoC-in-GitHub /opt/recon-ref/PoC-in-GitHub
+# poc-search wrapper:heredoc 生成;用法见下
+install -m755 /usr/local/bin/poc-search
+# clickhouse parquet 索引(离线毫秒查;重建 poc-search --reindex)
+clickhouse local -q "SELECT * FROM file('/opt/recon-ref/PoC-in-GitHub/*/*.json','JSONAsObject') INTO OUTFILE '/opt/recon-ref/poc-index.parquet' FORMAT Parquet"
 ```
+
+poc-search 用法：`poc-search CVE-2024-38077`（CVE 精确查）、`poc-search -k <关键词>`（rg 全文搜，`LIMIT=20`）、`poc-search --ch '<SQL>'`（clickhouse local 查 parquet，视图 `poc` 单列 `json`，配 `JSONExtractString(json,'cve_id')` 等取字段）、`poc-search --reindex`（重建索引）。
 
 ## 结构化 Shell（`nu`）
 
@@ -557,14 +574,14 @@ install -m755 nu /usr/local/bin/nu
 
 | 项目 | 版本 | 官方来源 |
 |------|------|----------|
-| lab apt 批 33 包（dnsutils、whois、socat、netcat-openbsd、telnet、ftp、snmp、proxychains4、ldap-utils、smbclient、default-mysql-client、postgresql-client、redis-tools、sqlite3、freerdp2-x11、sshuttle、hashcat、pocl-opencl-icd、ocl-icd-libopencl1、hydra、android-tools-adb、android-tools-fastboot、sleuthkit、testdisk、poppler-utils、unar、cabextract、qpdf、zbar-tools、hcxtools、aircrack-ng、steghide、osslsigncode） | noble 随源 | Ubuntu apt（tuna）；sasquatch 为源码构建（[onekey-sec/sasquatch](https://github.com/onekey-sec/sasquatch) `./build.sh`） |
+| lab apt 批 36 包（dnsutils、whois、socat、netcat-openbsd、telnet、ftp、snmp、proxychains4、ldap-utils、smbclient、default-mysql-client、postgresql-client、redis-tools、sqlite3、freerdp2-x11、sshuttle、openvpn、wireguard-tools、masscan、hashcat、pocl-opencl-icd、ocl-icd-libopencl1、hydra、android-tools-adb、android-tools-fastboot、sleuthkit、testdisk、poppler-utils、unar、cabextract、qpdf、zbar-tools、hcxtools、aircrack-ng、steghide、osslsigncode） | noble 随源 | Ubuntu apt（tuna）；masscan 装后 setcap cap_net_raw 免 sudo；sasquatch 为源码构建（[onekey-sec/sasquatch](https://github.com/onekey-sec/sasquatch) `./build.sh`） |
 | Responder | `--depth 1` 未钉 | [lgandx/Responder](https://github.com/lgandx/Responder) |
 | donut（PE/.NET/VBS/JS 转 shellcode，含 libdonut 与头文件） | 1.1（`DONUT_VERSION`），release 预编译 | [TheWover/donut](https://github.com/TheWover/donut) releases |
 | frida 全链（客户端与全架构 frida-server 版本对齐） | 客户端构建日最新；server 与客户端同版本 | [frida/frida](https://github.com/frida/frida) releases（GitHub 直下，无 tuna） |
 | 离线固化接线（nuclei 模板、capa 规则、词表、pwndbg gdbinit、时区 locale、offline 函数） | 模板与规则 `--depth 1` 未钉 | [projectdiscovery/nuclei-templates](https://github.com/projectdiscovery/nuclei-templates)；规则见安全分析工具集 |
 
 ```bash
-# lab apt 批 33 包:hashcat CPU 走 pocl
+# lab apt 批 36 包:hashcat CPU 走 pocl;masscan 装后 setcap cap_net_raw 免 sudo
 apt-get install -y --no-install-recommends …
 # Responder:运行 python3 /opt/Responder/Responder.py -I eth0
 git clone --depth 1 … /opt/Responder
@@ -591,16 +608,30 @@ curl …/download/<ver>/frida-server-<ver>-{windows,android,linux}-<arch>.xz
 
 | 项目 | 版本 | 官方来源 |
 |------|------|----------|
-| AD 横向/Web/密码/移动/云工具（kerbrute、wafw00f、arjun、ghauri、bloodhound-python、Coercer、mitm6、objection、apkleaks、bloodhound-ce、certipy-ad、bloodyAD、bofhound、jwt-tool、LinkFinder、krbrelayx、enum4linux-ng、cewl、CyberChef、kubectl、trivy、awscli） | 混合 | uv tool 走 tuna；git 克隆钉 `/opt`；gem 走 [gems.ruby-china.com](https://gems.ruby-china.com)；Release 钉版 |
+| AD 横向/Web/密码/移动/云工具（kerbrute、wafw00f、arjun、ghauri、bloodhound-python、Coercer、mitm6、objection、apkleaks、bloodhound-ce、certipy-ad、bloodyAD、bofhound、semgrep、jwt-tool、LinkFinder、krbrelayx、enum4linux-ng、cewl、evil-winrm、CyberChef、kubectl、trivy、awscli） | 混合 | uv tool 走 tuna；git 克隆钉 `/opt`；gem 走 [gems.ruby-china.com](https://gems.ruby-china.com)（ruby-full + ruby-dev 随源）；Release 钉版 |
 
 ```bash
 # AD 横向/Web/密码/移动/云工具:trivy 构建期 --download-db-only 烘到 /opt/trivy-db
 uv tool install <名>
 # AD 现役批(grok 红队评审补充,与 Legacy bloodhound-python 并存):bloodhound-ce 在 tuna 缺失显式走 pypi.org;
 # 入口命令 bloodhound-ce-python,venv 内含 dirkjanm impacket 叉整套脚本(secretsdump.py 解析到 /opt/uv-tools/bloodhound-ce/);
-# certipy-ad 入口命令是 certipy
+# certipy-ad 入口命令是 certipy;semgrep 随本批 uv tool 装(SAST 代码审计)
 uv tool install --index-url https://pypi.org/simple bloodhound-ce
-uv tool install certipy-ad bloodyAD bofhound
+uv tool install certipy-ad bloodyAD bofhound semgrep
 git clone --depth 1
 gem install
+# evil-winrm:交互式 WinRM shell(ruby-full + ruby-dev 随 CeWL 批装;gem 二进位落 /usr/local/bin)
+gem install evil-winrm --no-document
+```
+
+## 渗透测试框架（`msf`）
+
+| 项目 | 版本 | 官方来源 |
+|------|------|----------|
+| metasploit-framework（msfconsole 等整套） | omnibus 随源 | [rapid7/metasploit-framework](https://github.com/rapid7/metasploit-framework)（[官方安装器](https://docs.metasploit.com/docs/using-metasploit/getting-started/nightly-installers.html) 加 apt.metasploit.com 仓装 deb，直连无国内镜像） → /opt/metasploit-framework |
+
+```bash
+# msfupdate.erb 官方安装器:加 apt.metasploit.com 仓后 apt 装 metasploit-framework
+curl -fSL ${GITHUB_MIRROR}https://raw.githubusercontent.com/rapid7/metasploit-omnibus/master/config/templates/metasploit-framework-wrappers/msfupdate.erb -o /tmp/msfinstall
+chmod +x /tmp/msfinstall && /tmp/msfinstall
 ```

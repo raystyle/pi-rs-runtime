@@ -1,6 +1,6 @@
 # 软件清单归档
 
-逐项列出镜像内全部软件、库与隔离环境，apt 包逐个一行（含构建依赖）；预缓存库只入缓存非安装；参考克隆不安装不运行。版本与来源口径同[安装面清单](install-surfaces/)。攻击面测绘工具集 20 个 CLI（含 urlfinder、cvemap）与 Go 安全工具集 17 个 CLI 在安装面清单中已逐行并带安装命令，此处不重复。
+逐项列出镜像内全部软件、库与隔离环境，apt 包逐个一行（含构建依赖）；预缓存库只入缓存非安装；参考克隆不安装不运行。版本与来源口径同[安装面清单](install-surfaces/)。攻击面测绘工具集 20 个 CLI（含 urlfinder、cvemap）与 Go 安全工具集 18 个 CLI 在安装面清单中已逐行并带安装命令，此处不重复。
 
 ## 构建与编译
 
@@ -196,6 +196,11 @@ libcache rust 预热批（`scripts/install-libcache.sh`）另有加密/解析向
 | tmux | noble 随源 | Ubuntu noble 源（tuna） |
 | rclone | noble 随源 | Ubuntu noble 源（tuna） |
 | aria2 | noble 随源 | Ubuntu noble 源（tuna） |
+| bat（链 `bat`，二进制 batcat） | noble 随源 | Ubuntu noble 源（tuna） |
+| htop | noble 随源 | Ubuntu noble 源（tuna） |
+| ncdu | noble 随源 | Ubuntu noble 源（tuna） |
+| moreutils | noble 随源 | Ubuntu noble 源（tuna） |
+| vim | noble 随源 | Ubuntu noble 源（tuna） |
 | yq | `go install` 未钉 | [mikefarah/yq](https://github.com/mikefarah/yq)（goproxy.cn） |
 | gh | `go install` 未钉 | [cli/cli](https://github.com/cli/cli)（goproxy.cn） |
 | herdr | 0.9.3，sha256 校验 | [herdr.dev](https://herdr.dev)（[herdrdev/herdr](https://github.com/herdrdev/herdr) release） |
@@ -207,6 +212,7 @@ libcache rust 预热批（`scripts/install-libcache.sh`）另有加密/解析向
 |------|------|------|
 | fd | noble 随源（`fd-find` 链 `fd`） | Ubuntu noble 源（tuna） |
 | ripgrep | noble 随源 | Ubuntu noble 源（tuna） |
+| fzf | noble 随源 | Ubuntu noble 源（tuna） |
 | ast-grep | cargo 未钉 | [ast-grep/ast-grep](https://github.com/ast-grep/ast-grep)（tuna crates） |
 
 ## 图形与远程屏幕
@@ -259,6 +265,8 @@ libcache rust 预热批（`scripts/install-libcache.sh`）另有加密/解析向
 | atomic-bofs | `--depth 1` 未钉 | [rasta-mouse/atomic-bofs](https://github.com/rasta-mouse/atomic-bofs) → /opt/tradecraft-ref/bof/atomic-bofs |
 | coffee-ldr | cargo nightly | [hakaioffsec/coffee](https://github.com/hakaioffsec/coffee) |
 | bof-launcher | `--depth 1` 未钉 | [The-Z-Labs/bof-launcher](https://github.com/The-Z-Labs/bof-launcher)（上游是库非 CLI；zig 0.15.2 构建，示例执行器 bof_lin_<arch> 装 /usr/local/bin） → /opt/payload-ref/loaders/inproc/bof-launcher |
+| wine64（只 64 位件） | noble 随源 | Ubuntu noble 源（tuna）；跑交叉编出的 Windows PE（COFFLoader64.exe 等），不开 i386 |
+| volatility3（vol、volshell 链 /usr/local/bin） | 未钉 | [volatilityfoundation/volatility3](https://github.com/volatilityfoundation/volatility3)（PyPI 经 tuna），`/opt/re-venv`（libcache python 组） |
 
 ## 安全测试
 
@@ -284,6 +292,10 @@ libcache rust 预热批（`scripts/install-libcache.sh`）另有加密/解析向
 | certipy-ad（命令 certipy） | uv tool 未钉（实测 v5.1.0） | [ly4k/Certipy](https://github.com/ly4k/Certipy)（PyPI 经 tuna） |
 | bloodyAD | uv tool 未钉 | [CravateRouge/bloodyAD](https://github.com/CravateRouge/bloodyAD)（PyPI 经 tuna） |
 | bofhound | uv tool 未钉 | [coffeegist/bofhound](https://github.com/coffeegist/bofhound)（PyPI 经 tuna） |
+| trufflehog | `go install` 未钉 | [trufflesecurity/trufflehog](https://github.com/trufflesecurity/trufflehog)（goproxy.cn；git 历史与云密钥扫描，与 gitleaks 互补） |
+| semgrep | uv tool 未钉 | [semgrep/semgrep](https://github.com/semgrep/semgrep)（PyPI 经 tuna，SAST 代码审计） |
+| evil-winrm | gem 未钉 | [Hackplayers/evil-winrm](https://github.com/Hackplayers/evil-winrm)（ruby-china gems；交互式 WinRM shell） |
+| metasploit-framework（msfconsole 等） | omnibus 随源 | [rapid7/metasploit-framework](https://github.com/rapid7/metasploit-framework)（[msfinstall 官方安装器](https://docs.metasploit.com/docs/using-metasploit/getting-started/nightly-installers.html) 加 apt.metasploit.com 仓，直连无国内镜像） → /opt/metasploit-framework |
 | SecLists 词表 | `--depth 1` 未钉 | [danielmiessler/SecLists](https://github.com/danielmiessler/SecLists) |
 | capa-rules | `--depth 1` 未钉 | [mandiant/capa-rules](https://github.com/mandiant/capa-rules) |
 | yara 规则（Yara-Rules/rules） | `--depth 1` 未钉 | [Yara-Rules/rules](https://github.com/Yara-Rules/rules) |
@@ -328,6 +340,9 @@ libcache rust 预热批（`scripts/install-libcache.sh`）另有加密/解析向
 | sqlite3 | noble 随源 | Ubuntu noble 源（tuna） |
 | freerdp2-x11 | noble 随源 | Ubuntu noble 源（tuna） |
 | sshuttle | noble 随源 | Ubuntu noble 源（tuna） |
+| openvpn | noble 随源 | Ubuntu noble 源（tuna） |
+| wireguard-tools（wg、wg-quick） | noble 随源 | Ubuntu noble 源（tuna） |
+| masscan | noble 随源（setcap cap_net_raw 免 sudo） | Ubuntu noble 源（tuna） |
 | hashcat | noble 随源（6.2.6） | Ubuntu noble 源（tuna） |
 | pocl-opencl-icd | noble 随源（CPU OpenCL） | Ubuntu noble 源（tuna） |
 | ocl-icd-libopencl1 | noble 随源 | Ubuntu noble 源（tuna） |
@@ -374,10 +389,12 @@ libcache rust 预热批（`scripts/install-libcache.sh`）另有加密/解析向
 | recog | `--depth 1` 未钉 | [rapid7/recog](https://github.com/rapid7/recog) → /opt/recon-ref/recog |
 | hickory-dns | `--depth 1` 未钉 | [hickory-dns/hickory-dns](https://github.com/hickory-dns/hickory-dns) → /opt/recon-ref/hickory-dns |
 | PoC-in-GitHub | `--depth 1` 未钉（只克隆索引，不递归） | [nomi-sec/PoC-in-GitHub](https://github.com/nomi-sec/PoC-in-GitHub) → /opt/recon-ref/PoC-in-GitHub（README 含恶意样本警示） |
+| poc-search（wrapper） | 随脚本 | install-tools.sh recon 组生成 → /usr/local/bin/poc-search（CVE 精确查 / -k 关键词 / --ch SQL / --reindex） |
+| poc-index.parquet | 构建期生成 | clickhouse local 灌 PoC-in-GitHub 各年 JSON → /opt/recon-ref/poc-index.parquet（离线毫秒查） |
 
 ## 载荷与开发模板参考（maldev 组，只克隆不编译）
 
-按 grok 评审裁定的工件角色轴归档：`/opt/payload-ref`（generators 产物是字节或变形二进制 / loaders 产物是执行字节的进程 / evasion 是往 loader 贴的原语 / curricula 教材架按语言分叶 / analysis 防御向）与 `/opt/tradecraft-ref`（产物是上线后的操作员动作，ad/opsec 分叶）。有编译产物的仓由对应组装：COFFLoader、bof-launcher 源码在 payload-ref/loaders/inproc/（bof 组，见逆向分析），RustHound-CE 源码在 tradecraft-ref/ad（secrust 组，见安全测试），atomic-bofs 与 BOF-CATALOG.md 在 tradecraft-ref/bof（bof 组，见逆向分析与参考克隆）。
+按 grok 评审裁定的工件角色轴归档：`/opt/payload-ref`（generators 产物是字节或变形二进制 / loaders 产物是执行字节的进程 / evasion 是往 loader 贴的原语 / curricula 教材架按语言分叶 / analysis 防御向）与 `/opt/tradecraft-ref`（产物是上线后的操作员动作，ad/bof/opsec/privesc/skills 分叶）。有编译产物的仓由对应组装：COFFLoader、bof-launcher 源码在 payload-ref/loaders/inproc/（bof 组，见逆向分析），RustHound-CE 源码在 tradecraft-ref/ad（secrust 组，见安全测试），atomic-bofs 与 BOF-CATALOG.md 在 tradecraft-ref/bof（bof 组，见逆向分析与参考克隆）。
 
 | 软件 | 版本 | 来源 |
 |------|------|------|
@@ -397,6 +414,8 @@ libcache rust 预热批（`scripts/install-libcache.sh`）另有加密/解析向
 | skills | `--depth 1` 未钉 | [SpecterOps/skills](https://github.com/SpecterOps/skills) → /opt/tradecraft-ref/skills/skills |
 | goffloader | `--depth 1` 未钉 | [praetorian-inc/goffloader](https://github.com/praetorian-inc/goffloader) → /opt/payload-ref/loaders/inproc/goffloader |
 | dende-rs | `--depth 1` 未钉 | [g0h4n/dende-rs](https://github.com/g0h4n/dende-rs) → /opt/tradecraft-ref/opsec/dende-rs |
+| PEASS-ng（linpeas/winpeas） | `--depth 1` 未钉 | [carlospolop/PEASS-ng](https://github.com/carlospolop/PEASS-ng) → /opt/tradecraft-ref/privesc/PEASS-ng |
+| linux-exploit-suggester | `--depth 1` 未钉 | [mzet-/linux-exploit-suggester](https://github.com/mzet-/linux-exploit-suggester) → /opt/tradecraft-ref/privesc/linux-exploit-suggester |
 | gonut | `--depth 1` 未钉 | [wabzsy/gonut](https://github.com/wabzsy/gonut) → /opt/payload-ref/generators/pe-to-shellcode/gonut |
 | Donut-CustomHost | `--depth 1` 未钉 | [Zuigetzu/Donut-CustomHost](https://github.com/Zuigetzu/Donut-CustomHost) → /opt/payload-ref/generators/pe-to-shellcode/Donut-CustomHost |
 | donutCS | `--depth 1` 未钉 | [n1xbyte/donutCS](https://github.com/n1xbyte/donutCS) → /opt/payload-ref/generators/pe-to-shellcode/donutCS |

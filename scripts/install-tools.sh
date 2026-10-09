@@ -33,9 +33,12 @@ install_astgrep() {
 }
 
 install_cli() {
-    log "git/jq/shellcheck/just (apt,tuna);yq/gh (go install,goproxy.cn)"
+    log "git/jq/shellcheck/just/fzf/bat/htop/ncdu/moreutils/vim (apt,tuna);yq/gh (go install,goproxy.cn)"
     apt-get update -qq
-    apt-get install -y --no-install-recommends git jq shellcheck just tmux rclone aria2 || true
+    apt-get install -y --no-install-recommends git jq shellcheck just tmux rclone aria2 \
+        fzf bat htop ncdu moreutils vim || true
+    # noble 的 bat 包二进制名是 batcat,链回通用名
+    [ -x /usr/bin/batcat ] && ln -sf /usr/bin/batcat /usr/local/bin/bat
     # GOPATH 指 /opt/go:不设则 go install 产物落 /root/go(0700),ubuntu 不可执行
     export PATH="$PATH:/usr/local/go/bin:/opt/go/bin"
     export GOPATH=/opt/go
@@ -57,6 +60,7 @@ install_cli() {
     git --version && jq --version && yq --version && shellcheck --version | head -1 \
         && just --version && gh --version | head -1
     aria2c --version | head -1
+    fzf --version && bat --version | head -1 && htop --version && vim --version | head -1
 }
 
 PD_TOOLS_DEFAULT=(
@@ -123,6 +127,7 @@ SECGO_TOOLS_DEFAULT=(
     nerva/cmd/nerva@github.com/praetorian-inc
     brutus/cmd/brutus@github.com/praetorian-inc
     aurelian@github.com/praetorian-inc
+    trufflehog/v3@github.com/trufflesecurity
 )
 
 install_secgo() {
@@ -478,10 +483,12 @@ install_c2() {
 
 # ---- BOF(Beacon Object File)工具链:交叉编译 + 脱离 C2 运行 ----------------
 install_bof() {
-    log "BOF 工具链: mingw-w64 + COFFLoader + atomic-bofs + 目录(源码随三轴归档)"
+    log "BOF 工具链: mingw-w64 + wine64 + COFFLoader + atomic-bofs + 目录(源码随三轴归档)"
     local gh="${GITHUB_MIRROR}https://github.com"
     apt-get update -qq
-    apt-get install -y --no-install-recommends mingw-w64
+    # wine64:跑交叉编出的 Windows PE(COFFLoader64.exe 等);只要 64 位件,不开 i386
+    apt-get install -y --no-install-recommends mingw-w64 wine64 || true
+    wine64 --version 2>/dev/null || echo "wine64 未装上(PE 验证路径缺,下轮补)"
     # COFFLoader/bof-launcher 是进程内执行基底(grok 裁定)→ payload-ref/loaders/inproc;
     # atomic-bofs/BOF-CATALOG 是后渗透内容 → tradecraft-ref/bof
     local inproc=/opt/payload-ref/loaders/inproc bofref=/opt/tradecraft-ref/bof
@@ -617,7 +624,7 @@ install_nu() {
 #   payload-ref/evasion/       往 loader 里贴的原语(ShellcodeFluctuation、Crystal Palace)
 #   payload-ref/curricula/     教材架,其下按语言分叶
 #   payload-ref/analysis/      防御向(donut-decryptor),避免被当进攻模板抄
-#   tradecraft-ref/{ad,bof,opsec}/  产物是上线后的操作员动作
+#   tradecraft-ref/{ad,bof,opsec,privesc,skills}/  产物是上线后的操作员动作
 # 有编译产物的仓(COFFLoader/bof-launcher/atomic-bofs/RustHound-CE)由 bof/secrust 组
 # 各自克隆构建,落点同轴
 install_maldev() {
@@ -641,6 +648,8 @@ install_maldev() {
         "SpecterOps/skills:tradecraft-ref/skills" \
         "praetorian-inc/goffloader:payload-ref/loaders/inproc" \
         "g0h4n/dende-rs:tradecraft-ref/opsec" \
+        "carlospolop/PEASS-ng:tradecraft-ref/privesc" \
+        "mzet-/linux-exploit-suggester:tradecraft-ref/privesc" \
         "wabzsy/gonut:payload-ref/generators/pe-to-shellcode" \
         "Zuigetzu/Donut-CustomHost:payload-ref/generators/pe-to-shellcode" \
         "n1xbyte/donutCS:payload-ref/generators/pe-to-shellcode" \
@@ -697,7 +706,7 @@ install_maldev() {
 
 # ---- 侦察指纹参考(recon):指纹库与 DNS 源码,只克隆归档,供指纹类工具对照 ----------
 install_recon() {
-    log "recon 指纹参考(只克隆,归档 /opt/recon-ref): mac-tracker/recog/hickory-dns"
+    log "recon 指纹参考(只克隆,归档 /opt/recon-ref): mac-tracker/recog/hickory-dns/PoC-in-GitHub"
     local gh="${GITHUB_MIRROR}https://github.com"
     install -d /opt/recon-ref
     local r
@@ -708,6 +717,56 @@ install_recon() {
                 || echo "$r 克隆失败(2 次,下轮补)"
         fi
     done
+    # poc-search:PoC-in-GitHub 索引查询 wrapper(只查索引信息,不拉任何 PoC 代码;
+    # 索引仓 README 明示混有恶意样本,下载执行是使用者自己的裁量)
+    cat > /usr/local/bin/poc-search <<'POC_EOF'
+#!/usr/bin/env bash
+# poc-search — PoC-in-GitHub 本地索引查询(只读索引,不拉 PoC 代码)
+set -euo pipefail
+POC_DIR="${POC_DIR:-/opt/recon-ref/PoC-in-GitHub}"
+POC_INDEX="${POC_INDEX:-/opt/recon-ref/poc-index.parquet}"
+LIMIT="${LIMIT:-20}"
+usage() {
+    cat <<'U'
+用法:
+  poc-search <CVE-ID>      按 CVE 精确查(如 CVE-2024-38077)
+  poc-search -k <关键词>   索引全文搜(rg -i,前 LIMIT=20 条)
+  poc-search --ch '<SQL>'  clickhouse local 查 parquet 索引(视图名 poc,单列 json)
+  poc-search --reindex     重建 parquet 索引
+环境: POC_DIR POC_INDEX LIMIT
+U
+}
+[ $# -ge 1 ] || { usage; exit 0; }
+case "$1" in
+    -h|--help) usage ;;
+    --reindex)
+        clickhouse local -q "SELECT * FROM file('${POC_DIR}/*/*.json','JSONAsObject') INTO OUTFILE '${POC_INDEX}' FORMAT Parquet"
+        clickhouse local -q "SELECT count() FROM file('${POC_INDEX}','Parquet')" ;;
+    --ch)
+        [ $# -ge 2 ] || { usage; exit 1; }
+        clickhouse local --multiquery -q "CREATE VIEW poc AS SELECT * FROM file('${POC_INDEX}','Parquet'); $2" ;;
+    -k)
+        [ $# -ge 2 ] || { usage; exit 1; }
+        rg -il --glob '*.json' -- "$2" "$POC_DIR" | head -n "$LIMIT" | while read -r f; do
+            echo "== $f"; jq -c . "$f" 2>/dev/null || head -c 400 "$f"; echo
+        done ;;
+    -*)
+        echo "未知选项: $1" >&2; usage; exit 1 ;;
+    *)
+        cve="$(echo "$1" | tr '[:lower:]' '[:upper:]')"
+        year="${cve:4:4}"
+        f="$POC_DIR/$year/$cve.json"
+        if [ ! -f "$f" ]; then f="$(find "$POC_DIR" -name "$cve.json" 2>/dev/null | head -1 || true)"; fi
+        if [ -n "$f" ] && [ -f "$f" ]; then jq . "$f"; else echo "索引无 $cve(可在 https://github.com/nomi-sec/PoC-in-GitHub 核实)"; exit 1; fi ;;
+esac
+POC_EOF
+    chmod +x /usr/local/bin/poc-search
+    # clickhouse parquet 索引:每 CVE 一个 JSON(多行美化格式),JSONAsObject 按文件整读成单列,
+    # 灌成单文件落 /opt/recon-ref,离线毫秒查;重建:poc-search --reindex
+    if [ ! -f /opt/recon-ref/poc-index.parquet ] && have clickhouse && [ -d /opt/recon-ref/PoC-in-GitHub ]; then
+        clickhouse local -q "SELECT * FROM file('/opt/recon-ref/PoC-in-GitHub/*/*.json','JSONAsObject') INTO OUTFILE '/opt/recon-ref/poc-index.parquet' FORMAT Parquet" \
+            && echo "poc-index.parquet 就位" || echo "poc 索引构建失败(poc-search --reindex 重试)"
+    fi
     ls /opt/recon-ref
     true
 }
@@ -716,18 +775,21 @@ install_recon() {
 # 内网客户端批 + hashcat + Responder + frida 全链 + 离线固化接线
 # 原则:全部 apt(tuna)或构建期钉版下载;离线期新装失败是显式报错,缓存必须进 /opt
 install_pentest() {
-    log "pentest apt 批(31 包,阿里云):内网客户端/远程/爆破/取证/移动/无线/签名"
+    log "pentest apt 批(36 包,阿里云):内网客户端/远程/爆破/取证/移动/无线/签名/VPN/快扫"
     apt-get update -qq
     apt-get install -y --no-install-recommends \
         dnsutils whois socat netcat-openbsd telnet ftp snmp proxychains4 \
         ldap-utils smbclient \
         default-mysql-client postgresql-client redis-tools sqlite3 \
         freerdp2-x11 sshuttle \
+        openvpn wireguard-tools masscan \
         hashcat pocl-opencl-icd ocl-icd-libopencl1 \
         hydra \
         android-tools-adb android-tools-fastboot \
         sleuthkit testdisk poppler-utils unar cabextract qpdf zbar-tools \
         hcxtools aircrack-ng steghide osslsigncode || true
+    # masscan 与 naabu 同理:原始套接字,给 ubuntu 用户免 sudo 跑
+    have masscan && setcap cap_net_raw,cap_net_admin+eip "$(command -v masscan)" 2>/dev/null || true
     # sasquatch:binwalk 解非标准 SquashFS 的补丁版,源码构建
     if ! have sasquatch; then
         local gh="${GITHUB_MIRROR}https://github.com"
@@ -892,14 +954,15 @@ install_red() {
     done
     # AD 现役批(grok 红队评审补充):CE 采集与 ADCS;与 Legacy bloodhound-python 并存(维护者明示可共存)
     # bloodhound-ce 在 tuna 镜像缺失(实证),显式回退官方索引
-    for t in certipy-ad bloodyAD bofhound; do
+    # semgrep:SAST 代码审计(uv tool 隔离装,tuna 有轮子)
+    for t in certipy-ad bloodyAD bofhound semgrep; do
         VIRTUAL_ENV= uv tool install "$t" >/dev/null 2>&1 \
             || VIRTUAL_ENV= uv tool install --index-url "https://pypi.tuna.tsinghua.edu.cn/simple" "$t" >/dev/null 2>&1 \
             || echo "$t 失败(留待排查)"
     done
     VIRTUAL_ENV= uv tool install --index-url https://pypi.org/simple bloodhound-ce >/dev/null 2>&1 \
         || echo "bloodhound-ce 失败(留待排查)"
-    for t in certipy-ad bloodyAD bofhound bloodhound-ce; do
+    for t in certipy-ad bloodyAD bofhound bloodhound-ce semgrep; do
         for c in "/opt/uv-tools/$t/bin"/*; do [ -f "$c" ] && ln -sf "$c" "/usr/local/bin/$(basename "$c")" 2>/dev/null; done
     done
     # 命名差异:kerbrute/Coercer 等二进名与包名可能不同,统一链接检查
@@ -933,9 +996,9 @@ install_red() {
     [ -f /opt/LinkFinder/linkfinder.py ] && printf '#!/bin/sh\nexec python3 /opt/LinkFinder/linkfinder.py "$@"\n' > /usr/local/bin/linkfinder \
         && chmod +x /usr/local/bin/linkfinder
 
-    log "Ruby 生态引入(gems.ruby-china;解锁 CeWL)"
+    log "Ruby 生态引入(gems.ruby-china;解锁 CeWL / evil-winrm)"
     apt-get update -qq
-    apt-get install -y --no-install-recommends ruby-full || true
+    apt-get install -y --no-install-recommends ruby-full ruby-dev || true
     if have gem; then
         gem sources --add https://gems.ruby-china.com/ --remove https://rubygems.org/ >/dev/null 2>&1 || true
     fi
@@ -949,6 +1012,13 @@ install_red() {
         chmod +x /usr/local/bin/cewl
         echo "cewl 就位(/opt/CeWL,依赖 gem 尽力)"
     fi
+    # evil-winrm:交互式 WinRM shell(上传/下载/补全;netexec 是跑命令不是交互壳)
+    # winrm 依赖链带原生件,ruby-dev 已随上批装;gem 二进位默认落 /usr/local/bin
+    if ! have evil-winrm; then
+        gem install evil-winrm --no-document >/dev/null 2>&1 \
+            && echo "evil-winrm 已装" || echo "evil-winrm 失败(留待排查)"
+    fi
+    have evil-winrm && evil-winrm --version 2>/dev/null || true
 
     log "CyberChef(离线瑞士军刀,Release zip 钉 /opt)"
     if [ ! -d /opt/cyberchef ]; then
@@ -1001,5 +1071,22 @@ EOF
 }
 
 
-TOOLS_ALL=(fd astgrep cli herdr ghidra re pd secgo secrust pivot p0 c2 bof pz maldev recon nu pentest red)
+# ---- 渗透测试框架(msf):metasploit omnibus 官方安装器 ------------------------
+# 路线裁定(2026-10-09 全做批):进镜像。noble 源无包,omnibus 安装器加 apt.metasploit.com
+# 仓装 metasploit-framework(/opt/metasploit-framework,msfconsole 链 /usr/local/bin);
+# 安装器脚本经 GITHUB_MIRROR 拉,apt.metasploit.com 需直连,无国内镜像
+install_msf() {
+    log "metasploit-framework (omnibus)"
+    if have msfconsole; then msfconsole -v 2>/dev/null | head -1; echo "已安装,跳过"; return; fi
+    local msi="https://raw.githubusercontent.com/rapid7/metasploit-omnibus/master/config/templates/metasploit-framework-wrappers/msfupdate.erb"
+    curl -fSL --retry 3 "${GITHUB_MIRROR}${msi}" -o /tmp/msfinstall \
+        && chmod +x /tmp/msfinstall && /tmp/msfinstall \
+        || echo "msf 安装失败(apt.metasploit.com 需直连;下轮补)"
+    rm -f /tmp/msfinstall
+    have msfconsole && msfconsole -v 2>/dev/null | head -1 || echo "msfconsole 未装上(下轮补)"
+    true
+}
+
+
+TOOLS_ALL=(fd astgrep cli herdr ghidra re pd secgo secrust pivot p0 c2 bof pz maldev recon nu pentest red msf)
 run_category TOOLS_ALL "$@"
