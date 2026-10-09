@@ -541,7 +541,7 @@ install_nu() {
         local _try
         for _try in 1 2 3; do
             # pipefail:ls-remote 失败时整条管道非零,赋值即 set -e 退出;|| true 兜底
-            ntag="$(git ls-remote --tags "${gh}/nushell" 2>/dev/null | grep -oE 'refs/tags/[0-9]+\.[0-9]+\.[0-9]+$' | sort -t. -k1,1n -k2,2n -k3,3n | tail -1 | sed 's|refs/tags/||' || true)"
+            ntag="$(git ls-remote --tags "${gh}/nushell/nushell" 2>/dev/null | grep -oE 'refs/tags/[0-9]+\.[0-9]+\.[0-9]+$' | sort -t. -k1,1n -k2,2n -k3,3n | tail -1 | sed 's|refs/tags/||' || true)"
             if [ -n "$ntag" ]; then break; fi
             sleep 5
         done
@@ -773,7 +773,7 @@ install_red() {
     if [ ! -d /opt/cyberchef ]; then
         local gh2="${GITHUB_MIRROR}https://github.com"
         # api.github.com 限流改用 git ls-remote(nushell 同款)
-        local ctag; ctag="$(git ls-remote --tags "${gh2}/CyberChef" 2>/dev/null | grep -oE 'refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$' | sort -t. -k1,1n -k2,2n -k3,3n | tail -1 | sed 's|refs/tags/||' || true)"
+        local ctag; ctag="$(git ls-remote --tags "${gh2}/gchq/CyberChef" 2>/dev/null | grep -oE 'refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$' | sort -t. -k1,1n -k2,2n -k3,3n | tail -1 | sed 's|refs/tags/||' || true)"
         if [ -n "$ctag" ]; then
             local cz="CyberChef_${ctag}.zip"   # 资产名保留 v 前缀(fresh 实证 404 根因)
             curl -fSL "${gh2}/gchq/CyberChef/releases/download/${ctag}/${cz}" -o "/tmp/${cz}" \
