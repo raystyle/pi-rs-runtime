@@ -601,7 +601,7 @@ install_maldev() {
     local repos="
 CX330Blake/Black-Hat-Zig darkr4y/OffensiveZig
 trickster0/OffensiveRust skerkour/black-hat-rust
-byt3bl33d3r/OffensiveNim byt3bl33d3r/SILENTTRINITY
+byt3bl33d3r/OffensiveNim byt3bl33d3r/SILENTTRINITY Enelg52/OffensiveGo
 g0h4n/IsWebClientRunning-rs g0h4n/HasSession-rs g0h4n/LocalGroups-rs g0h4n/PassTheCert-rs g0h4n/dende-rs
 icedracon/dcerpc icedracon/adhammer
 wabzsy/gonut Zuigetzu/Donut-CustomHost n1xbyte/donutCS Binject/go-donut blinkenl1ghts/donloader volexity/donut-decryptor
