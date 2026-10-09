@@ -670,5 +670,97 @@ EOF
 }
 
 
-TOOLS_ALL=(fd astgrep cli herdr ghidra re pd secgo secrust pivot p0 c2 bof pz nu pentest)
+# ---- 渗透测试工具增补(claude 体检 P1:AD 横向 / Web / 密码 / 移动 / 云) -------
+# 原则:能 uv tool 走 tuna 就走 uv tool;git 克隆钉 /opt;gem 走 ruby-china;Release 钉版
+install_red() {
+    log "AD 横向与 Web 工具(uv tool 走 tuna:tuna 有轮子即成功)"
+    . "$HOME/.local/bin/env" 2>/dev/null || true
+    export PATH="$PATH:/usr/local/bin:/opt/go/bin"
+    export UV_TOOL_BIN_DIR=/usr/local/bin UV_TOOL_DIR=/opt/uv-tools
+    export GOPATH=/opt/go GOPROXY GOSUMDB
+    local t
+    for t in kerbrute wafw00f arjun ghauri bloodhound-python Coercer mitm6 objection apkleaks; do
+        have "$t" 2>/dev/null || VIRTUAL_ENV= uv tool install "$t" >/dev/null 2>&1 \
+            && echo "$t 已装" || echo "$t 失败(留待排查)"
+    done
+    # 命名差异:kerbrute/Coercer 等二进名与包名可能不同,统一链接检查
+    for t in kerbrute wafw00f arjun ghauri bloodhound-python coercer Coercer mitm6 objection apkleaks; do
+        [ -e "/opt/uv-tools/$t/bin/$t" ] && ln -sf "/opt/uv-tools/$t/bin/$t" "/usr/local/bin/$t" 2>/dev/null
+    done
+
+    log "git 克隆批(钉 /opt,依赖进 re-venv 尽力)"
+    local gh="${GITHUB_MIRROR}https://github.com"
+    local r
+    for r in mubix/jwt-tool sensepost/LinkFinder ipp-sec/krbrelayx CarHaeck/enum4linux-ng; do
+        local d="/opt/$(basename "$r")"
+        [ -d "$d/.git" ] || git clone --depth 1 "${gh}/${r}" "$d" || echo "$r 克隆失败"
+    done
+    # LinkFinder / enum4linux-ng 的 python 依赖进 re-venv
+    [ -x "$RE_VENV/bin/python" ] || uv venv "$RE_VENV"
+    [ -f /opt/LinkFinder/requirements.txt ] \
+        && VIRTUAL_ENV="$RE_VENV" uv pip install -r /opt/LinkFinder/requirements.txt >/dev/null 2>&1 || true
+    [ -f /opt/enum4linux-ng/requirements.txt ] \
+        && VIRTUAL_ENV="$RE_VENV" uv pip install -r /opt/enum4linux-ng/requirements.txt >/dev/null 2>&1 || true
+    for b in jwt-tool linkfinder enum4linux-ng krbrelayx; do
+        [ -e "$RE_VENV/bin/$b" ] && ln -sf "$RE_VENV/bin/$b" "/usr/local/bin/$b" 2>/dev/null
+    done
+
+    log "Ruby 生态引入(gems.ruby-china;解锁 CeWL)"
+    apt-get update -qq
+    apt-get install -y --no-install-recommends ruby-full || true
+    if have gem; then
+        gem sources --add https://gems.ruby-china.com/ --remove https://rubygems.org/ >/dev/null 2>&1 || true
+        have cewl || gem install cewl --no-document >/dev/null 2>&1 && echo "cewl 已装" || echo "cewl 失败"
+    fi
+
+    log "CyberChef(离线瑞士军刀,Release zip 钉 /opt)"
+    if [ ! -d /opt/cyberchef ]; then
+        local gh2="${GITHUB_MIRROR}https://github.com"
+        local ctag; ctag="$(curl -fsSL "https://api.github.com/repos/gchq/CyberChef/releases/latest" | grep -o '"tag_name": *"[^"]*"' | cut -d'"' -f4)"
+        if [ -n "$ctag" ]; then
+            local cz="CyberChef_${ctag#v}.zip"
+            curl -fSL "${gh2}/gchq/CyberChef/releases/download/${ctag}/${cz}" -o "/tmp/${cz}" \
+                && install -d /opt/cyberchef && unzip -q -o "/tmp/${cz}" -d /opt/cyberchef && rm "/tmp/${cz}" \
+                && echo "CyberChef 就位: /opt/cyberchef(用 python3 -m http.server 起本地页)" \
+                || echo "CyberChef 下载失败"
+        fi
+    fi
+
+    log "云与内网:kubectl(aliyun)/trivy+db 烘焙/awscli v2"
+    # kubectl:阿里云 kubernetes-release 镜像
+    if ! have kubectl; then
+        local karch="amd64"; [ "$(dpkg --print-architecture)" = arm64 ] && karch="arm64"
+        curl -fSL "https://mirrors.aliyun.com/kubernetes-release/release/v1.32.0/bin/linux/${karch}/kubectl" -o /usr/local/bin/kubectl 2>/dev/null \
+            && chmod +x /usr/local/bin/kubectl || echo "kubectl 失败(兜底构建期直连 dl.k8s.io)"
+    fi
+    # trivy:GitHub .deb + 构建期烘 db 到 /opt/trivy-db(离线期 --skip-db-update)
+    if ! have trivy; then
+        local tarch="64bit"; [ "$(dpkg --print-architecture)" = arm64 ] && tarch="ARM64"
+        local tv; tv="$(curl -fsSL https://api.github.com/repos/aquasecurity/trivy/releases/latest | grep -o '"tag_name": *"[^"]*"' | cut -d'"' -f4)"
+        if [ -n "$tv" ]; then
+            local tdeb="trivy_${tv#v}_Linux-${tarch}.deb"
+            curl -fSL "${GITHUB_MIRROR}https://github.com/aquasecurity/trivy/releases/download/${tv}/${tdeb}" -o "/tmp/${tdeb}" \
+                && dpkg -i "/tmp/${tdeb}" && rm "/tmp/${tdeb}" || echo "trivy deb 失败"
+        fi
+    fi
+    if have trivy; then
+        export TRIVY_CACHE_DIR=/opt/trivy-db
+        install -d /opt/trivy-db
+        trivy image --download-db-only >/dev/null 2>&1 || echo "trivy db 烘焙失败(离线期将无法扫描)"
+        cat > /etc/profile.d/trivy.sh <<'EOF'
+export TRIVY_CACHE_DIR=/opt/trivy-db
+alias trivy='trivy --skip-db-update'
+EOF
+    fi
+    # awscli v2:官方 zip 安装器(无国内镜像,构建期直连)
+    if ! have aws; then
+        curl -fSL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o /tmp/awscliv2.zip 2>/dev/null \
+            && unzip -q -o /tmp/awscliv2.zip -d /tmp && /tmp/aws/install --update >/dev/null 2>&1 || /tmp/aws/install >/dev/null 2>&1 \
+            && rm -rf /tmp/awscliv2.zip /tmp/aws || echo "awscli v2 失败(国内直连 awscli.amazonaws.com 不通时可跳过)"
+    fi
+    true
+}
+
+
+TOOLS_ALL=(fd astgrep cli herdr ghidra re pd secgo secrust pivot p0 c2 bof pz nu pentest red)
 run_category TOOLS_ALL "$@"

@@ -83,7 +83,7 @@
 
 - `install-compilers.sh`:`COMPILERS_ALL=(c golang rust zig vcpkg)`
 - `install-runtimes.sh`:`RUNTIMES_ALL=(node fnm bun uv python python2 duckdb php mono dotnet pwsh sdkman)`
-- `install-tools.sh`:`TOOLS_ALL=(fd astgrep cli herdr ghidra re pd secgo secrust pivot p0 c2 bof pz nu pentest)`
+- `install-tools.sh`:`TOOLS_ALL=(fd astgrep cli herdr ghidra re pd secgo secrust pivot p0 c2 bof pz nu pentest red)`
 - `install-libcache.sh`:`LIBCACHE_ALL=(go rust python node java pwsh dotnet zig)`(八生态库缓存固化,独立分类)
 
 ## 步骤
@@ -179,7 +179,7 @@ incus exec rt-build -- bash /root/scripts/install-all.sh
 
 
 
-工具（`install-tools.sh`）。组列为中文名，脚本键对照：文件与内容搜索=`fd`、结构化代码搜索=`ast-grep`、基础命令行工具=`cli`、终端工作区管理器=`herdr`、逆向分析套件=`ghidra`、逆向分析稳定链=`re`、攻击面测绘工具集=`pd`、Go 安全工具集=`secgo`、Rust 安全工具集=`secrust`、代理与隧道工具集=`pivot`、安全分析工具集=`p0`、命令与控制框架参考=`c2`、信标对象文件工具链=`bof`、Project Zero 工具参考=`pz`、结构化 Shell=`nu`、渗透测试运行时底线=`pentest`。
+工具（`install-tools.sh`）。组列为中文名，脚本键对照：文件与内容搜索=`fd`、结构化代码搜索=`ast-grep`、基础命令行工具=`cli`、终端工作区管理器=`herdr`、逆向分析套件=`ghidra`、逆向分析稳定链=`re`、攻击面测绘工具集=`pd`、Go 安全工具集=`secgo`、Rust 安全工具集=`secrust`、代理与隧道工具集=`pivot`、安全分析工具集=`p0`、命令与控制框架参考=`c2`、信标对象文件工具链=`bof`、Project Zero 工具参考=`pz`、结构化 Shell=`nu`、渗透测试运行时底线=`pentest`、渗透测试工具增补=`red`。
 
 | 组 | 项目 | 版本 | 官方来源 | 安装命令（脚本实际执行） |
 |------|------|------|------|
@@ -265,6 +265,7 @@ incus exec rt-build -- bash /root/scripts/install-all.sh
 | 渗透测试运行时底线 | lab apt 批 24 包（dnsutils、whois、socat、netcat-openbsd、telnet、ftp、snmp、proxychains4、ldap-utils、smbclient、default-mysql-client、postgresql-client、redis-tools、sqlite3、freerdp2-x11、sshuttle、hashcat、pocl-opencl-icd、ocl-icd-libopencl1、hydra、android-tools-adb、android-tools-fastboot、sleuthkit、testdisk、poppler-utils、unar、cabextract、qpdf、zbar-tools、hcxtools、aircrack-ng、steghide、osslsigncode） | noble 随源 | Ubuntu apt（tuna）；sasquatch 为源码构建（[onekey-sec/sasquatch](https://github.com/onekey-sec/sasquatch) `./build.sh`） | `apt-get install -y --no-install-recommends …`；hashcat CPU 走 pocl |
 | 渗透测试运行时底线 | Responder | `--depth 1` 未钉 | [lgandx/Responder](https://github.com/lgandx/Responder) | `git clone --depth 1 … /opt/Responder`；运行 `python3 /opt/Responder/Responder.py -I eth0` |
 | 渗透测试运行时底线 | frida 全链（客户端与全架构 frida-server 版本对齐） | 客户端构建日最新；server 与客户端同版本 | [frida/frida](https://github.com/frida/frida) releases（GitHub 直下，无 tuna） | `uv tool install frida-tools`；`frida --version` 取版本号；`curl …/download/<ver>/frida-server-<ver>-{windows,android,linux}-<arch>.xz` 解到 `/opt/frida-server/<ver>/` |
+| 渗透测试工具增补 | AD 横向/Web/密码/移动/云工具（kerbrute、wafw00f、arjun、ghauri、bloodhound-python、Coercer、mitm6、objection、apkleaks、jwt-tool、LinkFinder、krbrelayx、enum4linux-ng、cewl、CyberChef、kubectl、trivy、awscli） | 混合 | uv tool 走 tuna；git 克隆钉 `/opt`；gem 走 [gems.ruby-china.com](https://gems.ruby-china.com)；Release 钉版 | `uv tool install <名>`；`git clone --depth 1`；`gem install`；trivy 构建期 `--download-db-only` 烘到 `/opt/trivy-db` |
 | 渗透测试运行时底线 | 离线固化接线（nuclei 模板、capa 规则、词表、pwndbg gdbinit、时区 locale、offline 函数） | 模板与规则 `--depth 1` 未钉 | [projectdiscovery/nuclei-templates](https://github.com/projectdiscovery/nuclei-templates)；规则见安全分析工具集 | nuclei 模板克隆 `/opt/nuclei-templates` 并软链各用户 `~/nuclei-templates`；`/usr/local/bin/nuclei` 改 wrapper 加 `-duc`；capa 改 wrapper 加 `-r /opt/capa-rules`；`/usr/share/wordlists` 软链 SecLists 并解包 rockyou；`/etc/gdb/gdbinit` 接 pwndbg 并冒烟；时区 `Asia/Shanghai`、生成 `zh_CN.UTF-8`（默认 LANG 不动）；`/etc/profile.d/offline.sh` 提供 `offline()` 快失败函数 |
 ### 4. 发布 pi-rs-runtime 镜像
 
