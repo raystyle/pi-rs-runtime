@@ -10,7 +10,7 @@
 
 - 镜像 `pi-rs-runtime` 第一版已落库(fingerprint `7564be3f6e57`,17.6 GB):publish 客户端超时被杀但 daemon 侧已打包完成,别名直接挂到该 fingerprint。
 - 从镜像开实例验收发现三处静默缺口,已全部修复并推 main(`2b4ddc5`、`16e7609`):① nu 装不上——`install_nu` 的 `git ls-remote` 缺 owner(`${gh}/nushell` 应为 `nushell/nushell`,CyberChef 同款缺 `gchq/`);② capa wrapper 递归 exec——`printf > 软链` 穿透改写 `/opt/capa` 真身,改 nuclei 同款挪文件写法;③ pwsh 模块固化空——PackageManagement(Save-Module)在 noble+pwsh 7.4 段错误,换 inbox PSResourceGet(Save-PSResource)。
-- 修复已在 `rt-img-verify`(从镜像开的实例)增量落地:nu 0.116.1、capa 9.4.0(wrapper 正常)、/opt/psmodules 8 模块,ubuntu 用户复验绿。**重发布完成:`pi-rs-runtime` → fingerprint `9c63a0288d34`**;两个无别名旧镜像(7564be3f6e57、de805a88111c)已删;rt-verify 与 rt(开发工作机,勿删)保留。
+- 修复已在 `rt-img-verify`(从镜像开的实例)增量落地:nu 0.116.1、capa 9.4.0(wrapper 正常)、/opt/psmodules 8 模块,ubuntu 用户复验绿。**重发布完成:`pi-rs-runtime` → fingerprint `9c63a0288d34`**;两个无别名旧镜像(7564be3f6e57、de805a88111c)已删;rt/rt-verify/rt-img-verify 三容器确认无独一份数据后已全部删除(磁盘 86%→55%)。rt 里的手装件 RsaCtfTool 未进脚本,需要时可补进 install-tools.sh。
 - 工作流原则(用户定):脚本幂等部署 + pin + 可升级;以后走「从发布镜像开实例 → 增量跑分类脚本 → 重 publish」的增量路线,不必每次 fresh 全量。
 - `GITHUB_MIRROR` 默认改为 `https://proxy.ohmygh.com/`(置空回直连),已推 main。
 - 文档重组:README 689 行拆为 132 行薄入口(定位/前置条件/文档索引/步骤)+ `docs/` 四分册:`params.md`(参数表)、`install-surfaces.md`(安装面清单)、`software-inventory.md`(软件清单归档)、`known-issues.md`(已知限制)。
