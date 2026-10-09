@@ -24,8 +24,8 @@
 | 文档 | 内容 |
 |------|------|
 | [docs/params.md](docs/params.md) | 参数表：构建脚本变量、镜像源覆盖、版本钉、路径与工具集 |
-| [docs/install-surfaces.md](docs/install-surfaces.md) | 安装面清单：四个分类脚本的组|项目|版本|官方来源|安装命令全表 |
-| [docs/software-inventory.md](docs/software-inventory.md) | 软件清单归档：镜像内全部软件、库与隔离环境，12 分类逐项 |
+| [docs/install-surfaces/](docs/install-surfaces/) | 安装面清单：四个分类脚本的组|项目|版本|官方来源|安装命令全表（索引 + 编译器/运行时/工具三分册） |
+| [docs/software-inventory.md](docs/software-inventory.md) | 软件清单归档：镜像内全部软件、库与隔离环境，14 分类逐项 |
 | [docs/known-issues.md](docs/known-issues.md) | 已知限制与未决项 |
 | [PROGRESS.md](PROGRESS.md) | 任务进度与历史轨迹（跨会话工作记忆，接续工作前先读） |
 
@@ -73,7 +73,7 @@ incus exec rt-build -- bash /root/scripts/install-all.sh
 `install-all.sh` 先装隐式依赖（`ca-certificates curl wget gpg unzip zip xz-utils file`），再按 编译器 → 运行时 → 库缓存 → 工具 顺序跑四个分类脚本，不转发过滤器。要装单项用分类脚本，例如 `./install-compilers.sh rust` 或 `./install-runtimes.sh python node`。
 
 
-安装面事实（按代码逐条核对的「组|项目|版本|官方来源|安装命令」全表）见 [docs/install-surfaces.md](docs/install-surfaces.md)。
+安装面事实（按代码逐条核对的「组|项目|版本|官方来源|安装命令」全表）见 [docs/install-surfaces/](docs/install-surfaces/)。
 
 ### 4. 发布 pi-rs-runtime 镜像
 

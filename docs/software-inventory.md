@@ -1,6 +1,6 @@
 # 软件清单归档
 
-逐项列出镜像内全部软件、库与隔离环境，apt 包逐个一行（含构建依赖）；预缓存库只入缓存非安装；参考克隆不安装不运行。版本与来源口径同[安装面清单](install-surfaces.md)。攻击面测绘工具集 18 个 CLI 与 Go 安全工具集 14 个 CLI 在安装面清单中已逐行并带安装命令，此处不重复。
+逐项列出镜像内全部软件、库与隔离环境，apt 包逐个一行（含构建依赖）；预缓存库只入缓存非安装；参考克隆不安装不运行。版本与来源口径同[安装面清单](install-surfaces/)。攻击面测绘工具集 18 个 CLI 与 Go 安全工具集 17 个 CLI 在安装面清单中已逐行并带安装命令，此处不重复。
 
 ## 构建与编译
 
@@ -54,6 +54,7 @@
 | cargo-audit | cargo 未钉 | [rustsec/rustsec](https://github.com/rustsec/rustsec)（tuna crates） |
 | zig | 0.16.0 | [ziglang.org](https://ziglang.org/download/) 直下 |
 | zig（0.15.2 副本） | 0.15.2 | ziglang.org 直下，供 bof-launcher 构建 |
+| nim（choosenim 与 stable 工具链） | 安装器最新；stable 随安装日 | [nim-lang.org](https://nim-lang.org) choosenim 官方安装器 → /opt/nim |
 | vcpkg | `--depth 1` 未钉 | [microsoft/vcpkg](https://github.com/microsoft/vcpkg) GitHub 直下 |
 | vcpkg：openssl | `VCPKG_PKGS` 集，源码编译 | vcpkg（GitHub 直下） |
 | vcpkg：zlib | 同上 | vcpkg |
@@ -138,6 +139,7 @@
 | chdb（python 库） | 未钉 | PyPI（tuna），`/opt/analytics` |
 | duckdb（python 库） | 未钉 | [duckdb/duckdb](https://github.com/duckdb/duckdb)（PyPI 经 tuna），`/opt/analytics` |
 | duckdb（CLI） | release latest | [duckdb/duckdb](https://github.com/duckdb/duckdb) releases |
+| clickhouse | 官方安装脚本最新（单二进制，用法 `clickhouse local`） | [clickhouse.com](https://clickhouse.com) 官方 `curl \| sh` 安装器（`CLICKHOUSE_ONLY=1`） → /usr/local/bin/clickhouse |
 | php7.4-cli | sury 随源 | sury 源（南大镜像） |
 | php7.4-dev | sury 随源 | sury 源（南大镜像） |
 | php8.1-cli | sury 随源 | sury 源（南大镜像） |
@@ -201,6 +203,7 @@
 | fd | noble 随源（`fd-find` 链 `fd`） | Ubuntu noble 源（tuna） |
 | ripgrep | noble 随源 | Ubuntu noble 源（tuna） |
 | ast-grep | cargo 未钉 | [ast-grep/ast-grep](https://github.com/ast-grep/ast-grep)（tuna crates） |
+| fff-mcp | cargo git 源未钉，`--locked` | [dmtrKovalenko/fff](https://github.com/dmtrKovalenko/fff)（crates.io 无包走 git 源；智能体文件搜索 MCP server） |
 
 ## 图形与远程屏幕
 
@@ -248,10 +251,10 @@
 | oletools | 未钉 | [decalage2/oletools](https://github.com/decalage2/oletools)（PyPI 经 tuna） |
 | pdfid | `--depth 1` 未钉 | [DidierStevens 工具集](https://blog.didierstevens.com)（[DidierStevens/DidierStevensSuite](https://github.com/DidierStevens/DidierStevensSuite)） |
 | pdf-parser | `--depth 1` 未钉 | DidierStevens 工具集 |
-| COFFLoader（COFFLoader64.exe） | `--depth 1` 未钉 | [trustedsec/COFFLoader](https://github.com/trustedsec/COFFLoader)（mingw 交叉编译） |
-| atomic-bofs | `--depth 1` 未钉 | [rasta-mouse/atomic-bofs](https://github.com/rasta-mouse/atomic-bofs) |
+| COFFLoader（COFFLoader64.exe） | `--depth 1` 未钉 | [trustedsec/COFFLoader](https://github.com/trustedsec/COFFLoader)（mingw 交叉编译） → /opt/payload-ref/loaders/inproc/COFFLoader |
+| atomic-bofs | `--depth 1` 未钉 | [rasta-mouse/atomic-bofs](https://github.com/rasta-mouse/atomic-bofs) → /opt/tradecraft-ref/bof/atomic-bofs |
 | coffee-ldr | cargo nightly | [hakaioffsec/coffee](https://github.com/hakaioffsec/coffee) |
-| bof-launcher | `--depth 1` 未钉 | [The-Z-Labs/bof-launcher](https://github.com/The-Z-Labs/bof-launcher)（zig 0.15.2 构建） |
+| bof-launcher | `--depth 1` 未钉 | [The-Z-Labs/bof-launcher](https://github.com/The-Z-Labs/bof-launcher)（zig 0.15.2 构建，二进制装 /usr/local/bin） → /opt/payload-ref/loaders/inproc/bof-launcher |
 
 ## 安全测试
 
@@ -272,6 +275,7 @@
 | netexec | 未钉 | [Pennyw0rth/NetExec](https://github.com/Pennyw0rth/NetExec)（PyPI 经 tuna，缺包退回 git） |
 | rustscan | cargo 未钉 | [rustscan/rustscan](https://github.com/rustscan/rustscan)（tuna crates） |
 | feroxbuster | cargo 未钉 | [epi052/feroxbuster](https://github.com/epi052/feroxbuster)（tuna crates） |
+| RustHound-CE | `--depth 1` 未钉，cargo build --release --locked | [g0h4n/RustHound-CE](https://github.com/g0h4n/RustHound-CE)（crates.io 无包，源码构建） → /opt/tradecraft-ref/ad/RustHound-CE，二进制 /usr/local/bin/rusthound-ce |
 | SecLists 词表 | `--depth 1` 未钉 | [danielmiessler/SecLists](https://github.com/danielmiessler/SecLists) |
 | capa-rules | `--depth 1` 未钉 | [mandiant/capa-rules](https://github.com/mandiant/capa-rules) |
 | yara 规则（Yara-Rules/rules） | `--depth 1` 未钉 | [Yara-Rules/rules](https://github.com/Yara-Rules/rules) |
@@ -344,15 +348,60 @@
 
 | 软件 | 版本 | 来源 |
 |------|------|------|
-| sliver | `--depth 1` 未钉 | [bishopfox/sliver](https://github.com/bishopfox/sliver) → /opt/c2-ref/sliver |
-| merlin | `--depth 1` 未钉 | [Ne0nd0g/merlin](https://github.com/Ne0nd0g/merlin) → /opt/c2-ref/merlin |
-| Empire | `--depth 1` 未钉 | [BC-SECURITY/Empire](https://github.com/BC-SECURITY/Empire) → /opt/c2-ref/Empire |
-| Covenant | `--depth 1` 未钉 | [cobbr/Covenant](https://github.com/cobbr/Covenant) → /opt/c2-ref/Covenant |
-| ysoserial | `--depth 1` 未钉 | [frohoff/ysoserial](https://github.com/frohoff/ysoserial) → /opt/c2-ref/ysoserial |
-| ysoserial.net | `--depth 1` 未钉 | [pwntester/ysoserial.net](https://github.com/pwntester/ysoserial.net) → /opt/c2-ref/ysoserial.net |
+| sliver | `--depth 1` 未钉 | [bishopfox/sliver](https://github.com/bishopfox/sliver) → /opt/c2dev-ref/sliver |
+| merlin | `--depth 1` 未钉 | [Ne0nd0g/merlin](https://github.com/Ne0nd0g/merlin) → /opt/c2dev-ref/merlin |
+| Empire | `--depth 1` 未钉 | [BC-SECURITY/Empire](https://github.com/BC-SECURITY/Empire) → /opt/c2dev-ref/Empire |
+| Covenant | `--depth 1` 未钉 | [cobbr/Covenant](https://github.com/cobbr/Covenant) → /opt/c2dev-ref/Covenant |
+| mythic | `--depth 1` 未钉 | [its-a-feature/mythic](https://github.com/its-a-feature/mythic) → /opt/c2dev-ref/mythic |
+| SILENTTRINITY | `--depth 1` 未钉 | [byt3bl33d3r/SILENTTRINITY](https://github.com/byt3bl33d3r/SILENTTRINITY) → /opt/c2dev-ref/SILENTTRINITY |
 | sandbox-attacksurface-analysis-tools | `--depth 1` 未钉 | [googleprojectzero/sandbox-attacksurface-analysis-tools](https://github.com/googleprojectzero/sandbox-attacksurface-analysis-tools) → /opt/pz-sandbox-tools |
 | DotNetToJScript | `--depth 1` 未钉 | [tyranid/DotNetToJScript](https://github.com/tyranid/DotNetToJScript) → /opt/DotNetToJScript |
 | windows-logical-eop-workshop | `--depth 1` 未钉 | [tyranid/windows-logical-eop-workshop](https://github.com/tyranid/windows-logical-eop-workshop) → /opt/windows-logical-eop-workshop |
 | oleviewdotnet | 全克隆含子模块 | [tyranid/oleviewdotnet](https://github.com/tyranid/oleviewdotnet) → /opt/oleviewdotnet |
-| BOF-CATALOG.md | main raw | [chryzsh/awesome-bof](https://github.com/chryzsh/awesome-bof) → /opt/bofs/BOF-CATALOG.md |
+| BOF-CATALOG.md | main raw | [chryzsh/awesome-bof](https://github.com/chryzsh/awesome-bof) → /opt/tradecraft-ref/bof/BOF-CATALOG.md |
+| mac-tracker | `--depth 1` 未钉 | [runZeroInc/mac-tracker](https://github.com/runZeroInc/mac-tracker) → /opt/recon-ref/mac-tracker |
+| recog | `--depth 1` 未钉 | [rapid7/recog](https://github.com/rapid7/recog) → /opt/recon-ref/recog |
+| hickory-dns | `--depth 1` 未钉 | [hickory-dns/hickory-dns](https://github.com/hickory-dns/hickory-dns) → /opt/recon-ref/hickory-dns |
+
+## 载荷与开发模板参考（maldev 组，只克隆不编译）
+
+按 grok 评审裁定的工件角色轴归档：`/opt/payload-ref`（generators 产物是字节或变形二进制 / loaders 产物是执行字节的进程 / evasion 是往 loader 贴的原语 / curricula 教材架按语言分叶 / analysis 防御向）与 `/opt/tradecraft-ref`（产物是上线后的操作员动作，ad/opsec 分叶）。有编译产物的仓由对应组装：COFFLoader、bof-launcher 源码在 payload-ref/loaders/inproc/（bof 组，见逆向分析），RustHound-CE 源码在 tradecraft-ref/ad（secrust 组，见安全测试），atomic-bofs 与 BOF-CATALOG.md 在 tradecraft-ref/bof（bof 组，见逆向分析与参考克隆）。
+
+| 软件 | 版本 | 来源 |
+|------|------|------|
+| Black-Hat-Zig | `--depth 1` 未钉 | [CX330Blake/Black-Hat-Zig](https://github.com/CX330Blake/Black-Hat-Zig) → /opt/payload-ref/curricula/zig/Black-Hat-Zig |
+| OffensiveZig | `--depth 1` 未钉 | [darkr4y/OffensiveZig](https://github.com/darkr4y/OffensiveZig) → /opt/payload-ref/curricula/zig/OffensiveZig |
+| OffensiveRust | `--depth 1` 未钉 | [trickster0/OffensiveRust](https://github.com/trickster0/OffensiveRust) → /opt/payload-ref/curricula/rust/OffensiveRust |
+| black-hat-rust | `--depth 1` 未钉 | [skerkour/black-hat-rust](https://github.com/skerkour/black-hat-rust) → /opt/payload-ref/curricula/rust/black-hat-rust |
+| OffensiveNim | `--depth 1` 未钉 | [byt3bl33d3r/OffensiveNim](https://github.com/byt3bl33d3r/OffensiveNim) → /opt/payload-ref/curricula/nim/OffensiveNim |
+| OffensiveGo | `--depth 1` 未钉 | [Enelg52/OffensiveGo](https://github.com/Enelg52/OffensiveGo) → /opt/payload-ref/curricula/go/OffensiveGo |
+| IsWebClientRunning-rs | `--depth 1` 未钉 | [g0h4n/IsWebClientRunning-rs](https://github.com/g0h4n/IsWebClientRunning-rs) → /opt/tradecraft-ref/ad/IsWebClientRunning-rs |
+| HasSession-rs | `--depth 1` 未钉 | [g0h4n/HasSession-rs](https://github.com/g0h4n/HasSession-rs) → /opt/tradecraft-ref/ad/HasSession-rs |
+| LocalGroups-rs | `--depth 1` 未钉 | [g0h4n/LocalGroups-rs](https://github.com/g0h4n/LocalGroups-rs) → /opt/tradecraft-ref/ad/LocalGroups-rs |
+| PassTheCert-rs | `--depth 1` 未钉 | [g0h4n/PassTheCert-rs](https://github.com/g0h4n/PassTheCert-rs) → /opt/tradecraft-ref/ad/PassTheCert-rs |
+| dcerpc | `--depth 1` 未钉 | [icedracon/dcerpc](https://github.com/icedracon/dcerpc) → /opt/tradecraft-ref/ad/dcerpc |
+| adhammer | `--depth 1` 未钉 | [icedracon/adhammer](https://github.com/icedracon/adhammer) → /opt/tradecraft-ref/ad/adhammer |
+| dende-rs | `--depth 1` 未钉 | [g0h4n/dende-rs](https://github.com/g0h4n/dende-rs) → /opt/tradecraft-ref/opsec/dende-rs |
+| gonut | `--depth 1` 未钉 | [wabzsy/gonut](https://github.com/wabzsy/gonut) → /opt/payload-ref/generators/pe-to-shellcode/gonut |
+| Donut-CustomHost | `--depth 1` 未钉 | [Zuigetzu/Donut-CustomHost](https://github.com/Zuigetzu/Donut-CustomHost) → /opt/payload-ref/generators/pe-to-shellcode/Donut-CustomHost |
+| donutCS | `--depth 1` 未钉 | [n1xbyte/donutCS](https://github.com/n1xbyte/donutCS) → /opt/payload-ref/generators/pe-to-shellcode/donutCS |
+| go-donut | `--depth 1` 未钉 | [Binject/go-donut](https://github.com/Binject/go-donut) → /opt/payload-ref/generators/pe-to-shellcode/go-donut |
+| sRDI | `--depth 1` 未钉 | [monoxgas/sRDI](https://github.com/monoxgas/sRDI) → /opt/payload-ref/generators/pe-to-shellcode/sRDI |
+| pe_to_shellcode | `--depth 1` 未钉 | [hasherezade/pe_to_shellcode](https://github.com/hasherezade/pe_to_shellcode) → /opt/payload-ref/generators/pe-to-shellcode/pe_to_shellcode |
+| PEzor | `--depth 1` 未钉 | [phra/PEzor](https://github.com/phra/PEzor) → /opt/payload-ref/generators/pe-to-shellcode/PEzor |
+| ysoserial | `--depth 1` 未钉 | [frohoff/ysoserial](https://github.com/frohoff/ysoserial) → /opt/payload-ref/generators/deserialization/ysoserial |
+| ysoserial.net | `--depth 1` 未钉 | [pwntester/ysoserial.net](https://github.com/pwntester/ysoserial.net) → /opt/payload-ref/generators/deserialization/ysoserial.net |
+| donloader | `--depth 1` 未钉 | [blinkenl1ghts/donloader](https://github.com/blinkenl1ghts/donloader) → /opt/payload-ref/loaders/droppers/donloader |
+| ScareCrow | `--depth 1` 未钉 | [optiv/ScareCrow](https://github.com/optiv/ScareCrow) → /opt/payload-ref/loaders/droppers/ScareCrow |
+| BokuLoader | `--depth 1` 未钉 | [boku7/BokuLoader](https://github.com/boku7/BokuLoader) → /opt/payload-ref/loaders/droppers/BokuLoader |
+| TitanLdr | `--depth 1` 未钉 | [benheise/TitanLdr](https://github.com/benheise/TitanLdr) → /opt/payload-ref/loaders/droppers/TitanLdr |
+| DripLoader | `--depth 1` 未钉 | [xuanxuan0/DripLoader](https://github.com/xuanxuan0/DripLoader) → /opt/payload-ref/loaders/droppers/DripLoader |
+| Shhhloader | `--depth 1` 未钉 | [icyguider/Shhhloader](https://github.com/icyguider/Shhhloader) → /opt/payload-ref/loaders/droppers/Shhhloader |
+| No-Consolation | `--depth 1` 未钉 | [fortra/No-Consolation](https://github.com/fortra/No-Consolation) → /opt/payload-ref/loaders/inproc/No-Consolation |
+| MemoryModule | `--depth 1` 未钉 | [fancycode/MemoryModule](https://github.com/fancycode/MemoryModule) → /opt/payload-ref/loaders/inproc/MemoryModule |
+| Blackbone | `--depth 1` 未钉 | [DarthTon/Blackbone](https://github.com/DarthTon/Blackbone) → /opt/payload-ref/loaders/inproc/Blackbone |
+| ShellcodeFluctuation | `--depth 1` 未钉 | [mgeeky/ShellcodeFluctuation](https://github.com/mgeeky/ShellcodeFluctuation) → /opt/payload-ref/evasion/ShellcodeFluctuation |
+| donut-decryptor | `--depth 1` 未钉 | [volexity/donut-decryptor](https://github.com/volexity/donut-decryptor) → /opt/payload-ref/analysis/donut-decryptor |
+| Crystal Palace（cpsrc+cpdist，PIC 链接器） | latest tgz 未钉 | [tradecraftgarden.org](https://tradecraftgarden.org) 官网 tgz（无 Git 仓） → /opt/payload-ref/evasion/crystal-palace |
+| Tradecraft Garden（tgsrc，能力加载器集） | latest tgz 未钉 | [tradecraftgarden.org](https://tradecraftgarden.org) 官网 tgz（无 Git 仓） → /opt/payload-ref/loaders/tradecraft-garden |
 

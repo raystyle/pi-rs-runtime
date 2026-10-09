@@ -1,319 +1,45 @@
-# 安装面清单
-
-本册按「脚本 → 组」分节列出三个分类脚本（外加库缓存脚本）的全部安装面：每组一张「项目|版本|官方来源」小表，表后代码块是脚本实际执行命令。运行步骤见 [README](../README.md)；参数取值见 [参数表](params.md)；装完后的全景归档见 [软件清单](software-inventory.md)。
-
-## 分类与清单入口
-
-三个分类脚本末尾各有 `*_ALL` 名单，`run_category` 校验入参；不传参数装全部，传入选项只装对应函数，未知项直接退出：
-
-- `install-compilers.sh`:`COMPILERS_ALL=(c golang rust zig vcpkg)`
-- `install-runtimes.sh`:`RUNTIMES_ALL=(node fnm bun uv python python2 duckdb php mono dotnet pwsh sdkman)`
-- `install-tools.sh`:`TOOLS_ALL=(fd astgrep cli herdr ghidra re pd secgo secrust pivot p0 c2 bof pz nu pentest red)`
-- `install-libcache.sh`:`LIBCACHE_ALL=(go rust python node java pwsh dotnet zig)`(八生态库缓存固化,独立分类)
-
-
-安装面事实（按代码）。下文按「脚本 → 组」分节，每组一张三列小表（项目、版本、官方来源），表后 bash 代码块是脚本实际执行命令的摘录，省略 `have && skip` 幂等判断；`${变量}` 均为 `lib/common.sh` 的镜像源或版本钉，可用环境变量覆盖。
-
-## 编译器（`install-compilers.sh`）
-
-组列中文名与脚本键对照：C 工具链=`c`、Go 语言工具链=`golang`、Rust 工具链=`rust`、Zig 编译器=`zig`、C/C++ 包管理器=`vcpkg`。
-
-### C 工具链（`c`）
-
-| 项目 | 版本 | 官方来源 |
-|------|------|----------|
-| build-essential、clang、lldb、gdb、cmake、ninja-build、pkg-config、autoconf、automake、libtool、m4、clang-format、clang-tidy、valgrind、strace、ltrace、ccache、musl-tools、zlib1g-dev、libssl-dev、libffi-dev | noble 随源 | Ubuntu noble 源（tuna 镜像） |
-| FASM | 1.73.32（`FASM_VERSION`） | [flatassembler.net](https://flatassembler.net) |
-
-```bash
-# build-essential 等 21 包
-apt-get install -y --no-install-recommends build-essential clang lldb gdb cmake ninja-build pkg-config autoconf automake libtool m4 clang-format clang-tidy valgrind strace ltrace ccache musl-tools zlib1g-dev libssl-dev libffi-dev
-# FASM:解到 /opt/fasm 并链接
-curl -fSL https://flatassembler.net/fasm-${FASM_VERSION}.tgz
-ln -sf /opt/fasm/fasm/fasm.x64 /usr/local/bin/fasm
-```
-
-### Go 语言工具链（`golang`）
-
-| 项目 | 版本 | 官方来源 |
-|------|------|----------|
-| Go 工具链 | 1.27.1（`GOLANG_VERSION`） | [go.dev/dl](https://go.dev/dl/)（发行包经南大镜像 `GO_DOWNLOAD`） |
-| dlv、gopls、golangci-lint | `@latest` 未钉 | [go-delve/delve](https://github.com/go-delve/delve)、golang.org/x-tools、[golangci/golangci-lint](https://github.com/golangci/golangci-lint) |
-| 跳板/代理库预热（goproxy、smux、yamux、quic-go、net/proxy、go-socks5 等 6 库） | `go mod tidy` 取最新 | 各库官方仓（经 `GOPROXY`） |
-
-```bash
-# Go 工具链:sha256 取 https://golang.google.cn/dl/?mode=json 校验
-curl -fSL ${GO_DOWNLOAD}/go1.27.1.linux-amd64.tar.gz
-tar -C /usr/local -xzf
-go env -w GOPROXY=${GOPROXY} GOSUMDB=${GOSUMDB}
-# dlv、gopls、golangci-lint:装完链到 /usr/local/bin
-go install github.com/go-delve/delve/cmd/dlv@latest
-go install golang.org/x/tools/gopls@latest
-go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-# 跳板/代理库预热:临时 module 写依赖后执行,进模块缓存
-GOFLAGS=-mod=mod go mod tidy && go build ./...
-```
-
-### Rust 工具链（`rust`）
-
-| 项目 | 版本 | 官方来源 |
-|------|------|----------|
-| rustup、stable toolchain | 随源最新 | [rustup.rs](https://rustup.rs)（经 tuna `RUSTUP_UPDATE_ROOT`） |
-| llvm-tools、rustfmt、clippy、rust-analyzer | 随工具链 | [rust-lang.org](https://www.rust-lang.org)（经 tuna） |
-| nightly toolchain | 随源最新 | rust-lang.org（经 tuna） |
-| rust-script、cargo-zigbuild、cargo-audit | cargo 未钉 | [rust-lang/rust-script](https://github.com/rust-lang/rust-script)、[rust-cross/cargo-zigbuild](https://github.com/rust-cross/cargo-zigbuild)、[rustsec/rustsec](https://github.com/rustsec/rustsec)（cargo-audit） |
-| 件 crate 生态预热（ureq、tokio、rustls、regex 等 29 个） | `cargo fetch` 取最新 | crates.io（经 tuna sparse） |
-
-```bash
-# rustup、stable toolchain:RUSTUP_HOME=/opt/rustup、CARGO_HOME=/opt/cargo
-curl -fSL ${RUSTUP_UPDATE_ROOT}/dist/x86_64-unknown-linux-gnu/rustup-init
-./rustup-init -y --default-toolchain stable --profile minimal
-# llvm-tools、rustfmt、clippy、rust-analyzer:rust-lld 链到 /usr/local/bin
-rustup component add llvm-tools rustfmt clippy rust-analyzer
-# nightly toolchain:BOF 组 coffee-ldr 构建用
-rustup toolchain install nightly --profile minimal
-# rust-script、cargo-zigbuild、cargo-audit:crates 索引指 tuna sparse
-cargo install rust-script --locked
-cargo install cargo-zigbuild --locked
-cargo install cargo-audit --locked
-# 件 crate 生态预热:临时 crate 写 Cargo.toml 依赖后执行,进 registry 缓存
-cargo fetch --quiet
-```
-
-### Zig 编译器（`zig`）
-
-| 项目 | 版本 | 官方来源 |
-|------|------|----------|
-| zig | 0.16.0（`ZIG_VERSION`）；0.15.2 副本供 BOF 工具链 | [ziglang.org/download](https://ziglang.org/download/) |
-
-```bash
-# zig
-curl -fSL https://ziglang.org/download/${ZIG_VERSION}/zig-x86_64-linux-${ZIG_VERSION}.tar.xz
-tar -C /opt/zig -xJf --strip-components=1
-ln -sf /opt/zig/zig /usr/local/bin/zig
-```
-
-### C/C++ 包管理器（`vcpkg`）
-
-| 项目 | 版本 | 官方来源 |
-|------|------|----------|
-| vcpkg 本体与 12 库（`VCPKG_PKGS`） | `--depth 1` 未钉 | [microsoft/vcpkg](https://github.com/microsoft/vcpkg) |
-
-```bash
-# vcpkg 本体与 12 库
-apt-get install flex bison
-git clone --depth 1 https://github.com/microsoft/vcpkg /opt/vcpkg
-./bootstrap-vcpkg.sh -disableMetrics
-vcpkg install openssl zlib curl sqlite3 libpcap fmt spdlog nlohmann-json rapidjson cpp-httplib mbedtls yara
-```
-
-## 运行时（`install-runtimes.sh`）
-
-组列中文名与脚本键对照：Node.js 运行时=`node`、Node 版本管理器=`fnm`、Bun 运行时=`bun`、Python 包管理器=`uv`、Python 3 运行时=`python`、Python 2 运行时=`python2`、DuckDB 分析引擎=`duckdb`、PHP 运行时=`php`、Mono 运行时=`mono`、.NET 运行时=`dotnet`、PowerShell=`pwsh`、Java 工具链管理器=`sdkman`。
-
-### Node.js 运行时（`node`）
-
-| 项目 | 版本 | 官方来源 |
-|------|------|----------|
-| node、npm、npx | 24.21.0（`NODE_VERSION`） | [nodejs.org](https://nodejs.org) 二进制（npmmirror `NODE_MIRROR`，`SHASUMS256.txt` 校验） |
-| 全局 npmrc（registry、disturl、electron_mirror） | — | npmmirror |
-| typescript、prettier、eslint | npm 全局未钉 | [npmjs.com](https://www.npmjs.com)（npmmirror） |
-| corepack（pnpm、yarn） | 随 node | [nodejs.org](https://nodejs.org) 自带 |
-| dotnetjs | npm 全局未钉 | [pseudocc/dotnetjs](https://github.com/pseudocc/dotnetjs)（npmmirror） |
-
-```bash
-# node、npm、npx:node、npm、npx 链到 /usr/local/bin
-curl -fSL ${NODE_MIRROR}/v24.21.0/node-v24.21.0-linux-x64.tar.xz
-sha256sum -c
-tar -C /opt/node -xJf --strip-components=1
-# 全局 npmrc:直写 /opt/node/etc/npmrc 的 disturl=https://npmmirror.com/mirrors/node、electron_mirror=https://npmmirror.com/mirrors/electron/
-npm config set --location=global registry ${NPM_REGISTRY}
-# typescript、prettier、eslint:tsc、tsserver、prettier、eslint 链到 /usr/local/bin
-npm install -g typescript
-npm install -g prettier eslint
-# corepack(pnpm、yarn)
-COREPACK_NPM_REGISTRY=${NPM_REGISTRY} corepack enable
-# dotnetjs
-npm install -g dotnetjs
-```
-
-### Node 版本管理器（`fnm`）
-
-| 项目 | 版本 | 官方来源 |
-|------|------|----------|
-| fnm | cargo 未钉 | [Schniz/fnm](https://github.com/Schniz/fnm)（crates 经 tuna） |
-| node 18、20、22、24 | 大版本内最新（`FNM_NODE_VERSIONS`） | nodejs.org 二进制（npmmirror） |
-
-```bash
-# fnm
-cargo install fnm --locked
-# node 18、20、22、24:20、22、24 与 18 同;profile.d 写 fnm env
-fnm install --node-dist-mirror ${NODE_MIRROR} 18
-fnm default <最新>
-```
-
-### Bun 运行时（`bun`）
-
-| 项目 | 版本 | 官方来源 |
-|------|------|----------|
-| bun、bunx | npm 全局未钉 | [bun.sh](https://bun.sh)（npmmirror） |
-
-```bash
-# bun、bunx:链到 /usr/local/bin;root 与 ubuntu 各写 .bunfig.toml 的 [install] registry = ${NPM_REGISTRY}
-npm install -g bun
-```
-
-### Python 包管理器（`uv`）
-
-| 项目 | 版本 | 官方来源 |
-|------|------|----------|
-| uv | 官方安装器最新 | [astral.sh/uv](https://docs.astral.sh/uv/)（[astral-sh/uv](https://github.com/astral-sh/uv)） |
-
-```bash
-# uv:写 /etc/uv/uv.toml 的 [[index]] url = ${PIP_INDEX}、default = true
-curl -LsSf https://astral.sh/uv/install.sh | sh
-ln -sf ~/.local/bin/uv /usr/local/bin/uv
-```
-
-### Python 3 运行时（`python`）
-
-| 项目 | 版本 | 官方来源 |
-|------|------|----------|
-| python3 及 pip、venv、dev | noble 随源 | [python.org](https://www.python.org)（Ubuntu 打包，tuna） |
-| ruff | uv tool 未钉 | [astral-sh/ruff](https://github.com/astral-sh/ruff) |
-| /opt/analytics venv：polars、pyarrow、chdb | 未钉 | PyPI（tuna） |
-
-```bash
-# python3 及 pip、venv、dev:写 /etc/pip.conf 的 index-url = ${PIP_INDEX};不装任何第三方包
-apt-get install -y --no-install-recommends python3 python3-pip python3-venv python3-dev
-# ruff
-UV_TOOL_BIN_DIR=/usr/local/bin UV_TOOL_DIR=/opt/uv-tools uv tool install ruff
-# /opt/analytics venv(polars、pyarrow、chdb)
-uv venv /opt/analytics
-VIRTUAL_ENV=/opt/analytics uv pip install polars pyarrow chdb
-```
-
-### Python 2 运行时（`python2`）
-
-| 项目 | 版本 | 官方来源 |
-|------|------|----------|
-| python 2.7 | 2.7.18（`PY2_VERSION`），`--enable-shared` | [python.org](https://www.python.org/downloads/release/python-2718/)（源码包经华为云 `PY2_MIRROR`） |
-
-```bash
-# python 2.7
-apt-get install libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev libncursesw5-dev xz-utils libffi-dev
-curl -fSL ${PY2_MIRROR}/2.7.18/Python-2.7.18.tgz
-./configure --prefix=/usr/local --enable-shared && make -j$(nproc) && make altinstall
-```
-
-### DuckDB 分析引擎（`duckdb`）
-
-| 项目 | 版本 | 官方来源 |
-|------|------|----------|
-| duckdb python 绑定 | 未钉 | [duckdb/duckdb](https://github.com/duckdb/duckdb)（PyPI 经 tuna） |
-| duckdb CLI | release latest | [duckdb/duckdb](https://github.com/duckdb/duckdb) releases |
-
-```bash
-# duckdb python 绑定
-VIRTUAL_ENV=/opt/analytics uv pip install -U duckdb
-# duckdb CLI:latest tag 经 api.github.com 取
-curl -fSL https://github.com/duckdb/duckdb/releases/download/<tag>/duckdb_cli-linux-amd64.zip
-install -m755 /usr/local/bin/duckdb
-```
-
-### PHP 运行时（`php`）
-
-| 项目 | 版本 | 官方来源 |
-|------|------|----------|
-| php-cli、php-dev 多版本与 VLD | 7.4、8.1、8.3（`PHP_VERSIONS`） | [php.net](https://www.php.net)（Ondřej Surý 第三方打包，`SURY_MIRROR` 南大镜像；GPG key 从 packages.sury.org 取一次） |
-
-```bash
-# php-cli、php-dev 多版本与 VLD
-apt-get install php${v}-cli php${v}-dev
-apt-get install php-pear
-yes '' | pecl -q -d php_suffix=${v} install vld-beta
-phpenmod -v ${v} vld
-```
-
-### Mono 运行时（`mono`）
-
-| 项目 | 版本 | 官方来源 |
-|------|------|----------|
-| mono-devel、mono-xbuild | noble 随源 | [mono-project.com](https://www.mono-project.com)（Ubuntu 打包，tuna） |
-| nuget.exe | latest | [nuget.org](https://www.nuget.org/downloads) |
-
-```bash
-# mono-devel、mono-xbuild
-apt-get install -y --no-install-recommends mono-devel mono-xbuild
-# nuget.exe
-curl -fSL https://dist.nuget.org/win-x86-commandline/latest/nuget.exe -o /opt/nuget.exe
-```
-
-### .NET 运行时（`dotnet`）
-
-| 项目 | 版本 | 官方来源 |
-|------|------|----------|
-| .NET SDK | dotnet-sdk-10.0（`DOTNET_SDK`） | [dot.net](https://dot.net)（Ubuntu noble 源即 tuna；MS 仓 24.04 起不提供 .NET） |
-
-```bash
-# .NET SDK:root 与 ubuntu 写 NuGet.Config,<clear/> 后只留 ${NUGET_MIRROR}(华为 v3)
-apt-get install -y dotnet-sdk-10.0
-```
-
-### PowerShell（`pwsh`）
-
-| 项目 | 版本 | 官方来源 |
-|------|------|----------|
-| PowerShell | powershell-lts 随仓 | [PowerShell/PowerShell](https://github.com/PowerShell/PowerShell)（packages.microsoft.com，国内无镜像） |
-
-```bash
-# PowerShell:powershell-lts 不可用时退回 powershell
-curl -fSL packages-microsoft-prod.deb && dpkg -i
-apt-get install -y powershell-lts
-```
-
-### Java 工具链管理器（`sdkman`）
-
-| 项目 | 版本 | 官方来源 |
-|------|------|----------|
-| sdkman 本体 | 安装器最新 | [sdkman.io](https://sdkman.io) |
-| temurin JDK 8、11、17、21、25 | 小版本随 tuna 目录取最新（`JAVA_VERSIONS`） | [adoptium.net](https://adoptium.net)（tuna `ADOPTIUM_MIRROR`） |
-| maven | 3.9.16（`MAVEN_VERSION`） | [maven.apache.org](https://maven.apache.org)（发行包经 tuna `MAVEN_MIRROR`） |
-| gradle | 8.14.3（`GRADLE_VERSION`） | [gradle.org](https://gradle.org)（阿里云 distributions 镜像） |
-
-```bash
-# sdkman 本体:config 关 selfupdate、开 auto_env
-curl -fSL https://get.sdkman.io -o sdkman-init.sh
-SDKMAN_DIR=/usr/local/sdkman bash sdkman-init.sh
-# temurin JDK 8、11、17、21、25:tuna 目录取最新 OpenJDK${major}U-jdk_x64_linux_hotspot_*.tar.gz;java、javac 链到 /usr/local/bin
-tar -C /opt/jdk/temurin-<ver> --strip-components=1
-sdk install java <ver>-tem <本地路径>
-sdk default java <最后一个>
-# maven:写 settings.xml mirror 指 ${MAVEN_DEP_MIRROR}(阿里云)
-curl -fSL ${MAVEN_MIRROR}/maven-3/3.9.16/binaries/apache-maven-3.9.16-bin.tar.gz
-tar -C /opt/maven --strip-components=1
-# gradle:root 与 ubuntu 写 .gradle/init.d/mirrors.gradle 指阿里云 public 与 gradle-plugin
-curl -fSL https://mirrors.aliyun.com/gradle/distributions/v8.14.3/gradle-8.14.3-bin.zip
-unzip -d /opt/gradle
-```
-
-## 工具（`install-tools.sh`）
-
-组列中文名与脚本键对照：文件与内容搜索=`fd`、结构化代码搜索=`ast-grep`、基础命令行工具=`cli`、终端工作区管理器=`herdr`、逆向分析套件=`ghidra`、逆向分析稳定链=`re`、攻击面测绘工具集=`pd`、Go 安全工具集=`secgo`、Rust 安全工具集=`secrust`、代理与隧道工具集=`pivot`、安全分析工具集=`p0`、命令与控制框架参考=`c2`、信标对象文件工具链=`bof`、Project Zero 工具参考=`pz`、结构化 Shell=`nu`、渗透测试运行时底线=`pentest`、渗透测试工具增补=`red`。
-
-### 文件与内容搜索（`fd`）
+# 安装面清单 · 工具（`install-tools.sh`）
+
+组列中文名与脚本键对照：文件与内容搜索=`fd`、结构化代码搜索=`astgrep`、基础命令行工具=`cli`、终端工作区管理器=`herdr`、逆向分析套件=`ghidra`、逆向分析稳定链=`re`、攻击面测绘工具集=`pd`、Go 安全工具集=`secgo`、Rust 安全工具集=`secrust`、代理与隧道工具集=`pivot`、安全分析工具集=`p0`、命令与控制框架参考=`c2`、信标对象文件工具链=`bof`、Project Zero 工具参考=`pz`、恶意开发模板库=`maldev`、侦察指纹参考=`recon`、结构化 Shell=`nu`、渗透测试运行时底线=`pentest`、渗透测试工具增补=`red`。返回 [安装面清单索引](index.md)。
+
+## 组目录
+
+- [文件与内容搜索（fd）](#文件与内容搜索fd)
+- [结构化代码搜索（astgrep）](#结构化代码搜索astgrep)
+- [基础命令行工具（cli）](#基础命令行工具cli)
+- [终端工作区管理器（herdr）](#终端工作区管理器herdr)
+- [逆向分析套件（ghidra）](#逆向分析套件ghidra)
+- [逆向分析稳定链（re）](#逆向分析稳定链re)
+- [攻击面测绘工具集（pd）](#攻击面测绘工具集pd)
+- [Go 安全工具集（secgo）](#go-安全工具集secgo)
+- [Rust 安全工具集（secrust）](#rust-安全工具集secrust)
+- [代理与隧道工具集（pivot）](#代理与隧道工具集pivot)
+- [安全分析工具集（p0）](#安全分析工具集p0)
+- [命令与控制框架参考（c2）](#命令与控制框架参考c2)
+- [信标对象文件工具链（bof）](#信标对象文件工具链bof)
+- [Project Zero 工具参考（pz）](#project-zero-工具参考pz)
+- [恶意开发模板库（maldev）](#恶意开发模板库maldev)
+- [侦察指纹参考（recon）](#侦察指纹参考recon)
+- [结构化 Shell（nu）](#结构化-shellnu)
+- [渗透测试运行时底线（pentest）](#渗透测试运行时底线pentest)
+- [渗透测试工具增补（red）](#渗透测试工具增补red)
+
+## 文件与内容搜索（`fd`）
 
 | 项目 | 版本 | 官方来源 |
 |------|------|----------|
 | fd、ripgrep | noble 随源 | [sharkdp/fd](https://github.com/sharkdp/fd)、[BurntSushi/ripgrep](https://github.com/BurntSushi/ripgrep)（Ubuntu 打包，tuna） |
+| fff-mcp | cargo git 源未钉，`--locked` | [dmtrKovalenko/fff](https://github.com/dmtrKovalenko/fff)（crates.io 无包走 git 源；智能体文件搜索 MCP server，常驻索引库非 CLI） |
 
 ```bash
 # fd、ripgrep
 apt-get install -y --no-install-recommends fd-find ripgrep
 ln -sf /usr/bin/fdfind /usr/local/bin/fd
+# fff-mcp:crates.io 无包走 git 源,--locked 失败退不锁;链 /usr/local/bin
+cargo install --git ${GITHUB_MIRROR}https://github.com/dmtrKovalenko/fff fff-mcp --locked
 ```
 
-### 结构化代码搜索（`ast-grep`）
+## 结构化代码搜索（`astgrep`）
 
 | 项目 | 版本 | 官方来源 |
 |------|------|----------|
@@ -325,7 +51,7 @@ cargo install ast-grep --locked
 ln -sf /root/.cargo/bin/sg /usr/local/bin/sg
 ```
 
-### 基础命令行工具（`cli`）
+## 基础命令行工具（`cli`）
 
 | 项目 | 版本 | 官方来源 |
 |------|------|----------|
@@ -346,7 +72,7 @@ go install github.com/cli/cli/v2/cmd/gh@latest
 ln -sf /opt/go/bin/gh /usr/local/bin/gh
 ```
 
-### 终端工作区管理器（`herdr`）
+## 终端工作区管理器（`herdr`）
 
 | 项目 | 版本 | 官方来源 |
 |------|------|----------|
@@ -359,7 +85,7 @@ sha256sum -c
 install -m755 /usr/local/bin/herdr
 ```
 
-### 逆向分析套件（`ghidra`）
+## 逆向分析套件（`ghidra`）
 
 | 项目 | 版本 | 官方来源 |
 |------|------|----------|
@@ -372,18 +98,18 @@ sha256sum -c
 unzip -d /opt/ghidra
 ```
 
-### 逆向分析稳定链（`re`）
+## 逆向分析稳定链（`re`）
 
 | 项目 | 版本 | 官方来源 |
 |------|------|----------|
-| 系统库 20 项（binutils、elfutils、file、bsdmainutils、binwalk、yara、libyara-dev、libzip-dev、libpugixml-dev、libcapstone-dev、capstone-tool、meson、ninja、cmake、pkg-config、gcc、g++、python3、python3-pip、python3-venv、zlib1g-dev） | noble 随源 | 各项目官方站（Ubuntu 打包，tuna） |
+| 系统库 22 项（binutils、elfutils、file、bsdmainutils、binwalk、yara、libyara-dev、libzip-dev、libpugixml-dev、libcapstone-dev、capstone-tool、meson、ninja-build、cmake、pkg-config、git、gcc、g++、python3、python3-pip、python3-venv、zlib1g-dev） | noble 随源 | 各项目官方站（Ubuntu 打包，tuna） |
 | rizin | `--depth 1` 未钉 | [rizin.re](https://rizin.re)（[rizinorg/rizin](https://github.com/rizinorg/rizin)） |
 | rz-ghidra | `--depth 1` 未钉（子模块钉 ghidra ref） | [rizinorg/rz-ghidra](https://github.com/rizinorg/rz-ghidra) |
 | sigdb | `--depth 1` 未钉 | [rizinorg/sigdb](https://github.com/rizinorg/sigdb) |
 | /opt/re-venv 五库（capstone、keystone-engine、unicorn、lief、yara-python） | 未钉 | PyPI（tuna） |
 
 ```bash
-# 系统库 20 项
+# 系统库 22 项
 apt-get install -y --no-install-recommends binutils elfutils file bsdmainutils binwalk yara libyara-dev libzip-dev libpugixml-dev libcapstone-dev capstone-tool meson ninja-build cmake pkg-config git gcc g++ python3 python3-pip python3-venv zlib1g-dev
 # rizin
 git clone --depth 1 ${GITHUB_MIRROR}https://github.com/rizinorg/rizin /tmp/rizin
@@ -402,7 +128,7 @@ uv venv /opt/re-venv
 VIRTUAL_ENV=/opt/re-venv uv pip install capstone keystone-engine unicorn lief yara-python
 ```
 
-### 攻击面测绘工具集（`pd`）
+## 攻击面测绘工具集（`pd`）
 
 | 项目 | 版本 | 官方来源 |
 |------|------|----------|
@@ -467,7 +193,7 @@ go install github.com/projectdiscovery/shuffledns/cmd/shuffledns@${PD_VERSION}
 go install github.com/projectdiscovery/pdtm/cmd/pdtm@${PD_VERSION}
 ```
 
-### Go 安全工具集（`secgo`）
+## Go 安全工具集（`secgo`）
 
 | 项目 | 版本 | 官方来源 |
 |------|------|----------|
@@ -485,6 +211,9 @@ go install github.com/projectdiscovery/pdtm/cmd/pdtm@${PD_VERSION}
 | gospider | `@${SECGO_VERSION}`（默认 latest） | [jaeles-project/gospider](https://github.com/jaeles-project/gospider)（goproxy.cn） |
 | gowitness | `@${SECGO_VERSION}`（默认 latest） | [sensepost/gowitness](https://github.com/sensepost/gowitness)（goproxy.cn） |
 | azurehound | `@${SECGO_VERSION}`（默认 latest） | [BloodHoundAD/AzureHound](https://github.com/BloodHoundAD/AzureHound)（goproxy.cn） |
+| nerva | `@${SECGO_VERSION}`（默认 latest） | [praetorian-inc/nerva](https://github.com/praetorian-inc/nerva)（goproxy.cn） |
+| brutus | `@${SECGO_VERSION}`（默认 latest） | [praetorian-inc/brutus](https://github.com/praetorian-inc/brutus)（goproxy.cn） |
+| aurelian | `@${SECGO_VERSION}`（默认 latest） | [praetorian-inc/aurelian](https://github.com/praetorian-inc/aurelian)（goproxy.cn） |
 
 ```bash
 # ffuf
@@ -515,23 +244,34 @@ go install github.com/jaeles-project/gospider/gospider@${SECGO_VERSION:-latest}
 go install github.com/sensepost/gowitness/gowitness@${SECGO_VERSION:-latest}
 # azurehound
 go install github.com/BloodHoundAD/AzureHound/azurehound/v2@${SECGO_VERSION:-latest}
+# nerva
+go install github.com/praetorian-inc/nerva@${SECGO_VERSION:-latest}
+# brutus
+go install github.com/praetorian-inc/brutus@${SECGO_VERSION:-latest}
+# aurelian
+go install github.com/praetorian-inc/aurelian@${SECGO_VERSION:-latest}
 ```
 
-### Rust 安全工具集（`secrust`）
+## Rust 安全工具集（`secrust`）
 
 | 项目 | 版本 | 官方来源 |
 |------|------|----------|
 | rustscan | cargo 未钉 | [rustscan/rustscan](https://github.com/rustscan/rustscan)（crates 经 tuna） |
 | feroxbuster | cargo 未钉 | [epi052/feroxbuster](https://github.com/epi052/feroxbuster)（crates 经 tuna） |
+| RustHound-CE | `--depth 1` 未钉，`cargo build --release --locked` | [g0h4n/RustHound-CE](https://github.com/g0h4n/RustHound-CE)（crates.io 无包；源码归档 /opt/tradecraft-ref/ad/RustHound-CE，二进制装 /usr/local/bin/rusthound-ce） |
 
 ```bash
 # rustscan
 cargo install rustscan --locked
 # feroxbuster
 cargo install feroxbuster --locked
+# RustHound-CE:BloodHound CE 采集器(Linux 直跑);源码归档 tradecraft-ref/ad,构建后二进制装 /usr/local/bin
+git clone --depth 1 ${GITHUB_MIRROR}https://github.com/g0h4n/RustHound-CE /opt/tradecraft-ref/ad/RustHound-CE
+cargo build --release --locked
+install -m755 target/release/rusthound-ce /usr/local/bin/rusthound-ce
 ```
 
-### 代理与隧道工具集（`pivot`）
+## 代理与隧道工具集（`pivot`）
 
 | 项目 | 版本 | 官方来源 |
 |------|------|----------|
@@ -556,25 +296,49 @@ cargo install --git …/rathole-org/rathole
 cargo install bore-cli --locked
 ```
 
-### 安全分析工具集（`p0`）
+## 安全分析工具集（`p0`）
 
-| 项目 | 版本 | 官方来源 |
-|------|------|----------|
-| apt 21 包（gdb-multiarch、qemu-user-static、python3-pwntools、python3-ropgadget、checksec、patchelf、xxd、squashfs-tools、nmap、sqlmap、tcpdump、tshark、mitmproxy、python3-scapy、upx-ucl、7zip、libimage-exiftool-perl、ssdeep、python3-impacket、john、hashid） | noble 随源 | pwntools.com、nmap.org、sqlmap.org、wireshark.org、mitmproxy.org、scapy.net、upx.github.io、7-zip.org、exiftool.org、openwall.com 等（Ubuntu 打包，tuna） |
-| nasm（含 ndisasm） | 3.02（`NASM_VERSION`），源码编译 | [nasm.us](https://www.nasm.us/)（无国内镜像，包小直连；apt 版停 2.16.01） |
-| flare-floss、oletools | 未钉 | [mandiant/flare-floss](https://github.com/mandiant/flare-floss)、[decalage2/oletools](https://github.com/decalage2/oletools)（PyPI 经 tuna） |
-| netexec | 未钉 | [Pennyw0rth/NetExec](https://github.com/Pennyw0rth/NetExec) |
-| pwndbg | git 源未钉 | [pwndbg/pwndbg](https://github.com/pwndbg/pwndbg) |
-| jadx | 1.5.3（`JADX_VERSION`） | [skylot/jadx](https://github.com/skylot/jadx) releases |
-| apktool | 2.12.0（`APKTOOL_VERSION`） | [apktool.org](https://apktool.org)（[iBotPeaches/Apktool](https://github.com/iBotPeaches/Apktool)） |
-| capa | 9.4.0（`CAPA_VERSION`） | [mandiant/capa](https://github.com/mandiant/capa) releases |
-| capa-rules | `--depth 1` 未钉 | [mandiant/capa-rules](https://github.com/mandiant/capa-rules) |
-| SecLists 词表 | `--depth 1` 未钉 | [danielmiessler/SecLists](https://github.com/danielmiessler/SecLists) |
-| yara 规则（Yara-Rules/rules） | `--depth 1` 未钉 | [Yara-Rules/rules](https://github.com/Yara-Rules/rules) |
-| pdfid、pdf-parser | `--depth 1` 未钉 | [DidierStevens 工具集](https://blog.didierstevens.com)（[DidierStevens/DidierStevensSuite](https://github.com/DidierStevens/DidierStevensSuite)） |
+apt 批在脚本里是整批一条命令执行（批失败不退出，pip 批与 GitHub 批与 apt 包相互独立），下表逐项拆解；nasm 不在 apt 批内，走官网源码钉版。
+
+| 项目 | 版本 | 官方来源 | 用途 |
+|------|------|----------|------|
+| gdb-multiarch | noble 随源 | [sourceware.org/gdb](https://www.sourceware.org/gdb/)（Ubuntu 打包，tuna） | 多架构程序调试 |
+| qemu-user-static | noble 随源 | [qemu.org](https://www.qemu.org)（Ubuntu 打包，tuna） | 用户态异架构 ELF 模拟执行（配 binfmt） |
+| python3-pwntools | noble 随源 | [pwntools.com](https://pwntools.com)（Ubuntu 打包，tuna；只走 apt 不装 pip 版） | CTF/pwn 漏洞利用开发框架 |
+| python3-ropgadget | noble 随源 | [JonathanSalwan/ROPgadget](https://github.com/JonathanSalwan/ROPgadget)（Ubuntu 打包，tuna） | ROP gadget 搜索 |
+| checksec | noble 随源 | [slimm609/checksec.sh](https://github.com/slimm609/checksec.sh)（Ubuntu 打包，tuna） | 二进制保护属性检查（NX/PIE/Canary/RELRO） |
+| patchelf | noble 随源 | [NixOS/patchelf](https://github.com/NixOS/patchelf)（Ubuntu 打包，tuna） | 改写 ELF 解释器与 RPATH |
+| xxd | noble 随源 | [vim.org](https://www.vim.org)（Ubuntu 打包，tuna） | 十六进制转储与回写 |
+| squashfs-tools | noble 随源 | [plougher/squashfs-tools](https://github.com/plougher/squashfs-tools)（Ubuntu 打包，tuna） | SquashFS 固件镜像解包与重打包 |
+| nmap | noble 随源 | [nmap.org](https://nmap.org)（Ubuntu 打包，tuna） | 端口扫描与服务识别 |
+| sqlmap | noble 随源 | [sqlmap.org](https://sqlmap.org)（Ubuntu 打包，tuna） | SQL 注入自动检测与利用 |
+| tcpdump | noble 随源 | [tcpdump.org](https://www.tcpdump.org)（Ubuntu 打包，tuna） | 命令行抓包 |
+| tshark | noble 随源 | [wireshark.org](https://www.wireshark.org)（Ubuntu 打包，tuna） | Wireshark 命令行抓包与协议解析 |
+| mitmproxy | noble 随源 | [mitmproxy.org](https://mitmproxy.org)（Ubuntu 打包，tuna） | HTTP/HTTPS 中间人代理 |
+| python3-scapy | noble 随源 | [scapy.net](https://scapy.net)（Ubuntu 打包，tuna） | 数据包构造与嗅探库 |
+| upx-ucl | noble 随源 | [upx.github.io](https://upx.github.io)（Ubuntu 打包，tuna） | 可执行文件加壳与脱壳 |
+| 7zip | noble 随源 | [7-zip.org](https://7-zip.org)（Ubuntu 打包，tuna） | 多格式压缩解压 |
+| libimage-exiftool-perl | noble 随源 | [exiftool.org](https://exiftool.org)（Ubuntu 打包，tuna） | ExifTool 文件元数据读取 |
+| ssdeep | noble 随源 | [ssdeep-project/ssdeep](https://github.com/ssdeep-project/ssdeep)（Ubuntu 打包，tuna） | 模糊哈希与相似度比对 |
+| python3-impacket | noble 随源 | [fortra/impacket](https://github.com/fortra/impacket)（Ubuntu 打包，tuna） | Windows 网络协议（SMB/Kerberos/MSRPC）工具库 |
+| john | noble 随源 | [openwall.com/john](https://www.openwall.com/john/)（Ubuntu 打包，tuna） | John the Ripper 口令破解 |
+| hashid | noble 随源 | [psypanda/hashID](https://github.com/psypanda/hashID)（Ubuntu 打包，tuna） | 哈希类型识别 |
+| nasm（含 ndisasm） | 3.02（`NASM_VERSION`），官网源码编译 | [nasm.us](https://www.nasm.us/)（无国内镜像，包小直连；apt 版停 2.16.01） | x86/x64 汇编器与反汇编器 |
+| flare-floss | 未钉 | [mandiant/flare-floss](https://github.com/mandiant/flare-floss)（PyPI 经 tuna） | 恶意软件混淆字符串提取 |
+| oletools | 未钉 | [decalage2/oletools](https://github.com/decalage2/oletools)（PyPI 经 tuna） | Office 文档宏分析（olevba/oleid） |
+| netexec | 未钉 | [Pennyw0rth/NetExec](https://github.com/Pennyw0rth/NetExec)（PyPI 经 tuna，缺包退回 git 源） | 内网横向执行框架（CrackMapExec 后继） |
+| pwndbg | git 源未钉 | [pwndbg/pwndbg](https://github.com/pwndbg/pwndbg)（uv tool） | GDB 调试增强插件（pwn/逆向） |
+| jadx | 1.5.3（`JADX_VERSION`） | [skylot/jadx](https://github.com/skylot/jadx) releases | Java/Android 反编译 |
+| apktool | 2.12.0（`APKTOOL_VERSION`） | [apktool.org](https://apktool.org)（[iBotPeaches/Apktool](https://github.com/iBotPeaches/Apktool)） | APK 反编译与重打包 |
+| capa | 9.4.0（`CAPA_VERSION`） | [mandiant/capa](https://github.com/mandiant/capa) releases | 恶意软件能力识别 |
+| capa-rules | `--depth 1` 未钉 | [mandiant/capa-rules](https://github.com/mandiant/capa-rules) | capa 规则库 |
+| SecLists 词表 | `--depth 1` 未钉 | [danielmiessler/SecLists](https://github.com/danielmiessler/SecLists) | 渗透测试词表（口令/路径/枚举字典） |
+| yara 规则（Yara-Rules/rules） | `--depth 1` 未钉 | [Yara-Rules/rules](https://github.com/Yara-Rules/rules) | YARA 检测规则集 |
+| pdfid | `--depth 1` 未钉 | [DidierStevens 工具集](https://blog.didierstevens.com)（[DidierStevens/DidierStevensSuite](https://github.com/DidierStevens/DidierStevensSuite)） | PDF 风险结构扫描 |
+| pdf-parser | `--depth 1` 未钉 | DidierStevens 工具集 | PDF 对象解析 |
 
 ```bash
-# apt 21 包
+# apt 21 包:整批一条命令,表内逐项拆解
 apt-get install -y --no-install-recommends gdb-multiarch qemu-user-static python3-pwntools python3-ropgadget checksec patchelf xxd squashfs-tools nmap sqlmap tcpdump tshark mitmproxy python3-scapy upx-ucl 7zip libimage-exiftool-perl ssdeep python3-impacket john hashid
 # nasm:源码钉版,装到 /usr/local(幂等:版本一致才跳过)
 curl -fSL https://www.nasm.us/pub/nasm/releasebuilds/${NASM_VERSION}/nasm-${NASM_VERSION}.tar.xz
@@ -606,7 +370,7 @@ git clone --depth 1 …/DidierStevens/DidierStevensSuite /tmp/dss
 cp pdfid.py pdf-parser.py /usr/local/bin/
 ```
 
-### 命令与控制框架参考（`c2`）
+## 命令与控制框架参考（`c2`）
 
 | 项目 | 版本 | 官方来源 |
 |------|------|----------|
@@ -614,25 +378,26 @@ cp pdfid.py pdf-parser.py /usr/local/bin/
 | merlin | `--depth 1` 未钉 | [Ne0nd0g/merlin](https://github.com/Ne0nd0g/merlin) |
 | Empire | `--depth 1` 未钉 | [BC-SECURITY/Empire](https://github.com/BC-SECURITY/Empire) |
 | Covenant | `--depth 1` 未钉 | [cobbr/Covenant](https://github.com/cobbr/Covenant) |
-| ysoserial | `--depth 1` 未钉 | [frohoff/ysoserial](https://github.com/frohoff/ysoserial) |
-| ysoserial.net | `--depth 1` 未钉 | [pwntester/ysoserial.net](https://github.com/pwntester/ysoserial.net) |
+| mythic | `--depth 1` 未钉 | [its-a-feature/mythic](https://github.com/its-a-feature/mythic) |
+| SILENTTRINITY | `--depth 1` 未钉 | [byt3bl33d3r/SILENTTRINITY](https://github.com/byt3bl33d3r/SILENTTRINITY) |
 
 ```bash
 # sliver:只克隆,不安装不运行
-git clone --depth 1 ${GITHUB_MIRROR}https://github.com/bishopfox/sliver /opt/c2-ref/sliver
+git clone --depth 1 ${GITHUB_MIRROR}https://github.com/bishopfox/sliver /opt/c2dev-ref/sliver
 # merlin:只克隆
-git clone --depth 1 …/Ne0nd0g/merlin /opt/c2-ref/merlin
+git clone --depth 1 …/Ne0nd0g/merlin /opt/c2dev-ref/merlin
 # Empire:只克隆
-git clone --depth 1 …/BC-SECURITY/Empire /opt/c2-ref/Empire
+git clone --depth 1 …/BC-SECURITY/Empire /opt/c2dev-ref/Empire
 # Covenant:只克隆
-git clone --depth 1 …/cobbr/Covenant /opt/c2-ref/Covenant
-# ysoserial:只克隆;构建需 JDK 8
-git clone --depth 1 …/frohoff/ysoserial /opt/c2-ref/ysoserial
-# ysoserial.net:只克隆;运行走 mono
-git clone --depth 1 …/pwntester/ysoserial.net /opt/c2-ref/ysoserial.net
+git clone --depth 1 …/cobbr/Covenant /opt/c2dev-ref/Covenant
+# mythic:只克隆
+git clone --depth 1 …/its-a-feature/mythic /opt/c2dev-ref/mythic
+# SILENTTRINITY:只克隆;C# 系 C2,产物是会话(grok 裁定归 C2,非 Nim/C# 教材)
+git clone --depth 1 …/byt3bl33d3r/SILENTTRINITY /opt/c2dev-ref/SILENTTRINITY
+# ysoserial 系是反序列化生成器,不是 C2:已移 maldev 组,归档 payload-ref/generators/deserialization
 ```
 
-### 信标对象文件工具链（`bof`）
+## 信标对象文件工具链（`bof`）
 
 | 项目 | 版本 | 官方来源 |
 |------|------|----------|
@@ -646,23 +411,23 @@ git clone --depth 1 …/pwntester/ysoserial.net /opt/c2-ref/ysoserial.net
 ```bash
 # mingw-w64
 apt-get install -y --no-install-recommends mingw-w64
-# COFFLoader:make bof 交叉编 Windows 版
-git clone --depth 1 …/trustedsec/COFFLoader /tmp/coffloader
+# COFFLoader:make bof 交叉编 Windows 版;源码归档 payload-ref/loaders/inproc
+git clone --depth 1 …/trustedsec/COFFLoader /opt/payload-ref/loaders/inproc/COFFLoader
 make bof
-# atomic-bofs
-git clone --depth 1 ${GITHUB_MIRROR}https://github.com/rasta-mouse/atomic-bofs /opt/atomic-bofs
+# atomic-bofs:归档 tradecraft-ref/bof
+git clone --depth 1 ${GITHUB_MIRROR}https://github.com/rasta-mouse/atomic-bofs /opt/tradecraft-ref/bof/atomic-bofs
 # coffee-ldr:失败退回 --git …/hakaioffsec/coffee;链到 /usr/local/bin
 rustup toolchain install nightly
 cargo +nightly install coffee-ldr --locked
-# bof-launcher:先下 zig 0.15.2 专用副本 /opt/zig-0.15.2
-git clone --depth 1 …/The-Z-Labs/bof-launcher /tmp/bof-launcher
+# bof-launcher:先下 zig 0.15.2 专用副本 /opt/zig-0.15.2;源码归档 payload-ref/loaders/inproc
+git clone --depth 1 …/The-Z-Labs/bof-launcher /opt/payload-ref/loaders/inproc/bof-launcher
 /opt/zig-0.15.2/zig build -Doptimize=ReleaseSafe
 install -m755 /usr/local/bin/bof-launcher
-# BOF-CATALOG.md
-curl -fsSL ${GITHUB_MIRROR}https://github.com/chryzsh/awesome-bof/raw/main/BOF-CATALOG.md -o /opt/bofs/BOF-CATALOG.md
+# BOF-CATALOG.md:归档 tradecraft-ref/bof
+curl -fsSL ${GITHUB_MIRROR}https://github.com/chryzsh/awesome-bof/raw/main/BOF-CATALOG.md -o /opt/tradecraft-ref/bof/BOF-CATALOG.md
 ```
 
-### Project Zero 工具参考（`pz`）
+## Project Zero 工具参考（`pz`）
 
 | 项目 | 版本 | 官方来源 |
 |------|------|----------|
@@ -682,30 +447,101 @@ git clone --depth 1 ${GITHUB_MIRROR}https://github.com/tyranid/windows-logical-e
 git clone --recurse-submodules ${GITHUB_MIRROR}https://github.com/tyranid/oleviewdotnet /opt/oleviewdotnet
 ```
 
-### 结构化 Shell（`nu`）
+## 恶意开发模板库（`maldev`）
+
+只克隆不编译不运行，按 grok 评审裁定的工件角色轴归档三根：`/opt/c2dev-ref`（产物是会话的框架，SILENTTRINITY 走 c2 组）、`/opt/payload-ref`（generators 产物是字节或变形二进制 / loaders 产物是执行字节的进程 / evasion 是往 loader 贴的原语 / curricula 教材架按语言分叶 / analysis 防御向）、`/opt/tradecraft-ref`（产物是上线后的操作员动作，ad/bof/opsec 分叶）。有编译产物的仓（COFFLoader、bof-launcher、atomic-bofs、RustHound-CE）由 bof/secrust 组各自克隆构建，落点同轴，见对应组。Crystal Palace（PIC 链接器）与 Tradecraft Garden（能力加载器集）无 Git 仓，官网 tgz 归档源码。
+
+| 项目 | 版本 | 官方来源 |
+|------|------|----------|
+| Black-Hat-Zig | `--depth 1` 未钉 | [CX330Blake/Black-Hat-Zig](https://github.com/CX330Blake/Black-Hat-Zig) → /opt/payload-ref/curricula/zig/Black-Hat-Zig |
+| OffensiveZig | `--depth 1` 未钉 | [darkr4y/OffensiveZig](https://github.com/darkr4y/OffensiveZig) → /opt/payload-ref/curricula/zig/OffensiveZig |
+| OffensiveRust | `--depth 1` 未钉 | [trickster0/OffensiveRust](https://github.com/trickster0/OffensiveRust) → /opt/payload-ref/curricula/rust/OffensiveRust |
+| black-hat-rust | `--depth 1` 未钉 | [skerkour/black-hat-rust](https://github.com/skerkour/black-hat-rust) → /opt/payload-ref/curricula/rust/black-hat-rust |
+| OffensiveNim | `--depth 1` 未钉 | [byt3bl33d3r/OffensiveNim](https://github.com/byt3bl33d3r/OffensiveNim) → /opt/payload-ref/curricula/nim/OffensiveNim |
+| OffensiveGo | `--depth 1` 未钉 | [Enelg52/OffensiveGo](https://github.com/Enelg52/OffensiveGo) → /opt/payload-ref/curricula/go/OffensiveGo |
+| IsWebClientRunning-rs | `--depth 1` 未钉 | [g0h4n/IsWebClientRunning-rs](https://github.com/g0h4n/IsWebClientRunning-rs) → /opt/tradecraft-ref/ad/IsWebClientRunning-rs |
+| HasSession-rs | `--depth 1` 未钉 | [g0h4n/HasSession-rs](https://github.com/g0h4n/HasSession-rs) → /opt/tradecraft-ref/ad/HasSession-rs |
+| LocalGroups-rs | `--depth 1` 未钉 | [g0h4n/LocalGroups-rs](https://github.com/g0h4n/LocalGroups-rs) → /opt/tradecraft-ref/ad/LocalGroups-rs |
+| PassTheCert-rs | `--depth 1` 未钉 | [g0h4n/PassTheCert-rs](https://github.com/g0h4n/PassTheCert-rs) → /opt/tradecraft-ref/ad/PassTheCert-rs |
+| dcerpc | `--depth 1` 未钉 | [icedracon/dcerpc](https://github.com/icedracon/dcerpc) → /opt/tradecraft-ref/ad/dcerpc |
+| adhammer | `--depth 1` 未钉 | [icedracon/adhammer](https://github.com/icedracon/adhammer) → /opt/tradecraft-ref/ad/adhammer |
+| dende-rs | `--depth 1` 未钉 | [g0h4n/dende-rs](https://github.com/g0h4n/dende-rs) → /opt/tradecraft-ref/opsec/dende-rs |
+| gonut | `--depth 1` 未钉 | [wabzsy/gonut](https://github.com/wabzsy/gonut) → /opt/payload-ref/generators/pe-to-shellcode/gonut |
+| Donut-CustomHost | `--depth 1` 未钉 | [Zuigetzu/Donut-CustomHost](https://github.com/Zuigetzu/Donut-CustomHost) → /opt/payload-ref/generators/pe-to-shellcode/Donut-CustomHost |
+| donutCS | `--depth 1` 未钉 | [n1xbyte/donutCS](https://github.com/n1xbyte/donutCS) → /opt/payload-ref/generators/pe-to-shellcode/donutCS |
+| go-donut | `--depth 1` 未钉 | [Binject/go-donut](https://github.com/Binject/go-donut) → /opt/payload-ref/generators/pe-to-shellcode/go-donut |
+| sRDI | `--depth 1` 未钉 | [monoxgas/sRDI](https://github.com/monoxgas/sRDI) → /opt/payload-ref/generators/pe-to-shellcode/sRDI |
+| pe_to_shellcode | `--depth 1` 未钉 | [hasherezade/pe_to_shellcode](https://github.com/hasherezade/pe_to_shellcode) → /opt/payload-ref/generators/pe-to-shellcode/pe_to_shellcode |
+| PEzor | `--depth 1` 未钉 | [phra/PEzor](https://github.com/phra/PEzor) → /opt/payload-ref/generators/pe-to-shellcode/PEzor |
+| ysoserial | `--depth 1` 未钉 | [frohoff/ysoserial](https://github.com/frohoff/ysoserial) → /opt/payload-ref/generators/deserialization/ysoserial |
+| ysoserial.net | `--depth 1` 未钉 | [pwntester/ysoserial.net](https://github.com/pwntester/ysoserial.net) → /opt/payload-ref/generators/deserialization/ysoserial.net |
+| donloader | `--depth 1` 未钉 | [blinkenl1ghts/donloader](https://github.com/blinkenl1ghts/donloader) → /opt/payload-ref/loaders/droppers/donloader |
+| ScareCrow | `--depth 1` 未钉 | [optiv/ScareCrow](https://github.com/optiv/ScareCrow) → /opt/payload-ref/loaders/droppers/ScareCrow |
+| BokuLoader | `--depth 1` 未钉 | [boku7/BokuLoader](https://github.com/boku7/BokuLoader) → /opt/payload-ref/loaders/droppers/BokuLoader |
+| TitanLdr | `--depth 1` 未钉 | [benheise/TitanLdr](https://github.com/benheise/TitanLdr) → /opt/payload-ref/loaders/droppers/TitanLdr |
+| DripLoader | `--depth 1` 未钉 | [xuanxuan0/DripLoader](https://github.com/xuanxuan0/DripLoader) → /opt/payload-ref/loaders/droppers/DripLoader |
+| Shhhloader | `--depth 1` 未钉 | [icyguider/Shhhloader](https://github.com/icyguider/Shhhloader) → /opt/payload-ref/loaders/droppers/Shhhloader |
+| No-Consolation | `--depth 1` 未钉 | [fortra/No-Consolation](https://github.com/fortra/No-Consolation) → /opt/payload-ref/loaders/inproc/No-Consolation |
+| MemoryModule | `--depth 1` 未钉 | [fancycode/MemoryModule](https://github.com/fancycode/MemoryModule) → /opt/payload-ref/loaders/inproc/MemoryModule |
+| Blackbone | `--depth 1` 未钉 | [DarthTon/Blackbone](https://github.com/DarthTon/Blackbone) → /opt/payload-ref/loaders/inproc/Blackbone |
+| ShellcodeFluctuation | `--depth 1` 未钉 | [mgeeky/ShellcodeFluctuation](https://github.com/mgeeky/ShellcodeFluctuation) → /opt/payload-ref/evasion/ShellcodeFluctuation |
+| donut-decryptor | `--depth 1` 未钉 | [volexity/donut-decryptor](https://github.com/volexity/donut-decryptor) → /opt/payload-ref/analysis/donut-decryptor |
+| Crystal Palace（cpsrc+cpdist） | latest tgz 未钉 | [tradecraftgarden.org](https://tradecraftgarden.org) 官网 tgz → /opt/payload-ref/evasion/crystal-palace |
+| Tradecraft Garden（tgsrc） | latest tgz 未钉 | [tradecraftgarden.org](https://tradecraftgarden.org) 官网 tgz → /opt/payload-ref/loaders/tradecraft-garden |
+
+```bash
+# 33 仓按叶克隆,--depth 1 未钉;失败重试一次,仍败下轮补
+git clone --depth 1 ${GITHUB_MIRROR}https://github.com/<org>/<repo> /opt/<leaf>/<repo>
+# Crystal Palace 与 Tradecraft Garden:官网 tgz 归档源码
+curl -fSL https://tradecraftgarden.org/download/cpsrc-latest.tgz
+tar -xzf -C /opt/payload-ref/evasion/crystal-palace
+curl -fSL https://tradecraftgarden.org/download/cpdist-latest.tgz
+tar -xzf -C /opt/payload-ref/evasion/crystal-palace
+curl -fSL https://tradecraftgarden.org/download/tgsrc-latest.tgz
+tar -xzf -C /opt/payload-ref/loaders/tradecraft-garden
+```
+
+## 侦察指纹参考（`recon`）
+
+| 项目 | 版本 | 官方来源 |
+|------|------|----------|
+| mac-tracker | `--depth 1` 未钉 | [runZeroInc/mac-tracker](https://github.com/runZeroInc/mac-tracker) |
+| recog | `--depth 1` 未钉 | [rapid7/recog](https://github.com/rapid7/recog) |
+| hickory-dns | `--depth 1` 未钉 | [hickory-dns/hickory-dns](https://github.com/hickory-dns/hickory-dns) |
+
+```bash
+# mac-tracker:MAC 地址厂商指纹库;只克隆
+git clone --depth 1 ${GITHUB_MIRROR}https://github.com/runZeroInc/mac-tracker /opt/recon-ref/mac-tracker
+# recog:服务/产品指纹规则库;只克隆
+git clone --depth 1 …/rapid7/recog /opt/recon-ref/recog
+# hickory-dns:DNS 协议栈源码参考;只克隆
+git clone --depth 1 …/hickory-dns/hickory-dns /opt/recon-ref/hickory-dns
+```
+
+## 结构化 Shell（`nu`）
 
 | 项目 | 版本 | 官方来源 |
 |------|------|----------|
 | nu | release latest | [nushell.sh](https://www.nushell.sh)（[nushell/nushell](https://github.com/nushell/nushell)） |
 
 ```bash
-# nu:latest tag 经 api.github.com 取
+# nu:latest tag 经 git ls-remote 取
 curl …/download/<tag>/nu-<tag>-x86_64-unknown-linux-gnu.tar.gz
 install -m755 nu /usr/local/bin/nu
 ```
 
-### 渗透测试运行时底线（`pentest`）
+## 渗透测试运行时底线（`pentest`）
 
 | 项目 | 版本 | 官方来源 |
 |------|------|----------|
-| lab apt 批 24 包（dnsutils、whois、socat、netcat-openbsd、telnet、ftp、snmp、proxychains4、ldap-utils、smbclient、default-mysql-client、postgresql-client、redis-tools、sqlite3、freerdp2-x11、sshuttle、hashcat、pocl-opencl-icd、ocl-icd-libopencl1、hydra、android-tools-adb、android-tools-fastboot、sleuthkit、testdisk、poppler-utils、unar、cabextract、qpdf、zbar-tools、hcxtools、aircrack-ng、steghide、osslsigncode） | noble 随源 | Ubuntu apt（tuna）；sasquatch 为源码构建（[onekey-sec/sasquatch](https://github.com/onekey-sec/sasquatch) `./build.sh`） |
+| lab apt 批 33 包（dnsutils、whois、socat、netcat-openbsd、telnet、ftp、snmp、proxychains4、ldap-utils、smbclient、default-mysql-client、postgresql-client、redis-tools、sqlite3、freerdp2-x11、sshuttle、hashcat、pocl-opencl-icd、ocl-icd-libopencl1、hydra、android-tools-adb、android-tools-fastboot、sleuthkit、testdisk、poppler-utils、unar、cabextract、qpdf、zbar-tools、hcxtools、aircrack-ng、steghide、osslsigncode） | noble 随源 | Ubuntu apt（tuna）；sasquatch 为源码构建（[onekey-sec/sasquatch](https://github.com/onekey-sec/sasquatch) `./build.sh`） |
 | Responder | `--depth 1` 未钉 | [lgandx/Responder](https://github.com/lgandx/Responder) |
 | donut（PE/.NET/VBS/JS 转 shellcode，含 libdonut 与头文件） | 1.1（`DONUT_VERSION`），release 预编译 | [TheWover/donut](https://github.com/TheWover/donut) releases |
 | frida 全链（客户端与全架构 frida-server 版本对齐） | 客户端构建日最新；server 与客户端同版本 | [frida/frida](https://github.com/frida/frida) releases（GitHub 直下，无 tuna） |
 | 离线固化接线（nuclei 模板、capa 规则、词表、pwndbg gdbinit、时区 locale、offline 函数） | 模板与规则 `--depth 1` 未钉 | [projectdiscovery/nuclei-templates](https://github.com/projectdiscovery/nuclei-templates)；规则见安全分析工具集 |
 
 ```bash
-# lab apt 批 24 包:hashcat CPU 走 pocl
+# lab apt 批 33 包:hashcat CPU 走 pocl
 apt-get install -y --no-install-recommends …
 # Responder:运行 python3 /opt/Responder/Responder.py -I eth0
 git clone --depth 1 … /opt/Responder
@@ -728,7 +564,7 @@ curl …/download/<ver>/frida-server-<ver>-{windows,android,linux}-<arch>.xz
 - 时区 `Asia/Shanghai`、生成 `zh_CN.UTF-8`（默认 LANG 不动）
 - `/etc/profile.d/offline.sh` 提供 `offline()` 快失败函数
 
-### 渗透测试工具增补（`red`）
+## 渗透测试工具增补（`red`）
 
 | 项目 | 版本 | 官方来源 |
 |------|------|----------|

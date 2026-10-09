@@ -26,7 +26,7 @@
 | `NUGET_MIRROR` | `https://repo.huaweicloud.com/repository/nuget/v3/index.json` | 写各用户 `NuGet.Config`,`<clear/>` 后只留此源 |
 | `PY2_MIRROR` | `https://mirrors.huaweicloud.com/python` | python2 源码包 |
 | `SURY_MIRROR` | `https://mirror.nju.edu.cn/sury` | tuna 无 sury;GPG key 仍从官方取一次 |
-| `GITHUB_MIRROR` | 空 | 可选前置代理（如 `https://ghfast.top/`)，拼在 `https://github.com` 前 |
+| `GITHUB_MIRROR` | `https://proxy.ohmygh.com/` | GitHub 前置代理，拼在 `https://github.com` 前；置空则直连 |
 
 ## 版本钉（`lib/common.sh`，全部可选）
 
