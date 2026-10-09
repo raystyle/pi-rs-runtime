@@ -3,6 +3,7 @@
 本册登记当前镜像与脚本的已知限制，不阻塞流水线的问题在 [PROGRESS.md](../PROGRESS.md) 待办节跟踪。返回 [README](../README.md)。
 
 - 版本未钉：temurin 小版本随 tuna Adoptium 目录取最新；`dlv`、`gopls`、`golangci-lint` 与 projectdiscovery 全家桶、Go 安全工具组用 `@latest`(`have && skip` 意味着“首次装到的那份”);rizin、rz-ghidra、sigdb、SecLists、yara 规则均为 `--depth 1` 未钉提交；pwndbg 从 git 源装、未钉 rev。
+- 未钉且无校验和的件（同上路线，不重排）：trufflehog release（上游 go.mod 带 replace 不能 `go install @版本`，tag 经 git ls-remote + `sort -V` 取）、metasploit omnibus 安装器（`msfupdate.erb` 加 apt.metasploit.com 仓）。ghidra/herdr/nasm/Go/node 另有 sha256 或 SHASUMS 校验。
 - zig 发行包无国内镜像，直下且无验签。minisig 公钥：`RWSGOq2NVecA2UPNdBUZykf1CCb147pkmdtYxgb3Ti+JO/wCYvhbAb/U`。验签未做。
 - `/root` 0700 的残留面：rust 工具链在 `/opt`（`RUSTUP_HOME=/opt/rustup`、`CARGO_HOME=/opt/cargo`),rust 段新装产物都归 /opt;ast-grep、Rust 安全工具、代理跳板、coffee-ldr 与 fnm 经 root 的 `~/.cargo` 安装再链到 `/usr/local/bin`;tools 各组 `GOPATH=/opt/go`(dlv/gopls/golangci-lint、projectdiscovery 全家桶、Go 安全工具、代理跳板归 /opt/go 并链出）；基础 CLI 组的 yq 与 gh 未设 GOPATH，产物在 /root/go 且只链 yq,`ubuntu` 用户对 gh 不可执行。已有的 /root/.cargo、/root/go 环境不受影响。
 - `install_secrust` 装 rustscan、feroxbuster、RustHound-CE 三件；findomain 不装，依赖多常编不过，注释建议改用 [Findomain/Findomain releases](https://github.com/Findomain/Findomain/releases) 预编译。

@@ -51,11 +51,13 @@ install_cli() {
         go install github.com/cli/cli/v2/cmd/gh@latest   # gh 官方 apt 源国内无镜像,源码编译
         ln -sf /opt/go/bin/gh /usr/local/bin/gh
     fi
-    # just 在部分套件下无 apt 包,兜底 cargo
+    # just 在部分套件下无 apt 包,兜底 cargo;与 astgrep 同式走 /opt/cargo(/root 0700 ubuntu 不可执行)
     if ! have just; then
-        . "$HOME/.cargo/env" 2>/dev/null || true
+        export RUSTUP_HOME=/opt/rustup CARGO_HOME=/opt/cargo
+        . /opt/cargo/env 2>/dev/null || true
+        export PATH="$PATH:/opt/cargo/bin"
         cargo install just --locked
-        ln -sf /root/.cargo/bin/just /usr/local/bin/just
+        ln -sf /opt/cargo/bin/just /usr/local/bin/just
     fi
     git --version && jq --version && yq --version && shellcheck --version | head -1 \
         && just --version && gh --version | head -1
@@ -159,9 +161,11 @@ install_secgo() {
     # trufflehog:上游 go.mod 带 replace 指令,@版本 被 go 拒装(实证 v3.99.2);改 release 预编译
     if ! have trufflehog; then
         local gh="${GITHUB_MIRROR}https://github.com"
-        local ttag; ttag="$(git ls-remote --tags "${gh}/trufflesecurity/trufflehog" 2>/dev/null | grep -oE 'refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$' | sort -t. -k2,2n -k3,3n | tail -1 | sed 's|refs/tags/||' || true)"
-        local tarc; case "$(dpkg --print-architecture)" in amd64) tarc=amd64;; arm64) tarc=arm64;; esac
-        if [ -n "$ttag" ]; then
+        # sort -V 版本排序:-t. -k2 旧式不比较主版本,v4.0.0 会排输 v3.100.0(grok 评审 G1 实证)
+        local ttag; ttag="$(git ls-remote --tags "${gh}/trufflesecurity/trufflehog" 2>/dev/null | grep -oE 'refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$' | sed 's|refs/tags/||' | sort -V | tail -1 || true)"
+        # 未知架构置空并在下载前判掉:set -u 下 case 未命中 read 未赋值变量会提前退出(grok 评审 G1)
+        local tarc=""; case "$(dpkg --print-architecture)" in amd64) tarc=amd64;; arm64) tarc=arm64;; esac
+        if [ -n "$ttag" ] && [ -n "$tarc" ]; then
             local tgz="trufflehog_${ttag#v}_linux_${tarc}.tar.gz"
             curl -fSL "${gh}/trufflesecurity/trufflehog/releases/download/${ttag}/${tgz}" -o "/tmp/${tgz}" \
                 && tar -xzf "/tmp/${tgz}" -C /tmp trufflehog \
@@ -169,7 +173,7 @@ install_secgo() {
                 && rm -f "/tmp/${tgz}" /tmp/trufflehog \
                 && echo "trufflehog ${ttag} 已装(release)" || echo "!! trufflehog 下载失败"
         else
-            echo "!! trufflehog tag 获取失败"
+            echo "!! trufflehog tag/架构 获取失败(tag=${ttag:-空},arch=${tarc:-空})"
         fi
     fi
     have trufflehog && trufflehog --version 2>/dev/null | head -1
@@ -765,13 +769,17 @@ case "$1" in
         clickhouse local --multiquery -q "CREATE VIEW poc AS SELECT * FROM file('${POC_INDEX}','Parquet'); $2" ;;
     -k)
         [ $# -ge 2 ] || { usage; exit 1; }
-        rg -il --glob '*.json' -- "$2" "$POC_DIR" | head -n "$LIMIT" | while read -r f; do
+        # rg 无命中退出 1,pipefail 下会静默杀死脚本;先收名单再判空(grok 评审 G3)
+        hits="$(rg -il --glob '*.json' -- "$2" "$POC_DIR" 2>/dev/null | head -n "$LIMIT" || true)"
+        [ -n "$hits" ] || { echo "索引无命中: $2"; exit 1; }
+        echo "$hits" | while read -r f; do
             echo "== $f"; jq -c . "$f" 2>/dev/null || head -c 400 "$f"; echo
         done ;;
     -*)
         echo "未知选项: $1" >&2; usage; exit 1 ;;
     *)
         cve="$(echo "$1" | tr '[:lower:]' '[:upper:]')"
+        case "$cve" in CVE-[0-9][0-9][0-9][0-9]-*) ;; *) echo "格式应为 CVE-<年>-<编号>: $1" >&2; exit 1 ;; esac
         year="${cve:4:4}"
         f="$POC_DIR/$year/$cve.json"
         if [ ! -f "$f" ]; then f="$(find "$POC_DIR" -name "$cve.json" 2>/dev/null | head -1 || true)"; fi
@@ -980,7 +988,7 @@ install_red() {
     done
     VIRTUAL_ENV= uv tool install --index-url https://pypi.org/simple bloodhound-ce >/dev/null 2>&1 \
         || echo "bloodhound-ce 失败(留待排查)"
-    for t in certipy-ad bloodyAD bofhound bloodhound-ce semgrep; do
+    for t in certipy-ad bloodyAD bofhound bloodhound-ce; do
         for c in "/opt/uv-tools/$t/bin"/*; do
             local cb; cb="$(basename "$c")"
             # 排除 venv 内部件:python*/pip*/activate 链出去会劫持 /usr/local/bin/python3(实证成环 ELOOP)
@@ -988,6 +996,15 @@ install_red() {
             [ -f "$c" ] && ln -sf "$c" "/usr/local/bin/$cb" 2>/dev/null
         done
     done
+    # semgrep 不进全目录循环:其依赖 CLI(httpx/uvicorn/mcp 等)会盖掉 pd 组 Go httpx(grok 评审 F1 实证);只链入口
+    for c in semgrep pysemgrep; do
+        [ -e "/opt/uv-tools/semgrep/bin/$c" ] && ln -sf "/opt/uv-tools/semgrep/bin/$c" "/usr/local/bin/$c"
+    done
+    # 旧批残留清理:曾被全链的 semgrep 依赖 CLI,指向 semgrep venv 才删;httpx 还回 pd 的 Go 产物
+    for c in httpx uvicorn dotenv glom idna jsonschema markdown-it mcp normalizer pwiz pygmentize cffi-gen-src opentelemetry-bootstrap opentelemetry-instrument; do
+        [ -L "/usr/local/bin/$c" ] && [ "$(readlink "/usr/local/bin/$c")" = "/opt/uv-tools/semgrep/bin/$c" ] && rm -f "/usr/local/bin/$c"
+    done
+    [ -e /opt/go/bin/httpx ] && [ ! -e /usr/local/bin/httpx ] && ln -sf /opt/go/bin/httpx /usr/local/bin/httpx
     # 命名差异:kerbrute/Coercer 等二进名与包名可能不同,统一链接检查
     for t in kerbrute wafw00f arjun ghauri bloodhound-python coercer Coercer mitm6 objection apkleaks; do
         [ -e "/opt/uv-tools/$t/bin/$t" ] && ln -sf "/opt/uv-tools/$t/bin/$t" "/usr/local/bin/$t" 2>/dev/null

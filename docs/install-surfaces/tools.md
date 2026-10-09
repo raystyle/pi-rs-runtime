@@ -418,7 +418,7 @@ git clone --depth 1 …/Adaptix-Framework/AdaptixC2 /opt/c2dev-ref/AdaptixC2
 | 项目 | 版本 | 官方来源 |
 |------|------|----------|
 | mingw-w64 | noble 随源 | Ubuntu 打包（tuna） |
-| wine64（只 64 位件，不开 i386） | noble 随源 | [winehq.org](https://www.winehq.org)（Ubuntu 打包，tuna；跑交叉编出的 Windows PE，如 COFFLoader64.exe） |
+| wine（wine64 库件 + wine 包 PATH 命令，只 64 位不开 i386） | noble 随源 | [winehq.org](https://www.winehq.org)（Ubuntu 打包，tuna；noble 的 wine64 包不带 PATH 命令，/usr/bin/wine 在 wine 包，wine64 由 wine 链出；跑交叉编出的 Windows PE，如 COFFLoader64.exe） |
 | COFFLoader（COFFLoader64.exe） | `--depth 1` 未钉 | [trustedsec/COFFLoader](https://github.com/trustedsec/COFFLoader) |
 | atomic-bofs | `--depth 1` 未钉 | [rasta-mouse/atomic-bofs](https://github.com/rasta-mouse/atomic-bofs) |
 | CS-Situational-Awareness-BOF | `--depth 1` 未钉 | [trustedsec/CS-Situational-Awareness-BOF](https://github.com/trustedsec/CS-Situational-Awareness-BOF) |
@@ -428,8 +428,9 @@ git clone --depth 1 …/Adaptix-Framework/AdaptixC2 /opt/c2dev-ref/AdaptixC2
 | BOF-CATALOG.md | main raw | [chryzsh/awesome-bof](https://github.com/chryzsh/awesome-bof) |
 
 ```bash
-# mingw-w64、wine64(PE 验证路径:wine64 COFFLoader64.exe <bof.o>)
-apt-get install -y --no-install-recommends mingw-w64 wine64
+# mingw-w64、wine(PE 验证路径:wine64 COFFLoader64.exe <bof.o>);wine64 命令由 wine 链出
+apt-get install -y --no-install-recommends mingw-w64 wine64 wine
+ln -sf /usr/bin/wine /usr/local/bin/wine64
 # COFFLoader:make bof 交叉编 Windows 版;源码归档 payload-ref/loaders/inproc
 git clone --depth 1 …/trustedsec/COFFLoader /opt/payload-ref/loaders/inproc/COFFLoader
 make bof
@@ -575,14 +576,14 @@ install -m755 nu /usr/local/bin/nu
 
 | 项目 | 版本 | 官方来源 |
 |------|------|----------|
-| lab apt 批 36 包（dnsutils、whois、socat、netcat-openbsd、telnet、ftp、snmp、proxychains4、ldap-utils、smbclient、default-mysql-client、postgresql-client、redis-tools、sqlite3、freerdp2-x11、sshuttle、openvpn、wireguard-tools、masscan、hashcat、pocl-opencl-icd、ocl-icd-libopencl1、hydra、android-tools-adb、android-tools-fastboot、sleuthkit、testdisk、poppler-utils、unar、cabextract、qpdf、zbar-tools、hcxtools、aircrack-ng、steghide、osslsigncode） | noble 随源 | Ubuntu apt（tuna）；masscan 装后 setcap cap_net_raw 免 sudo；sasquatch 为源码构建（[onekey-sec/sasquatch](https://github.com/onekey-sec/sasquatch) `./build.sh`） |
+| lab apt 批 36 包（dnsutils、whois、socat、netcat-openbsd、telnet、ftp、snmp、proxychains4、ldap-utils、smbclient、default-mysql-client、postgresql-client、redis-tools、sqlite3、freerdp2-x11、sshuttle、openvpn、wireguard-tools、masscan、hashcat、pocl-opencl-icd、ocl-icd-libopencl1、hydra、android-tools-adb、android-tools-fastboot、sleuthkit、testdisk、poppler-utils、unar、cabextract、qpdf、zbar-tools、hcxtools、aircrack-ng、steghide、osslsigncode） | noble 随源 | Ubuntu apt（tuna）；masscan 装后 setcap cap_net_raw,cap_net_admin+eip 免 sudo；sasquatch 为源码构建（[onekey-sec/sasquatch](https://github.com/onekey-sec/sasquatch) `./build.sh`） |
 | Responder | `--depth 1` 未钉 | [lgandx/Responder](https://github.com/lgandx/Responder) |
 | donut（PE/.NET/VBS/JS 转 shellcode，含 libdonut 与头文件） | 1.1（`DONUT_VERSION`），release 预编译 | [TheWover/donut](https://github.com/TheWover/donut) releases |
 | frida 全链（客户端与全架构 frida-server 版本对齐） | 客户端构建日最新；server 与客户端同版本 | [frida/frida](https://github.com/frida/frida) releases（GitHub 直下，无 tuna） |
 | 离线固化接线（nuclei 模板、capa 规则、词表、pwndbg gdbinit、时区 locale、offline 函数） | 模板与规则 `--depth 1` 未钉 | [projectdiscovery/nuclei-templates](https://github.com/projectdiscovery/nuclei-templates)；规则见安全分析工具集 |
 
 ```bash
-# lab apt 批 36 包:hashcat CPU 走 pocl;masscan 装后 setcap cap_net_raw 免 sudo
+# lab apt 批 36 包:hashcat CPU 走 pocl;masscan 装后 setcap cap_net_raw,cap_net_admin+eip 免 sudo
 apt-get install -y --no-install-recommends …
 # Responder:运行 python3 /opt/Responder/Responder.py -I eth0
 git clone --depth 1 … /opt/Responder

@@ -265,7 +265,7 @@ libcache rust 预热批（`scripts/install-libcache.sh`）另有加密/解析向
 | atomic-bofs | `--depth 1` 未钉 | [rasta-mouse/atomic-bofs](https://github.com/rasta-mouse/atomic-bofs) → /opt/tradecraft-ref/bof/atomic-bofs |
 | coffee-ldr | cargo nightly | [hakaioffsec/coffee](https://github.com/hakaioffsec/coffee) |
 | bof-launcher | `--depth 1` 未钉 | [The-Z-Labs/bof-launcher](https://github.com/The-Z-Labs/bof-launcher)（上游是库非 CLI；zig 0.15.2 构建，示例执行器 bof_lin_<arch> 装 /usr/local/bin） → /opt/payload-ref/loaders/inproc/bof-launcher |
-| wine64（只 64 位件） | noble 随源 | Ubuntu noble 源（tuna）；跑交叉编出的 Windows PE（COFFLoader64.exe 等），不开 i386 |
+| wine（wine64 库件 + wine 包 PATH 命令） | noble 随源 | Ubuntu noble 源（tuna）；noble wine64 包不带 PATH 命令，wine64 由 wine 链出；跑交叉编出的 Windows PE（COFFLoader64.exe 等），只 64 位不开 i386 |
 | volatility3（vol、volshell 链 /usr/local/bin） | 未钉 | [volatilityfoundation/volatility3](https://github.com/volatilityfoundation/volatility3)（PyPI 经 tuna），`/opt/re-venv`（libcache python 组） |
 
 ## 安全测试
@@ -342,7 +342,7 @@ libcache rust 预热批（`scripts/install-libcache.sh`）另有加密/解析向
 | sshuttle | noble 随源 | Ubuntu noble 源（tuna） |
 | openvpn | noble 随源 | Ubuntu noble 源（tuna） |
 | wireguard-tools（wg、wg-quick） | noble 随源 | Ubuntu noble 源（tuna） |
-| masscan | noble 随源（setcap cap_net_raw 免 sudo） | Ubuntu noble 源（tuna） |
+| masscan | noble 随源（setcap cap_net_raw,cap_net_admin+eip 免 sudo） | Ubuntu noble 源（tuna） |
 | hashcat | noble 随源（6.2.6） | Ubuntu noble 源（tuna） |
 | pocl-opencl-icd | noble 随源（CPU OpenCL） | Ubuntu noble 源（tuna） |
 | ocl-icd-libopencl1 | noble 随源 | Ubuntu noble 源（tuna） |
