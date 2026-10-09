@@ -541,7 +541,7 @@ install_nu() {
         local _try
         for _try in 1 2 3; do
             ntag="$(git ls-remote --tags "${gh}/nushell" 2>/dev/null | grep -oE 'refs/tags/[0-9]+\.[0-9]+\.[0-9]+$' | sort -t. -k1,1n -k2,2n -k3,3n | tail -1 | sed 's|refs/tags/||')"
-            [ -n "$ntag" ] && break
+            if [ -n "$ntag" ]; then break; fi
             sleep 5
         done
         if [ -n "$ntag" ]; then
