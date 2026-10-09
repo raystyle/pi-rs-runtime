@@ -132,8 +132,8 @@ SECGO_TOOLS_DEFAULT=(
     gospider@github.com/jaeles-project
     gowitness@github.com/sensepost
     azurehound/v2@github.com/bloodhoundad
-    nerva@github.com/praetorian-inc
-    brutus@github.com/praetorian-inc
+    nerva/cmd/nerva@github.com/praetorian-inc
+    brutus/cmd/brutus@github.com/praetorian-inc
     aurelian@github.com/praetorian-inc
 )
 
@@ -676,8 +676,8 @@ install_maldev() {
     fi
     if [ ! -d /opt/payload-ref/loaders/tradecraft-garden ]; then
         install -d /opt/payload-ref/loaders/tradecraft-garden
-        curl -fSL "${tg}/tgsrc-latest.tgz" -o /tmp/tgsrc.tgz \
-            && tar -xzf /tmp/tgsrc.tgz -C /opt/payload-ref/loaders/tradecraft-garden && rm /tmp/tgsrc.tgz \
+        curl -fSL "${tg}/tcg-latest.tgz" -o /tmp/tcg.tgz \
+            && tar -xzf /tmp/tcg.tgz -C /opt/payload-ref/loaders/tradecraft-garden && rm /tmp/tcg.tgz \
             || echo "Tradecraft Garden 源码下载失败(下轮补)"
     fi
     echo "模板库就位: $(find /opt/payload-ref /opt/tradecraft-ref -maxdepth 4 -name .git | wc -l) 仓 + Crystal Palace/Tradecraft Garden 源码"
