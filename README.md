@@ -84,6 +84,7 @@
 - `install-compilers.sh`:`COMPILERS_ALL=(c golang rust zig vcpkg)`
 - `install-runtimes.sh`:`RUNTIMES_ALL=(node fnm bun uv python python2 duckdb php mono dotnet pwsh sdkman)`
 - `install-tools.sh`:`TOOLS_ALL=(fd astgrep cli herdr ghidra re pd secgo secrust pivot p0 c2 bof pz nu pentest)`
+- `install-libcache.sh`:`LIBCACHE_ALL=(go rust python node java pwsh dotnet zig)`(八生态库缓存固化,独立分类)
 
 ## 步骤
 
@@ -126,7 +127,7 @@ incus file push scripts rt-build/root/ -r
 incus exec rt-build -- bash /root/scripts/install-all.sh
 ```
 
-`install-all.sh` 先装隐式依赖（`ca-certificates curl wget gpg unzip zip xz-utils file`），再按 编译器 → 运行时 → 工具 顺序跑三个分类脚本，不转发过滤器。要装单项用分类脚本，例如 `./install-compilers.sh rust` 或 `./install-runtimes.sh python node`。
+`install-all.sh` 先装隐式依赖（`ca-certificates curl wget gpg unzip zip xz-utils file`），再按 编译器 → 运行时 → 库缓存 → 工具 顺序跑四个分类脚本，不转发过滤器。要装单项用分类脚本，例如 `./install-compilers.sh rust` 或 `./install-runtimes.sh python node`。
 
 安装面事实（按代码）。「安装命令」列是脚本实际执行命令的摘录，省略 `have && skip` 幂等判断；`${变量}` 均为 `lib/common.sh` 的镜像源或版本钉，可用环境变量覆盖。
 
@@ -485,6 +486,7 @@ sudo incus config device add <实例> vnc proxy \
 | /usr/local/sdkman | SDKMAN 目录 | temurin 注册、maven、gradle |
 | fnm 数据目录 | `~/.local/share/fnm` | node 18、20、22、24 多版本 |
 | NuGet 配置 | 各用户 `NuGet.Config` | `<clear/>` 后只留华为 v3 源 |
+| /opt/wheelhouse、/opt/js-lab、/opt/maven-prewarm、/opt/dotnet-prewarm、/opt/zig-prewarm、/opt/go-prewarm | 库缓存固化产物 | 八生态预热工程与锁文件；wheelhouse 是 pip 轮子离线重装源 |
 
 ### 基础命令行与系统
 

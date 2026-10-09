@@ -575,14 +575,19 @@ install_pentest() {
         # frida-server 与客户端同版本;GitHub Releases 直下(可用 GITHUB_MIRROR),无 tuna
         local d="/opt/frida-server/${fv}"
         install -d "$d"
+        # frida 发布资产命名:windows 带 .exe,其余裸名;windows-x86/arm64 多数版本不发,容错跳过
         local plat
-        for plat in windows-x86_64 windows-x86 windows-arm64 \
+        for plat in windows-x86_64 windows-arm64 \
                     android-arm64 android-arm android-x86_64 android-x86 \
                     linux-x86_64 linux-arm64; do
-            local f="frida-server-${fv}-${plat}.xz"
+            local f
+            case "$plat" in
+                windows-*) f="frida-server-${fv}-${plat}.exe.xz" ;;
+                *)         f="frida-server-${fv}-${plat}.xz" ;;
+            esac
             [ -e "${d}/${f%.xz}" ] && continue
             curl -fSL --connect-timeout 10 --max-time 300 "${gh}/frida/frida/releases/download/${fv}/${f}" -o "/tmp/${f}" \
-                && xz -d "/tmp/${f}" && mv "/tmp/${f%.xz}" "$d/" || echo "$plat server 下载失败"
+                && xz -d "/tmp/${f}" && mv "/tmp/${f%.xz}" "$d/" || echo "$plat server 下载失败(该版本可能未发布)"
         done
         ls "$d" | wc -l
     fi
@@ -590,9 +595,14 @@ install_pentest() {
     log "离线固化接线:nuclei 模板 / capa 规则 / 词表 / pwndbg gdbinit / 时区 locale"
     # nuclei 模板:在线 -update-templates 落家目录且失败容忍,离线静默坏;改钉 /opt
     [ -d /opt/nuclei-templates/.git ] || git clone --depth 1 "${gh}/projectdiscovery/nuclei-templates" /opt/nuclei-templates || echo "nuclei-templates 克隆失败"
+    # 注意:set -e 下 a && b 链整体失败即退出,循环体必须 if 包裹
     for u in /root /home/ubuntu; do
-        [ -d "$u" ] && install -d "$u/nuclei-templates" && rmdir "$u/nuclei-templates" 2>/dev/null; \
-            [ -d "$u" ] && ln -sfn /opt/nuclei-templates "$u/nuclei-templates"
+        [ -d "$u" ] || continue
+        if [ -e "$u/nuclei-templates" ] && [ ! -L "$u/nuclei-templates" ]; then
+            # 已有真实目录(旧 update-templates 产物):挪开再链,不删内容
+            mv "$u/nuclei-templates" "$u/nuclei-templates.bak" 2>/dev/null || true
+        fi
+        ln -sfn /opt/nuclei-templates "$u/nuclei-templates"
     done
     # nuclei wrapper:-duc 禁版本检查,离线期不卡更新
     if have nuclei && [ ! -e /usr/local/bin/nuclei.real ]; then
@@ -606,9 +616,13 @@ install_pentest() {
     # capa 规则接线:不指定时 capa 会自下载规则到 ~/.local/share/capa,离线报晦涩错
     if have capa && [ ! -e /usr/local/bin/capa.real ]; then
         local capa_bin; capa_bin="$(find /opt/capa -name capa -type f 2>/dev/null | head -1)"
-        [ -n "$capa_bin" ] && ln -sf "$capa_bin" /usr/local/bin/capa.real
-        printf '#!/bin/sh\nexec /usr/local/bin/capa.real -r /opt/capa-rules "$@"\n' > /usr/local/bin/capa
-        chmod +x /usr/local/bin/capa
+        if [ -n "$capa_bin" ]; then
+            ln -sf "$capa_bin" /usr/local/bin/capa.real
+            printf '#!/bin/sh\nexec /usr/local/bin/capa.real -r /opt/capa-rules "$@"\n' > /usr/local/bin/capa
+            chmod +x /usr/local/bin/capa
+        else
+            echo "capa 二进制未找到(p0 组先跑)"
+        fi
     fi
     # 词表约定:/usr/share/wordlists 软链入口 + rockyou 解包(chmod 644 供 hashcat/john)
     install -d /usr/share/wordlists
@@ -617,8 +631,8 @@ install_pentest() {
         local ry; ry="$(find /opt/SecLists/Passwords -name 'rockyou.txt*' 2>/dev/null | head -1)"
         if [ -n "$ry" ]; then
             case "$ry" in
-                *.tar.gz|*.tgz) tar -C /usr/share/wordlists -xzf "$ry" rockyou.txt 2>/dev/null ;;
-                *) cp "$ry" /usr/share/wordlists/rockyou.txt ;;
+                *.tar.gz|*.tgz) tar -C /usr/share/wordlists -xzf "$ry" rockyou.txt 2>/dev/null || true ;;
+                *) cp "$ry" /usr/share/wordlists/rockyou.txt || true ;;
             esac
             chmod 644 /usr/share/wordlists/rockyou.txt 2>/dev/null || true
         fi

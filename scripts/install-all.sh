@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# 全量入口:按 编译器 → 运行时 → 工具 顺序跑三个分类安装器
+# 全量入口:按 编译器 → 运行时 → 库缓存 → 工具 顺序跑分类安装器
 # 可装项清单见各脚本尾部 *_ALL:
 #   install-compilers.sh 尾部 COMPILERS_ALL
 #   install-runtimes.sh  尾部 RUNTIMES_ALL
+#   install-libcache.sh  尾部 LIBCACHE_ALL
 #   install-tools.sh     尾部 TOOLS_ALL
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -16,4 +17,5 @@ apt-get install -y --no-install-recommends \
 # 全量入口不转发过滤器:单项安装直接用对应分类脚本
 bash "$HERE/install-compilers.sh"
 bash "$HERE/install-runtimes.sh"
+bash "$HERE/install-libcache.sh"
 bash "$HERE/install-tools.sh"
