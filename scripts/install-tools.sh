@@ -540,7 +540,8 @@ install_nu() {
         # GitHub 直连间歇性归零(与 tuna 抖动同期),重试 3 次取 tag
         local _try
         for _try in 1 2 3; do
-            ntag="$(git ls-remote --tags "${gh}/nushell" 2>/dev/null | grep -oE 'refs/tags/[0-9]+\.[0-9]+\.[0-9]+$' | sort -t. -k1,1n -k2,2n -k3,3n | tail -1 | sed 's|refs/tags/||')"
+            # pipefail:ls-remote 失败时整条管道非零,赋值即 set -e 退出;|| true 兜底
+            ntag="$(git ls-remote --tags "${gh}/nushell" 2>/dev/null | grep -oE 'refs/tags/[0-9]+\.[0-9]+\.[0-9]+$' | sort -t. -k1,1n -k2,2n -k3,3n | tail -1 | sed 's|refs/tags/||' || true)"
             if [ -n "$ntag" ]; then break; fi
             sleep 5
         done
