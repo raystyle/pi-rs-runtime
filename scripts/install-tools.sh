@@ -703,8 +703,13 @@ install_red() {
     export GOPATH=/opt/go GOPROXY GOSUMDB
     local t
     for t in kerbrute wafw00f arjun ghauri bloodhound-python Coercer mitm6 objection apkleaks; do
-        have "$t" 2>/dev/null || VIRTUAL_ENV= uv tool install "$t" >/dev/null 2>&1 \
-            && echo "$t 已装" || echo "$t 失败(留待排查)"
+        if have "$t" 2>/dev/null || VIRTUAL_ENV= uv tool install "$t" >/dev/null 2>&1; then
+            echo "$t 已装"
+        else
+            # 阿里云 pypi 偶发缺包(fresh 实证 ghauri/bloodhound-python),退回 tuna pypi 索引
+            VIRTUAL_ENV= uv tool install --index-url "https://pypi.tuna.tsinghua.edu.cn/simple" "$t" >/dev/null 2>&1 \
+                && echo "$t 已装(tuna 兜底)" || echo "$t 失败(留待排查)"
+        fi
     done
     # 命名差异:kerbrute/Coercer 等二进名与包名可能不同,统一链接检查
     for t in kerbrute wafw00f arjun ghauri bloodhound-python coercer Coercer mitm6 objection apkleaks; do
@@ -716,7 +721,11 @@ install_red() {
     local r
     for r in mubix/jwt-tool sensepost/LinkFinder dirkjanm/krbrelayx CarHaeck/enum4linux-ng; do
         local d="/opt/$(basename "$r")"
-        [ -d "$d/.git" ] || git clone --depth 1 "${gh}/${r}" "$d" || echo "$r 克隆失败"
+        if [ ! -d "$d/.git" ]; then
+            # GitHub 直连间歇性失败,重试 2 次
+            git clone --depth 1 "${gh}/${r}" "$d" 2>/dev/null || git clone --depth 1 "${gh}/${r}" "$d" \
+                || echo "$r 克隆失败(2 次)"
+        fi
     done
     # LinkFinder / enum4linux-ng 的 python 依赖进 re-venv
     [ -x "$RE_VENV/bin/python" ] || uv venv "$RE_VENV"
@@ -733,7 +742,16 @@ install_red() {
     apt-get install -y --no-install-recommends ruby-full || true
     if have gem; then
         gem sources --add https://gems.ruby-china.com/ --remove https://rubygems.org/ >/dev/null 2>&1 || true
-        have cewl || gem install cewl --no-document >/dev/null 2>&1 && echo "cewl 已装" || echo "cewl 失败"
+    fi
+    # CeWL 不在 rubygems(实测搜索无此 gem),官方分发是 git 仓 + 依赖 gem
+    if [ ! -d /opt/CeWL/cewl.rb ]; then
+        git clone --depth 1 "${gh}/digiNinja/CeWL" /opt/CeWL 2>/dev/null || echo "CeWL 克隆失败"
+    fi
+    if [ -f /opt/CeWL/cewl.rb ]; then
+        gem install nokogiri mime mime-types mini_exiftool rubyzip --no-document >/dev/null 2>&1 || true
+        printf '#!/bin/sh\nexec ruby /opt/CeWL/cewl.rb "$@"\n' > /usr/local/bin/cewl
+        chmod +x /usr/local/bin/cewl
+        echo "cewl 就位(/opt/CeWL,依赖 gem 尽力)"
     fi
 
     log "CyberChef(离线瑞士军刀,Release zip 钉 /opt)"
