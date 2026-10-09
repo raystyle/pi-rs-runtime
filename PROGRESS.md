@@ -8,14 +8,14 @@
 
 ## 当前状态
 
-- 镜像 `pi-rs-runtime` 第一版已落库(fingerprint `7564be3f6e57`,17.6 GB):publish 客户端超时被杀但 daemon 侧已打包完成,别名直接挂到该 fingerprint。
-- 从镜像开实例验收发现三处静默缺口,已全部修复并推 main(`2b4ddc5`、`16e7609`):① nu 装不上——`install_nu` 的 `git ls-remote` 缺 owner(`${gh}/nushell` 应为 `nushell/nushell`,CyberChef 同款缺 `gchq/`);② capa wrapper 递归 exec——`printf > 软链` 穿透改写 `/opt/capa` 真身,改 nuclei 同款挪文件写法;③ pwsh 模块固化空——PackageManagement(Save-Module)在 noble+pwsh 7.4 段错误,换 inbox PSResourceGet(Save-PSResource)。
-- 修复已在 `rt-img-verify`(从镜像开的实例)增量落地:nu 0.116.1、capa 9.4.0(wrapper 正常)、/opt/psmodules 8 模块,ubuntu 用户复验绿。**重发布完成:`pi-rs-runtime` → fingerprint `9c63a0288d34`**;两个无别名旧镜像(7564be3f6e57、de805a88111c)已删;rt/rt-verify/rt-img-verify 三容器确认无独一份数据后已全部删除(磁盘 86%→55%)。rt 里的手装件 RsaCtfTool 未进脚本,需要时可补进 install-tools.sh。
-- 工作流原则(用户定):脚本幂等部署 + pin + 可升级;以后走「从发布镜像开实例 → 增量跑分类脚本 → 重 publish」的增量路线,不必每次 fresh 全量。
-- `GITHUB_MIRROR` 默认改为 `https://proxy.ohmygh.com/`(置空回直连),已推 main。
-- 文档重组:README 689 行拆为 132 行薄入口(定位/前置条件/文档索引/步骤)+ `docs/` 四分册:`params.md`(参数表)、`install-surfaces.md`(安装面清单)、`software-inventory.md`(软件清单归档)、`known-issues.md`(已知限制)。
-- 脚本全量 fresh 验证通过,验收绿(版本输出、wrapper、/opt 缓存落点、ubuntu 用户可执行)。
-- main 最新提交 `16e7609`,工作区干净。
+- 最新发布链:9c63a0288d34(三缺口修复)→ f0bc3ee442c2(nasm 3.02 源码钉版 + donut 1.1)→ **正在发布第三版**(rt-edit2,内容见下)。
+- 本版新增(全部 ubuntu 复验绿):nim 2.2.12(choosenim,/opt/nim)、clickhouse 26.10(官方单二进制,`clickhouse local`)、nasm 3.02、donut 1.1、RustHound-CE(补 libkrb5-dev 后构建过)、praetorian 三件 nerva/brutus(走 /cmd 子路径)/aurelian(根模块)、fff-search 0.11 进 rust 库预热(fff-mcp 二进制用户裁定不装)。
+- 归档三轴分类(grok 评审裁定,全文曾落 /tmp/grok-maldev-classification.md):`c2dev-ref/`(sliver/merlin/Empire/Covenant/mythic/SILENTTRINITY)、`payload-ref/`(generators{deserialization,pe-to-shellcode}、loaders{droppers,inproc}、evasion{ShellcodeFluctuation,crystal-palace}、curricula{zig,rust,nim,go}、analysis{donut-decryptor})、`tradecraft-ref/`(ad/bof/opsec);COFFLoader/bof-launcher 源码在 loaders/inproc 原地编译;atomic-bofs/BOF-CATALOG 在 tradecraft-ref/bof;Crystal Palace(cpsrc+cpdist)与 Tradecraft Garden(tcg-latest.tgz)官网源码归档;新 recon 组 /opt/recon-ref(mac-tracker/recog/hickory-dns)。语言只做教材次轴,SILENTTRINITY 是 C2 不是 Nim 教材,ysoserial 是反序列化生成器不是 C2。
+- 网络面:proxy.ohmygh.com 实测**只代理 GitHub 系**(nim-lang.org/clickhouse.com/tradecraftgarden.org 均 TLS 重置),非 GitHub 站走直连;宿主 DNS 曾整挂(路由器 192.168.88.2 对 github.com 等返回无记录),wlo1 已指 223.5.5.5/223.6.6.6(DHCP 续约会恢复,复发照此处理)。
+- 工作流原则(用户定):脚本幂等部署 + pin + 可升级;走「从发布镜像开实例 → 增量跑分类脚本 → 重 publish」路线。
+- `GITHUB_MIRROR` 默认 `https://proxy.ohmygh.com/`(置空回直连)。
+- 文档:`docs/install-surfaces/` 拆成四件(index/compilers/runtimes/tools),p0 逐项重写(21 包各一行带用途),inventory 同步三轴与全部新增;README 132 行薄入口。
+- main 最新提交 `bc07faa`,工作区干净。
 
 ## 已完成的里程碑(按时间)
 
