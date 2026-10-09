@@ -17,11 +17,14 @@ install_fd() {
     ln -sf /usr/bin/fdfind /usr/local/bin/fd
     fd --version && rg --version
     # fff:常驻索引的文件搜索库(非 CLI);装 MCP server 二进制供智能体接线
+    # crates.io 无 fff-mcp 包(实证 could not find),走 git 源构建
     if ! have fff-mcp; then
         export RUSTUP_HOME=/opt/rustup CARGO_HOME=/opt/cargo
         . /opt/cargo/env 2>/dev/null || true
         export PATH="$PATH:/opt/cargo/bin"
-        cargo install fff-mcp --locked || echo "fff-mcp 编译失败(下轮补)"
+        cargo install --git "${GITHUB_MIRROR}https://github.com/dmtrKovalenko/fff" fff-mcp --locked \
+            || cargo install --git "${GITHUB_MIRROR}https://github.com/dmtrKovalenko/fff" fff-mcp \
+            || echo "fff-mcp 编译失败(下轮补)"
         [ -e /opt/cargo/bin/fff-mcp ] && ln -sf /opt/cargo/bin/fff-mcp /usr/local/bin/fff-mcp
         [ -e "$HOME/.cargo/bin/fff-mcp" ] && ln -sf "$HOME/.cargo/bin/fff-mcp" /usr/local/bin/fff-mcp
     fi
@@ -129,6 +132,9 @@ SECGO_TOOLS_DEFAULT=(
     gospider@github.com/jaeles-project
     gowitness@github.com/sensepost
     azurehound/v2@github.com/bloodhoundad
+    nerva@github.com/praetorian-inc
+    brutus@github.com/praetorian-inc
+    aurelian@github.com/praetorian-inc
 )
 
 install_secgo() {
@@ -171,13 +177,13 @@ install_secrust() {
     # findomain 依赖多,cargo 失败则提示走 GitHub Releases 预编译
     # findomain 依赖多常编不过,要用时走 https://github.com/Findomain/Findomain/releases 预编译
     # RustHound-CE:BloodHound CE 采集器(Linux 直跑);crates.io 无此包,源码构建,
-    # 源码随 maldev-ref 归档(g0h4n 系列 AD 工具同库)
+    # 源码归 tradecraft-ref/ad(grok 裁定:操作员 AD 工具,源码位置与编不编译脱钩)
     if ! have rusthound-ce; then
         local gh="${GITHUB_MIRROR}https://github.com"
-        install -d /opt/maldev-ref
-        [ -d /opt/maldev-ref/RustHound-CE/.git ] || git clone --depth 1 "${gh}/g0h4n/RustHound-CE" /opt/maldev-ref/RustHound-CE
-        ( cd /opt/maldev-ref/RustHound-CE && cargo build --release --locked ) \
-            && install -m755 /opt/maldev-ref/RustHound-CE/target/release/rusthound-ce /usr/local/bin/rusthound-ce \
+        install -d /opt/tradecraft-ref/ad
+        [ -d /opt/tradecraft-ref/ad/RustHound-CE/.git ] || git clone --depth 1 "${gh}/g0h4n/RustHound-CE" /opt/tradecraft-ref/ad/RustHound-CE
+        ( cd /opt/tradecraft-ref/ad/RustHound-CE && cargo build --release --locked ) \
+            && install -m755 /opt/tradecraft-ref/ad/RustHound-CE/target/release/rusthound-ce /usr/local/bin/rusthound-ce \
             || echo "RustHound-CE 构建失败(下轮补)"
     fi
     have rusthound-ce && rusthound-ce --version 2>/dev/null | head -1
@@ -456,36 +462,41 @@ install_p0() {
 # 用户裁定(2026-10-08):C2 代码不安装不编译,只克隆给后渗透参考——
 # 自架 C2 等于在自己基础设施上起 beacon 服务,供给面风险自负
 install_c2() {
-    log "C2 参考克隆(不安装不运行,归档 /opt/c2dev-ref): sliver/merlin/empire/covenant/mythic/ysoserial/ysoserial.net"
+    log "C2 参考克隆(不安装不运行,归档 /opt/c2dev-ref): sliver/merlin/empire/covenant/mythic/SILENTTRINITY"
     local gh="${GITHUB_MIRROR}https://github.com"
     install -d /opt/c2dev-ref
     local r
     for r in bishopfox/sliver Ne0nd0g/merlin BC-SECURITY/Empire cobbr/Covenant \
-             its-a-feature/mythic frohoff/ysoserial pwntester/ysoserial.net; do
+             its-a-feature/mythic byt3bl33d3r/SILENTTRINITY; do
         local d="/opt/c2dev-ref/$(basename "$r")"
         [ -d "$d/.git" ] || git clone --depth 1 "${gh}/${r}" "$d" || echo "$r 克隆失败"
     done
+    # ysoserial 系是反序列化生成器,不是 C2;已归 payload-ref/generators/deserialization(maldev 组)
+    rm -rf /opt/c2dev-ref/ysoserial /opt/c2dev-ref/ysoserial.net
     echo "参考就位: /opt/c2dev-ref/(构建与运行属部署面,参考 grok dotnetfx 方案与各仓库文档)"
     true
 }
 
 # ---- BOF(Beacon Object File)工具链:交叉编译 + 脱离 C2 运行 ----------------
 install_bof() {
-    log "BOF 工具链: mingw-w64 + COFFLoader + atomic-bofs + 目录(原始码归档 /opt/maldev-ref)"
+    log "BOF 工具链: mingw-w64 + COFFLoader + atomic-bofs + 目录(源码随三轴归档)"
     local gh="${GITHUB_MIRROR}https://github.com"
-    install -d /opt/maldev-ref
     apt-get update -qq
     apt-get install -y --no-install-recommends mingw-w64
+    # COFFLoader/bof-launcher 是进程内执行基底(grok 裁定)→ payload-ref/loaders/inproc;
+    # atomic-bofs/BOF-CATALOG 是后渗透内容 → tradecraft-ref/bof
+    local inproc=/opt/payload-ref/loaders/inproc bofref=/opt/tradecraft-ref/bof
+    install -d "$inproc" "$bofref"
     # COFFLoader 的 standalone 仍依赖 Windows 类型(BOOL/InternalFunctions),
     # Linux 直编过不了上游也没支持;交叉编 Windows 版(wine 下可用),
     # Linux 上跑 BOF 用 coffee / bof-launcher
-    if [ ! -f /opt/maldev-ref/COFFLoader/COFFLoader64.exe ]; then
-        rm -rf /opt/maldev-ref/COFFLoader
-        git clone --depth 1 "${gh}/trustedsec/COFFLoader" /opt/maldev-ref/COFFLoader \
-            && ( cd /opt/maldev-ref/COFFLoader && make bof ) || echo "coffloader mingw 构建失败"
+    if [ ! -f "$inproc/COFFLoader/COFFLoader64.exe" ]; then
+        rm -rf "$inproc/COFFLoader"
+        git clone --depth 1 "${gh}/trustedsec/COFFLoader" "$inproc/COFFLoader" \
+            && ( cd "$inproc/COFFLoader" && make bof ) || echo "coffloader mingw 构建失败"
     fi
     # atomic-bofs:rasta-mouse 的 COFF 独立运行 harness(带打包参数)
-    [ -d /opt/maldev-ref/atomic-bofs/.git ] || git clone --depth 1 "${gh}/rasta-mouse/atomic-bofs" /opt/maldev-ref/atomic-bofs
+    [ -d "$bofref/atomic-bofs/.git" ] || git clone --depth 1 "${gh}/rasta-mouse/atomic-bofs" "$bofref/atomic-bofs"
     # Coffee(hakaioffsec):Rust 现代 COFF loader,crate 名 coffee-ldr
     # 上游 lib.rs 用 #![feature(c_variadic/core_intrinsics)],stable 编不过,需 nightly
     if ! have coffee-ldr; then
@@ -501,7 +512,7 @@ install_bof() {
     fi
     have coffee-ldr && echo "coffee-ldr 就绪" || echo "coffee-ldr 未装上(BOF 运行还有 bof-launcher 与 mingw/wine 路径)"
     # bof-launcher(The-Z-Labs):Zig 写的 BOF 加载器;仓库钉 zig 0.15.2,
-    # 系统 zig 0.16 可能编不过,专用副本构建;源码归档 /opt/maldev-ref
+    # 系统 zig 0.16 可能编不过,专用副本构建;源码随 inproc 归档
     if ! have bof-launcher; then
         local z152=/opt/zig-0.15.2
         if [ ! -x "$z152/zig" ]; then
@@ -509,21 +520,21 @@ install_bof() {
             curl -fSL "https://ziglang.org/download/0.15.2/zig-${za}-linux-0.15.2.tar.xz" -o /tmp/zig152.tar.xz \
                 && mkdir -p "$z152" && tar -C "$z152" -xJf /tmp/zig152.tar.xz --strip-components=1 && rm /tmp/zig152.tar.xz
         fi
-        rm -rf /opt/maldev-ref/bof-launcher
-        git clone --depth 1 "${gh}/The-Z-Labs/bof-launcher" /opt/maldev-ref/bof-launcher
-        if [ -x "$z152/zig" ] && ( cd /opt/maldev-ref/bof-launcher && "$z152/zig" build -Doptimize=ReleaseSafe ); then
-            find /opt/maldev-ref/bof-launcher/zig-out -name bof-launcher -type f -exec install -m755 {} /usr/local/bin/bof-launcher \;
+        rm -rf "$inproc/bof-launcher"
+        git clone --depth 1 "${gh}/The-Z-Labs/bof-launcher" "$inproc/bof-launcher"
+        if [ -x "$z152/zig" ] && ( cd "$inproc/bof-launcher" && "$z152/zig" build -Doptimize=ReleaseSafe ); then
+            find "$inproc/bof-launcher/zig-out" -name bof-launcher -type f -exec install -m755 {} /usr/local/bin/bof-launcher \;
         else
             echo "bof-launcher 构建失败"
         fi
     fi
     have bof-launcher && echo "bof-launcher 就绪"
-    # 参考目录(随 maldev-ref 归档)
-    curl -fsSL "${gh}/chryzsh/awesome-bof/raw/main/BOF-CATALOG.md" -o /opt/maldev-ref/BOF-CATALOG.md \
+    # 参考目录(随 bof 内容归档)
+    curl -fsSL "${gh}/chryzsh/awesome-bof/raw/main/BOF-CATALOG.md" -o "$bofref/BOF-CATALOG.md" \
         || echo "目录下载失败(不影响工具链)"
     x86_64-w64-mingw32-gcc --version | head -1
-    [ -f /opt/maldev-ref/COFFLoader/COFFLoader64.exe ] && echo "COFFLoader64.exe 在 /opt/maldev-ref/COFFLoader(wine 用);Linux 直跑 BOF 用 coffee/bof-launcher"
-    ls -d /opt/maldev-ref/atomic-bofs >/dev/null 2>&1 && echo "atomic-bofs 在 /opt/maldev-ref/atomic-bofs"
+    [ -f "$inproc/COFFLoader/COFFLoader64.exe" ] && echo "COFFLoader64.exe 在 $inproc/COFFLoader(wine 用);Linux 直跑 BOF 用 coffee/bof-launcher"
+    ls -d "$bofref/atomic-bofs" >/dev/null 2>&1 && echo "atomic-bofs 在 $bofref/atomic-bofs"
     echo "用法: x86_64-w64-mingw32-gcc -c bof.c -o bof.o; coffee run bof.o / bof-launcher run bof.o"
     true
 }
@@ -592,31 +603,98 @@ install_nu() {
 }
 
 # ---- 恶意开发模板库(maldev):只克隆归档,不编译不运行,形成代码模板库 ----------
-# 语言生态(Zig/Rust/Nim/C#)+ donut 生成器生态 + PE→PIC 同类 + 加载器配套
-# Crystal Palace 无 Git 仓(tradecraftgarden.org 分发),只记文档
+# 分类轴(grok 评审裁定,业界工件角色轴;语言仅教材次轴):
+#   c2dev-ref/                 产物是会话的框架(SILENTTRINITY 走 c2 组)
+#   payload-ref/generators/    主产物是字节或变形二进制(deserialization 与 pe-to-shellcode 分叶)
+#   payload-ref/loaders/       产物是执行这些字节的进程(droppers 与 inproc 分叶)
+#   payload-ref/evasion/       往 loader 里贴的原语(ShellcodeFluctuation、Crystal Palace)
+#   payload-ref/curricula/     教材架,其下按语言分叶
+#   payload-ref/analysis/      防御向(donut-decryptor),避免被当进攻模板抄
+#   tradecraft-ref/{ad,bof,opsec}/  产物是上线后的操作员动作
+# 有编译产物的仓(COFFLoader/bof-launcher/atomic-bofs/RustHound-CE)由 bof/secrust 组
+# 各自克隆构建,落点同轴
 install_maldev() {
-    log "maldev 模板参考库(只克隆,归档 /opt/maldev-ref)"
+    log "maldev 模板参考库(只克隆;三根归档 c2dev-ref/payload-ref/tradecraft-ref)"
     local gh="${GITHUB_MIRROR}https://github.com"
-    install -d /opt/maldev-ref
-    local repos="
-CX330Blake/Black-Hat-Zig darkr4y/OffensiveZig
-trickster0/OffensiveRust skerkour/black-hat-rust
-byt3bl33d3r/OffensiveNim byt3bl33d3r/SILENTTRINITY Enelg52/OffensiveGo
-g0h4n/IsWebClientRunning-rs g0h4n/HasSession-rs g0h4n/LocalGroups-rs g0h4n/PassTheCert-rs g0h4n/dende-rs
-icedracon/dcerpc icedracon/adhammer
-wabzsy/gonut Zuigetzu/Donut-CustomHost n1xbyte/donutCS Binject/go-donut blinkenl1ghts/donloader volexity/donut-decryptor
-monoxgas/sRDI hasherezade/pe_to_shellcode phra/PEzor fortra/No-Consolation fancycode/MemoryModule DarthTon/Blackbone
-optiv/ScareCrow boku7/BokuLoader benheise/TitanLdr xuanxuan0/DripLoader mgeeky/ShellcodeFluctuation icyguider/Shhhloader
-"
-    local r
-    for r in $repos; do
-        local d="/opt/maldev-ref/$(basename "$r")"
+    local m
+    for m in \
+        "CX330Blake/Black-Hat-Zig:payload-ref/curricula/zig" \
+        "darkr4y/OffensiveZig:payload-ref/curricula/zig" \
+        "trickster0/OffensiveRust:payload-ref/curricula/rust" \
+        "skerkour/black-hat-rust:payload-ref/curricula/rust" \
+        "byt3bl33d3r/OffensiveNim:payload-ref/curricula/nim" \
+        "Enelg52/OffensiveGo:payload-ref/curricula/go" \
+        "g0h4n/IsWebClientRunning-rs:tradecraft-ref/ad" \
+        "g0h4n/HasSession-rs:tradecraft-ref/ad" \
+        "g0h4n/LocalGroups-rs:tradecraft-ref/ad" \
+        "g0h4n/PassTheCert-rs:tradecraft-ref/ad" \
+        "icedracon/dcerpc:tradecraft-ref/ad" \
+        "icedracon/adhammer:tradecraft-ref/ad" \
+        "g0h4n/dende-rs:tradecraft-ref/opsec" \
+        "wabzsy/gonut:payload-ref/generators/pe-to-shellcode" \
+        "Zuigetzu/Donut-CustomHost:payload-ref/generators/pe-to-shellcode" \
+        "n1xbyte/donutCS:payload-ref/generators/pe-to-shellcode" \
+        "Binject/go-donut:payload-ref/generators/pe-to-shellcode" \
+        "monoxgas/sRDI:payload-ref/generators/pe-to-shellcode" \
+        "hasherezade/pe_to_shellcode:payload-ref/generators/pe-to-shellcode" \
+        "phra/PEzor:payload-ref/generators/pe-to-shellcode" \
+        "frohoff/ysoserial:payload-ref/generators/deserialization" \
+        "pwntester/ysoserial.net:payload-ref/generators/deserialization" \
+        "blinkenl1ghts/donloader:payload-ref/loaders/droppers" \
+        "optiv/ScareCrow:payload-ref/loaders/droppers" \
+        "boku7/BokuLoader:payload-ref/loaders/droppers" \
+        "benheise/TitanLdr:payload-ref/loaders/droppers" \
+        "xuanxuan0/DripLoader:payload-ref/loaders/droppers" \
+        "icyguider/Shhhloader:payload-ref/loaders/droppers" \
+        "fortra/No-Consolation:payload-ref/loaders/inproc" \
+        "fancycode/MemoryModule:payload-ref/loaders/inproc" \
+        "DarthTon/Blackbone:payload-ref/loaders/inproc" \
+        "mgeeky/ShellcodeFluctuation:payload-ref/evasion" \
+        "volexity/donut-decryptor:payload-ref/analysis" \
+    ; do
+        local r="${m%%:*}" leaf="${m#*:}"
+        local d="/opt/${leaf}/$(basename "$r")"
+        install -d "/opt/${leaf}"
         if [ ! -d "$d/.git" ]; then
             git clone --depth 1 "${gh}/${r}" "$d" 2>/dev/null || git clone --depth 1 "${gh}/${r}" "$d" \
                 || echo "$r 克隆失败(2 次,下轮补)"
         fi
     done
-    echo "maldev-ref 就位: $(ls /opt/maldev-ref | wc -l) 项在 /opt/maldev-ref/(Crystal Palace 见文档 tradecraftgarden.org)"
+    # Crystal Palace(PIC 链接器)与 Tradecraft Garden(能力加载器集):无 Git 仓,官网 tgz 归档
+    local tg="https://tradecraftgarden.org/download"
+    if [ ! -d /opt/payload-ref/evasion/crystal-palace ]; then
+        install -d /opt/payload-ref/evasion/crystal-palace
+        curl -fSL "${tg}/cpsrc-latest.tgz" -o /tmp/cpsrc.tgz \
+            && tar -xzf /tmp/cpsrc.tgz -C /opt/payload-ref/evasion/crystal-palace && rm /tmp/cpsrc.tgz \
+            || echo "Crystal Palace 源码下载失败(下轮补)"
+        curl -fSL "${tg}/cpdist-latest.tgz" -o /tmp/cpdist.tgz \
+            && tar -xzf /tmp/cpdist.tgz -C /opt/payload-ref/evasion/crystal-palace && rm /tmp/cpdist.tgz \
+            || echo "Crystal Palace 发行包下载失败(下轮补)"
+    fi
+    if [ ! -d /opt/payload-ref/loaders/tradecraft-garden ]; then
+        install -d /opt/payload-ref/loaders/tradecraft-garden
+        curl -fSL "${tg}/tgsrc-latest.tgz" -o /tmp/tgsrc.tgz \
+            && tar -xzf /tmp/tgsrc.tgz -C /opt/payload-ref/loaders/tradecraft-garden && rm /tmp/tgsrc.tgz \
+            || echo "Tradecraft Garden 源码下载失败(下轮补)"
+    fi
+    echo "模板库就位: $(find /opt/payload-ref /opt/tradecraft-ref -maxdepth 4 -name .git | wc -l) 仓 + Crystal Palace/Tradecraft Garden 源码"
+    true
+}
+
+# ---- 侦察指纹参考(recon):指纹库与 DNS 源码,只克隆归档,供指纹类工具对照 ----------
+install_recon() {
+    log "recon 指纹参考(只克隆,归档 /opt/recon-ref): mac-tracker/recog/hickory-dns"
+    local gh="${GITHUB_MIRROR}https://github.com"
+    install -d /opt/recon-ref
+    local r
+    for r in runZeroInc/mac-tracker rapid7/recog hickory-dns/hickory-dns; do
+        local d="/opt/recon-ref/$(basename "$r")"
+        if [ ! -d "$d/.git" ]; then
+            git clone --depth 1 "${gh}/${r}" "$d" 2>/dev/null || git clone --depth 1 "${gh}/${r}" "$d" \
+                || echo "$r 克隆失败(2 次,下轮补)"
+        fi
+    done
+    ls /opt/recon-ref
     true
 }
 
@@ -897,5 +975,5 @@ EOF
 }
 
 
-TOOLS_ALL=(fd astgrep cli herdr ghidra re pd secgo secrust pivot p0 c2 bof pz maldev nu pentest red)
+TOOLS_ALL=(fd astgrep cli herdr ghidra re pd secgo secrust pivot p0 c2 bof pz maldev recon nu pentest red)
 run_category TOOLS_ALL "$@"
