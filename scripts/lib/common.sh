@@ -1,19 +1,23 @@
 export DEBIAN_FRONTEND=noninteractive
 
 # ---- 镜像源(可覆盖)-------------------------------------------------
-# 原则:有 tuna 走 tuna;tuna 没有的走该生态自己的国内镜像
+# 原则:有国内更快的走更快源;实测 2026-10-09:apt 阿里云(原 tuna 慢)、pypi 阿里云、
+# rustup/crates 阿里云(crate 文件本体也镜像,优于 tuna 回源 static.crates.io)、
+# maven 发行包阿里云;Adoptium 阿里云无镜像仍走 tuna;golang 发行包南大(华为 401);
+# npm 即淘宝(npmmirror 为淘宝 npm 镜像新域名)
 TUNA="${TUNA:-https://mirrors.tuna.tsinghua.edu.cn}"
-export RUSTUP_DIST_SERVER="${RUSTUP_DIST_SERVER:-$TUNA/rustup}"
-export RUSTUP_UPDATE_ROOT="${RUSTUP_UPDATE_ROOT:-$TUNA/rustup/rustup}"
-CRATES_INDEX="${CRATES_INDEX:-$TUNA/crates.io-index}"
+ALIYUN="${ALIYUN:-https://mirrors.aliyun.com}"
+export RUSTUP_DIST_SERVER="${RUSTUP_DIST_SERVER:-$ALIYUN/rustup}"
+export RUSTUP_UPDATE_ROOT="${RUSTUP_UPDATE_ROOT:-$ALIYUN/rustup/rustup}"
+CRATES_INDEX="${CRATES_INDEX:-$ALIYUN/crates.io-index}"
 export GOPROXY="${GOPROXY:-https://goproxy.cn,direct}"   # tuna 无 golang 模块代理,用七牛 goproxy;export 给子进程 go install
 export GOSUMDB="${GOSUMDB:-sum.golang.google.cn}"       # 国内可连的校验和库
 GO_DOWNLOAD="${GO_DOWNLOAD:-https://mirror.nju.edu.cn/golang}" # tuna 无 golang;南大镜像同为高校源,也可用 golang.google.cn
-NPM_REGISTRY="${NPM_REGISTRY:-https://registry.npmmirror.com}"            # tuna 无 npm registry
-NODE_MIRROR="${NODE_MIRROR:-https://registry.npmmirror.com/-/binary/node}" # tuna 无 node 二进制
-PIP_INDEX="${PIP_INDEX:-https://pypi.tuna.tsinghua.edu.cn/simple}" # tuna pypi 独立 vhost;mirrors.tuna.../pypi/ 是 404
-ADOPTIUM_MIRROR="${ADOPTIUM_MIRROR:-$TUNA/Adoptium}"
-MAVEN_MIRROR="${MAVEN_MIRROR:-$TUNA/apache/maven}"
+NPM_REGISTRY="${NPM_REGISTRY:-https://registry.npmmirror.com}"            # 淘宝 npm 镜像
+NODE_MIRROR="${NODE_MIRROR:-https://registry.npmmirror.com/-/binary/node}" # 淘宝 node 二进制
+PIP_INDEX="${PIP_INDEX:-$ALIYUN/pypi/simple}" # 写 /etc/pip.conf 与 /etc/uv/uv.toml,uv 索引用同一个变量
+ADOPTIUM_MIRROR="${ADOPTIUM_MIRROR:-$TUNA/Adoptium}"  # 阿里云无 Adoptium 镜像
+MAVEN_MIRROR="${MAVEN_MIRROR:-$ALIYUN/apache/maven}"
 
 # ---- 版本钉 -------------------------------------------------------
 GOLANG_VERSION="${GOLANG_VERSION:-1.27.1}"   # 两个维护线内取最新;sha256 钉在 install_golang
