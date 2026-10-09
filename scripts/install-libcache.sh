@@ -107,10 +107,13 @@ install_python() {
     # shellcheck disable=SC2086
     VIRTUAL_ENV="$RE_VENV" uv pip install $pkgs || echo "部分 python 库失败(逐个 tolerant)"
     # wheelhouse:离线重装源(只锁 requirements 不够,断网后没有索引)
+    # uv 无 pip download 子命令;给 venv 装 pip 后用 pip download 拉轮子
     install -d /opt/wheelhouse
+    VIRTUAL_ENV="$RE_VENV" uv pip install pip >/dev/null 2>&1 || true
     # shellcheck disable=SC2086
-    VIRTUAL_ENV="$RE_VENV" uv pip download -d /opt/wheelhouse $pkgs 2>/dev/null \
-        && ls /opt/wheelhouse | wc -l || echo "wheelhouse 下载部分失败"
+    [ -x "$RE_VENV/bin/pip" ] && "$RE_VENV/bin/pip" download -d /opt/wheelhouse \
+        --index-url "$PIP_INDEX" $pkgs 2>/dev/null \
+        && ls /opt/wheelhouse | wc -l || echo "wheelhouse 下载部分失败(pip 未装进 venv?)"
     # RsaCtfTool:RSA 题框架,克隆并锁依赖进同一份 venv
     local gh="${GITHUB_MIRROR}https://github.com"
     if [ ! -d /opt/RsaCtfTool/.git ]; then
