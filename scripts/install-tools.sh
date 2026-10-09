@@ -714,7 +714,7 @@ install_red() {
     log "git 克隆批(钉 /opt,依赖进 re-venv 尽力)"
     local gh="${GITHUB_MIRROR}https://github.com"
     local r
-    for r in mubix/jwt-tool sensepost/LinkFinder ipp-sec/krbrelayx CarHaeck/enum4linux-ng; do
+    for r in mubix/jwt-tool sensepost/LinkFinder dirkjanm/krbrelayx CarHaeck/enum4linux-ng; do
         local d="/opt/$(basename "$r")"
         [ -d "$d/.git" ] || git clone --depth 1 "${gh}/${r}" "$d" || echo "$r 克隆失败"
     done
@@ -739,7 +739,8 @@ install_red() {
     log "CyberChef(离线瑞士军刀,Release zip 钉 /opt)"
     if [ ! -d /opt/cyberchef ]; then
         local gh2="${GITHUB_MIRROR}https://github.com"
-        local ctag; ctag="$(curl -fsSL "https://api.github.com/repos/gchq/CyberChef/releases/latest" | grep -o '"tag_name": *"[^"]*"' | cut -d'"' -f4)"
+        # api.github.com 限流改用 git ls-remote(nushell 同款)
+        local ctag; ctag="$(git ls-remote --tags "${gh2}/CyberChef" 2>/dev/null | grep -oE 'refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$' | sort -t. -k1,1n -k2,2n -k3,3n | tail -1 | sed 's|refs/tags/||' || true)"
         if [ -n "$ctag" ]; then
             local cz="CyberChef_${ctag#v}.zip"
             curl -fSL "${gh2}/gchq/CyberChef/releases/download/${ctag}/${cz}" -o "/tmp/${cz}" \
@@ -752,9 +753,10 @@ install_red() {
     log "云与内网:kubectl(aliyun)/trivy+db 烘焙/awscli v2"
     # kubectl:阿里云 kubernetes-release 镜像
     if ! have kubectl; then
+        # 国内无 kubectl 二进制镜像(阿里云/ustc/华为实测均无 release 布局);直连官方 CDN 钉版
         local karch="amd64"; [ "$(dpkg --print-architecture)" = arm64 ] && karch="arm64"
-        curl -fSL "https://mirrors.aliyun.com/kubernetes-release/release/v1.32.0/bin/linux/${karch}/kubectl" -o /usr/local/bin/kubectl 2>/dev/null \
-            && chmod +x /usr/local/bin/kubectl || echo "kubectl 失败(兜底构建期直连 dl.k8s.io)"
+        curl -fSL --retry 3 "https://dl.k8s.io/release/v1.32.0/bin/linux/${karch}/kubectl" -o /usr/local/bin/kubectl 2>/dev/null \
+            && chmod +x /usr/local/bin/kubectl || echo "kubectl 失败(dl.k8s.io 直连不通,有网阶段重试)"
     fi
     # trivy:GitHub .deb + 构建期烘 db 到 /opt/trivy-db(离线期 --skip-db-update)
     if ! have trivy; then
