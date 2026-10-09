@@ -23,3 +23,6 @@ bash "$HERE/install-compilers.sh"
 bash "$HERE/install-runtimes.sh"
 bash "$HERE/install-libcache.sh"
 bash "$HERE/install-tools.sh"
+
+# 收尾卫生:删可再生缓存与一次性残留(不碰 /opt 固化离线缓存)
+bash "$HERE/clean-image.sh"

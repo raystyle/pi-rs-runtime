@@ -70,7 +70,7 @@ incus file push scripts rt-build/root/ -r
 incus exec rt-build -- bash /root/scripts/install-all.sh
 ```
 
-`install-all.sh` 先装隐式依赖（`ca-certificates curl wget gpg unzip zip xz-utils file`），再按 编译器 → 运行时 → 库缓存 → 工具 顺序跑四个分类脚本，不转发过滤器。要装单项用分类脚本，例如 `./install-compilers.sh rust` 或 `./install-runtimes.sh python node`。
+`install-all.sh` 先装隐式依赖（`ca-certificates curl wget gpg unzip zip xz-utils file`），再按 编译器 → 运行时 → 库缓存 → 工具 顺序跑四个分类脚本，不转发过滤器；末尾自动跑 `clean-image.sh` 做镜像卫生（删可再生缓存与一次性残留，不碰 `/opt` 固化的离线缓存与 fnm node 多版本；可独立执行）。要装单项用分类脚本，例如 `./install-compilers.sh rust` 或 `./install-runtimes.sh python node`。
 
 
 安装面事实（按代码逐条核对的「组|项目|版本|官方来源|安装命令」全表）见 [docs/install-surfaces/](docs/install-surfaces/)。
