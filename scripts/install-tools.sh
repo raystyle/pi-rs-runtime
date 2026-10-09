@@ -11,25 +11,11 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 . "$HERE/lib/common.sh"
 
 install_fd() {
-    log "fd + ripgrep (apt,tuna) + fff-mcp(智能体文件搜索库,cargo)"
+    log "fd + ripgrep (apt,tuna)"
     apt-get update -qq
     apt-get install -y --no-install-recommends fd-find ripgrep
     ln -sf /usr/bin/fdfind /usr/local/bin/fd
     fd --version && rg --version
-    # fff:常驻索引的文件搜索库(非 CLI);装 MCP server 二进制供智能体接线
-    # crates.io 无 fff-mcp 包(实证 could not find),走 git 源构建
-    if ! have fff-mcp; then
-        export RUSTUP_HOME=/opt/rustup CARGO_HOME=/opt/cargo
-        . /opt/cargo/env 2>/dev/null || true
-        export PATH="$PATH:/opt/cargo/bin"
-        cargo install --git "${GITHUB_MIRROR}https://github.com/dmtrKovalenko/fff" fff-mcp --locked \
-            || cargo install --git "${GITHUB_MIRROR}https://github.com/dmtrKovalenko/fff" fff-mcp \
-            || echo "fff-mcp 编译失败(下轮补)"
-        [ -e /opt/cargo/bin/fff-mcp ] && ln -sf /opt/cargo/bin/fff-mcp /usr/local/bin/fff-mcp
-        [ -e "$HOME/.cargo/bin/fff-mcp" ] && ln -sf "$HOME/.cargo/bin/fff-mcp" /usr/local/bin/fff-mcp
-    fi
-    fff-mcp --version 2>/dev/null || echo "fff-mcp 未装上(下轮补)"
-    true
 }
 
 install_astgrep() {
@@ -674,11 +660,12 @@ install_maldev() {
             && tar -xzf /tmp/cpdist.tgz -C /opt/payload-ref/evasion/crystal-palace && rm /tmp/cpdist.tgz \
             || echo "Crystal Palace 发行包下载失败(下轮补)"
     fi
-    if [ ! -d /opt/payload-ref/loaders/tradecraft-garden ]; then
-        install -d /opt/payload-ref/loaders/tradecraft-garden
+    # 资产内含 tcg/ 顶层目录;以内容存在为幂等判据(失败重跑可补,不被空目录卡住)
+    if [ ! -d /opt/payload-ref/loaders/tradecraft-garden/tcg ]; then
         curl -fSL "${tg}/tcg-latest.tgz" -o /tmp/tcg.tgz \
+            && install -d /opt/payload-ref/loaders/tradecraft-garden \
             && tar -xzf /tmp/tcg.tgz -C /opt/payload-ref/loaders/tradecraft-garden && rm /tmp/tcg.tgz \
-            || echo "Tradecraft Garden 源码下载失败(下轮补)"
+            || { echo "Tradecraft Garden 源码下载失败(下轮补)"; rm -rf /opt/payload-ref/loaders/tradecraft-garden; }
     fi
     echo "模板库就位: $(find /opt/payload-ref /opt/tradecraft-ref -maxdepth 4 -name .git | wc -l) 仓 + Crystal Palace/Tradecraft Garden 源码"
     true
