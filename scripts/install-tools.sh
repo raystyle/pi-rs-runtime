@@ -127,7 +127,6 @@ SECGO_TOOLS_DEFAULT=(
     nerva/cmd/nerva@github.com/praetorian-inc
     brutus/cmd/brutus@github.com/praetorian-inc
     aurelian@github.com/praetorian-inc
-    trufflehog/v3@github.com/trufflesecurity
 )
 
 install_secgo() {
@@ -157,6 +156,23 @@ install_secgo() {
         fi
     done
     echo "已装:"; for spec in "${tools[@]}"; do path="${spec%@*}"; bin="${path%%/*}"; have "$bin" && printf '  %s\n' "$bin"; done
+    # trufflehog:上游 go.mod 带 replace 指令,@版本 被 go 拒装(实证 v3.99.2);改 release 预编译
+    if ! have trufflehog; then
+        local gh="${GITHUB_MIRROR}https://github.com"
+        local ttag; ttag="$(git ls-remote --tags "${gh}/trufflesecurity/trufflehog" 2>/dev/null | grep -oE 'refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$' | sort -t. -k2,2n -k3,3n | tail -1 | sed 's|refs/tags/||' || true)"
+        local tarc; case "$(dpkg --print-architecture)" in amd64) tarc=amd64;; arm64) tarc=arm64;; esac
+        if [ -n "$ttag" ]; then
+            local tgz="trufflehog_${ttag#v}_linux_${tarc}.tar.gz"
+            curl -fSL "${gh}/trufflesecurity/trufflehog/releases/download/${ttag}/${tgz}" -o "/tmp/${tgz}" \
+                && tar -xzf "/tmp/${tgz}" -C /tmp trufflehog \
+                && install -m755 /tmp/trufflehog /usr/local/bin/trufflehog \
+                && rm -f "/tmp/${tgz}" /tmp/trufflehog \
+                && echo "trufflehog ${ttag} 已装(release)" || echo "!! trufflehog 下载失败"
+        else
+            echo "!! trufflehog tag 获取失败"
+        fi
+    fi
+    have trufflehog && trufflehog --version 2>/dev/null | head -1
     true   # 循环尾可能是 command -v 失败,吞掉以防 set -e 中断后续组
 }
 

@@ -220,7 +220,7 @@ go install github.com/projectdiscovery/cvemap/cmd/cvemap@${PD_VERSION}
 | nerva | `@${SECGO_VERSION}`（默认 latest） | [praetorian-inc/nerva](https://github.com/praetorian-inc/nerva)（goproxy.cn） |
 | brutus | `@${SECGO_VERSION}`（默认 latest） | [praetorian-inc/brutus](https://github.com/praetorian-inc/brutus)（goproxy.cn） |
 | aurelian | `@${SECGO_VERSION}`（默认 latest） | [praetorian-inc/aurelian](https://github.com/praetorian-inc/aurelian)（goproxy.cn） |
-| trufflehog | `@${SECGO_VERSION}`（默认 latest） | [trufflesecurity/trufflehog](https://github.com/trufflesecurity/trufflehog)（goproxy.cn） |
+| trufflehog | release latest | [trufflesecurity/trufflehog](https://github.com/trufflesecurity/trufflehog) releases（上游 go.mod 带 replace，`go install @版本` 被拒，实证 v3.99.2；tag 经 git ls-remote 取） |
 
 ```bash
 # ffuf
@@ -257,8 +257,9 @@ go install github.com/praetorian-inc/nerva/cmd/nerva@${SECGO_VERSION:-latest}
 go install github.com/praetorian-inc/brutus/cmd/brutus@${SECGO_VERSION:-latest}
 # aurelian
 go install github.com/praetorian-inc/aurelian@${SECGO_VERSION:-latest}
-# trufflehog:git 历史与云密钥扫描(与 gitleaks 互补)
-go install github.com/trufflesecurity/trufflehog/v3@${SECGO_VERSION:-latest}
+# trufflehog:git 历史与云密钥扫描(与 gitleaks 互补);上游 go.mod 带 replace,@版本 拒装,改 release 预编译
+curl -fSL …/trufflesecurity/trufflehog/releases/download/<tag>/trufflehog_<ver>_linux_amd64.tar.gz
+install -m755 trufflehog /usr/local/bin/trufflehog
 ```
 
 ## Rust 安全工具集（`secrust`）

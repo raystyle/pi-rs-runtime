@@ -292,7 +292,7 @@ libcache rust 预热批（`scripts/install-libcache.sh`）另有加密/解析向
 | certipy-ad（命令 certipy） | uv tool 未钉（实测 v5.1.0） | [ly4k/Certipy](https://github.com/ly4k/Certipy)（PyPI 经 tuna） |
 | bloodyAD | uv tool 未钉 | [CravateRouge/bloodyAD](https://github.com/CravateRouge/bloodyAD)（PyPI 经 tuna） |
 | bofhound | uv tool 未钉 | [coffeegist/bofhound](https://github.com/coffeegist/bofhound)（PyPI 经 tuna） |
-| trufflehog | `go install` 未钉 | [trufflesecurity/trufflehog](https://github.com/trufflesecurity/trufflehog)（goproxy.cn；git 历史与云密钥扫描，与 gitleaks 互补） |
+| trufflehog | release latest | [trufflesecurity/trufflehog](https://github.com/trufflesecurity/trufflehog) releases（上游 go.mod 带 replace 不可 go install；git 历史与云密钥扫描，与 gitleaks 互补） |
 | semgrep | uv tool 未钉 | [semgrep/semgrep](https://github.com/semgrep/semgrep)（PyPI 经 tuna，SAST 代码审计） |
 | evil-winrm | gem 未钉 | [Hackplayers/evil-winrm](https://github.com/Hackplayers/evil-winrm)（ruby-china gems；交互式 WinRM shell） |
 | metasploit-framework（msfconsole 等） | omnibus 随源 | [rapid7/metasploit-framework](https://github.com/rapid7/metasploit-framework)（[msfinstall 官方安装器](https://docs.metasploit.com/docs/using-metasploit/getting-started/nightly-installers.html) 加 apt.metasploit.com 仓，直连无国内镜像） → /opt/metasploit-framework |
