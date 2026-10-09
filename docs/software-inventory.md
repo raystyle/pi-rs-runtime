@@ -335,6 +335,7 @@
 | osslsigncode | noble 随源（2.8-2，PE 签名替代） | Ubuntu noble 源（tuna） |
 | sasquatch | `--depth 1` 未钉 | [onekey-sec/sasquatch](https://github.com/onekey-sec/sasquatch) 源码构建 |
 | Responder | `--depth 1` 未钉 | [lgandx/Responder](https://github.com/lgandx/Responder) → /opt/Responder |
+| donut（含 libdonut 与头文件） | 1.1（`DONUT_VERSION`），release 预编译 | [TheWover/donut](https://github.com/TheWover/donut) releases → /opt/donut |
 | frida-tools | uv tool 构建日最新 | [frida/frida](https://github.com/frida/frida)（tuna PyPI） |
 | frida-server 全架构 | 与客户端严格同版本 | [frida/frida](https://github.com/frida/frida) releases → /opt/frida-server/<ver>/ |
 | nuclei-templates | `--depth 1` 未钉 | [projectdiscovery/nuclei-templates](https://github.com/projectdiscovery/nuclei-templates) → /opt/nuclei-templates |
