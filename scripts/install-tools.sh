@@ -157,7 +157,7 @@ install_secrust() {
     for b in rustscan feroxbuster; do
         if have "$b"; then
             ln -sf "$HOME/.cargo/bin/$b" "/usr/local/bin/$b" 2>/dev/null || true
-            "$b" --version 2>/dev/null | head -1
+            "$b" --version 2>/dev/null | head -1 || true
         fi
     done
 }
@@ -203,7 +203,8 @@ install_ghidra() {
     fi
     local gdir; gdir="$(ls -d /opt/ghidra/ghidra_*/ | head -1)"
     # 钉死 JDK 21:多版本共存时防止被默认 JDK(25)抢
-    local j21; j21="$(ls -d /opt/jdk/temurin-21* /usr/local/sdkman/candidates/java/21* 2>/dev/null | head -1)"
+    # ls 多 glob 有一个布局不存在即返回 2,pipefail 下赋值会失败退出,|| true 兜底
+    local j21; j21="$(ls -d /opt/jdk/temurin-21* /usr/local/sdkman/candidates/java/21* 2>/dev/null | head -1 || true)"
     [ -n "$j21" ] || { echo "找不到 JDK 21,先跑 install-runtimes.sh sdkman"; exit 1; }
     local lp="${gdir}support/launch.properties"
     if grep -q '^JAVA_HOME_OVERRIDE=' "$lp" 2>/dev/null; then
@@ -233,7 +234,7 @@ install_re() {
         meson ninja-build cmake pkg-config git gcc g++ \
         python3 python3-pip python3-venv zlib1g-dev
     for b in readelf objdump eu-readelf yara cstool file binwalk; do
-        have "$b" && printf '  %-12s %s\n' "$b" "$($b --version 2>/dev/null | head -1)"
+        have "$b" && printf '  %-12s %s\n' "$b" "$($b --version 2>/dev/null | head -1)" || true
     done
 
     log "rizin + rz-ghidra + sigdb (源码编译;JDK 不另装,temurin 21 已够 ghidra 用)"

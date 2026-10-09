@@ -159,7 +159,9 @@ EOF
         [ -e /opt/cargo/bin/$b ] && ln -sf /opt/cargo/bin/$b "/usr/local/bin/$b"
     done
     # rust-lld 进 PATH(pi-rs 件执行链直接当链接器用)
-    local rlld; rlld="$(ls /opt/rustup/toolchains/*/lib/rustlib/*/bin/rust-lld /root/.rustup/toolchains/*/lib/rustlib/*/bin/rust-lld 2>/dev/null | head -1)"
+    # 注意:ls 多操作数有一个不存在即返回 2,pipefail 下会让赋值语句整个失败退出;
+    # 末尾 || true 兜底,两个布局(新版 /opt/rustup、旧版 /root/.rustup)都探
+    local rlld; rlld="$(ls /opt/rustup/toolchains/*/lib/rustlib/*/bin/rust-lld /root/.rustup/toolchains/*/lib/rustlib/*/bin/rust-lld 2>/dev/null | head -1 || true)"
     [ -n "$rlld" ] && ln -sf "$rlld" /usr/local/bin/rust-lld
     for b in rustc cargo rustup rust-script cargo-zigbuild; do
         [ -e /opt/cargo/bin/$b ] && ln -sf /opt/cargo/bin/$b "/usr/local/bin/$b"
