@@ -8,10 +8,14 @@
 
 ## 当前状态
 
-- 镜像 `pi-rs-runtime` 正在发布:`incus publish rt-verify --alias pi-rs-runtime`(后台任务,rt-verify 已 stop)。发布完成后核对 `incus image list`。
+- 镜像 `pi-rs-runtime` 第一版已落库(fingerprint `7564be3f6e57`,17.6 GB):publish 客户端超时被杀但 daemon 侧已打包完成,别名直接挂到该 fingerprint。
+- 从镜像开实例验收发现三处静默缺口,已全部修复并推 main(`2b4ddc5`、`16e7609`):① nu 装不上——`install_nu` 的 `git ls-remote` 缺 owner(`${gh}/nushell` 应为 `nushell/nushell`,CyberChef 同款缺 `gchq/`);② capa wrapper 递归 exec——`printf > 软链` 穿透改写 `/opt/capa` 真身,改 nuclei 同款挪文件写法;③ pwsh 模块固化空——PackageManagement(Save-Module)在 noble+pwsh 7.4 段错误,换 inbox PSResourceGet(Save-PSResource)。
+- 修复已在 `rt-img-verify`(从镜像开的实例)增量落地:nu 0.116.1、capa 9.4.0(wrapper 正常)、/opt/psmodules 8 模块,ubuntu 用户复验绿。**正在从 rt-img-verify 重发布覆盖别名**;rt-verify 与 rt(开发工作机,勿删)保留。
+- 工作流原则(用户定):脚本幂等部署 + pin + 可升级;以后走「从发布镜像开实例 → 增量跑分类脚本 → 重 publish」的增量路线,不必每次 fresh 全量。
+- `GITHUB_MIRROR` 默认改为 `https://proxy.ohmygh.com/`(置空回直连),已推 main。
 - 文档重组:README 689 行拆为 132 行薄入口(定位/前置条件/文档索引/步骤)+ `docs/` 四分册:`params.md`(参数表)、`install-surfaces.md`(安装面清单)、`software-inventory.md`(软件清单归档)、`known-issues.md`(已知限制)。
 - 脚本全量 fresh 验证通过,验收绿(版本输出、wrapper、/opt 缓存落点、ubuntu 用户可执行)。
-- main 最新提交 `f9c3821`,工作区干净。
+- main 最新提交 `16e7609`,工作区干净。
 
 ## 已完成的里程碑(按时间)
 
@@ -34,11 +38,13 @@ apt(yaml 8 处)阿里云;PyPI 阿里云;rustup/crates rsproxy.cn;maven 发行包
 
 ## 待办
 
-1. 确认 `pi-rs-runtime` 别名落库(publish 后台任务完成后 `incus image list` 核对)。
-2. 合入定制 Chrome:等用户通知定制构建完成 → install-tools.sh 加 chrome 组(定制二进制 + CDP 配置 + 对接 vnc-screen.sh 的 :99 屏幕)→ 重跑流水线出终版镜像。
+1. ~~确认 `pi-rs-runtime` 别名落库~~ 已完成;重发布(含 nu/capa/psmodules 修复)完成后核对新 fingerprint,删旧镜像 `7564be3f6e57` 回收 17.6 GB。
+2. 合入定制 Chrome:等用户通知定制构建完成 → install-tools.sh 加 chrome 组(定制二进制 + CDP 配置 + 对接 vnc-screen.sh 的 :99 屏幕)→ 按增量路线从 `pi-rs-runtime` 开实例装 chrome 组后重 publish。
 3. 已知遗留(不阻塞):webcrack 传递依赖 isolated-vm 原生模块 npm install script 被拦;frida windows-x86 server 多数版本未发布(容错);coffee-ldr nightly 编译失败(上游问题,留档);trivy db 为构建日快照。
 
 ## 复跑流水线命令
+
+fresh 全量(基础镜像或脚本大改后):
 
 ```bash
 ./scripts/build-base-image.sh   # 基础镜像(yaml 改了才需要)
@@ -46,4 +52,13 @@ incus launch ubuntu-24.04-base rt-build
 incus file push scripts rt-build/root/ -r
 incus exec rt-build -- bash /root/scripts/install-all.sh
 # 验收后:incus stop rt-build && incus publish rt-build --alias pi-rs-runtime && incus delete rt-build
+```
+
+增量改发布容器(默认路线,脚本幂等可重跑):
+
+```bash
+incus launch pi-rs-runtime rt-edit
+incus file push scripts rt-edit/root/ -r
+incus exec rt-edit -- bash /root/scripts/install-tools.sh <组>   # 只跑改动的分类
+# 验收后:incus stop rt-edit && incus publish rt-edit --alias pi-rs-runtime(先删旧别名)
 ```
