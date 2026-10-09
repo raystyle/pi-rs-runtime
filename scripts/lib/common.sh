@@ -7,9 +7,9 @@ export DEBIAN_FRONTEND=noninteractive
 # npm 即淘宝(npmmirror 为淘宝 npm 镜像新域名)
 TUNA="${TUNA:-https://mirrors.tuna.tsinghua.edu.cn}"
 ALIYUN="${ALIYUN:-https://mirrors.aliyun.com}"
-export RUSTUP_DIST_SERVER="${RUSTUP_DIST_SERVER:-$ALIYUN/rustup}"
-export RUSTUP_UPDATE_ROOT="${RUSTUP_UPDATE_ROOT:-$ALIYUN/rustup/rustup}"
-CRATES_INDEX="${CRATES_INDEX:-$ALIYUN/crates.io-index}"
+export RUSTUP_DIST_SERVER="${RUSTUP_DIST_SERVER:-https://rsproxy.cn}"
+export RUSTUP_UPDATE_ROOT="${RUSTUP_UPDATE_ROOT:-https://rsproxy.cn/rustup}"
+CRATES_INDEX="${CRATES_INDEX:-https://rsproxy.cn/index}"   # sparse 索引;config.json 的 dl 指 rsproxy 本体
 export GOPROXY="${GOPROXY:-https://goproxy.cn,direct}"   # tuna 无 golang 模块代理,用七牛 goproxy;export 给子进程 go install
 export GOSUMDB="${GOSUMDB:-sum.golang.google.cn}"       # 国内可连的校验和库
 GO_DOWNLOAD="${GO_DOWNLOAD:-https://mirror.nju.edu.cn/golang}" # tuna 无 golang;南大镜像同为高校源,也可用 golang.google.cn
