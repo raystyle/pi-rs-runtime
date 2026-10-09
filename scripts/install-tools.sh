@@ -535,14 +535,20 @@ install_nu() {
     local gh="${GITHUB_MIRROR}https://github.com"
     if ! have nu; then
         local ntag narc; case "$(dpkg --print-architecture)" in amd64) narc=x86_64;; arm64) narc=aarch64;; esac
-        ntag="$(curl -fsSL "https://api.github.com/repos/nushell/nushell/releases/latest" | grep -o '"tag_name": *"[^"]*"' | cut -d'"' -f4)"
-        local ntgz="nu-${ntag}-${narc}-unknown-linux-gnu.tar.gz"
-        curl -fSL "https://github.com/nushell/nushell/releases/download/${ntag}/${ntgz}" -o "/tmp/${ntgz}" \
-            && tar -C /tmp -xzf "/tmp/${ntgz}" \
-            && install -m755 "/tmp/nu-${ntag}-${narc}-unknown-linux-gnu/nu" /usr/local/bin/nu \
-            && rm -rf "/tmp/${ntgz}" "/tmp/nu-${ntag}-${narc}-unknown-linux-gnu"
+        # 取 tag 用 git ls-remote:api.github.com 未认证限流 60 次/时(fresh 验证实证 403),
+        # git 协议不受限流影响
+        ntag="$(git ls-remote --tags "${gh}/nushell" 2>/dev/null | grep -oE 'refs/tags/[0-9]+\.[0-9]+\.[0-9]+$' | sort -t. -k1,1n -k2,2n -k3,3n | tail -1 | sed 's|refs/tags/||')"
+        if [ -n "$ntag" ]; then
+            local ntgz="nu-${ntag}-${narc}-unknown-linux-gnu.tar.gz"
+            curl -fSL "${gh}/nushell/nushell/releases/download/${ntag}/${ntgz}" -o "/tmp/${ntgz}" \
+                && tar -C /tmp -xzf "/tmp/${ntgz}" \
+                && install -m755 "/tmp/nu-${ntag}-${narc}-unknown-linux-gnu/nu" /usr/local/bin/nu \
+                && rm -rf "/tmp/${ntgz}" "/tmp/nu-${ntag}-${narc}-unknown-linux-gnu"
+        else
+            echo "nushell tag 获取失败(git ls-remote 不通?)"
+        fi
     fi
-    nu --version
+    nu --version 2>/dev/null || echo "nu 未装上(下轮补)"
     true
 }
 
