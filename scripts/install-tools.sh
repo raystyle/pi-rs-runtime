@@ -337,15 +337,27 @@ install_pivot() {
 # ---- P0 补齐(grok 业界调研;Kali/REMnux/FLARE 重叠缺口) ------------------
 # 分三步:apt 批(全 TUNA)/ re-venv pip 批(TUNA PyPI)/ GitHub 钉版批
 install_p0() {
-    log "P0 apt 批(22 包,TUNA):多架构调试/pwn/流量/分诊/AD/口令"
+    log "P0 apt 批(21 包,TUNA):多架构调试/pwn/流量/分诊/AD/口令(nasm 走源码钉版,见下)"
     apt-get update -qq
     apt-get install -y --no-install-recommends \
         gdb-multiarch qemu-user-static \
-        python3-pwntools python3-ropgadget checksec patchelf nasm xxd squashfs-tools \
+        python3-pwntools python3-ropgadget checksec patchelf xxd squashfs-tools \
         nmap sqlmap tcpdump tshark mitmproxy python3-scapy \
         upx-ucl 7zip libimage-exiftool-perl ssdeep python3-impacket \
         john hashid || echo "!! p0 apt 批部分失败(网络抖动可重跑,已装的会跳过)"
     # 批失败不退出:后续 pip 批与 GitHub 批与 apt 包相互独立
+
+    # nasm:apt 版停在 2.16.01,官网源码钉版(nasm.us 无国内镜像,包小直连)
+    # 幂等 + 可升级:当前版本与钉版一致才跳过
+    local nv; nv="${NASM_VERSION:-3.02}"
+    if ! nasm -v 2>/dev/null | grep -q "version ${nv}$"; then
+        local ntx="nasm-${nv}.tar.xz"
+        curl -fSL "https://www.nasm.us/pub/nasm/releasebuilds/${nv}/${ntx}" -o "/tmp/${ntx}" \
+            && tar -C /tmp -xJf "/tmp/${ntx}" \
+            && (cd "/tmp/nasm-${nv}" && ./configure --prefix=/usr/local && make -j"$(nproc)" && make install) \
+            && rm -rf "/tmp/${ntx}" "/tmp/nasm-${nv}"
+    fi
+    nasm -v
 
     log "P0 re-venv 批(uv venv + uv pip,TUNA):FLOSS/oletools/netexec"
     . "$HOME/.local/bin/env" 2>/dev/null || true

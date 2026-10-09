@@ -26,7 +26,7 @@
 | musl-tools | noble 随源 | Ubuntu noble 源（tuna） |
 | gcc | noble 随源 | Ubuntu noble 源（tuna） |
 | g++ | noble 随源 | Ubuntu noble 源（tuna） |
-| nasm | noble 随源 | Ubuntu noble 源（tuna） |
+| nasm（含 ndisasm） | 3.02（`NASM_VERSION`），源码编译 | [nasm.us](https://www.nasm.us/) 直下 |
 | flex | noble 随源（vcpkg 源码构建依赖） | Ubuntu noble 源（tuna） |
 | bison | noble 随源（vcpkg 源码构建依赖） | Ubuntu noble 源（tuna） |
 | mingw-w64 | noble 随源（Windows 交叉编译） | Ubuntu noble 源（tuna） |

@@ -560,7 +560,8 @@ cargo install bore-cli --locked
 
 | 项目 | 版本 | 官方来源 |
 |------|------|----------|
-| apt 22 包（gdb-multiarch、qemu-user-static、python3-pwntools、python3-ropgadget、checksec、patchelf、nasm、xxd、squashfs-tools、nmap、sqlmap、tcpdump、tshark、mitmproxy、python3-scapy、upx-ucl、7zip、libimage-exiftool-perl、ssdeep、python3-impacket、john、hashid） | noble 随源 | pwntools.com、nasm.us、nmap.org、sqlmap.org、wireshark.org、mitmproxy.org、scapy.net、upx.github.io、7-zip.org、exiftool.org、openwall.com 等（Ubuntu 打包，tuna） |
+| apt 21 包（gdb-multiarch、qemu-user-static、python3-pwntools、python3-ropgadget、checksec、patchelf、xxd、squashfs-tools、nmap、sqlmap、tcpdump、tshark、mitmproxy、python3-scapy、upx-ucl、7zip、libimage-exiftool-perl、ssdeep、python3-impacket、john、hashid） | noble 随源 | pwntools.com、nmap.org、sqlmap.org、wireshark.org、mitmproxy.org、scapy.net、upx.github.io、7-zip.org、exiftool.org、openwall.com 等（Ubuntu 打包，tuna） |
+| nasm（含 ndisasm） | 3.02（`NASM_VERSION`），源码编译 | [nasm.us](https://www.nasm.us/)（无国内镜像，包小直连；apt 版停 2.16.01） |
 | flare-floss、oletools | 未钉 | [mandiant/flare-floss](https://github.com/mandiant/flare-floss)、[decalage2/oletools](https://github.com/decalage2/oletools)（PyPI 经 tuna） |
 | netexec | 未钉 | [Pennyw0rth/NetExec](https://github.com/Pennyw0rth/NetExec) |
 | pwndbg | git 源未钉 | [pwndbg/pwndbg](https://github.com/pwndbg/pwndbg) |
@@ -573,8 +574,11 @@ cargo install bore-cli --locked
 | pdfid、pdf-parser | `--depth 1` 未钉 | [DidierStevens 工具集](https://blog.didierstevens.com)（[DidierStevens/DidierStevensSuite](https://github.com/DidierStevens/DidierStevensSuite)） |
 
 ```bash
-# apt 22 包
-apt-get install -y --no-install-recommends gdb-multiarch qemu-user-static python3-pwntools python3-ropgadget checksec patchelf nasm xxd squashfs-tools nmap sqlmap tcpdump tshark mitmproxy python3-scapy upx-ucl 7zip libimage-exiftool-perl ssdeep python3-impacket john hashid
+# apt 21 包
+apt-get install -y --no-install-recommends gdb-multiarch qemu-user-static python3-pwntools python3-ropgadget checksec patchelf xxd squashfs-tools nmap sqlmap tcpdump tshark mitmproxy python3-scapy upx-ucl 7zip libimage-exiftool-perl ssdeep python3-impacket john hashid
+# nasm:源码钉版,装到 /usr/local(幂等:版本一致才跳过)
+curl -fSL https://www.nasm.us/pub/nasm/releasebuilds/${NASM_VERSION}/nasm-${NASM_VERSION}.tar.xz
+cd nasm-${NASM_VERSION} && ./configure --prefix=/usr/local && make -j$(nproc) && make install
 # flare-floss、oletools
 VIRTUAL_ENV=/opt/re-venv uv pip install flare-floss oletools
 # netexec:缺包退回 git 源
