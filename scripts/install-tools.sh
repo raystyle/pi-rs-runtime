@@ -563,7 +563,7 @@ install_nu() {
 # 内网客户端批 + hashcat + Responder + frida 全链 + 离线固化接线
 # 原则:全部 apt(tuna)或构建期钉版下载;离线期新装失败是显式报错,缓存必须进 /opt
 install_pentest() {
-    log "lab apt 批(24 包,tuna):内网客户端/远程/爆破/取证/移动/无线/签名"
+    log "pentest apt 批(31 包,阿里云):内网客户端/远程/爆破/取证/移动/无线/签名"
     apt-get update -qq
     apt-get install -y --no-install-recommends \
         dnsutils whois socat netcat-openbsd telnet ftp snmp proxychains4 \
