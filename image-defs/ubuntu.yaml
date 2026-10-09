@@ -4,7 +4,7 @@ image:
 source:
   downloader: debootstrap
   same_as: gutsy
-  url: https://mirrors.tuna.tsinghua.edu.cn/ubuntu/
+  url: https://mirrors.aliyun.com/ubuntu/
   keys:
   # 0x790BC7277767219C42C86F933B4FE6ACC0B21F32
   - |-
@@ -532,18 +532,18 @@ packages:
   repositories:
   - name: sources.list
     url: |-
-      deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu {{ image.release }} main restricted universe multiverse
-      deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu {{ image.release }}-updates main restricted universe multiverse
-      deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu {{ image.release }}-security main restricted universe multiverse
+      deb https://mirrors.aliyun.com/ubuntu {{ image.release }} main restricted universe multiverse
+      deb https://mirrors.aliyun.com/ubuntu {{ image.release }}-updates main restricted universe multiverse
+      deb https://mirrors.aliyun.com/ubuntu {{ image.release }}-security main restricted universe multiverse
     architectures:
     - amd64
     - i386
 
   - name: sources.list
     url: |-
-      deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports {{ image.release }} main restricted universe multiverse
-      deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports {{ image.release }}-updates main restricted universe multiverse
-      deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports {{ image.release }}-security main restricted universe multiverse
+      deb https://mirrors.aliyun.com/ubuntu-ports {{ image.release }} main restricted universe multiverse
+      deb https://mirrors.aliyun.com/ubuntu-ports {{ image.release }}-updates main restricted universe multiverse
+      deb https://mirrors.aliyun.com/ubuntu-ports {{ image.release }}-security main restricted universe multiverse
     architectures:
     - armhf
     - arm64
@@ -749,7 +749,7 @@ actions:
   action: |-
     #!/bin/sh
     set -eux
-    MIRROR="https://mirrors.tuna.tsinghua.edu.cn/ubuntu"
+    MIRROR="https://mirrors.aliyun.com/ubuntu"
 
     # cloud-init rewrites apt sources on first boot from these templates
     for f in /etc/cloud/templates/sources.list.ubuntu.deb822.tmpl \
