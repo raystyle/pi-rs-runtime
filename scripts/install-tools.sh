@@ -701,12 +701,22 @@ install_red() {
     export PATH="$PATH:/usr/local/bin:/opt/go/bin"
     export UV_TOOL_BIN_DIR=/usr/local/bin UV_TOOL_DIR=/opt/uv-tools
     export GOPATH=/opt/go GOPROXY GOSUMDB
+    # ghauri 不在任何 pypi(官方源/ tuna /阿里云均 404),只发 git 仓;r0oth3x49/ghauri
+    if ! have ghauri; then
+        VIRTUAL_ENV= uv tool install "git+${gh}/r0oth3x49/ghauri" >/dev/null 2>&1 \
+            && echo "ghauri 已装(git 源)" || echo "ghauri 失败(git 源;GitHub 限流窗口重试)"
+    fi
     local t
-    for t in kerbrute wafw00f arjun ghauri bloodhound-python Coercer mitm6 objection apkleaks; do
+    for t in kerbrute wafw00f arjun bloodhound-python Coercer mitm6 objection apkleaks; do
         if have "$t" 2>/dev/null || VIRTUAL_ENV= uv tool install "$t" >/dev/null 2>&1; then
             echo "$t 已装"
+        elif [ "$t" = bloodhound-python ]; then
+            # PyPI 轮无 console entrypoint,uv tool 拒装;进 re-venv 用 python -m bloodhound 包装
+            VIRTUAL_ENV="$RE_VENV" uv pip install bloodhound-python >/dev/null 2>&1
+            printf '#!/bin/sh\nexec %s/bin/python -m bloodhound "$@"\n' "$RE_VENV" > /usr/local/bin/bloodhound-python
+            chmod +x /usr/local/bin/bloodhound-python
+            echo "bloodhound-python 已装(re-venv + wrapper)"
         else
-            # 阿里云 pypi 偶发缺包(fresh 实证 ghauri/bloodhound-python),退回 tuna pypi 索引
             VIRTUAL_ENV= uv tool install --index-url "https://pypi.tuna.tsinghua.edu.cn/simple" "$t" >/dev/null 2>&1 \
                 && echo "$t 已装(tuna 兜底)" || echo "$t 失败(留待排查)"
         fi
