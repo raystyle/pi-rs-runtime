@@ -29,14 +29,11 @@
 | 项目 | 版本 | 官方来源 |
 |------|------|----------|
 | fd、ripgrep | noble 随源 | [sharkdp/fd](https://github.com/sharkdp/fd)、[BurntSushi/ripgrep](https://github.com/BurntSushi/ripgrep)（Ubuntu 打包，tuna） |
-| fff-mcp | cargo git 源未钉，`--locked` | [dmtrKovalenko/fff](https://github.com/dmtrKovalenko/fff)（crates.io 无包走 git 源；智能体文件搜索 MCP server，常驻索引库非 CLI） |
 
 ```bash
 # fd、ripgrep
 apt-get install -y --no-install-recommends fd-find ripgrep
 ln -sf /usr/bin/fdfind /usr/local/bin/fd
-# fff-mcp:crates.io 无包走 git 源,--locked 失败退不锁;链 /usr/local/bin
-cargo install --git ${GITHUB_MIRROR}https://github.com/dmtrKovalenko/fff fff-mcp --locked
 ```
 
 ## 结构化代码搜索（`astgrep`）
@@ -150,6 +147,8 @@ VIRTUAL_ENV=/opt/re-venv uv pip install capstone keystone-engine unicorn lief ya
 | simplehttpserver | `@${PD_VERSION}`（默认 latest） | [projectdiscovery.io](https://projectdiscovery.io)（[projectdiscovery/simplehttpserver](https://github.com/projectdiscovery/simplehttpserver)，goproxy.cn） |
 | shuffledns | `@${PD_VERSION}`（默认 latest） | [projectdiscovery.io](https://projectdiscovery.io)（[projectdiscovery/shuffledns](https://github.com/projectdiscovery/shuffledns)，goproxy.cn） |
 | pdtm | `@${PD_VERSION}`（默认 latest） | [projectdiscovery.io](https://projectdiscovery.io)（[projectdiscovery/pdtm](https://github.com/projectdiscovery/pdtm)，goproxy.cn） |
+| urlfinder | `@${PD_VERSION}`（默认 latest） | [projectdiscovery.io](https://projectdiscovery.io)（[projectdiscovery/urlfinder](https://github.com/projectdiscovery/urlfinder)，goproxy.cn） |
+| cvemap | `@${PD_VERSION}`（默认 latest） | [projectdiscovery.io](https://projectdiscovery.io)（[projectdiscovery/cvemap](https://github.com/projectdiscovery/cvemap)，goproxy.cn） |
 
 ```bash
 # subfinder
@@ -191,6 +190,10 @@ go install github.com/projectdiscovery/simplehttpserver/cmd/simplehttpserver@${P
 go install github.com/projectdiscovery/shuffledns/cmd/shuffledns@${PD_VERSION}
 # pdtm
 go install github.com/projectdiscovery/pdtm/cmd/pdtm@${PD_VERSION}
+# urlfinder
+go install github.com/projectdiscovery/urlfinder/cmd/urlfinder@${PD_VERSION}
+# cvemap
+go install github.com/projectdiscovery/cvemap/cmd/cvemap@${PD_VERSION}
 ```
 
 ## Go 安全工具集（`secgo`）
@@ -245,9 +248,9 @@ go install github.com/sensepost/gowitness/gowitness@${SECGO_VERSION:-latest}
 # azurehound
 go install github.com/BloodHoundAD/AzureHound/azurehound/v2@${SECGO_VERSION:-latest}
 # nerva
-go install github.com/praetorian-inc/nerva@${SECGO_VERSION:-latest}
+go install github.com/praetorian-inc/nerva/cmd/nerva@${SECGO_VERSION:-latest}
 # brutus
-go install github.com/praetorian-inc/brutus@${SECGO_VERSION:-latest}
+go install github.com/praetorian-inc/brutus/cmd/brutus@${SECGO_VERSION:-latest}
 # aurelian
 go install github.com/praetorian-inc/aurelian@${SECGO_VERSION:-latest}
 ```
@@ -298,7 +301,7 @@ cargo install bore-cli --locked
 
 ## 安全分析工具集（`p0`）
 
-apt 批在脚本里是整批一条命令执行（批失败不退出，pip 批与 GitHub 批与 apt 包相互独立），下表逐项拆解；nasm 不在 apt 批内，走官网源码钉版。
+apt 批在脚本里是整批一条命令执行（批失败不退出，pip 批与 GitHub 批与 apt 包相互独立），下表逐项拆解；impacket 与 nasm 不在 apt 批内：impacket 走 uv 上游版（用户裁定，不用 noble apt 冻结版），nasm 走官网源码钉版。
 
 | 项目 | 版本 | 官方来源 | 用途 |
 |------|------|----------|------|
@@ -320,9 +323,9 @@ apt 批在脚本里是整批一条命令执行（批失败不退出，pip 批与
 | 7zip | noble 随源 | [7-zip.org](https://7-zip.org)（Ubuntu 打包，tuna） | 多格式压缩解压 |
 | libimage-exiftool-perl | noble 随源 | [exiftool.org](https://exiftool.org)（Ubuntu 打包，tuna） | ExifTool 文件元数据读取 |
 | ssdeep | noble 随源 | [ssdeep-project/ssdeep](https://github.com/ssdeep-project/ssdeep)（Ubuntu 打包，tuna） | 模糊哈希与相似度比对 |
-| python3-impacket | noble 随源 | [fortra/impacket](https://github.com/fortra/impacket)（Ubuntu 打包，tuna） | Windows 网络协议（SMB/Kerberos/MSRPC）工具库 |
 | john | noble 随源 | [openwall.com/john](https://www.openwall.com/john/)（Ubuntu 打包，tuna） | John the Ripper 口令破解 |
 | hashid | noble 随源 | [psypanda/hashID](https://github.com/psypanda/hashID)（Ubuntu 打包，tuna） | 哈希类型识别 |
+| impacket（secretsdump.py 等整套脚本） | uv tool 上游最新，未钉 | [fortra/impacket](https://github.com/fortra/impacket)（PyPI 经 tuna，缺包退回官方索引；用户裁定不用 noble apt 冻结版，老镜像 apt 版增量迁移自动卸） | Windows 网络协议（SMB/Kerberos/MSRPC）工具库 |
 | nasm（含 ndisasm） | 3.02（`NASM_VERSION`），官网源码编译 | [nasm.us](https://www.nasm.us/)（无国内镜像，包小直连；apt 版停 2.16.01） | x86/x64 汇编器与反汇编器 |
 | flare-floss | 未钉 | [mandiant/flare-floss](https://github.com/mandiant/flare-floss)（PyPI 经 tuna） | 恶意软件混淆字符串提取 |
 | oletools | 未钉 | [decalage2/oletools](https://github.com/decalage2/oletools)（PyPI 经 tuna） | Office 文档宏分析（olevba/oleid） |
@@ -338,8 +341,11 @@ apt 批在脚本里是整批一条命令执行（批失败不退出，pip 批与
 | pdf-parser | `--depth 1` 未钉 | DidierStevens 工具集 | PDF 对象解析 |
 
 ```bash
-# apt 21 包:整批一条命令,表内逐项拆解
-apt-get install -y --no-install-recommends gdb-multiarch qemu-user-static python3-pwntools python3-ropgadget checksec patchelf xxd squashfs-tools nmap sqlmap tcpdump tshark mitmproxy python3-scapy upx-ucl 7zip libimage-exiftool-perl ssdeep python3-impacket john hashid
+# apt 20 包:整批一条命令,表内逐项拆解
+apt-get install -y --no-install-recommends gdb-multiarch qemu-user-static python3-pwntools python3-ropgadget checksec patchelf xxd squashfs-tools nmap sqlmap tcpdump tshark mitmproxy python3-scapy upx-ucl 7zip libimage-exiftool-perl ssdeep john hashid
+# impacket:uv tool 装上游版(不用 noble apt 冻结版,用户裁定);老镜像有 apt 版则卸(增量迁移)
+apt-get remove -y python3-impacket
+UV_TOOL_BIN_DIR=/usr/local/bin UV_TOOL_DIR=/opt/uv-tools uv tool install impacket
 # nasm:源码钉版,装到 /usr/local(幂等:版本一致才跳过)
 curl -fSL https://www.nasm.us/pub/nasm/releasebuilds/${NASM_VERSION}/nasm-${NASM_VERSION}.tar.xz
 cd nasm-${NASM_VERSION} && ./configure --prefix=/usr/local && make -j$(nproc) && make install
@@ -380,6 +386,7 @@ cp pdfid.py pdf-parser.py /usr/local/bin/
 | Covenant | `--depth 1` 未钉 | [cobbr/Covenant](https://github.com/cobbr/Covenant) |
 | mythic | `--depth 1` 未钉 | [its-a-feature/mythic](https://github.com/its-a-feature/mythic) |
 | SILENTTRINITY | `--depth 1` 未钉 | [byt3bl33d3r/SILENTTRINITY](https://github.com/byt3bl33d3r/SILENTTRINITY) |
+| AdaptixC2 | `--depth 1` 未钉 | [Adaptix-Framework/AdaptixC2](https://github.com/Adaptix-Framework/AdaptixC2) |
 
 ```bash
 # sliver:只克隆,不安装不运行
@@ -394,6 +401,8 @@ git clone --depth 1 …/cobbr/Covenant /opt/c2dev-ref/Covenant
 git clone --depth 1 …/its-a-feature/mythic /opt/c2dev-ref/mythic
 # SILENTTRINITY:只克隆;C# 系 C2,产物是会话(grok 裁定归 C2,非 Nim/C# 教材)
 git clone --depth 1 …/byt3bl33d3r/SILENTTRINITY /opt/c2dev-ref/SILENTTRINITY
+# AdaptixC2:只克隆
+git clone --depth 1 …/Adaptix-Framework/AdaptixC2 /opt/c2dev-ref/AdaptixC2
 # ysoserial 系是反序列化生成器,不是 C2:已移 maldev 组,归档 payload-ref/generators/deserialization
 ```
 
@@ -404,8 +413,10 @@ git clone --depth 1 …/byt3bl33d3r/SILENTTRINITY /opt/c2dev-ref/SILENTTRINITY
 | mingw-w64 | noble 随源 | Ubuntu 打包（tuna） |
 | COFFLoader（COFFLoader64.exe） | `--depth 1` 未钉 | [trustedsec/COFFLoader](https://github.com/trustedsec/COFFLoader) |
 | atomic-bofs | `--depth 1` 未钉 | [rasta-mouse/atomic-bofs](https://github.com/rasta-mouse/atomic-bofs) |
+| CS-Situational-Awareness-BOF | `--depth 1` 未钉 | [trustedsec/CS-Situational-Awareness-BOF](https://github.com/trustedsec/CS-Situational-Awareness-BOF) |
+| CS-Remote-OPs-BOF | `--depth 1` 未钉 | [trustedsec/CS-Remote-OPs-BOF](https://github.com/trustedsec/CS-Remote-OPs-BOF) |
 | coffee-ldr | cargo nightly | [hakaioffsec/coffee](https://github.com/hakaioffsec/coffee)（crate 名 coffee-ldr） |
-| bof-launcher | `--depth 1` 未钉 | [The-Z-Labs/bof-launcher](https://github.com/The-Z-Labs/bof-launcher) |
+| bof-launcher | `--depth 1` 未钉；上游是库（C/Zig API）非 CLI，装示例执行器 bof_lin_<arch> | [The-Z-Labs/bof-launcher](https://github.com/The-Z-Labs/bof-launcher) |
 | BOF-CATALOG.md | main raw | [chryzsh/awesome-bof](https://github.com/chryzsh/awesome-bof) |
 
 ```bash
@@ -416,13 +427,16 @@ git clone --depth 1 …/trustedsec/COFFLoader /opt/payload-ref/loaders/inproc/CO
 make bof
 # atomic-bofs:归档 tradecraft-ref/bof
 git clone --depth 1 ${GITHUB_MIRROR}https://github.com/rasta-mouse/atomic-bofs /opt/tradecraft-ref/bof/atomic-bofs
+# TrustedSec 现役 BOF 源码两套:归档 tradecraft-ref/bof
+git clone --depth 1 …/trustedsec/CS-Situational-Awareness-BOF /opt/tradecraft-ref/bof/CS-Situational-Awareness-BOF
+git clone --depth 1 …/trustedsec/CS-Remote-OPs-BOF /opt/tradecraft-ref/bof/CS-Remote-OPs-BOF
 # coffee-ldr:失败退回 --git …/hakaioffsec/coffee;链到 /usr/local/bin
 rustup toolchain install nightly
 cargo +nightly install coffee-ldr --locked
-# bof-launcher:先下 zig 0.15.2 专用副本 /opt/zig-0.15.2;源码归档 payload-ref/loaders/inproc
+# bof-launcher:先下 zig 0.15.2 专用副本 /opt/zig-0.15.2;源码归档 payload-ref/loaders/inproc;上游是库(C/Zig API)非 CLI,装示例执行器 bof_lin_<arch>
 git clone --depth 1 …/The-Z-Labs/bof-launcher /opt/payload-ref/loaders/inproc/bof-launcher
 /opt/zig-0.15.2/zig build -Doptimize=ReleaseSafe
-install -m755 /usr/local/bin/bof-launcher
+install -m755 zig-out/bin/bof_lin_x64 /usr/local/bin/bof-launcher
 # BOF-CATALOG.md:归档 tradecraft-ref/bof
 curl -fsSL ${GITHUB_MIRROR}https://github.com/chryzsh/awesome-bof/raw/main/BOF-CATALOG.md -o /opt/tradecraft-ref/bof/BOF-CATALOG.md
 ```
@@ -449,7 +463,7 @@ git clone --recurse-submodules ${GITHUB_MIRROR}https://github.com/tyranid/olevie
 
 ## 恶意开发模板库（`maldev`）
 
-只克隆不编译不运行，按 grok 评审裁定的工件角色轴归档三根：`/opt/c2dev-ref`（产物是会话的框架，SILENTTRINITY 走 c2 组）、`/opt/payload-ref`（generators 产物是字节或变形二进制 / loaders 产物是执行字节的进程 / evasion 是往 loader 贴的原语 / curricula 教材架按语言分叶 / analysis 防御向）、`/opt/tradecraft-ref`（产物是上线后的操作员动作，ad/bof/opsec 分叶）。有编译产物的仓（COFFLoader、bof-launcher、atomic-bofs、RustHound-CE）由 bof/secrust 组各自克隆构建，落点同轴，见对应组。Crystal Palace（PIC 链接器）与 Tradecraft Garden（能力加载器集）无 Git 仓，官网 tgz 归档源码。
+只克隆不编译不运行，按 grok 评审裁定的工件角色轴归档三根：`/opt/c2dev-ref`（产物是会话的框架，SILENTTRINITY 走 c2 组）、`/opt/payload-ref`（generators 产物是字节或变形二进制 / loaders 产物是执行字节的进程 / evasion 是往 loader 贴的原语 / curricula 教材架按语言分叶 / analysis 防御向）、`/opt/tradecraft-ref`（产物是上线后的操作员动作，ad/bof/opsec/skills 分叶）。有编译产物的仓（COFFLoader、bof-launcher、atomic-bofs、RustHound-CE）由 bof/secrust 组各自克隆构建，落点同轴，见对应组。Crystal Palace（PIC 链接器）与 Tradecraft Garden（能力加载器集）无 Git 仓，官网 tgz 归档源码。
 
 | 项目 | 版本 | 官方来源 |
 |------|------|----------|
@@ -465,6 +479,9 @@ git clone --recurse-submodules ${GITHUB_MIRROR}https://github.com/tyranid/olevie
 | PassTheCert-rs | `--depth 1` 未钉 | [g0h4n/PassTheCert-rs](https://github.com/g0h4n/PassTheCert-rs) → /opt/tradecraft-ref/ad/PassTheCert-rs |
 | dcerpc | `--depth 1` 未钉 | [icedracon/dcerpc](https://github.com/icedracon/dcerpc) → /opt/tradecraft-ref/ad/dcerpc |
 | adhammer | `--depth 1` 未钉 | [icedracon/adhammer](https://github.com/icedracon/adhammer) → /opt/tradecraft-ref/ad/adhammer |
+| Rubeus | `--depth 1` 未钉 | [GhostPack/Rubeus](https://github.com/GhostPack/Rubeus) → /opt/tradecraft-ref/ad/Rubeus |
+| skills | `--depth 1` 未钉 | [SpecterOps/skills](https://github.com/SpecterOps/skills) → /opt/tradecraft-ref/skills/skills |
+| goffloader | `--depth 1` 未钉 | [praetorian-inc/goffloader](https://github.com/praetorian-inc/goffloader) → /opt/payload-ref/loaders/inproc/goffloader |
 | dende-rs | `--depth 1` 未钉 | [g0h4n/dende-rs](https://github.com/g0h4n/dende-rs) → /opt/tradecraft-ref/opsec/dende-rs |
 | gonut | `--depth 1` 未钉 | [wabzsy/gonut](https://github.com/wabzsy/gonut) → /opt/payload-ref/generators/pe-to-shellcode/gonut |
 | Donut-CustomHost | `--depth 1` 未钉 | [Zuigetzu/Donut-CustomHost](https://github.com/Zuigetzu/Donut-CustomHost) → /opt/payload-ref/generators/pe-to-shellcode/Donut-CustomHost |
@@ -485,19 +502,22 @@ git clone --recurse-submodules ${GITHUB_MIRROR}https://github.com/tyranid/olevie
 | MemoryModule | `--depth 1` 未钉 | [fancycode/MemoryModule](https://github.com/fancycode/MemoryModule) → /opt/payload-ref/loaders/inproc/MemoryModule |
 | Blackbone | `--depth 1` 未钉 | [DarthTon/Blackbone](https://github.com/DarthTon/Blackbone) → /opt/payload-ref/loaders/inproc/Blackbone |
 | ShellcodeFluctuation | `--depth 1` 未钉 | [mgeeky/ShellcodeFluctuation](https://github.com/mgeeky/ShellcodeFluctuation) → /opt/payload-ref/evasion/ShellcodeFluctuation |
+| Stardust | `--depth 1` 未钉 | [Cracked5pider/Stardust](https://github.com/Cracked5pider/Stardust) → /opt/payload-ref/evasion/Stardust |
+| ApiHashing | `--depth 1` 未钉 | [Maldev-Academy/ApiHashing](https://github.com/Maldev-Academy/ApiHashing) → /opt/payload-ref/curricula/cpp/ApiHashing |
+| HellHall | `--depth 1` 未钉 | [Maldev-Academy/HellHall](https://github.com/Maldev-Academy/HellHall) → /opt/payload-ref/curricula/cpp/HellHall |
 | donut-decryptor | `--depth 1` 未钉 | [volexity/donut-decryptor](https://github.com/volexity/donut-decryptor) → /opt/payload-ref/analysis/donut-decryptor |
 | Crystal Palace（cpsrc+cpdist） | latest tgz 未钉 | [tradecraftgarden.org](https://tradecraftgarden.org) 官网 tgz → /opt/payload-ref/evasion/crystal-palace |
-| Tradecraft Garden（tgsrc） | latest tgz 未钉 | [tradecraftgarden.org](https://tradecraftgarden.org) 官网 tgz → /opt/payload-ref/loaders/tradecraft-garden |
+| Tradecraft Garden（tcg） | latest tgz 未钉 | [tradecraftgarden.org](https://tradecraftgarden.org) 官网 tgz（资产内含 tcg/ 顶层目录） → /opt/payload-ref/loaders/tradecraft-garden |
 
 ```bash
-# 33 仓按叶克隆,--depth 1 未钉;失败重试一次,仍败下轮补
+# 39 仓按叶克隆,--depth 1 未钉;失败重试一次,仍败下轮补
 git clone --depth 1 ${GITHUB_MIRROR}https://github.com/<org>/<repo> /opt/<leaf>/<repo>
 # Crystal Palace 与 Tradecraft Garden:官网 tgz 归档源码
 curl -fSL https://tradecraftgarden.org/download/cpsrc-latest.tgz
 tar -xzf -C /opt/payload-ref/evasion/crystal-palace
 curl -fSL https://tradecraftgarden.org/download/cpdist-latest.tgz
 tar -xzf -C /opt/payload-ref/evasion/crystal-palace
-curl -fSL https://tradecraftgarden.org/download/tgsrc-latest.tgz
+curl -fSL https://tradecraftgarden.org/download/tcg-latest.tgz
 tar -xzf -C /opt/payload-ref/loaders/tradecraft-garden
 ```
 
@@ -508,6 +528,7 @@ tar -xzf -C /opt/payload-ref/loaders/tradecraft-garden
 | mac-tracker | `--depth 1` 未钉 | [runZeroInc/mac-tracker](https://github.com/runZeroInc/mac-tracker) |
 | recog | `--depth 1` 未钉 | [rapid7/recog](https://github.com/rapid7/recog) |
 | hickory-dns | `--depth 1` 未钉 | [hickory-dns/hickory-dns](https://github.com/hickory-dns/hickory-dns) |
+| PoC-in-GitHub | `--depth 1` 未钉（只克隆索引，不递归） | [nomi-sec/PoC-in-GitHub](https://github.com/nomi-sec/PoC-in-GitHub) |
 
 ```bash
 # mac-tracker:MAC 地址厂商指纹库;只克隆
@@ -516,6 +537,8 @@ git clone --depth 1 ${GITHUB_MIRROR}https://github.com/runZeroInc/mac-tracker /o
 git clone --depth 1 …/rapid7/recog /opt/recon-ref/recog
 # hickory-dns:DNS 协议栈源码参考;只克隆
 git clone --depth 1 …/hickory-dns/hickory-dns /opt/recon-ref/hickory-dns
+# PoC-in-GitHub:CVE PoC 索引仓;只克隆索引不递归,README 含恶意样本警示
+git clone --depth 1 …/nomi-sec/PoC-in-GitHub /opt/recon-ref/PoC-in-GitHub
 ```
 
 ## 结构化 Shell（`nu`）
@@ -568,11 +591,16 @@ curl …/download/<ver>/frida-server-<ver>-{windows,android,linux}-<arch>.xz
 
 | 项目 | 版本 | 官方来源 |
 |------|------|----------|
-| AD 横向/Web/密码/移动/云工具（kerbrute、wafw00f、arjun、ghauri、bloodhound-python、Coercer、mitm6、objection、apkleaks、jwt-tool、LinkFinder、krbrelayx、enum4linux-ng、cewl、CyberChef、kubectl、trivy、awscli） | 混合 | uv tool 走 tuna；git 克隆钉 `/opt`；gem 走 [gems.ruby-china.com](https://gems.ruby-china.com)；Release 钉版 |
+| AD 横向/Web/密码/移动/云工具（kerbrute、wafw00f、arjun、ghauri、bloodhound-python、Coercer、mitm6、objection、apkleaks、bloodhound-ce、certipy-ad、bloodyAD、bofhound、jwt-tool、LinkFinder、krbrelayx、enum4linux-ng、cewl、CyberChef、kubectl、trivy、awscli） | 混合 | uv tool 走 tuna；git 克隆钉 `/opt`；gem 走 [gems.ruby-china.com](https://gems.ruby-china.com)；Release 钉版 |
 
 ```bash
 # AD 横向/Web/密码/移动/云工具:trivy 构建期 --download-db-only 烘到 /opt/trivy-db
 uv tool install <名>
+# AD 现役批(grok 红队评审补充,与 Legacy bloodhound-python 并存):bloodhound-ce 在 tuna 缺失显式走 pypi.org;
+# 入口命令 bloodhound-ce-python,venv 内含 dirkjanm impacket 叉整套脚本(secretsdump.py 解析到 /opt/uv-tools/bloodhound-ce/);
+# certipy-ad 入口命令是 certipy
+uv tool install --index-url https://pypi.org/simple bloodhound-ce
+uv tool install certipy-ad bloodyAD bofhound
 git clone --depth 1
 gem install
 ```
