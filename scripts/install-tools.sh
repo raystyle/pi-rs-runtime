@@ -537,7 +537,13 @@ install_nu() {
         local ntag narc; case "$(dpkg --print-architecture)" in amd64) narc=x86_64;; arm64) narc=aarch64;; esac
         # 取 tag 用 git ls-remote:api.github.com 未认证限流 60 次/时(fresh 验证实证 403),
         # git 协议不受限流影响
-        ntag="$(git ls-remote --tags "${gh}/nushell" 2>/dev/null | grep -oE 'refs/tags/[0-9]+\.[0-9]+\.[0-9]+$' | sort -t. -k1,1n -k2,2n -k3,3n | tail -1 | sed 's|refs/tags/||')"
+        # GitHub 直连间歇性归零(与 tuna 抖动同期),重试 3 次取 tag
+        local _try
+        for _try in 1 2 3; do
+            ntag="$(git ls-remote --tags "${gh}/nushell" 2>/dev/null | grep -oE 'refs/tags/[0-9]+\.[0-9]+\.[0-9]+$' | sort -t. -k1,1n -k2,2n -k3,3n | tail -1 | sed 's|refs/tags/||')"
+            [ -n "$ntag" ] && break
+            sleep 5
+        done
         if [ -n "$ntag" ]; then
             local ntgz="nu-${ntag}-${narc}-unknown-linux-gnu.tar.gz"
             curl -fSL "${gh}/nushell/nushell/releases/download/${ntag}/${ntgz}" -o "/tmp/${ntgz}" \
