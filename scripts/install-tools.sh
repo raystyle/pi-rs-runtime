@@ -344,7 +344,8 @@ install_p0() {
         python3-pwntools python3-ropgadget checksec patchelf nasm xxd squashfs-tools \
         nmap sqlmap tcpdump tshark mitmproxy python3-scapy \
         upx-ucl 7zip libimage-exiftool-perl ssdeep python3-impacket \
-        john hashid
+        john hashid || echo "!! p0 apt 批部分失败(网络抖动可重跑,已装的会跳过)"
+    # 批失败不退出:后续 pip 批与 GitHub 批与 apt 包相互独立
 
     log "P0 re-venv 批(uv venv + uv pip,TUNA):FLOSS/oletools/netexec"
     . "$HOME/.local/bin/env" 2>/dev/null || true
