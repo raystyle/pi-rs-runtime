@@ -10,5 +10,6 @@
 | [ADR-0004](ADR-0004-offline-first-fail-fast.md) | 纯离线默认:固化缓存 + wrapper + 五生态快失败 | accepted | 2026-10-10 |
 | [ADR-0005](ADR-0005-shared-writable-cache-piopt-acl.md) | 共享可写缓存 piopt 组 + 默认 ACL | accepted | 2026-10-10 |
 | [ADR-0006](ADR-0006-user-rulings-log.md) | 用户裁定留痕合集(保留/不进清单) | accepted | 2026-10-10 |
+| [ADR-0007](ADR-0007-clean-chrome-placement.md) | clean-chrome 落位:系统级单副本 /opt/clean-chrome(browse 暂缓期本仓复刻云端道) | accepted | 2026-10-10 |
 
 返回 [docs 文档地图](../README.md)。

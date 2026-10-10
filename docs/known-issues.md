@@ -17,7 +17,7 @@ trufflehog release(上游 go.mod 带 replace 不能 `go install @版本`)、meta
 - coffee-ldr nightly 编译失败(上游 `#!feature` 问题,留档;BOF 运行有 bof-launcher 与 mingw/wine 兜底)——见 [items/tools-bof/coffee-ldr.md](items/tools-bof/coffee-ldr.md)
 - trivy 漏洞库/Java 库、nuclei 模板为构建日快照;要新鲜数据回有网环境重跑对应组再 publish
 - nuclei headless 模板依赖 Chrome,定制 Chrome 未合入前不可用(PROGRESS.md 待办 1)
-- ~~VNC 屏幕无 Chrome 与 noVNC~~(2026-10-10 已解):桌面栈(xfce4+tigervnc+noVNC+websockify)烘焙进镜像(vnc 组),启动面 `vnc-screen desktop`,浏览器经 incus proxy 127.0.0.1:6080 进([items/tools-vnc/vnc.md](items/tools-vnc/vnc.md));Chrome 官方版仍不装,等定制构建合入(ADR-0006)
+- ~~VNC 屏幕无 Chrome 与 noVNC~~(2026-10-10 已解):桌面栈(xfce4+tigervnc+noVNC+websockify)烘焙进镜像(vnc 组),启动面 `vnc-screen desktop`,浏览器经 incus proxy 127.0.0.1:6080 进([items/tools-vnc/vnc.md](items/tools-vnc/vnc.md));Chrome 官方版仍不装;定制构建已合入(clean-chrome 155.0.8059.39,云端道 chrome.ohmygh.com,ADR-0007)
 - `pi-box-dev` 镜像(pi 二进制、pi-web、定制 Chrome)的构建脚本不在本仓
 
 ## 行为边界(设计如此,不是缺陷)

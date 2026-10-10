@@ -125,6 +125,10 @@ nuget_latest() {
     if [ -n "$stable" ]; then printf '%s\n' "$stable" | tail -1; else printf '%s\n' "$all" | tail -1; fi
 }
 
+# ---- clean-chrome 云端道(chrome.ohmygh.com;非 GitHub 系不走 GITHUB_MIRROR) --------
+chrome_latest() { curl -fsSL -m 15 "https://chrome.ohmygh.com/latest" 2>/dev/null | tr -d ' \r\n' || true; }
+chrome_sha() { curl -fsSL -m 15 "https://chrome.ohmygh.com/$1/chromium-$1-x86_64-unknown-linux-gnu.zip.sha256" 2>/dev/null | grep -oE '^[0-9a-f]{64}' || true; }
+
 # ---- temurin:tuna Adoptium 目录列表 ------------------------------------------
 temurin_latest() { # temurin_latest <major> → 目录里的版本串(如 25.0.4.1_9)
     local major="$1"
@@ -252,6 +256,7 @@ SCALARS=(
     FRIDA_TOOLS_VERSION:pypi_latest:frida-tools
     AWSCLI_VERSION:awscli_soft:
     MSF_VERSION:msf_soft:
+    CHROME_VERSION:chrome_latest:
 )
 kubectl_stable() { curl -fsSL -m 15 "https://dl.k8s.io/release/stable.txt" 2>/dev/null || true; }
 bun_latest() { curl -fsSL -m 15 "https://registry.npmmirror.com/bun/latest" 2>/dev/null | grep -o '"version":"[^"]*"' | cut -d'"' -f4 || true; }
@@ -369,6 +374,12 @@ main() {
             v="$(read_pin "temurin.$mj")"
             printf 'TEMURIN_PIN_%s="%s"\n' "$mj" "$v"
         done
+        # clean-chrome:版本段路由的 sha256 边车(随 CHROME_VERSION 二段解析)
+        local cv="" si
+        for si in "${!SCALARS[@]}"; do
+            if [ "${SCALARS[$si]%%:*}" = CHROME_VERSION ]; then cv="$(read_pin "scalar.$si")"; break; fi
+        done
+        if [ -n "$cv" ]; then printf 'CHROME_SHA256="%s"\n' "$(chrome_sha "$cv")"; else echo 'CHROME_SHA256=""'; fi
     } > "$out"
     if [ "${1:-}" = "--check" ]; then
         diff -u "$PINS" "$out" || true

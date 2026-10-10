@@ -9,6 +9,7 @@
 #   VNC_PASS=xxx ./vnc-screen.sh start          # 起轻量面
 #   VNC_PASS=xxx ./vnc-screen.sh desktop        # 起桌面+noVNC
 #   ./vnc-screen.sh status          # 校验屏幕与监听只绑回环
+#   ./vnc-screen.sh chrome          # clean-chrome 上 :99 屏 + CDP 9222 冒烟(T3)
 #   ./vnc-screen.sh stop            # 停轻量面;desktop-stop 停桌面面
 # 宿主侧一次性(把端口引到宿主回环,不开公网):
 #   轻量:sudo incus config device add <实例> vnc proxy listen=tcp:127.0.0.1:5900 connect=tcp:127.0.0.1:5900
@@ -108,6 +109,33 @@ desktop-stop() {
     echo stopped
 }
 
+# 冒烟面(T3,browse CLI 暂缓期间的等价实证):起 :99 屏,chrome 有头+CDP 9222,
+# curl /json/version 实证;rowse 合入后改 browse up 路径
+chrome() {
+    command -v clean-chrome >/dev/null || { echo "clean-chrome 未装(跑 install-tools.sh chrome)"; exit 1; }
+    if ! xdpyinfo -display "$DISP" >/dev/null 2>&1; then
+        Xvfb "$DISP" -screen 0 "$RES" -ac +extension RANDR >/tmp/xvfb.log 2>&1 &
+        for _ in $(seq 1 20); do xdpyinfo -display "$DISP" >/dev/null 2>&1 && break; sleep 0.3; done
+    fi
+    if ! curl -s -m 3 http://127.0.0.1:9222/json/version >/dev/null 2>&1; then
+        # Chrome 136+:无独立 --user-data-dir 时 CDP 静默不开(实证);
+        # clean-chrome 155 的 --remote-debugging-address 挂上就不绑端口(实证隔离变量),裸 port 默认即绑回环;
+        # 日志按用户分
+        DISPLAY="$DISP" clean-chrome --user-data-dir="$HOME/.clean-chrome-profile" \
+            --remote-debugging-port=9222 --auto-allow-devtools-connections \
+            about:blank >"/tmp/chrome-$(id -u).log" 2>&1 &
+        for _ in $(seq 1 20); do curl -s -m 2 http://127.0.0.1:9222/json/version >/dev/null 2>&1 && break; sleep 0.5; done
+    fi
+    curl -s -m 3 http://127.0.0.1:9222/json/version | grep -oE '"Browser": *"[^"]*"' \
+        && echo "chrome CDP 实证过(:99 屏 + 9222)" \
+        || { echo "!! CDP 未起,查 /tmp/chrome-$(id -u).log"; exit 1; }
+}
+
+chrome-stop() {
+    pkill -f "remote-debugging-port=9222" 2>/dev/null || true
+    echo stopped
+}
+
 status() {
     local ok=1
     if xdpyinfo -display "$DISP" 2>/dev/null | grep -q dimensions; then
@@ -131,6 +159,8 @@ case "${1:-}" in
     desktop)       desktop ;;
     stop)          stop ;;
     desktop-stop)  desktop-stop ;;
+    chrome)        chrome ;;
+    chrome-stop)   chrome-stop ;;
     status)        status ;;
     *) grep '^#' "$0" | head -16; exit 1 ;;
 esac

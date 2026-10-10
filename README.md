@@ -112,24 +112,30 @@ incus exec pi-dev -- sudo -u ubuntu -i bash -lc 'cd /home/ubuntu/workspace && pi
 
 事实：实例不存在才创建；`src` 设备不存在才添加；镜像别名取 `PI_IMAGE`（默认 `pi-box-dev`，该镜像的构建不在本仓，见“已知限制与未决项”）；`shift=true` 需要容器开启 idmap；挂载的是宿主管的仓库，未提交改动不进任何镜像。
 
-### 6. （可选）给实例加 VNC 屏幕
+### 6. （可选）VNC 屏幕与浏览器面
 
 容器内（ubuntu 用户）:
 
 ```bash
-./vnc-screen.sh setup
-VNC_PASS='<口令>' ./vnc-screen.sh start
-./vnc-screen.sh status
+# 轻量面(挂单个 GUI 程序):Xvfb :99 + x11vnc 5900
+vnc-screen setup && VNC_PASS='<口令>' vnc-screen start
+# 桌面面(XFCE + TigerVNC + noVNC):浏览器经宿主回环 6080 进
+VNC_PASS='<口令>' vnc-screen desktop   # 桌面栈已烘焙进镜像
+# clean-chrome 冒烟面(起 :99 屏 + CDP 9222,实证到 Browser 版本号)
+vnc-screen chrome
 ```
 
-宿主侧一次性把 5900 引到宿主回环：
+宿主侧一次性引端口（均只回环）:
 
 ```bash
 sudo incus config device add <实例> vnc proxy \
   listen=tcp:127.0.0.1:5900 connect=tcp:127.0.0.1:5900
+sudo incus config device add <实例> novnc proxy \
+  listen=tcp:127.0.0.1:6080 connect=tcp:127.0.0.1:6080
+# 浏览器开 http://127.0.0.1:6080/vnc.html
 ```
 
-事实：Xvfb 起 `:99`（1280x800x24），x11vnc 只绑 `127.0.0.1:5900`；`start` 内置 `status` 校验；屏幕不含浏览器，Chrome 由后续定制构建提供；无 `VNC_PASS` 时生成随机口令并打印一次。
+事实：轻量面 Xvfb 起 `:99`（1280x800x24）、x11vnc 只绑 `127.0.0.1:5900`；桌面面 TigerVNC :1(5901)+noVNC/websockify 只绑 `127.0.0.1:6080`;`start`/`desktop` 内置 `status` 校验；clean-chrome 155 在镜像内（`clean-chrome`/`chrome`/`chromium` 三链，恒 `--no-sandbox`),CDP 冒烟实证到 `Chrome/155.0.8059.39`；无 `VNC_PASS` 时生成随机口令并打印一次。件级细节见 [docs/items/tools-vnc/vnc.md](docs/items/tools-vnc/vnc.md) 与 [docs/items/tools-chrome/clean-chrome.md](docs/items/tools-chrome/clean-chrome.md)。
 
 ## 已知限制与未决项
 

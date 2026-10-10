@@ -30,7 +30,7 @@
 
 ## 待办
 
-1. 合入定制 Chrome:等用户通知构建完成 → install-tools.sh 加 chrome 组(对接 vnc-screen.sh :99 屏)→ 增量发布。
+1. ~~合入定制 Chrome~~(2026-10-10 跨机派单 prt-01 完成,裁定面有裁剪):browse CLI 暂缓(仓不可达,T1 挂起等凭证);clean-chrome 155.0.8059.39 经云端道(chrome.ohmygh.com 版本段路由+sha256 锚)进镜像,系统级单副本 /opt/clean-chrome(ADR-0007);vnc-screen.sh 增 chrome 冒烟面(CDP 9222,实证 root/ubuntu/断网三视角 `Chrome/155.0.8059.39`);实证坑:155 挂 --remote-debugging-address 就绑不了 CDP 口(摘除),Chrome 136+ 无 --user-data-dir 时 CDP 静默不开。
 2. ~~脚本级疑点~~(2026-10-10 两批 swarm 全清):bun/zig/nim 早退后配置写入已挪前(golang 组 profile.d 同坑顺手修);jwt_tool/LinkFinder wrapper 实证活 bug(系统 python3 无依赖必炸)已改 re-venv python + 依赖钉版;golang 早退跳过补装残留已由早退判据补三件套存在性根治(删 dlv 残留态实证重跑补装过);rust 组 rustup-init 守卫加执行探针(shim 空转不再卡死)。
 3. ~~库缓存层的 repo 侧钉版(phase B)~~(2026-10-10 完成):六生态锁文件入库 `scripts/lock/`(go.mod+go.sum、Cargo.toml+Cargo.lock(31 crate 清单重建 generate-lockfile 收割)、package-lock.json、resolve-ranges 写回后 pom.xml、dotnet-prewarm.csproj、build.zig.zon);install-libcache.sh 有锁消费锁(go build 用 go.sum / cargo fetch --locked / npm ci / mvn 直消费解析后 pom / dotnet restore / zig build --fetch),无锁或 LIBCACHE_RESOLVE=1 走构建日解析并打印「未锁」;新 `scripts/sync-locks.sh` 起临时容器从线上镜像解析态再生拉回(rt-locksync,用完自删);python/pwsh 无独立锁文件(pins.sh 钉直接依赖)不在同步面。容器实证(rt-lh):六组锁消费路径全过(go build 锁 19+19 模块、npm ci 255 包/161 落点、cargo fetch --locked、restore 9 段、zig 10 包)
 4. 已知遗留(不阻塞,细节见 docs/known-issues.md):webcrack 传递依赖 isolated-vm 被拦;frida windows-x86 server 多数版本未发布;coffee-ldr nightly 编译失败(上游);trivy db 为构建日快照;nuclei headless 无 Chrome 不可用。

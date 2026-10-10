@@ -1187,6 +1187,39 @@ install_msf() {
 }
 
 
+# ---- clean-chrome(云端安装道:chrome.ohmygh.com 版本段路由+sha256 锚;钉 pins.sh) ----
+# 双视角落位裁定(ADR-0007):系统级单副本 /opt/clean-chrome/<ver>(/opt 可读,
+# root/ubuntu 同用;browse 合入后经 BROWSE_CHROME 指路或直接用它,不重复装)
+install_chrome() {
+    log "clean-chrome ${CHROME_VERSION:-?}(云端道 chrome.ohmygh.com;sha256 锚校验)"
+    local ver="${CHROME_VERSION:?pins.sh 缺 CHROME_VERSION,跑 resolve-pins.sh}"
+    local sha="${CHROME_SHA256:?pins.sh 缺 CHROME_SHA256}"
+    local dest="/opt/clean-chrome/$ver"
+    # 幂等:.version 标记一致即跳过(donut 同款)
+    if [ -x "$dest/chrome" ] && [ -f "$dest/.version" ] && [ "$(cat "$dest/.version")" = "$ver" ]; then
+        echo "clean-chrome $ver 已装,跳过"
+    else
+        # 运行期依赖(headless 也要基础 X 库;xfce 组已盖大半,这里显式兜底)
+        apt-get update -qq
+        apt-get install -y --no-install-recommends             libnss3 libnspr4 libgbm1 libasound2t64 libxss1 libxkbcommon0             libxrandr2 libxcomposite1 libxdamage1 libxfixes3 libcups2 libdrm2             libpango-1.0-0 libcairo2 libatk1.0-0 libatk-bridge2.0-0 fonts-liberation || true
+        local zip="chromium-${ver}-x86_64-unknown-linux-gnu.zip"
+        curl -fSL --retry 3 "https://chrome.ohmygh.com/${ver}/${zip}" -o "/tmp/${zip}"
+        echo "${sha}  /tmp/${zip}" | sha256sum -c - || { echo "!! chrome 资产 sha256 不符"; return 1; }
+        rm -rf "$dest" && install -d /opt/clean-chrome
+        unzip -q "/tmp/${zip}" -d /opt/clean-chrome && rm "/tmp/${zip}"
+        mv "/opt/clean-chrome/chromium-${ver}-x86_64-unknown-linux-gnu" "$dest"
+        printf '%s' "$ver" > "$dest/.version"
+    fi
+    # 容器里 chrome 必须 --no-sandbox(browse spawn 恒加;直调也带上),有头/无头由调用方给 DISPLAY
+    printf '#!/bin/sh\nexec /opt/clean-chrome/%s/chrome --no-sandbox "$@"\n' "$ver" > /usr/local/bin/clean-chrome
+    chmod +x /usr/local/bin/clean-chrome
+    ln -sf /usr/local/bin/clean-chrome /usr/local/bin/chrome
+    ln -sf /usr/local/bin/clean-chrome /usr/local/bin/chromium
+    echo "$ver" > /opt/clean-chrome/CURRENT   # 云端道 manifest 的最小复刻(browse 合入前)
+    clean-chrome --version 2>/dev/null | head -1 || echo "!! chrome 未装上"
+    true
+}
+
 # ---- VNC 桌面面(xfce4 + TigerVNC + noVNC;浏览器经 incus proxy 6080 进) -------
 # 设计:桌面栈烘焙进镜像,启动面在 vnc-screen.sh(口令首启生成,不落库);
 # websockify 绑 127.0.0.1:6080(回环纪律),宿主经 proxy 设备引 6080
@@ -1206,5 +1239,5 @@ install_vnc() {
     true
 }
 
-TOOLS_ALL=(fd astgrep cli herdr ghidra re pd secgo secrust pivot p0 c2 bof pz maldev recon nu pentest red msf vnc)
+TOOLS_ALL=(fd astgrep cli herdr ghidra re pd secgo secrust pivot p0 c2 bof pz maldev recon nu pentest red msf vnc chrome)
 run_category TOOLS_ALL "$@"
