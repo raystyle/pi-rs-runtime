@@ -24,4 +24,5 @@
 ## 待办
 
 1. 合入定制 Chrome:等用户通知构建完成 → install-tools.sh 加 chrome 组(对接 vnc-screen.sh :99 屏)→ 增量发布。
-2. 已知遗留(不阻塞,细节见 docs/known-issues.md):webcrack 传递依赖 isolated-vm 被拦;frida windows-x86 server 多数版本未发布;coffee-ldr nightly 编译失败(上游);trivy db 为构建日快照;nuclei headless 无 Chrome 不可用。
+2. 脚本级疑点(items 迁移轮 18 工位发现,待裁定是否修):install_bun 早退判据在 bunfig 写入之前(install-runtimes.sh,增量重跑刷不上 bunfig);install_zig 的 profile.d 写入与 install_nim 整组配置在早退判据之后(同复发模式,AGENTS.md Must);jwt_tool/LinkFinder wrapper 走系统 python3 但依赖进 re-venv(功能面存疑)。
+3. 已知遗留(不阻塞,细节见 docs/known-issues.md):webcrack 传递依赖 isolated-vm 被拦;frida windows-x86 server 多数版本未发布;coffee-ldr nightly 编译失败(上游);trivy db 为构建日快照;nuclei headless 无 Chrome 不可用。

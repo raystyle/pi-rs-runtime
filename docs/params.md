@@ -20,9 +20,9 @@
 | `GOPROXY` / `GOSUMDB` | `https://goproxy.cn,direct` / `sum.golang.google.cn` | 已 export,`go install` 子进程继承 |
 | `GO_DOWNLOAD` | `https://mirror.nju.edu.cn/golang` | tuna 无 golang 发行包 |
 | `NPM_REGISTRY` / `NODE_MIRROR` | `https://registry.npmmirror.com` 及其 `/-/binary/node` | npm registry 与 node 二进制分开 |
-| `PIP_INDEX` | `https://pypi.tuna.tsinghua.edu.cn/simple` | 写 `/etc/pip.conf` 与 `/etc/uv/uv.toml`,uv 索引用同一个变量 |
+| `PIP_INDEX` | `https://mirrors.aliyun.com/pypi/simple` | 写 `/etc/pip.conf` 与 `/etc/uv/uv.toml`,uv 索引用同一个变量(2026-10-09 起阿里云,实证切换) |
 | `ADOPTIUM_MIRROR` | `$TUNA/Adoptium` | temurin JDK 发行包 |
-| `MAVEN_MIRROR` / `MAVEN_DEP_MIRROR` | `$TUNA/apache/maven` / `https://maven.aliyun.com/repository/public` | 发行包与 Central 依赖分开 |
+| `MAVEN_MIRROR` / `MAVEN_DEP_MIRROR` | `$ALIYUN/apache/maven` / `https://maven.aliyun.com/repository/public` | 发行包与 Central 依赖分开(2026-10-09 起发行包也阿里云,实证切换) |
 | `NUGET_MIRROR` | `https://repo.huaweicloud.com/repository/nuget/v3/index.json` | 写各用户 `NuGet.Config`,`<clear/>` 后只留此源 |
 | `PY2_MIRROR` | `https://mirrors.huaweicloud.com/python` | python2 源码包 |
 | `SURY_MIRROR` | `https://mirror.nju.edu.cn/sury` | tuna 无 sury;GPG key 仍从官方取一次 |
