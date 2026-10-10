@@ -2,7 +2,7 @@
 
 > 攻击面测绘与侦察 20 件 Go CLI 集(子域/DNS/端口/HTTP/模板扫描/爬虫/云资产) ｜ 状态:已装 ｜ 组:`install-tools.sh pd`
 
-- **版本钉**:全部 `go install github.com/projectdiscovery/<模块>@${PD_VERSION}`,`PD_VERSION` 默认 `latest`(lib/common.sh);`have` 早退意味着「首次装到的那份」,升级要删二进制重跑([known-issues](../../known-issues.md) 未钉登记)
+- **版本钉**:pins.sh 钉版(解析日 2026-10-10):20 件逐件取 `GO_PIN[github.com/projectdiscovery/<模块>]`(`go_pin_ver`,缺钉即响跳过;旧 `PD_VERSION` 变量已弃用,lib/common.sh 仅保留防空引用);`have` 早退意味着「钉版首次装到的那份」,升级跑 scripts/resolve-pins.sh 换钉后删二进制重跑
 - **来源与安装**:[projectdiscovery.io](https://projectdiscovery.io)(各件仓在 github.com/projectdiscovery 组织下,成员表列模块路径);安装面 `scripts/install-tools.sh` `install_pd`;经 `GOPROXY=goproxy.cn,direct` + `GOSUMDB=sum.golang.google.cn`(common.sh export);清单可用 `PD_TOOLS` 环境变量整表替换(默认 `PD_TOOLS_DEFAULT` 20 件)
 - **落点**(批量机制):组内显式 `export GOPATH=/opt/go`,产物落 `/opt/go/bin/<bin>` 并逐件 `ln -sf` 到 `/usr/local/bin/<bin>`;二进制名取模块路径末段(`chaos-client/cmd/chaos` → `chaos`,`interactsh/cmd/interactsh-client` → `interactsh-client`);naabu 另装 `libpcap-dev` 并 `setcap cap_net_raw,cap_net_admin+eip`(SYN 扫描免 sudo,ubuntu 视角可跑)
 - **配置与缓存**(批量机制):无组级配置文件;go 模块缓存共用 `/opt/go/pkg/mod`,运行期 `GOPROXY=off` 默认见 [offline.md](../../offline.md) §1/§4;nuclei 模板缓存与 wrapper 不在本组——是 pentest 组的离线接线,见 [nuclei.md](nuclei.md)

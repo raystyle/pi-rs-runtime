@@ -2,7 +2,7 @@
 
 > Save-PSResource 固化 8 个 PSGallery 模块(含传递依赖),全 shell 可 Import-Module ｜ 状态:缓存固化 ｜ 组:`install-libcache.sh pwsh`(前置 `install-runtimes.sh pwsh`)
 
-- **版本钉**:未钉——PSGallery 无国内镜像,构建期直连取最新(Save-PSResource 含依赖解析);升级重跑本组
+- **版本钉**:模块未钉——PSGallery 无国内镜像,pins.sh 亦未收模块映射,构建期直连取最新(Save-PSResource 含依赖解析,不产锁文件,`/opt/psmodules` 即镜像侧快照);pwsh 本体属软钉(MS 仓 apt 浮动,留痕 [known-issues](../../known-issues.md));升级重跑本组
 - **来源与安装**:PSGallery 经 inbox PSResourceGet `Save-PSResource -Path /opt/psmodules -TrustRepository -Quiet`(带 `-ErrorAction SilentlyContinue`,Gallery 国内不稳,部分失败重跑可补);脚本段 `scripts/install-libcache.sh install_pwsh`;pwsh 未装则早退(先跑 runtimes pwsh 组)
 
   | 模块 | 用途 |

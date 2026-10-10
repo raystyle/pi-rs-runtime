@@ -26,7 +26,7 @@ install_astgrep() {
     . /opt/cargo/env 2>/dev/null || true
     export PATH="$PATH:/opt/cargo/bin"
     if have ast-grep; then ast-grep --version; echo "已安装,跳过"; return; fi
-    cargo install ast-grep --locked
+    cargo_install_pin ast-grep
     ln -sf /opt/cargo/bin/ast-grep /usr/local/bin/ast-grep
     ln -sf /opt/cargo/bin/sg /usr/local/bin/sg
     ast-grep --version
@@ -44,11 +44,11 @@ install_cli() {
     export GOPATH=/opt/go
     export GOPROXY GOSUMDB
     if ! have yq; then
-        go install github.com/mikefarah/yq/v4@latest
+        go_install_pin github.com/mikefarah/yq/v4
         ln -sf /opt/go/bin/yq /usr/local/bin/yq
     fi
     if ! have gh; then
-        go install github.com/cli/cli/v2/cmd/gh@latest   # gh 官方 apt 源国内无镜像,源码编译
+        go_install_pin github.com/cli/cli/v2/cmd/gh   # gh 官方 apt 源国内无镜像,源码编译
         ln -sf /opt/go/bin/gh /usr/local/bin/gh
     fi
     # just 在部分套件下无 apt 包,兜底 cargo;与 astgrep 同式走 /opt/cargo(/root 0700 ubuntu 不可执行)
@@ -56,7 +56,7 @@ install_cli() {
         export RUSTUP_HOME=/opt/rustup CARGO_HOME=/opt/cargo
         . /opt/cargo/env 2>/dev/null || true
         export PATH="$PATH:/opt/cargo/bin"
-        cargo install just --locked
+        cargo_install_pin just
         ln -sf /opt/cargo/bin/just /usr/local/bin/just
     fi
     git --version && jq --version && yq --version && shellcheck --version | head -1 \
@@ -89,7 +89,7 @@ PD_TOOLS_DEFAULT=(
 )
 
 install_pd() {
-    log "projectdiscovery 全家桶 (go install @${PD_VERSION},经 $GOPROXY)"
+    log "projectdiscovery 全家桶 (go install 钉版 pins.sh,经 $GOPROXY)"
     . "$HOME/.cargo/env" 2>/dev/null || true
     export GOPATH=/opt/go PATH="$PATH:/usr/local/go/bin:/opt/go/bin"
     export GOPROXY GOSUMDB
@@ -99,8 +99,9 @@ install_pd() {
     for t in "${tools[@]}"; do
         bin="${t##*/}"
         if have "$bin"; then echo "$bin 已装,跳过"; continue; fi
-        echo "--- go install $t@${PD_VERSION}"
-        go install "github.com/projectdiscovery/${t}@${PD_VERSION}" || echo "!! $bin 编译失败(留待排查)" 
+        local pv; pv="$(go_pin_ver "github.com/projectdiscovery/${t}")" || { echo "!! $bin 缺钉,跳过"; continue; }
+        echo "--- go install $t@${pv}(钉)"
+        go install "github.com/projectdiscovery/${t}@${pv}" || echo "!! $bin 编译失败(留待排查)" 
         have "$bin" && ln -sf "$(command -v "$bin")" "/usr/local/bin/$bin"
     done
     echo "已装 PD 工具:"; for t in "${tools[@]}"; do command -v "${t##*/}" >/dev/null && printf '  %s\n' "${t##*/}"; done
@@ -132,7 +133,7 @@ SECGO_TOOLS_DEFAULT=(
 )
 
 install_secgo() {
-    log "Go 安全 CLI (go install @${SECGO_VERSION:-latest},经 $GOPROXY)"
+    log "Go 安全 CLI (go install 钉版 pins.sh,经 $GOPROXY)"
     export PATH="$PATH:/usr/local/go/bin:/root/go/bin"
     export GOPROXY GOSUMDB
     # shellcheck disable=SC2206
@@ -147,8 +148,9 @@ install_secgo() {
         produced="$last"
         [ "$last" = "..." ] && produced="$first"
         if have "$bin"; then echo "$bin 已装,跳过"; continue; fi
-        echo "--- go install $repo/$path@${SECGO_VERSION:-latest}"
-        if go install "${repo}/${path}@${SECGO_VERSION:-latest}"; then
+        local sv; sv="$(go_pin_ver "${repo}/${path}")" || { echo "!! $bin 缺钉,跳过"; continue; }
+        echo "--- go install $repo/$path@${sv}(钉)"
+        if go install "${repo}/${path}@${sv}"; then
             if ! have "$bin" && [ "$produced" != "$bin" ] && [ -f "$gobin/$produced" ]; then
                 mv "$gobin/$produced" "$gobin/$bin"   # v2/v3/v8 -> ffuf/gobuster/gitleaks
             fi
@@ -162,7 +164,7 @@ install_secgo() {
     if ! have trufflehog; then
         local gh="${GITHUB_MIRROR}https://github.com"
         # sort -V 版本排序:-t. -k2 旧式不比较主版本,v4.0.0 会排输 v3.100.0(grok 评审 G1 实证)
-        local ttag; ttag="$(git ls-remote --tags "${gh}/trufflesecurity/trufflehog" 2>/dev/null | grep -oE 'refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$' | sed 's|refs/tags/||' | sort -V | tail -1 || true)"
+        local ttag; ttag="${TRUFFLEHOG_VERSION:-}"; [ -n "$ttag" ] || ttag="$(git ls-remote --tags "${gh}/trufflesecurity/trufflehog" 2>/dev/null | grep -oE 'refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$' | sed 's|refs/tags/||' | sort -V | tail -1 || true)"
         # 未知架构置空并在下载前判掉:set -u 下 case 未命中 read 未赋值变量会提前退出(grok 评审 G1)
         local tarc=""; case "$(dpkg --print-architecture)" in amd64) tarc=amd64;; arm64) tarc=arm64;; esac
         if [ -n "$ttag" ] && [ -n "$tarc" ]; then
@@ -185,8 +187,8 @@ install_secrust() {
     export RUSTUP_HOME=/opt/rustup CARGO_HOME=/opt/cargo
     . /opt/cargo/env 2>/dev/null || true
     export PATH="$PATH:/opt/cargo/bin"
-    have rustscan    || cargo install rustscan --locked
-    have feroxbuster || cargo install feroxbuster --locked
+    have rustscan    || cargo_install_pin rustscan
+    have feroxbuster || cargo_install_pin feroxbuster
     # findomain 依赖多,cargo 失败则提示走 GitHub Releases 预编译
     # findomain 依赖多常编不过,要用时走 https://github.com/Findomain/Findomain/releases 预编译
     # RustHound-CE:BloodHound CE 采集器(Linux 直跑);crates.io 无此包,源码构建,
@@ -197,12 +199,12 @@ install_secrust() {
         apt-get install -y --no-install-recommends libkrb5-dev
         local gh="${GITHUB_MIRROR}https://github.com"
         install -d /opt/tradecraft-ref/ad
-        [ -d /opt/tradecraft-ref/ad/RustHound-CE/.git ] || git clone --depth 1 "${gh}/g0h4n/RustHound-CE" /opt/tradecraft-ref/ad/RustHound-CE
+        clone_pin g0h4n/RustHound-CE /opt/tradecraft-ref/ad/RustHound-CE
         ( cd /opt/tradecraft-ref/ad/RustHound-CE && cargo build --release --locked ) \
             && install -m755 /opt/tradecraft-ref/ad/RustHound-CE/target/release/rusthound-ce /usr/local/bin/rusthound-ce \
             || echo "RustHound-CE 构建失败(下轮补)"
     fi
-    have rusthound-ce && rusthound-ce --version 2>/dev/null | head -1
+    have rusthound-ce && rusthound-ce --version 2>/dev/null | head -1 || true
     for b in rustscan feroxbuster; do
         if have "$b"; then
             ln -sf "/opt/cargo/bin/$b" "/usr/local/bin/$b" 2>/dev/null || true
@@ -289,7 +291,7 @@ install_re() {
     log "rizin + rz-ghidra + sigdb (源码编译;JDK 不另装,temurin 21 已够 ghidra 用)"
     local gh; gh="${GITHUB_MIRROR}https://github.com"
     if ! have rizin; then
-        rm -rf /tmp/rizin && git clone --depth 1 "${gh}/rizinorg/rizin" /tmp/rizin
+        rm -rf /tmp/rizin && clone_pin rizinorg/rizin /tmp/rizin
         meson setup /tmp/rizin/build /tmp/rizin --buildtype=release
         meson compile -C /tmp/rizin/build && meson install -C /tmp/rizin/build
         rm -rf /tmp/rizin
@@ -299,7 +301,7 @@ install_re() {
         rm -rf /tmp/rz-ghidra
         # ghidra 是 rz-ghidra 的 git 子模块,其提交钉死了匹配的 ghidra ref;
         # 自己按版本号克隆会 API 不匹配(core_ghidra.cpp 编译错),必须走子模块
-        git clone --depth 1 --recurse-submodules --shallow-submodules "${gh}/rizinorg/rz-ghidra" /tmp/rz-ghidra
+        clone_pin rizinorg/rz-ghidra /tmp/rz-ghidra submodules
         export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
         # rz_core.pc 的 plugindir 是相对路径,pkg-config 直取会装到 CWD 相对目录
         # 然后被 rm 掉;用 rizin 运行时报告的 dir.plugins 为准
@@ -314,7 +316,7 @@ install_re() {
     fi
     if ! ls -d /usr/share/rizin/sigdb /usr/local/share/rizin/sigdb "$HOME"/.local/share/rizin/sigdb >/dev/null 2>&1; then
         # sigdb 已改版为纯数据仓库(elf/pe + meson),旧 install.sh 不存在,用 meson 装
-        rm -rf /tmp/sigdb && git clone --depth 1 "${gh}/rizinorg/sigdb" /tmp/sigdb
+        rm -rf /tmp/sigdb && clone_pin rizinorg/sigdb /tmp/sigdb
         meson setup /tmp/sigdb/build /tmp/sigdb --prefix=/usr/local >/dev/null \
             && meson install -C /tmp/sigdb/build || echo "sigdb 安装失败(不影响 rizin 本体)"
         rm -rf /tmp/sigdb
@@ -326,7 +328,7 @@ install_re() {
     log "Python RE venv ($RE_VENV;uv venv;capstone/keystone/unicorn/lief/yara-python)"
     . "$HOME/.local/bin/env" 2>/dev/null || true
     [ -x "$RE_VENV/bin/python" ] || uv venv "$RE_VENV"
-    VIRTUAL_ENV="$RE_VENV" uv pip install capstone keystone-engine unicorn lief yara-python
+    VIRTUAL_ENV="$RE_VENV" uv pip install "capstone==$(pypi_pin capstone)" "keystone-engine==$(pypi_pin keystone-engine)" "unicorn==$(pypi_pin unicorn)" "lief==$(pypi_pin lief)" "yara-python==$(pypi_pin yara-python)"
     "$RE_VENV/bin/python" -c 'import capstone,keystone,unicorn,lief,yara; print("re-venv ok")'
     cat <<EOF
 对应关系:capstone 反汇编 / keystone 汇编 / unicorn 模拟执行 / lief 解析改写 PE-ELF-MachO / yara-python 规则扫描
@@ -343,13 +345,12 @@ install_pivot() {
     . /opt/cargo/env 2>/dev/null || true
     export PATH="$PATH:/opt/cargo/bin"
     # Go 栈
-    have gost   || go install github.com/go-gost/gost/cmd/gost@latest \
-        || go install github.com/ginuerzh/gost/cmd/gost@latest || echo "gost 失败"
+    have gost   || go_install_pin github.com/go-gost/gost/cmd/gost || echo "gost 失败"
     # frp:go.mod 带 replace(go install 拒装),源码 build 又缺 web/dist(embed 失败)
-    # → 直接下 GitHub Release 预编译(arm 机器改 FRP_ARCH)
+    # → 直接下 GitHub Release 预编译(arm 机器改 FRP_ARCH);钉 FRP_VERSION(pins.sh)
     if ! have frps || ! have frpc; then
         local ftag farch="amd64"; [ "$(dpkg --print-architecture)" = arm64 ] && farch="arm64"
-        ftag="$(curl -fsSL "https://api.github.com/repos/fatedier/frp/releases/latest" | grep -o '"tag_name": *"[^"]*"' | cut -d'"' -f4)"
+        ftag="${FRP_VERSION:-}"; [ -n "$ftag" ] || ftag="$(curl -fsSL "https://api.github.com/repos/fatedier/frp/releases/latest" | grep -o '"tag_name": *"[^"]*"' | cut -d'"' -f4)"
         if [ -n "$ftag" ]; then
             local ftgz="frp_${ftag#v}_linux_${farch}.tar.gz"
             curl -fSL "https://github.com/fatedier/frp/releases/download/${ftag}/${ftgz}" -o "/tmp/${ftgz}" \
@@ -360,12 +361,12 @@ install_pivot() {
         have frps || echo "frp 失败"
     fi
     # Rust 栈
-    # wstunnel 不在 crates.io,cargo install --git 拉源码(依赖走 tuna)
-    have wstunnel || cargo install --git https://github.com/erebe/wstunnel --locked || echo "wstunnel 失败"
-    # rathole 0.5.0 老锁在新 rustc 上编不过,先去 --locked,再退回 git 主干
-    have rathole || cargo install rathole \
-        || cargo install --git https://github.com/rathole-org/rathole || echo "rathole 失败"
-    have bore     || cargo install bore-cli --locked || echo "bore 失败"
+    # wstunnel 不在 crates.io,cargo install --git 拉源码(钉 GIT_PIN 的 sha)
+    have wstunnel || cargo install --git "${GITHUB_MIRROR}https://github.com/erebe/wstunnel" --locked ${GIT_PIN[erebe/wstunnel]:+--rev "${GIT_PIN[erebe/wstunnel]}"} || echo "wstunnel 失败"
+    # rathole 钉 crates 版;老锁在新 rustc 编不过时退回 git 钉 sha
+    have rathole || cargo_install_pin rathole \
+        || cargo install --git "${GITHUB_MIRROR}https://github.com/rathole-org/rathole" ${GIT_PIN[rathole-org/rathole]:+--rev "${GIT_PIN[rathole-org/rathole]}"} || echo "rathole 失败"
+    have bore     || cargo_install_pin bore-cli || echo "bore 失败"
     local gobin; gobin="/opt/go/bin"; export GOPATH=/opt/go
     for b in gost frps frpc; do
         [ -e "$gobin/$b" ] && ln -sf "$gobin/$b" "/usr/local/bin/$b"
@@ -395,8 +396,8 @@ install_p0() {
     dpkg -s python3-impacket >/dev/null 2>&1 && apt-get remove -y python3-impacket || true
     have uv || . "$HOME/.local/bin/env" 2>/dev/null || true
     export UV_TOOL_BIN_DIR=/usr/local/bin UV_TOOL_DIR=/opt/uv-tools
-    VIRTUAL_ENV= uv tool install impacket >/dev/null 2>&1 \
-        || VIRTUAL_ENV= uv tool install --index-url "https://pypi.tuna.tsinghua.edu.cn/simple" impacket >/dev/null 2>&1 \
+    VIRTUAL_ENV= uv tool install "impacket==$(pypi_pin impacket)" >/dev/null 2>&1 \
+        || VIRTUAL_ENV= uv tool install --index-url "https://pypi.tuna.tsinghua.edu.cn/simple" "impacket==$(pypi_pin impacket)" >/dev/null 2>&1 \
         || echo "impacket uv 安装失败(下轮补)"
 
     # nasm:apt 版停在 2.16.01,官网源码钉版(nasm.us 无国内镜像,包小直连)
@@ -415,11 +416,11 @@ install_p0() {
     . "$HOME/.local/bin/env" 2>/dev/null || true
     export PATH="$PATH:/usr/local/bin"
     [ -x "$RE_VENV/bin/python" ] || uv venv "$RE_VENV"
-    # netexec 在 tuna 索引里可能缺,退回 git 源
-    VIRTUAL_ENV="$RE_VENV" uv pip install flare-floss oletools \
-        || VIRTUAL_ENV="$RE_VENV" uv pip install --no-cache flare-floss oletools
-    VIRTUAL_ENV="$RE_VENV" uv pip install netexec \
-        || VIRTUAL_ENV="$RE_VENV" uv pip install "git+https://github.com/Pennyw0rth/NetExec"
+    # netexec 在 tuna 索引里可能缺,退回 git 源(钉 GIT_PIN sha)
+    VIRTUAL_ENV="$RE_VENV" uv pip install "flare-floss==$(pypi_pin flare-floss)" "oletools==$(pypi_pin oletools)" \
+        || VIRTUAL_ENV="$RE_VENV" uv pip install --no-cache "flare-floss==$(pypi_pin flare-floss)" "oletools==$(pypi_pin oletools)"
+    # netexec 不在任何 PyPI 索引(实证 pypi.org/aliyun/tuna 全 404/空),钉 git sha
+    VIRTUAL_ENV="$RE_VENV" uv pip install "git+${GITHUB_MIRROR}https://github.com/Pennyw0rth/NetExec@${GIT_PIN[Pennyw0rth/NetExec]:?pins.sh 缺 NetExec 钉}"
     # venv 里的 CLI 进默认 PATH(评审 F6):pd/secgo 约定是 /usr/local/bin
     for b in floss olevba oleid netexec; do
         [ -e "$RE_VENV/bin/$b" ] && ln -sf "$RE_VENV/bin/$b" "/usr/local/bin/$b"
@@ -427,12 +428,11 @@ install_p0() {
 
     log "P0 GitHub 批(钉版,无国内镜像):pwndbg/jadx/apktool/capa/SecLists/YARA规则/pdf工具"
     local gh="${GITHUB_MIRROR}https://github.com"
-    # pwndbg: PyPI 有官方包,比 deb 简单且可钉版
-    # pwndbg:tuna/PyPI 无包;uv tool 从 git 源装(未钉 rev,上游 dev 分支会漂,见 ROADMAP)
+    # pwndbg:tuna/PyPI 无包;uv tool 从 git 源装,钉 GIT_PIN 的 sha(上游 dev 分支会漂)
     # UV_TOOL_BIN_DIR/UV_TOOL_DIR 指到 /opt:shim 与工具体对 ubuntu 可读(评审 F5)
     . "$HOME/.local/bin/env" 2>/dev/null || true
     export UV_TOOL_BIN_DIR=/usr/local/bin UV_TOOL_DIR=/opt/uv-tools
-    have pwndbg || uv tool install "git+${gh}/pwndbg/pwndbg" || echo "pwndbg 失败"
+    have pwndbg || uv tool install "git+${gh}/pwndbg/pwndbg@${GIT_PIN[pwndbg/pwndbg]:-HEAD}" || echo "pwndbg 失败"
     # jadx:CLI zip
     if ! have jadx; then
         local jv; jv="${JADX_VERSION:-1.5.3}"
@@ -458,12 +458,12 @@ install_p0() {
             && unzip -q "/tmp/${cz}" -d /opt/capa && rm "/tmp/${cz}"
         find /opt/capa -name capa -type f -exec ln -sf {} /usr/local/bin/capa \; 2>/dev/null || true
     fi
-    [ -d /opt/capa-rules ] || git clone --depth 1 "${gh}/mandiant/capa-rules" /opt/capa-rules
+    clone_pin mandiant/capa-rules /opt/capa-rules
     # YARA 规则集(REMnux v8 选 yara-forge;经典集 Yara-Rules/rules)
-    [ -d /opt/yara-rules ] || git clone --depth 1 "${gh}/Yara-Rules/rules" /opt/yara-rules
+    clone_pin Yara-Rules/rules /opt/yara-rules
     # pdfid / pdf-parser(DidierStevens,只拷两只脚本)
     if ! have pdfid.py; then
-        rm -rf /tmp/dss && git clone --depth 1 "${gh}/DidierStevens/DidierStevensSuite" /tmp/dss
+        rm -rf /tmp/dss && clone_pin DidierStevens/DidierStevensSuite /tmp/dss
         # shebang 是 python,noble 无此命令,拷完改成 python3
         cp /tmp/dss/pdfid.py /tmp/dss/pdf-parser.py /usr/local/bin/ 2>/dev/null \
             && chmod +x /usr/local/bin/pdfid.py /usr/local/bin/pdf-parser.py \
@@ -471,7 +471,7 @@ install_p0() {
         rm -rf /tmp/dss
     fi
     # SecLists 词表(大,depth 1)
-    [ -d /opt/SecLists ] || git clone --depth 1 "${gh}/danielmiessler/SecLists" /opt/SecLists
+    clone_pin danielmiessler/SecLists /opt/SecLists
 
     echo "P0 核对:"
     for b in gdb-multiarch checksec patchelf nasm ROPgadget nmap sqlmap tshark capa jadx apktool john hashid; do
@@ -493,7 +493,7 @@ install_c2() {
     for r in bishopfox/sliver Ne0nd0g/merlin BC-SECURITY/Empire cobbr/Covenant \
              its-a-feature/mythic byt3bl33d3r/SILENTTRINITY Adaptix-Framework/AdaptixC2; do
         local d="/opt/c2dev-ref/$(basename "$r")"
-        [ -d "$d/.git" ] || git clone --depth 1 "${gh}/${r}" "$d" || echo "$r 克隆失败"
+        clone_pin "$r" "$d" || echo "$r 克隆失败"
     done
     # ysoserial 系是反序列化生成器,不是 C2;已归 payload-ref/generators/deserialization(maldev 组)
     rm -rf /opt/c2dev-ref/ysoserial /opt/c2dev-ref/ysoserial.net
@@ -519,26 +519,24 @@ install_bof() {
     # Linux 直编过不了上游也没支持;交叉编 Windows 版(wine 下可用),
     # Linux 上跑 BOF 用 coffee / bof-launcher
     if [ ! -f "$inproc/COFFLoader/COFFLoader64.exe" ]; then
-        rm -rf "$inproc/COFFLoader"
-        git clone --depth 1 "${gh}/trustedsec/COFFLoader" "$inproc/COFFLoader" \
+        clone_pin trustedsec/COFFLoader "$inproc/COFFLoader" \
             && ( cd "$inproc/COFFLoader" && make bof ) || echo "coffloader mingw 构建失败"
     fi
     # atomic-bofs:rasta-mouse 的 COFF 独立运行 harness(带打包参数)
-    [ -d "$bofref/atomic-bofs/.git" ] || git clone --depth 1 "${gh}/rasta-mouse/atomic-bofs" "$bofref/atomic-bofs"
+    clone_pin rasta-mouse/atomic-bofs "$bofref/atomic-bofs"
     # TrustedSec 现役 BOF 源码两套(2026-09 仍在出构建;atomic-bofs 是示例集替代不了)
     local tb
     for tb in CS-Situational-Awareness-BOF CS-Remote-OPs-BOF; do
-        [ -d "$bofref/$tb/.git" ] || git clone --depth 1 "${gh}/trustedsec/$tb" "$bofref/$tb" || echo "$tb 克隆失败"
+        clone_pin "trustedsec/$tb" "$bofref/$tb" || echo "$tb 克隆失败"
     done
-    # Coffee(hakaioffsec):Rust 现代 COFF loader,crate 名 coffee-ldr
+    # Coffee(hakaioffsec):Rust 现代 COFF loader,crate 名 coffee-ldr(钉版)
     # 上游 lib.rs 用 #![feature(c_variadic/core_intrinsics)],stable 编不过,需 nightly
     if ! have coffee-ldr; then
         export RUSTUP_HOME=/opt/rustup CARGO_HOME=/opt/cargo
         . /opt/cargo/env 2>/dev/null || true
         export PATH="$PATH:/opt/cargo/bin"
         rustup toolchain install nightly --profile minimal >/dev/null 2>&1 || true
-        cargo +nightly install coffee-ldr --locked \
-            || cargo +nightly install --git "${gh}/hakaioffsec/coffee" --locked \
+        cargo +nightly install coffee-ldr --locked --version "${CRATE_PIN[coffee-ldr]:?pins.sh 缺 coffee-ldr}" \
             || echo "coffee 失败(nightly 亦不过则上游问题,留档)"
         [ -e /opt/cargo/bin/coffee-ldr ] && ln -sf /opt/cargo/bin/coffee-ldr /usr/local/bin/coffee-ldr
         [ -e "$HOME/.cargo/bin/coffee-ldr" ] && ln -sf "$HOME/.cargo/bin/coffee-ldr" /usr/local/bin/coffee-ldr
@@ -553,8 +551,7 @@ install_bof() {
             curl -fSL "https://ziglang.org/download/0.15.2/zig-${za}-linux-0.15.2.tar.xz" -o /tmp/zig152.tar.xz \
                 && mkdir -p "$z152" && tar -C "$z152" -xJf /tmp/zig152.tar.xz --strip-components=1 && rm /tmp/zig152.tar.xz
         fi
-        rm -rf "$inproc/bof-launcher"
-        git clone --depth 1 "${gh}/The-Z-Labs/bof-launcher" "$inproc/bof-launcher"
+        clone_pin The-Z-Labs/bof-launcher "$inproc/bof-launcher"
         if [ -x "$z152/zig" ] && ( cd "$inproc/bof-launcher" && "$z152/zig" build -Doptimize=ReleaseSafe ); then
             # 上游是库(C/Zig API)不是 CLI;可跑的 BOF 执行器是示例二进制 bof_lin_<arch>,装为 bof-launcher
             local bz; case "$(dpkg --print-architecture)" in amd64) bz=bof_lin_x64;; arm64) bz=bof_lin_aarch64;; esac
@@ -584,7 +581,7 @@ install_pz() {
     local gh="${GITHUB_MIRROR}https://github.com"
     if [ ! -d /opt/pz-sandbox-tools/.git ]; then
         rm -rf /opt/pz-sandbox-tools
-        git clone --depth 1 "${gh}/googleprojectzero/sandbox-attacksurface-analysis-tools" /opt/pz-sandbox-tools
+        clone_pin googleprojectzero/sandbox-attacksurface-analysis-tools /opt/pz-sandbox-tools
     fi
     if have dotnet; then
         ( cd /opt/pz-sandbox-tools && dotnet build sandbox-attacksurface-analysis-tools.sln -c Release ) >/dev/null 2>&1 \
@@ -595,10 +592,10 @@ install_pz() {
     # tyranid(James Forshaw)三件套,同属性:Windows 参考系,Linux 下源码价值为主
     # 方案依据 /tmp/pi-rs-dotnetfx-plan.md(grok 调研,noble mono/dotnet 实况)
     local r
-    [ -d /opt/DotNetToJScript/.git ] || git clone --depth 1 "${gh}/tyranid/DotNetToJScript" /opt/DotNetToJScript
-    [ -d /opt/windows-logical-eop-workshop/.git ] || git clone --depth 1 "${gh}/tyranid/windows-logical-eop-workshop" /opt/windows-logical-eop-workshop
+    clone_pin tyranid/DotNetToJScript /opt/DotNetToJScript
+    clone_pin tyranid/windows-logical-eop-workshop /opt/windows-logical-eop-workshop
     # oleviewdotnet 必须 --recurse-submodules(NtApiDotNet 是嵌套子模块),浅克隆会拉丢
-    [ -d /opt/oleviewdotnet/.git ] || git clone --recurse-submodules "${gh}/tyranid/oleviewdotnet" /opt/oleviewdotnet
+    clone_pin tyranid/oleviewdotnet /opt/oleviewdotnet submodules
 
     # 用户裁定(2026-10-08):这些 .NET 项目只当参考代码,后渗透用到时再编;
     # noble 的 mono/xbuild/dotnet10 构建路径见 /tmp/pi-rs-dotnetfx-plan.md(grok 方案,留档)
@@ -614,16 +611,18 @@ install_nu() {
     local gh="${GITHUB_MIRROR}https://github.com"
     if ! have nu; then
         local ntag narc; case "$(dpkg --print-architecture)" in amd64) narc=x86_64;; arm64) narc=aarch64;; esac
-        # 取 tag 用 git ls-remote:api.github.com 未认证限流 60 次/时(fresh 验证实证 403),
-        # git 协议不受限流影响
-        # GitHub 直连间歇性归零(与 tuna 抖动同期),重试 3 次取 tag
-        local _try
-        for _try in 1 2 3; do
-            # pipefail:ls-remote 失败时整条管道非零,赋值即 set -e 退出;|| true 兜底
-            ntag="$(git ls-remote --tags "${gh}/nushell/nushell" 2>/dev/null | grep -oE 'refs/tags/[0-9]+\.[0-9]+\.[0-9]+$' | sort -t. -k1,1n -k2,2n -k3,3n | tail -1 | sed 's|refs/tags/||' || true)"
-            if [ -n "$ntag" ]; then break; fi
-            sleep 5
-        done
+        # 钉版:pins.sh NU_VERSION(解析器取 tag;原生无 v 前缀)。空钉回退 git ls-remote 解析
+        # (api.github.com 限流 403 实证不用;git 协议不受限流影响)
+        ntag="${NU_VERSION#v}"
+        if [ -z "$ntag" ]; then
+            local _try
+            for _try in 1 2 3; do
+                # pipefail:ls-remote 失败时整条管道非零,赋值即 set -e 退出;|| true 兜底
+                ntag="$(git ls-remote --tags "${gh}/nushell/nushell" 2>/dev/null | grep -oE 'refs/tags/[0-9]+\.[0-9]+\.[0-9]+$' | sort -t. -k1,1n -k2,2n -k3,3n | tail -1 | sed 's|refs/tags/||' || true)"
+                if [ -n "$ntag" ]; then break; fi
+                sleep 5
+            done
+        fi
         if [ -n "$ntag" ]; then
             local ntgz="nu-${ntag}-${narc}-unknown-linux-gnu.tar.gz"
             curl -fSL "${gh}/nushell/nushell/releases/download/${ntag}/${ntgz}" -o "/tmp/${ntgz}" \
@@ -699,10 +698,7 @@ install_maldev() {
         local r="${m%%:*}" leaf="${m#*:}"
         local d="/opt/${leaf}/$(basename "$r")"
         install -d "/opt/${leaf}"
-        if [ ! -d "$d/.git" ]; then
-            git clone --depth 1 "${gh}/${r}" "$d" 2>/dev/null || git clone --depth 1 "${gh}/${r}" "$d" \
-                || echo "$r 克隆失败(2 次,下轮补)"
-        fi
+        clone_pin "$r" "$d" || clone_pin "$r" "$d" || echo "$r 克隆失败(2 次,下轮补)"
     done
     # Crystal Palace(PIC 链接器)与 Tradecraft Garden(能力加载器集):无 Git 仓,官网 tgz 归档
     local tg="https://tradecraftgarden.org/download"
@@ -734,10 +730,7 @@ install_recon() {
     local r
     for r in runZeroInc/mac-tracker rapid7/recog hickory-dns/hickory-dns nomi-sec/PoC-in-GitHub; do
         local d="/opt/recon-ref/$(basename "$r")"
-        if [ ! -d "$d/.git" ]; then
-            git clone --depth 1 "${gh}/${r}" "$d" 2>/dev/null || git clone --depth 1 "${gh}/${r}" "$d" \
-                || echo "$r 克隆失败(2 次,下轮补)"
-        fi
+        clone_pin "$r" "$d" || clone_pin "$r" "$d" || echo "$r 克隆失败(2 次,下轮补)"
     done
     # poc-search:PoC-in-GitHub 索引查询 wrapper(只查索引信息,不拉任何 PoC 代码;
     # 索引仓 README 明示混有恶意样本,下载执行是使用者自己的裁量)
@@ -819,7 +812,7 @@ install_pentest() {
     # sasquatch:binwalk 解非标准 SquashFS 的补丁版,源码构建
     if ! have sasquatch; then
         local gh="${GITHUB_MIRROR}https://github.com"
-        rm -rf /tmp/sasquatch && git clone --depth 1 "${gh}/onekey-sec/sasquatch" /tmp/sasquatch \
+        clone_pin onekey-sec/sasquatch /tmp/sasquatch \
             && ( cd /tmp/sasquatch && ./build.sh ) || echo "sasquatch 构建失败(不影响 binwalk 本体)"
         rm -rf /tmp/sasquatch
     fi
@@ -827,7 +820,7 @@ install_pentest() {
 
     log "Responder(LLMNR/NBT-NS 毒化,内网测试起点)"
     local gh="${GITHUB_MIRROR}https://github.com"
-    [ -d /opt/Responder/.git ] || git clone --depth 1 "${gh}/lgandx/Responder" /opt/Responder || echo "Responder 克隆失败"
+    clone_pin lgandx/Responder /opt/Responder || echo "Responder 克隆失败"
     # wrapper:Responder.py 按 cwd 读 Responder.conf/写 logs,先 cd 再 exec
     [ -f /opt/Responder/Responder.py ] && printf '#!/bin/sh\ncd /opt/Responder\nexec python3 /opt/Responder/Responder.py "$@"\n' > /usr/local/bin/responder \
         && chmod +x /usr/local/bin/responder && echo "responder 已链(/opt/Responder)"
@@ -844,12 +837,16 @@ install_pentest() {
     fi
     donut 2>&1 | head -1 || echo "donut 未装上(下轮补)"
 
-    log "frida 全链:客户端 + 全架构 frida-server(版本严格对齐)"
+    # frida 全链钉版:pins.sh 的 FRIDA_TOOLS_VERSION 装客户端;frida 核心包(=FRIDA_VERSION,
+    # 与 server 资产 tag 同号)实证 --with 压不进工具 venv,须直装进 venv 再对齐
     . "$HOME/.local/bin/env" 2>/dev/null || true
     export UV_TOOL_BIN_DIR=/usr/local/bin UV_TOOL_DIR=/opt/uv-tools
-    have frida || uv tool install frida-tools || echo "frida-tools 失败"
+    have frida || uv tool install "frida-tools==$(pypi_pin frida-tools)" || echo "frida-tools 失败"
+    [ -d /opt/uv-tools/frida-tools ] && VIRTUAL_ENV=/opt/uv-tools/frida-tools uv pip install "frida==${FRIDA_VERSION:?pins.sh 缺 FRIDA_VERSION}" >/dev/null 2>&1 || true
     if have frida; then
-        local fv; fv="$(frida --version 2>/dev/null | tr -d ' ')"
+        local fv; fv="${FRIDA_VERSION:-$(frida --version 2>/dev/null | tr -d ' ')}"
+        # 对齐校验:客户端核心版本必须等于钉版(server 资产按它下)
+        [ "$(frida --version 2>/dev/null | tr -d ' ')" = "$fv" ] || echo "!! frida 客户端与钉版不齐(期望 $fv)"
         # frida-server 与客户端同版本;GitHub Releases 直下(可用 GITHUB_MIRROR),无 tuna
         local d="/opt/frida-server/${fv}"
         install -d "$d"
@@ -872,7 +869,7 @@ install_pentest() {
 
     log "离线固化接线:nuclei 模板 / capa 规则 / 词表 / pwndbg gdbinit / 时区 locale"
     # nuclei 模板:在线 -update-templates 落家目录且失败容忍,离线静默坏;改钉 /opt
-    [ -d /opt/nuclei-templates/.git ] || git clone --depth 1 "${gh}/projectdiscovery/nuclei-templates" /opt/nuclei-templates || echo "nuclei-templates 克隆失败"
+    clone_pin projectdiscovery/nuclei-templates /opt/nuclei-templates || echo "nuclei-templates 克隆失败"
     # 注意:set -e 下 a && b 链整体失败即退出,循环体必须 if 包裹
     for u in /root /home/ubuntu; do
         [ -d "$u" ] || continue
@@ -964,21 +961,22 @@ install_red() {
     export GOPATH=/opt/go GOPROXY GOSUMDB
     # ghauri 不在任何 pypi(官方源/ tuna /阿里云均 404),只发 git 仓;r0oth3x49/ghauri
     if ! have ghauri; then
-        VIRTUAL_ENV= uv tool install "git+${GITHUB_MIRROR}https://github.com/r0oth3x49/ghauri" >/dev/null 2>&1 \
+        VIRTUAL_ENV= uv tool install "git+${GITHUB_MIRROR}https://github.com/r0oth3x49/ghauri@${GIT_PIN[r0oth3x49/ghauri]:-HEAD}" >/dev/null 2>&1 \
             && echo "ghauri 已装(git 源)" || echo "ghauri 失败(git 源;GitHub 限流窗口重试)"
     fi
     local t
     for t in kerbrute wafw00f arjun bloodhound-python Coercer mitm6 objection apkleaks; do
-        if have "$t" 2>/dev/null || VIRTUAL_ENV= uv tool install "$t" >/dev/null 2>&1; then
+        local tp; tp="$(echo "$t" | tr 'A-Z' 'a-z')"; local tv; tv="$(pypi_pin "$tp")" || { echo "$t 缺钉,跳过"; continue; }
+        if have "$t" 2>/dev/null || VIRTUAL_ENV= uv tool install "$t==$tv" >/dev/null 2>&1; then
             echo "$t 已装"
         elif [ "$t" = bloodhound-python ]; then
             # PyPI 轮无 console entrypoint,uv tool 拒装;进 re-venv 用 python -m bloodhound 包装
-            VIRTUAL_ENV="$RE_VENV" uv pip install bloodhound-python >/dev/null 2>&1
+            VIRTUAL_ENV="$RE_VENV" uv pip install "bloodhound-python==$tv" >/dev/null 2>&1
             printf '#!/bin/sh\nexec %s/bin/python -m bloodhound "$@"\n' "$RE_VENV" > /usr/local/bin/bloodhound-python
             chmod +x /usr/local/bin/bloodhound-python
             echo "bloodhound-python 已装(re-venv + wrapper)"
         else
-            VIRTUAL_ENV= uv tool install --index-url "https://pypi.tuna.tsinghua.edu.cn/simple" "$t" >/dev/null 2>&1 \
+            VIRTUAL_ENV= uv tool install --index-url "https://pypi.tuna.tsinghua.edu.cn/simple" "$t==$tv" >/dev/null 2>&1 \
                 && echo "$t 已装(tuna 兜底)" || echo "$t 失败(留待排查)"
         fi
     done
@@ -986,11 +984,12 @@ install_red() {
     # bloodhound-ce 在 tuna 镜像缺失(实证),显式回退官方索引
     # semgrep:SAST 代码审计(uv tool 隔离装,tuna 有轮子)
     for t in certipy-ad bloodyAD bofhound semgrep; do
-        VIRTUAL_ENV= uv tool install "$t" >/dev/null 2>&1 \
-            || VIRTUAL_ENV= uv tool install --index-url "https://pypi.tuna.tsinghua.edu.cn/simple" "$t" >/dev/null 2>&1 \
+        local tp; tp="$(echo "$t" | tr 'A-Z' 'a-z')"; local tv; tv="$(pypi_pin "$tp")" || { echo "$t 缺钉,跳过"; continue; }
+        VIRTUAL_ENV= uv tool install "$t==$tv" >/dev/null 2>&1 \
+            || VIRTUAL_ENV= uv tool install --index-url "https://pypi.tuna.tsinghua.edu.cn/simple" "$t==$tv" >/dev/null 2>&1 \
             || echo "$t 失败(留待排查)"
     done
-    VIRTUAL_ENV= uv tool install --index-url https://pypi.org/simple bloodhound-ce >/dev/null 2>&1 \
+    VIRTUAL_ENV= uv tool install --index-url https://pypi.org/simple "bloodhound-ce==$(pypi_pin bloodhound-ce)" >/dev/null 2>&1 \
         || echo "bloodhound-ce 失败(留待排查)"
     # uv tool 已把各工具入口链进 /usr/local/bin(UV_TOOL_BIN_DIR);这里只补 venv 里依赖叉的 *.py 脚本
     # (bloodhound-ce/bofhound 内的 impacket 叉:secretsdump.py/GetADUsers.py 等;bloodhound-ce 殿后保持其优先)
@@ -1025,11 +1024,7 @@ install_red() {
     local r
     for r in ticarpi/jwt_tool GerbenJavado/LinkFinder dirkjanm/krbrelayx cddmp/enum4linux-ng; do
         local d="/opt/$(basename "$r")"
-        if [ ! -d "$d/.git" ]; then
-            # GitHub 直连间歇性失败,重试 2 次
-            git clone --depth 1 "${gh}/${r}" "$d" 2>/dev/null || git clone --depth 1 "${gh}/${r}" "$d" \
-                || echo "$r 克隆失败(2 次)"
-        fi
+        clone_pin "$r" "$d" || clone_pin "$r" "$d" || echo "$r 克隆失败(2 次)"
     done
     # LinkFinder / enum4linux-ng 的 python 依赖进 re-venv
     [ -x "$RE_VENV/bin/python" ] || uv venv "$RE_VENV"
@@ -1042,7 +1037,7 @@ install_red() {
         && chmod +x /usr/local/bin/jwt-tool
     # 两者都是仓内脚本无 console script:wrapper 直调 re-venv python;
     # krbrelayx 依赖(impacket/ldap3/dnspython/pyasn1)一并进 re-venv
-    VIRTUAL_ENV="$RE_VENV" uv pip install impacket ldap3 dnspython pyasn1 >/dev/null 2>&1 || true
+    VIRTUAL_ENV="$RE_VENV" uv pip install "impacket==$(pypi_pin impacket)" "ldap3==$(pypi_pin ldap3)" "dnspython==$(pypi_pin dnspython)" "pyasn1==$(pypi_pin pyasn1)" >/dev/null 2>&1 || true
     [ -f /opt/enum4linux-ng/enum4linux-ng.py ] && printf '#!/bin/sh\nexec %s/bin/python /opt/enum4linux-ng/enum4linux-ng.py "$@"\n' "$RE_VENV" > /usr/local/bin/enum4linux-ng \
         && chmod +x /usr/local/bin/enum4linux-ng
     [ -f /opt/krbrelayx/krbrelayx.py ] && printf '#!/bin/sh\nexec %s/bin/python /opt/krbrelayx/krbrelayx.py "$@"\n' "$RE_VENV" > /usr/local/bin/krbrelayx \
@@ -1058,10 +1053,13 @@ install_red() {
     fi
     # CeWL 不在 rubygems(实测搜索无此 gem),官方分发是 git 仓 + 依赖 gem
     if [ ! -f /opt/CeWL/cewl.rb ]; then
-        git clone --depth 1 "${gh}/digiNinja/CeWL" /opt/CeWL 2>/dev/null || echo "CeWL 克隆失败"
+        clone_pin digiNinja/CeWL /opt/CeWL 2>/dev/null || echo "CeWL 克隆失败"
     fi
     if [ -f /opt/CeWL/cewl.rb ]; then
-        gem install nokogiri mime mime-types mini_exiftool rubyzip --no-document >/dev/null 2>&1 || true
+        local g
+        for g in nokogiri mime mime-types mini_exiftool rubyzip; do
+            gem install "$g" -v "${GEM_PIN[$g]:-}" --no-document >/dev/null 2>&1 || true
+        done
         printf '#!/bin/sh\nexec ruby /opt/CeWL/cewl.rb "$@"\n' > /usr/local/bin/cewl
         chmod +x /usr/local/bin/cewl
         echo "cewl 就位(/opt/CeWL,依赖 gem 尽力)"
@@ -1069,7 +1067,7 @@ install_red() {
     # evil-winrm:交互式 WinRM shell(上传/下载/补全;netexec 是跑命令不是交互壳)
     # winrm 依赖链带原生件,ruby-dev 已随上批装;gem 二进位默认落 /usr/local/bin
     if ! have evil-winrm; then
-        gem install evil-winrm --no-document >/dev/null 2>&1 \
+        gem install evil-winrm -v "${GEM_PIN[evil-winrm]:?pins.sh 缺 evil-winrm}" --no-document >/dev/null 2>&1 \
             && echo "evil-winrm 已装" || echo "evil-winrm 失败(留待排查)"
     fi
     have evil-winrm && evil-winrm --version 2>/dev/null || true
@@ -1077,8 +1075,11 @@ install_red() {
     log "CyberChef(离线瑞士军刀,Release zip 钉 /opt)"
     if [ ! -d /opt/cyberchef ]; then
         local gh2="${GITHUB_MIRROR}https://github.com"
-        # api.github.com 限流改用 git ls-remote(nushell 同款)
-        local ctag; ctag="$(git ls-remote --tags "${gh2}/gchq/CyberChef" 2>/dev/null | grep -oE 'refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$' | sort -t. -k1,1n -k2,2n -k3,3n | tail -1 | sed 's|refs/tags/||' || true)"
+        # 钉版:pins.sh CYBERCHEF_VERSION(空钉回退 git ls-remote)
+        local ctag; ctag="${CYBERCHEF_VERSION:-}"
+        if [ -z "$ctag" ]; then
+            ctag="$(git ls-remote --tags "${gh2}/gchq/CyberChef" 2>/dev/null | grep -oE 'refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$' | sort -t. -k1,1n -k2,2n -k3,3n | tail -1 | sed 's|refs/tags/||' || true)"
+        fi
         if [ -n "$ctag" ]; then
             local cz="CyberChef_${ctag}.zip"   # 资产名保留 v 前缀(fresh 实证 404 根因)
             curl -fSL "${gh2}/gchq/CyberChef/releases/download/${ctag}/${cz}" -o "/tmp/${cz}" \
@@ -1093,13 +1094,13 @@ install_red() {
     if ! have kubectl; then
         # 国内无 kubectl 二进制镜像(阿里云/ustc/华为实测均无 release 布局);直连官方 CDN 钉版
         local karch="amd64"; [ "$(dpkg --print-architecture)" = arm64 ] && karch="arm64"
-        curl -fSL --retry 3 "https://dl.k8s.io/release/v1.32.0/bin/linux/${karch}/kubectl" -o /usr/local/bin/kubectl 2>/dev/null \
+        curl -fSL --retry 3 "https://dl.k8s.io/release/${KUBECTL_VERSION:?pins.sh 缺 KUBECTL_VERSION,跑 resolve-pins.sh}/bin/linux/${karch}/kubectl" -o /usr/local/bin/kubectl 2>/dev/null \
             && chmod +x /usr/local/bin/kubectl || echo "kubectl 失败(dl.k8s.io 直连不通,有网阶段重试)"
     fi
     # trivy:GitHub .deb + 构建期烘 db 到 /opt/trivy-db(离线期 --skip-db-update)
     if [ ! -x /usr/bin/trivy ]; then
         local tarch="64bit"; [ "$(dpkg --print-architecture)" = arm64 ] && tarch="ARM64"
-        local tv; tv="$(curl -fsSL https://api.github.com/repos/aquasecurity/trivy/releases/latest | grep -o '"tag_name": *"[^"]*"' | cut -d'"' -f4)"
+        local tv; tv="${TRIVY_VERSION:-}"; [ -n "$tv" ] || tv="$(curl -fsSL https://api.github.com/repos/aquasecurity/trivy/releases/latest | grep -o '"tag_name": *"[^"]*"' | cut -d'"' -f4)"
         if [ -n "$tv" ]; then
             local tdeb="trivy_${tv#v}_Linux-${tarch}.deb"
             curl -fSL "${GITHUB_MIRROR}https://github.com/aquasecurity/trivy/releases/download/${tv}/${tdeb}" -o "/tmp/${tdeb}" \
@@ -1145,6 +1146,8 @@ EOF
 # 安装器脚本经 GITHUB_MIRROR 拉,apt.metasploit.com 需直连,无国内镜像
 install_msf() {
     log "metasploit-framework (omnibus)"
+    # 软钉:apt.metasploit.com 仓只发最新线,MSF_VERSION 留空即最新(known-issues 留痕);
+    # 钉了则装指定版(仓里有历史版时生效)
     if have msfconsole; then msfconsole -v 2>/dev/null | head -1; echo "已安装,跳过"; return; fi
     local msi="https://raw.githubusercontent.com/rapid7/metasploit-omnibus/master/config/templates/metasploit-framework-wrappers/msfupdate.erb"
     curl -fSL --retry 3 "${GITHUB_MIRROR}${msi}" -o /tmp/msfinstall \

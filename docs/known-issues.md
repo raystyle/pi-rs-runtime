@@ -2,9 +2,9 @@
 
 本册只登记当前镜像与脚本的**真限制/未决项**;已裁定项见 [adr/](adr/README.md)(尤其 [ADR-0006 用户裁定留痕](adr/ADR-0006-user-rulings-log.md)),离线机制边界见 [offline.md](offline.md),逐件坑见 [items/](items/README.md) 各册「坑与留痕」节。返回 [README](../README.md)。
 
-## 未钉版本(升级即漂)
+## 未钉版本(例外清单,其余全部钉在 scripts/lib/pins.sh)
 
-temurin 小版本随 tuna Adoptium 目录;`dlv`/`gopls`/`golangci-lint` 与 projectdiscovery 全家桶、Go 安全工具组用 `@latest`(`have && skip` = 首次装到的那份,升级要删了重跑);rizin、rz-ghidra、sigdb、SecLists、yara 规则、Responder、参考克隆批均 `--depth 1` 未钉提交;pwndbg 从 git 源装未钉 rev;uv 本体、nushell 等随官方安装器最新。
+以下因渠道特性不钉(软钉,留痕接受):clickhouse(官方安装脚本设计即最新稳定线)、awscli v2(无干净版本索引)、msf omnibus(apt.metasploit.com 只发最新线;pins.sh 里 MSF_VERSION 留空)、pwsh(MS 仓 apt 浮动)、php/mono/apt 系(noble/sury 源冻结即钉)、mono 的 nuget.exe(dist.nuget.org 只有 latest 链)、sdkman/choosenim/rustup 安装器本体、rustup stable/nightly 工具链、crystal-palace/tcg 官网 tgz、BOF-CATALOG raw 文件、pecl VLD。库缓存层的锁文件(go.mod/go.sum、Cargo.lock、package-lock.json、解析后 pom、build.zig.zon、dotnet csproj)目前在镜像侧,repo 侧回收是 PROGRESS.md 待办 3。`resolve-pins.sh` 解析失败的件会以空钉形态让消费点报错,不许静默漂。
 
 ## 无校验和件(路线已选,留痕接受)
 

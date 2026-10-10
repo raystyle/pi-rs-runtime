@@ -2,15 +2,15 @@
 
 > Windows 沙箱攻击面分析 / .NET 后渗透源码参考(NtObjectManager/NtApiDotNet 系) ｜ 状态:参考克隆 ｜ 组:`install-tools.sh pz`
 
-- **版本钉**:三仓 `--depth 1` 未钉提交;oleviewdotnet 全克隆 `--recurse-submodules`(NtApiDotNet 是嵌套子模块,浅克隆会拉丢);统一经 GITHUB_MIRROR(口径见 [params.md](../../params.md))
+- **版本钉**:四仓全部 pins.sh `GIT_PIN` 钉 sha(clone_pin,幂等:HEAD==钉即跳过;解析日 2026-10-10),升级跑 scripts/resolve-pins.sh;oleviewdotnet 带 submodules 浅克隆(NtApiDotNet 是嵌套子模块,浅克隆会拉丢,clone_pin 第三参 submodules);统一经 GITHUB_MIRROR(口径见 [params.md](../../params.md))
 - **来源与安装**:`scripts/install-tools.sh install_pz` 段。成员表:
 
 | 仓 | 版本 | 来源 | 落点 |
 |---|---|---|---|
-| sandbox-attacksurface-analysis-tools | `--depth 1` 未钉 | [googleprojectzero/sandbox-attacksurface-analysis-tools](https://github.com/googleprojectzero/sandbox-attacksurface-analysis-tools) | /opt/pz-sandbox-tools(有 dotnet 时尽力 `dotnet build` Release) |
-| DotNetToJScript | `--depth 1` 未钉 | [tyranid/DotNetToJScript](https://github.com/tyranid/DotNetToJScript) | /opt/DotNetToJScript |
-| windows-logical-eop-workshop | `--depth 1` 未钉 | [tyranid/windows-logical-eop-workshop](https://github.com/tyranid/windows-logical-eop-workshop) | /opt/windows-logical-eop-workshop(EOP 教材) |
-| oleviewdotnet | 全克隆含子模块 | [tyranid/oleviewdotnet](https://github.com/tyranid/oleviewdotnet) | /opt/oleviewdotnet |
+| sandbox-attacksurface-analysis-tools | GIT_PIN 钉 sha | [googleprojectzero/sandbox-attacksurface-analysis-tools](https://github.com/googleprojectzero/sandbox-attacksurface-analysis-tools) | /opt/pz-sandbox-tools(有 dotnet 时尽力 `dotnet build` Release) |
+| DotNetToJScript | GIT_PIN 钉 sha | [tyranid/DotNetToJScript](https://github.com/tyranid/DotNetToJScript) | /opt/DotNetToJScript |
+| windows-logical-eop-workshop | GIT_PIN 钉 sha | [tyranid/windows-logical-eop-workshop](https://github.com/tyranid/windows-logical-eop-workshop) | /opt/windows-logical-eop-workshop(EOP 教材) |
+| oleviewdotnet | GIT_PIN 钉 sha(含子模块浅克隆) | [tyranid/oleviewdotnet](https://github.com/tyranid/oleviewdotnet) | /opt/oleviewdotnet |
 
 - **落点**(批量机制):`/opt` 直挂四目录(不在 [ADR-0002](../../adr/ADR-0002-reference-clone-three-axis.md) 三轴内);幂等判据 `-d <目录>/.git`;pz-sandbox-tools 不在时 rm -rf 重克隆
 - **配置与缓存**:有 dotnet 时尽力 `dotnet build sandbox-attacksurface-analysis-tools.sln -c Release`(输出吞掉,成败只 echo 不阻塞);无配置写入

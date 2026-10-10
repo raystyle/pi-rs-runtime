@@ -18,6 +18,7 @@ incus exec rt-edit -- bash -c 'ip link set eth0 down'  # 然后跑受影响面�
 ## Must
 
 - 脚本幂等 + 钉版 + 可升级;幂等判据存在早退的组,配置写入一律放早退之前
+- **钉版纪律**:安装脚本只消费 `scripts/lib/pins.sh`(go/crate/pypi/gem/nuget/git 五映射 + 标量);新增消费点必须先把清单加进 `scripts/resolve-pins.sh` 并跑它补钉;缺钉直接失败,禁止漂回 @latest/漂 HEAD;升级 = 跑 `scripts/resolve-pins.sh` + 审 diff + 增量发布
 - 一切能力声明要容器实证(断网冒烟),不许「应该能跑」;验证要覆盖 root 与 ubuntu 双视角
 - 推送脚本进容器后必须 grep 验证内容落地;跑批中的脚本禁止换盘重推(bash 按字节偏移续读)
 - 文档单一真相:件级事实(版本/来源/落点/离线行为)只在 `docs/items/<组>/<件>.md`;新增或改动件时同步该件文档,并在 items 索引对账计数

@@ -2,7 +2,7 @@
 
 > Node.js LTS 基座 + npm 全局件(tsc/prettier/eslint/dotnetjs)与 corepack(pnpm/yarn) ｜ 状态:已装 ｜ 组:`install-runtimes.sh node`
 
-- **版本钉**:`NODE_VERSION=24.21.0`(lib/common.sh;当前 Active LTS Krypton),tarball 经 npmmirror `SHASUMS256.txt` 做 `sha256sum -c`;typescript/prettier/eslint/dotnetjs 均 npm 全局未钉;corepack(pnpm/yarn)随 node 自带
+- **版本钉**:`NODE_VERSION=24.21.0`(lib/common.sh;当前 Active LTS Krypton),tarball 经 npmmirror `SHASUMS256.txt` 做 `sha256sum -c`;typescript/prettier/eslint/dotnetjs 均 npm 全局未钉(pins.sh 无 npm 映射);corepack(pnpm/yarn)随 node 自带
 - **来源与安装**:[nodejs.org](https://nodejs.org) 二进制走 npmmirror `NODE_MIRROR`(`registry.npmmirror.com/-/binary/node`)→ `tar --strip-components=1` 进 `/opt/node`;registry 指 npmmirror;黄金件 `npm install -g typescript/prettier/eslint`;dotnetjs([pseudocc/dotnetjs](https://github.com/pseudocc/dotnetjs),.NET Framework BCL 的 JS 实现,分析/复现 .NET 行为用);`COREPACK_NPM_REGISTRY` 指 npmmirror 后 `corepack enable`
 - **落点**:`/opt/node` prefix;`/usr/local/bin/{node,npm,npx,tsc,tsserver,prettier,eslint}` 软链;全局件本体在 `/opt/node/lib/node_modules`,bin 落 `/opt/node/bin`(corepack 的 pnpm/yarn shim 同在此,脚本未链 /usr/local/bin);dotnetjs 只装不链,失败不致命(`|| echo`)
 - **配置与缓存**:prefix 级全局 npmrc `/opt/node/etc/npmrc`(对所有用户生效;默认只写 root ~/.npmrc 不够):registry(`npm config set --location=global`)+ 直写 `disturl=https://npmmirror.com/mirrors/node`、`electron_mirror=https://npmmirror.com/mirrors/electron/`(npm 11 config set 拒这两键,直写文件;npm 把任意键以 npm_config_* 传给生命周期脚本,node-gyp/electron 正这么读)+ 离线双保险 `offline=true` + `fetch-retries=0`(附 mintimeout 500/maxtimeout 1000;幂等:先 sed 清旧键再追加);同形 npmrc 顺写给已存在的 fnm 各版本(见 [fnm 册](fnm.md));构建期在线面由 common.sh export `NPM_CONFIG_OFFLINE=false` + `NPM_CONFIG_FETCH_*`(env 恒优先于配置文件)

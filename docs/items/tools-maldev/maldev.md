@@ -2,7 +2,7 @@
 
 > 载荷开发与操作技法参考仓,只克隆不编译不运行,按工件角色轴归档 ｜ 状态:参考克隆 ｜ 组:`install-tools.sh maldev`
 
-- **版本钉**:41 仓全部 `git clone --depth 1` 未钉提交(升级靠重跑组);Crystal Palace / Tradecraft Garden 无 Git 仓,官网 `latest` tgz 未钉、无校验和
+- **版本钉**:41 仓全部 pins.sh `GIT_PIN` 钉 sha(clone_pin,幂等:HEAD==钉即跳过;解析日 2026-10-10),升级跑 scripts/resolve-pins.sh;Crystal Palace / Tradecraft Garden 无 Git 仓,官网 `latest` tgz 未钉(pins.sh 未收钉位)、无校验和
 - **来源与安装**:GitHub 经 `GITHUB_MIRROR` 循环克隆(`scripts/install-tools.sh install_maldev`),每仓失败重试一次、仍败 echo 「下轮补」不阻塞批;Crystal Palace(`cpsrc-latest.tgz` + `cpdist-latest.tgz`,PIC 链接器)与 Tradecraft Garden(`tcg-latest.tgz`,能力加载器集)自 [tradecraftgarden.org](https://tradecraftgarden.org) `/download` 直下解包
 - **落点**:三轴归档(裁定见 [ADR-0002](../../adr/ADR-0002-reference-clone-three-axis.md)):`/opt/payload-ref`(generators 产物是字节或变形二进制 / loaders 产物是执行字节的进程 / evasion 往 loader 贴的原语 / curricula 教材按语言分叶 / analysis 防御向)与 `/opt/tradecraft-ref`(上线后的操作员动作:ad/bof/opsec/privesc/skills);`/opt/c2dev-ref` 属 c2 组,本组不落。41 仓 + 2 件 tgz 对账表:
 

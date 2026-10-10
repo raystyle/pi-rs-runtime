@@ -2,7 +2,7 @@
 
 > 列存分析引擎官方单二进制;本镜像口径:只用 `clickhouse local` 嵌入式直查本地文件 ｜ 状态:已装 ｜ 组:`install-runtimes.sh clickhouse`
 
-- **版本钉**:未钉——官方安装脚本构建期取最新;2026-10-09 轮实证装到 26.10([日记](../../diary/2026-10-09-review-rounds.md))
+- **版本钉**:软钉——官方安装脚本设计即最新稳定线(pins.sh 无钉位,留痕 [known-issues](../../known-issues.md));2026-10-09 轮实证装到 26.10([日记](../../diary/2026-10-09-review-rounds.md))
 - **来源与安装**:[clickhouse.com](https://clickhouse.com) 官方安装器 `curl -fsSL https://clickhouse.com/ | CLICKHOUSE_ONLY=1 sh`(直连无镜像;`CLICKHOUSE_ONLY=1` 只产 clickhouse 二进制,不附带 clickhousectl),/tmp 落地后 `install -m755`(`scripts/install-runtimes.sh` `install_clickhouse`)
 - **落点**:`/usr/local/bin/clickhouse`(单二进制,含 local/client/server 等子命令;**无 clickhouse-local 软链**,裸跑 `clickhouse` 即交互式 local)
 - **配置与缓存**:无(不起 server、不写配置)

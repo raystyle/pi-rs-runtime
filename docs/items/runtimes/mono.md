@@ -2,7 +2,7 @@
 
 > 老 .NET Framework 项目的构建与运行链:mono 运行时 + xbuild + .NET 4.x 引用程序集 ｜ 状态:已装 ｜ 组:`install-runtimes.sh mono`
 
-- **版本钉**:`mono-devel`、`mono-xbuild` 随 noble apt 源未钉;`nuget.exe` 未钉(dist.nuget.org latest 直下,无校验和)
+- **版本钉**:`mono-devel`、`mono-xbuild` noble 源冻结即钉(软钉,留痕 [known-issues](../../known-issues.md));`nuget.exe` 未钉(dist.nuget.org latest 直下,无校验和,pins.sh 未收钉位)
 - **来源与安装**:[mono-project](https://www.mono-project.com) 的 Ubuntu 打包,`apt-get install mono-devel mono-xbuild`(apt 源随 `image-defs/ubuntu.yaml`,当前为阿里云——脚本 log 与 install-surfaces 写的 tuna 已漂移);`nuget.exe` 从 `https://dist.nuget.org/win-x86-commandline/latest/nuget.exe` 直下,还原 packages.config 型老项目用(noble apt 无 nuget 包)(`scripts/install-runtimes.sh` `install_mono`)
 - **落点**:`/usr/bin/mono`、`/usr/bin/xbuild`(apt 真身);`/opt/nuget.exe`(脚本只下载不建 wrapper,经 `mono /opt/nuget.exe` 调用——[推断:]常规用法)
 - **配置与缓存**:无(脚本不写 mono 配置;nuget.exe 源配置未设,默认 nuget.org;`/opt/nuget-packages` fallback 是 dotnet SDK 的面,与 mono 无关)

@@ -2,7 +2,7 @@
 
 > BloodHound CE 采集器(bloodhound.py 系,与 Legacy bloodhound-python 并存)｜ 状态:已装 ｜ 组:`install-tools.sh red`
 
-- **版本钉**:uv tool 未钉(构建日 PyPI 最新);tuna 镜像缺包(实证),显式 `--index-url https://pypi.org/simple` 装,不走默认索引批
+- **版本钉**:pins.sh 钉版(`PYPI_PIN[bloodhound-ce]`,当前钉值 1.9.1,解析日 2026-10-10);tuna 镜像缺包(实证),显式 `--index-url https://pypi.org/simple` 装,不走默认索引批;升级跑 scripts/resolve-pins.sh
 - **来源与安装**:[dirkjanm/BloodHound.py](https://github.com/dirkjanm/BloodHound.py) 的 PyPI 包 `bloodhound-ce`;`install_red` AD 现役批殿后单装([red 组册](red.md))
 - **落点**:venv `/opt/uv-tools/bloodhound-ce`;入口 `/usr/local/bin/bloodhound-ce-python`(uv tool 经 `UV_TOOL_BIN_DIR` 直链)
 - **配置与缓存**:无

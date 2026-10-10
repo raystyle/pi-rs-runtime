@@ -34,7 +34,7 @@ NODE_VERSION="${NODE_VERSION:-24.21.0}"   # 当前 Active LTS(Krypton)
 FNM_NODE_VERSIONS="${FNM_NODE_VERSIONS:-18 20 22 24}"   # fnm 预装的流行 node 历史版本(大版本号)
 DOTNET_SDK="${DOTNET_SDK:-dotnet-sdk-10.0}"  # noble 自带源(即 tuna);8.0 将于 2026-11 停止支持
 NUGET_MIRROR="${NUGET_MIRROR:-https://repo.huaweicloud.com/repository/nuget/v3/index.json}"
-PD_VERSION="${PD_VERSION:-latest}"          # projectdiscovery 工具编译版本
+PD_VERSION="${PD_VERSION:-latest}"          # 已弃用:pd/secgo 逐件钉 pins.sh(保留变量防外部引用炸)
 ZIG_VERSION="${ZIG_VERSION:-0.16.0}"
 MAVEN_VERSION="${MAVEN_VERSION:-3.9.16}"
 GRADLE_VERSION="${GRADLE_VERSION:-8.14.3}"
@@ -55,6 +55,56 @@ HERDR_SHA256="${HERDR_SHA256:-18a8dc65f1c2fa485884344356dea1cfd911c6f06cf46fa78e
 
 log()  { printf '\n\033[1;32m==> %s\033[0m\n' "$*"; }
 have() { command -v "$1" >/dev/null 2>&1; }
+
+# ---- 版本钉消费面(用户裁定:幂等部署+pin+升级;钉由 scripts/resolve-pins.sh 生成) ----
+COMMON_HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC1091
+. "$COMMON_HERE/pins.sh"
+
+# go 钉值取出(循环消费用);缺钉即响
+go_pin_ver() { # go_pin_ver <完整 spec> → 版本/tag/sha 到 stdout
+    local v="${GO_PIN[$1]:-}"
+    [ -n "$v" ] || { echo "!! pins.sh 缺 go 钉: $1(跑 scripts/resolve-pins.sh)" >&2; return 1; }
+    printf '%s' "$v"
+}
+# go install 钉:缺钉即响(不允许漂回 @latest)
+go_install_pin() { # go_install_pin <完整 spec> → go install spec@钉
+    local v; v="$(go_pin_ver "$1")" || return 1
+    go install "$1@${v}"
+}
+# cargo install 钉:同理,带 --locked
+cargo_install_pin() { # cargo_install_pin <crate> [额外参数]
+    local c="$1"; shift
+    local v="${CRATE_PIN[$c]:-}"
+    [ -n "$v" ] || { echo "!! pins.sh 缺 crate 钉: $c(跑 scripts/resolve-pins.sh)" >&2; return 1; }
+    cargo install "$c" --locked --version "$v" "$@"
+}
+# pypi 钉值取出(给 uv tool/uv pip 拼接 ==)
+pypi_pin() { # pypi_pin <pkg> → 版本到 stdout;缺钉返回 1
+    local v="${PYPI_PIN[$1]:-}"
+    [ -n "$v" ] || { echo "!! pins.sh 缺 pypi 钉: $1(跑 scripts/resolve-pins.sh)" >&2; return 1; }
+    printf '%s' "$v"
+}
+# 钉版克隆:有钉 fetch 该 commit 深 1;幂等(HEAD 已是钉即跳过);无钉回退 depth 1 并警告
+# 第三参数 submodules 时顺带浅子模块初始化
+clone_pin() { # clone_pin <owner/repo> <dest> [submodules]
+    local repo="$1" dest="$2" sub="${3:-}"
+    local sha="${GIT_PIN[$repo]:-}" url="${GITHUB_MIRROR}https://github.com/${repo}"
+    if [ -z "$sha" ]; then
+        echo "!! pins.sh 缺 git 钉: $repo——回退 depth 1 漂 HEAD(跑 scripts/resolve-pins.sh 补钉)" >&2
+        if [ -d "$dest/.git" ]; then return 0; fi
+        git clone --depth 1 $([ "$sub" = submodules ] && echo --recurse-submodules --shallow-submodules) "$url" "$dest"
+        return
+    fi
+    if [ -d "$dest/.git" ] && [ "$(git -C "$dest" rev-parse HEAD 2>/dev/null)" = "$sha" ]; then
+        return 0   # 已在钉上
+    fi
+    rm -rf "$dest" && install -d "$dest"
+    git -C "$dest" init -q && git -C "$dest" remote add origin "$url"
+    git -C "$dest" fetch -q --depth 1 origin "$sha" && git -C "$dest" checkout -q FETCH_HEAD
+    [ "$sub" = submodules ] && git -C "$dest" submodule update --init --depth 1
+    true
+}
 
 # 共享可写缓存(zig/gradle/cargo-zigbuild 的家目录软链目标):必须可写但不可 1777——
 # 任意用户可写就能换掉 root 下次用的缓存(grok F1)。共同组 piopt + 默认 ACL:

@@ -2,7 +2,7 @@
 
 > OffensiveNim 等 maldev 模板的编译器(choosenim 官方安装器) ｜ 状态:已装 ｜ 组:`install-compilers.sh nim`
 
-- **版本钉**:未钉——choosenim stable 频道,工具链版本随安装日;当前镜像实证 nim 2.2.12(2026-10-09 构建轮容器验证,留痕 [diary](../../diary/2026-10-09-review-rounds.md));choosenim 本体 init.sh 直下亦未钉
+- **版本钉**:pins.sh 钉版(标量 `NIM_VERSION`=v2.2.12,choosenim 按钉装工具链;解析日 2026-10-10),升级跑 scripts/resolve-pins.sh;2.2.12 经 2026-10-09 构建轮容器实证(留痕 [diary](../../diary/2026-10-09-review-rounds.md));choosenim 本体 init.sh 直下未钉(pins.sh 未收钉位,空钉回退 stable 频道)
 - **来源与安装**:[nim-lang.org](https://nim-lang.org) 的 [choosenim](https://github.com/nim-lang/choosenim):`curl -fsSL https://nim-lang.org/choosenim/init.sh | sh -s -- -y`,`CHOOSENIM_DIR=/opt/nim`;noble apt 的 nim 停 1.6.x 过旧不取;安装面 `install-compilers.sh` 的 `install_nim`
 - **落点**:`/opt/nim`(choosenim 根:`bin/choosenim`、`toolchains/nim-<版本>/`);最新工具链(`sort -V` 取尾)的 `bin/*` 整批软链进 `/usr/local/bin`(nim、nimble 等;nim 经 /proc/self/exe 定位 stdlib,软链安全);choosenim 本体不链出,靠 profile.d 的 PATH 可见
 - **配置与缓存**:`/etc/profile.d/nim.sh` 把 `/opt/nim/bin` 追加进 PATH(登录 shell 面);无 per-user 配置、无库缓存(libcache 八生态无 nim)

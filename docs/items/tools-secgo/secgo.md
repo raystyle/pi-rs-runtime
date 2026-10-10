@@ -2,7 +2,7 @@
 
 > 17 件 Go 安全 CLI(fuzz/爆破/爬虫/密钥扫描/隧道/云与 AD 采集)+ trufflehog(release) ｜ 状态:已装 ｜ 组:`install-tools.sh secgo`
 
-- **版本钉**:17 件 `go install <模块>@${SECGO_VERSION:-latest}`(`SECGO_VERSION` 环境变量可钉,默认 latest);trufflehog 走 release 钉 tag,单册 [trufflehog.md](trufflehog.md);`have` 早退意味着「首次装到的那份」,升级要删二进制重跑([known-issues](../../known-issues.md) 未钉登记)
+- **版本钉**:pins.sh 钉版(解析日 2026-10-10):17 件逐件取 `GO_PIN[<模块>]`(`go_pin_ver`,缺钉即响跳过;旧 `SECGO_VERSION` 变量已弃用,lib/common.sh 仅保留防空引用);trufflehog 走 release 钉标量 `TRUFFLEHOG_VERSION`(当前钉值 v3.99.2),单册 [trufflehog.md](trufflehog.md);`have` 早退意味着「钉版首次装到的那份」,升级跑 scripts/resolve-pins.sh 换钉后删二进制重跑
 - **来源与安装**:各件上游仓即成员表模块路径(ffuf/OJ/hahwul/owasp-amass/jpillora/zricethezav/tomnomnom/lc/jaeles-project/sensepost/bloodhoundad/praetorian-inc);安装面 `scripts/install-tools.sh` `install_secgo`;经 `GOPROXY=goproxy.cn,direct` + `GOSUMDB=sum.golang.google.cn`(common.sh export);清单可用 `SECGO_TOOLS` 环境变量整表替换(规格格式 `<path>@<repo 前缀>`)
 - **落点**(批量机制):本组不显式设 GOPATH——golang 组写的 root go env 文件(`GOPATH=/opt/go`)使 `go env GOBIN` 实效为 `/opt/go/bin`(go 1.27 实证),产物落 /opt/go/bin 并逐件 `ln -sf` 到 `/usr/local/bin`;带版本目录的模块产物名是版本号(`ffuf/v2` → `v2`),脚本 `mv $gobin/<产物> $gobin/<工具>` 改名回工具名再链
 - **配置与缓存**(批量机制):无组级配置;go 模块缓存共用 `/opt/go/pkg/mod`(见 [offline.md](../../offline.md) §1)

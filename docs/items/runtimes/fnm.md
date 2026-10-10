@@ -2,7 +2,7 @@
 
 > fnm 多版本 node 管理器,预装 18/20/22/24 四条线 ｜ 状态:已装 ｜ 组:`install-runtimes.sh fnm`
 
-- **版本钉**:fnm 本体 `cargo install fnm --locked`(cargo 未钉;构建期 crates 索引走 rsproxy,lib/common.sh `CRATES_INDEX`);node 各线 `FNM_NODE_VERSIONS="18 20 22 24"`(lib/common.sh,大版本内取最新)
+- **版本钉**:fnm 本体 pins.sh 钉版(`CRATE_PIN[fnm]`=1.39.0,cargo_install_pin 带 `--locked`;解析日 2026-10-10),升级跑 scripts/resolve-pins.sh(构建期 crates 索引走 rsproxy,lib/common.sh `CRATES_INDEX`);node 各线 `FNM_NODE_VERSIONS="18 20 22 24"`(lib/common.sh,大版本内取最新)
 - **来源与安装**:[Schniz/fnm](https://github.com/Schniz/fnm) 经 cargo 装(`RUSTUP_HOME=/opt/rustup`、`CARGO_HOME=/opt/cargo`,依赖 rust 组先就位);node 二进制 `fnm install --node-dist-mirror "$NODE_MIRROR"` 逐线装(npmmirror);默认版本取 `fnm ls` 里 `sort -uV` 最新(24 线),`fnm default` 带 `|| true` 不致命
 - **落点**:fnm 本体 `/opt/cargo/bin/fnm`(脚本不链 /usr/local/bin);node 各版本 `~/.local/share/fnm/node-versions/<版本>/installation/`(构建期只填 root 的);`/etc/profile.d/fnm.sh` 登录面:PATH 加 `$HOME/.local/share/fnm` + `eval "$(fnm env)"`;**不改 /usr/local/bin**——系统 node 仍是 /opt/node 的 24.21.0(全局 npmrc/bun/tsc 都挂那个 prefix),项目切版本用 `fnm use` / `fnm exec`
 - **配置与缓存**:尾部兜底循环给 root+ubuntu 两侧各 fnm 版本写 prefix 级 `etc/npmrc` 离线键(`offline=true` + `fetch-retries=0` + mintimeout 500/maxtimeout 1000,与 /opt/node 同形;先 sed 清旧键再追加,幂等)

@@ -35,7 +35,9 @@
 | `GOLANG_VERSION` | `1.27.1` | sha256 从 golang.google.cn 官方 JSON 取并校验 |
 | `NODE_VERSION` | `24.21.0` | npmmirror `SHASUMS256.txt` 校验 |
 | `FNM_NODE_VERSIONS` | `18 20 22 24` | fnm 预装的 node 大版本，空格分隔 |
-| `DOTNET_SDK` | `dotnet-sdk-10.0` | noble 自带源（即 tuna);MS 仓仅 pwsh 注册 |
+| `DOTNET_SDK` | `dotnet-sdk-10.0` | noble 自带源(即 tuna);MS 仓仅 pwsh 注册 |
+
+| 钉版机制 | [pins.sh](../scripts/lib/pins.sh) | 版本钉唯一真相:go/crate/pypi/gem/nuget/git 五映射+标量,由 `scripts/resolve-pins.sh` 解析生成;升级跑它再审 diff。镜像内锁文件(go.mod/Cargo.lock/package-lock/maven pom)为库缓存层的构建日钉 |
 | `ZIG_VERSION` | `0.16.0` | ziglang.org 直下，无国内镜像；仅 amd64/arm64 |
 | `MAVEN_VERSION` / `GRADLE_VERSION` | `3.9.16` / `8.14.3` | |
 | `JAVA_VERSIONS` | `8 11 17 21 25` | sdkman 预装的 temurin 主版本；小版本随 tuna 目录取最新 |

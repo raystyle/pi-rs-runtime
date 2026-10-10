@@ -2,7 +2,7 @@
 
 > 极速 Python 包/工具管理器,本镜像 Python 生态的装件主通道(uv venv / uv pip / uv tool) ｜ 状态:已装 ｜ 组:`install-runtimes.sh uv`
 
-- **版本钉**:官方独立安装器最新(`astral.sh/uv/install.sh`,未钉);离线行为实证基于 uv 0.12.15
+- **版本钉**:pins.sh 钉版(标量 `UV_VERSION`=0.13.0,安装器按 `astral.sh/uv/0.13.0/install.sh` 版本路径直下;解析日 2026-10-10),升级跑 scripts/resolve-pins.sh;离线行为实证基于 uv 0.12.15
 - **来源与安装**:[astral-sh/uv](https://github.com/astral-sh/uv)([文档](https://docs.astral.sh/uv/))官方独立安装器 `curl -LsSf https://astral.sh/uv/install.sh | sh`,不经系统 pip(用户裁定不碰系统 python3,见 [ADR-0003](../../adr/ADR-0003-uv-tool-isolation-whitelist-linking.md));`scripts/install-runtimes.sh` `install_uv()`
 - **落点**:真身 `$HOME/.local/bin/uv`(构建期为 `/root/.local/bin/uv`),软链 `/usr/local/bin/uv`;uv tool 面:工具体 `/opt/uv-tools/<工具>`、入口 shim `/usr/local/bin`(`UV_TOOL_DIR`/`UV_TOOL_BIN_DIR` 由 python 组与 tools 各组 export)
 - **配置与缓存**:`/etc/uv/uv.toml` 系统级默认面:`offline = true` + `[[index]] url = "$PIP_INDEX" default = true`(默认阿里云 pypi simple);`/etc/uv/uv-online.toml` 构建期在线面(同索引、无 offline 行),`lib/common.sh` 检测到它即 `export UV_CONFIG_FILE=/etc/uv/uv-online.toml` 整面替换;两份配置都写在 uv 幂等早退之前(增量重跑刷得上);uv 缓存 `/root/.cache/uv`、`/home/ubuntu/.cache/uv` 被 `clean-image.sh` 清掉,运行期无本地缓存兜底

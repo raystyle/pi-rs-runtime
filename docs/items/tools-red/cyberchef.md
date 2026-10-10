@@ -2,7 +2,7 @@
 
 > 离线加解密/编码瑞士军刀(纯静态站点)｜ 状态:已装 ｜ 组:`install-tools.sh red`
 
-- **版本钉**:release tag 钉版——`git ls-remote --tags` 取最新 `vX.Y.Z`(api.github.com 限流 403 改用此,nushell 同款);zip 无校验和
+- **版本钉**:pins.sh 钉版(标量 `CYBERCHEF_VERSION`=v11.5.0;解析日 2026-10-10),升级跑 scripts/resolve-pins.sh;空钉回退 `git ls-remote --tags` 取最新 `vX.Y.Z`(api.github.com 限流 403 改用此,nushell 同款);zip 无校验和
 - **来源与安装**:[gchq/CyberChef](https://github.com/gchq/CyberChef) releases 资产 `CyberChef_<tag>.zip`(**资产名保留 v 前缀**,fresh 实证 404 根因)经 `GITHUB_MIRROR` 直下,`unzip` 落盘;[red 组册](red.md)
 - **落点**:`/opt/cyberchef`(静态文件);无 `/usr/local/bin` 入口
 - **配置与缓存**:无

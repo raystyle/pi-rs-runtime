@@ -2,7 +2,7 @@
 
 > MAC/服务指纹库与 DNS 协议栈、CVE PoC 索引参考,只克隆归档 ｜ 状态:参考克隆 ｜ 组:`install-tools.sh recon`
 
-- **版本钉**:4 仓全部 `git clone --depth 1` 未钉提交(升级靠重跑组)
+- **版本钉**:4 仓全部 pins.sh `GIT_PIN` 钉 sha(clone_pin,幂等:HEAD==钉即跳过;解析日 2026-10-10),升级跑 scripts/resolve-pins.sh
 - **来源与安装**:GitHub 经 `GITHUB_MIRROR` 循环克隆(`scripts/install-tools.sh install_recon`),幂等判据 `.git` 目录在否,每仓失败重试一次、仍败 echo 「下轮补」;同段还生成 poc-search wrapper 与 parquet 离线索引,见 [poc-search 册](poc-search.md)
 - **落点**:`/opt/recon-ref/<仓>`,4 仓对账表:
 

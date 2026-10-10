@@ -77,7 +77,7 @@ install_fnm() {
     . /opt/cargo/env 2>/dev/null || true
     export PATH="$PATH:/opt/cargo/bin"
     if ! have fnm; then
-        cargo install fnm --locked
+        cargo_install_pin fnm
     fi
     fnm --version
     for v in $FNM_NODE_VERSIONS; do
@@ -106,7 +106,7 @@ EOF
 install_bun() {
     log "bun (经 npmmirror registry 的 npm 全局安装)"
     if have bun; then bun --version; echo "已安装,跳过"; return; fi
-    npm install -g bun
+    npm install -g "bun@${BUN_VERSION:?pins.sh 缺 BUN_VERSION,跑 resolve-pins.sh}"
     # npm 的 shim 在 /opt/node/bin(非交互 shell 不在 PATH),固定链接到 /usr/local/bin
     ln -sf /opt/node/bin/bun /usr/local/bin/bun
     ln -sf /opt/node/bin/bunx /usr/local/bin/bunx
@@ -128,10 +128,13 @@ install_python() {
     printf '[global]\nindex-url = %s\n\n[install]\nno-index = true\nfind-links = /opt/wheelhouse\n' "$PIP_INDEX" > /etc/pip.conf
     # 分析 venv:polars/pyarrow/chdb 等全进这里,系统 python 保持干净
     [ -d "$VENV_ANALYTICS" ] || uv venv "$VENV_ANALYTICS"
-    VIRTUAL_ENV="$VENV_ANALYTICS" uv pip install polars pyarrow chdb
+    local ap
+    for ap in polars pyarrow chdb; do
+        VIRTUAL_ENV="$VENV_ANALYTICS" uv pip install "$ap==$(pypi_pin "$ap")" || echo "$ap 失败"
+    done
     # ruff 用 uv tool 隔离安装;UV_TOOL_* 指 /opt 使 ubuntu 可执行(评审 F5)
     export UV_TOOL_BIN_DIR=/usr/local/bin UV_TOOL_DIR=/opt/uv-tools
-    have ruff || uv tool install ruff
+    have ruff || uv tool install "ruff==$(pypi_pin ruff)"
     # pwntools 只走 apt(p0 批的 python3-pwntools):pip 版会盖住 dist-packages 造成双版本,评审 F8
     python3 --version && uv --version && ruff --version
 }
@@ -140,11 +143,11 @@ install_python() {
 install_duckdb() {
     log "duckdb (python 进 $VENV_ANALYTICS;CLI 走 GitHub release)"
     [ -d "$VENV_ANALYTICS" ] || uv venv "$VENV_ANALYTICS"
-    VIRTUAL_ENV="$VENV_ANALYTICS" uv pip install -U duckdb
+    VIRTUAL_ENV="$VENV_ANALYTICS" uv pip install -U "duckdb==$(pypi_pin duckdb)"
     if ! have duckdb; then
         local dt darch="amd64"; [ "$(dpkg --print-architecture)" = arm64 ] && darch="aarch64"
-        dt="$(curl -fsSL "https://api.github.com/repos/duckdb/duckdb/releases/latest" | grep -o '"tag_name": *"[^"]*"' | cut -d'"' -f4)"
-        # api.github.com 限流 403 时整条链失败会 set -e 退出,|| true 兜底下轮补
+        dt="${DUCKDB_VERSION:-}"; [ -n "$dt" ] || dt="$(curl -fsSL "https://api.github.com/repos/duckdb/duckdb/releases/latest" | grep -o '"tag_name": *"[^"]*"' | cut -d'"' -f4)"
+        # api.github.com 限流 403 时整条链失败会 set -e 退出,|| true 兜底下轮补(有钉后不走这路)
         [ -n "$dt" ] && curl -fSL "https://github.com/duckdb/duckdb/releases/download/${dt}/duckdb_cli-linux-${darch}.zip" -o /tmp/duckdb.zip \
             && unzip -q -o /tmp/duckdb.zip -d /tmp && install -m755 /tmp/duckdb /usr/local/bin/duckdb && rm -f /tmp/duckdb.zip /tmp/duckdb || true
     fi
@@ -193,8 +196,8 @@ install_uv() {
     printf 'offline = true\n\n[[index]]\nurl = "%s"\ndefault = true\n' "$PIP_INDEX" > /etc/uv/uv.toml
     printf '[[index]]\nurl = "%s"\ndefault = true\n' "$PIP_INDEX" > /etc/uv/uv-online.toml
     if have uv; then uv --version; echo "已安装,跳过"; return; fi
-    # 用户裁定:不碰系统 python3,uv 用官方独立安装器(装到 ~/.local/bin)
-    curl -LsSf https://astral.sh/uv/install.sh | sh
+    # 用户裁定:不碰系统 python3,uv 用官方独立安装器(装到 ~/.local/bin),钉版走版本化 URL
+    curl -LsSf "https://astral.sh/uv/${UV_VERSION:+${UV_VERSION}/}install.sh" | sh
     [ -e "$HOME/.local/bin/uv" ] && ln -sf "$HOME/.local/bin/uv" /usr/local/bin/uv
     export UV_DEFAULT_INDEX="$PIP_INDEX"
     uv --version
@@ -277,11 +280,17 @@ EOF
     local aarchi; case "$(dpkg --print-architecture)" in amd64) aarchi=x64;; arm64) aarchi=aarch64;; *) exit 1;; esac
     local default_ver=""
     for major in $JAVA_VERSIONS; do
-        local listing tgz ver jdk_dir
-        listing="$(curl -fsSL "${ADOPTIUM_MIRROR}/${major}/jdk/${aarchi}/linux/")"
-        tgz="$(printf '%s' "$listing" | grep -o "OpenJDK${major}U-jdk_${aarchi}_linux_hotspot_[0-9a-zA-Z._]*\.tar\.gz" | sort -uV | tail -1)"
+        local listing tgz ver jdk_dir pin_var pin
+        pin_var="TEMURIN_PIN_${major}"; pin="${!pin_var:-}"
+        if [ -n "$pin" ]; then
+            # 钉版(resolve-pins.sh 解析日为准,升级跑解析器)
+            ver="$pin"; tgz="OpenJDK${major}U-jdk_${aarchi}_linux_hotspot_${ver}.tar.gz"
+        else
+            listing="$(curl -fsSL "${ADOPTIUM_MIRROR}/${major}/jdk/${aarchi}/linux/")"
+            tgz="$(printf '%s' "$listing" | grep -o "OpenJDK${major}U-jdk_${aarchi}_linux_hotspot_[0-9a-zA-Z._]*\.tar\.gz" | sort -uV | tail -1)"
+        fi
         [ -n "$tgz" ] || { echo "tuna Adoptium 找不到 JDK $major,跳过"; continue; }
-        ver="${tgz#OpenJDK${major}U-jdk_${aarchi}_linux_hotspot_}"; ver="${ver%.tar.gz}"
+        ver="${ver:-${tgz#OpenJDK${major}U-jdk_${aarchi}_linux_hotspot_}}"; ver="${ver%.tar.gz}"
         jdk_dir="/opt/jdk/temurin-${ver}"
         if [ ! -d "$jdk_dir" ]; then
             mkdir -p "$jdk_dir"

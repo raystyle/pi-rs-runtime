@@ -2,7 +2,7 @@
 
 > 模板化漏洞扫描引擎(YAML 模板库) ｜ 状态:已装 + 模板缓存固化 ｜ 组:`install-tools.sh pd`(本体)+ `install-tools.sh pentest`(离线接线)
 
-- **版本钉**:本体 `go install github.com/projectdiscovery/nuclei/v3/cmd/nuclei@${PD_VERSION}`(默认 `latest`,lib/common.sh);模板库 `/opt/nuclei-templates` 是 `git clone --depth 1` 未钉提交,构建日快照——要新鲜模板回有网重跑再 publish([offline.md](../../offline.md) §边界)
+- **版本钉**:本体 pins.sh 钉版(`GO_PIN[github.com/projectdiscovery/nuclei/v3/cmd/nuclei]`,当前钉值 v3.11.1,解析日 2026-10-10);模板库 `/opt/nuclei-templates` 由 clone_pin 钉 `GIT_PIN[projectdiscovery/nuclei-templates]` sha(幂等:HEAD==钉即跳过)——要新鲜模板跑 scripts/resolve-pins.sh 换钉、回有网重跑再 publish([offline.md](../../offline.md) §边界)
 - **来源与安装**:[projectdiscovery/nuclei](https://github.com/projectdiscovery/nuclei) 经 goproxy.cn 编译,随 pd 组落 /opt/go/bin;模板 [projectdiscovery/nuclei-templates](https://github.com/projectdiscovery/nuclei-templates) 经 GITHUB_MIRROR 克隆;离线接线在 `scripts/install-tools.sh` `install_pentest` 尾部段
 - **落点**:真身 `/usr/local/bin/nuclei.real`(pentest 组从 /opt/go/bin 挪入);wrapper `/usr/local/bin/nuclei` = `exec /usr/local/bin/nuclei.real -duc "$@"`;模板 `/opt/nuclei-templates`,root 与 ubuntu 家目录各一条 `~/nuclei-templates` 软链指过去(nuclei 默认模板路径即家目录)
 - **配置与缓存**:模板缓存即 `/opt/nuclei-templates`(盘上直读);`-duc` 恒禁版本检查与模板更新检查;此外无配置写入

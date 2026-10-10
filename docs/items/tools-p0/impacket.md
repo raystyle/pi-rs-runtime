@@ -2,7 +2,7 @@
 
 > Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等) ｜ 状态:已装 ｜ 组:`install-tools.sh p0`
 
-- **版本钉**:uv tool 上游最新,未钉——无 `have` 早退,每次重跑都执行安装尝试(输出被吞),首次装到的是构建日上游版;升级需在线面 `UV_CONFIG_FILE=/etc/uv/uv-online.toml uv tool upgrade impacket`(机制见 [offline.md](../../offline.md) §4)
+- **版本钉**:pins.sh 钉版(`PYPI_PIN[impacket]`,当前钉值 0.13.1,解析日 2026-10-10),`uv tool install "impacket==<钉>"` 失败退 tuna 索引同钉;升级跑 scripts/resolve-pins.sh 换钉后重跑组(在线面机制见 [offline.md](../../offline.md) §4)。无 `have` 早退,每次重跑都执行安装尝试(输出被吞)
 - **来源与安装**:[fortra/impacket](https://github.com/fortra/impacket) PyPI 包;`uv tool install impacket`(导出 `UV_TOOL_BIN_DIR=/usr/local/bin UV_TOOL_DIR=/opt/uv-tools`),失败退 tuna 索引 `--index-url https://pypi.tuna.tsinghua.edu.cn/simple`;构建期 uv 在线面是 /etc/uv/uv-online.toml(阿里云索引)。用户裁定不用 noble apt 冻结版(发行版冻结,红队实操要上游脚本):老镜像里有 python3-impacket 则先 `apt-get remove -y` 增量迁移卸掉([ADR-0006](../../adr/ADR-0006-user-rulings-log.md))
 - **落点**:本体 venv /opt/uv-tools/impacket;整套 *.py 入口 shim(secretsdump.py 等)由 uv 落 /usr/local/bin。另:/opt/re-venv 里也装了一份 impacket 作库(red 组 krbrelayx 依赖批带入)
 - **配置与缓存**:无自身配置;/etc/uv/uv.toml 运行期 `offline=true` 只约束 uv 包管理动作,不影响已装入口运行

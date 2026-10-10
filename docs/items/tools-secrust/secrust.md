@@ -2,7 +2,7 @@
 
 > rustscan(快扫)/ feroxbuster(内容发现)/ RustHound-CE(BloodHound CE 采集器) ｜ 状态:已装 ｜ 组:`install-tools.sh secrust`
 
-- **版本钉**:rustscan/feroxbuster `cargo install <crate> --locked`(crate 未钉版本=装当时 latest,`--locked` 用其自带 Cargo.lock 钉依赖);RustHound-CE 是 `git clone --depth 1` 未钉提交 + `cargo build --release --locked`([known-issues](../../known-issues.md) 未钉登记)
+- **版本钉**:pins.sh 钉版(解析日 2026-10-10):rustscan `CRATE_PIN[rustscan]`=2.4.1、feroxbuster `CRATE_PIN[feroxbuster]`=2.13.1(`cargo install <crate> --locked --version <钉>`,`--locked` 用其自带 Cargo.lock 钉依赖);RustHound-CE `GIT_PIN[g0h4n/RustHound-CE]` 钉 sha(clone_pin,幂等:HEAD==钉即跳过)+ `cargo build --release --locked`。升级跑 scripts/resolve-pins.sh
 - **来源与安装**:[rustscan/rustscan](https://github.com/rustscan/rustscan)、[epi052/feroxbuster](https://github.com/epi052/feroxbuster)(crates.io,sparse index 经 `CRATES_INDEX`);[g0h4n/RustHound-CE](https://github.com/g0h4n/RustHound-CE)(crates.io 无包,源码经 GITHUB_MIRROR 克隆构建);安装面 `scripts/install-tools.sh` `install_secrust`,构建前先 apt 装 `libkrb5-dev`
 - **落点**(批量机制):rustscan/feroxbuster 落 `/opt/cargo/bin`(`RUSTUP_HOME=/opt/rustup CARGO_HOME=/opt/cargo`)并 `ln -sf` 到 `/usr/local/bin`;RustHound-CE 源码归档 `/opt/tradecraft-ref/ad/RustHound-CE`(三轴归档,[ADR-0002](../../adr/ADR-0002-reference-clone-three-axis.md)),release 二进制 `install -m755` 到 `/usr/local/bin/rusthound-ce`
 - **配置与缓存**(批量机制):cargo registry 缓存共用 `/opt/cargo`;`/opt/cargo/config.toml` 源替换 + `[net] offline=true` 是运行期默认,构建期 common.sh export `CARGO_NET_OFFLINE=false` 拿回在线面([offline.md](../../offline.md) §1/§4);无组级配置

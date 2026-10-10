@@ -2,13 +2,13 @@
 
 > Adoptium temurin 多主版本并存,sdkman 本地路径注册 ｜ 状态:已装(批量册) ｜ 组:`install-runtimes.sh sdkman`
 
-- **版本钉**:主版本钉 `JAVA_VERSIONS="8 11 17 21 25"`(lib/common.sh;25 为新 LTS);小版本不钉——每主版本从 tuna Adoptium 目录 listing 取最新 `OpenJDK${major}U-jdk_${aarchi}_linux_hotspot_*.tar.gz`(`sort -uV | tail -1`)
+- **版本钉**:主版本钉 `JAVA_VERSIONS="8 11 17 21 25"`(lib/common.sh;25 为新 LTS);小版本由 pins.sh `TEMURIN_PIN_8/11/17/21/25` 钉(当前 8u504b01 / 11.0.32.1_1 / 17.0.20.1_1 / 21.0.12.1_1 / 25.0.4.1_1;解析日 2026-10-10,空钉回退 tuna Adoptium 目录 listing 取最新),升级跑 scripts/resolve-pins.sh
 - **来源与安装**:[adoptium.net](https://adoptium.net) temurin → tuna `ADOPTIUM_MIRROR=$TUNA/Adoptium`(阿里云无 Adoptium 镜像);tarball 解 `/opt/jdk/temurin-<ver>`(`--strip-components=1`),再 `sdk install java <ver>-tem /opt/jdk/temurin-<ver>` 以本地路径注册进 [sdkman](sdkman.md);循环最后一个主版本(25)`sdk default java` 成默认
 - **落点**(批量机制):`/opt/jdk/temurin-<小版本>/` 一主版本一目录;sdkman `candidates/java/<ver>-tem` 指本地路径、`candidates/java/current` 指默认版;`/usr/local/bin/java`、`/usr/local/bin/javac` 软链 current(非登录 shell 直可用);架构映射 amd64→x64、arm64→aarch64
 
 | 主版本 | sdkman 坐标 | 小版本取法 | 默认 |
 |---|---|---|---|
-| 8 | `<ver>-tem` | tuna 目录取最新 | |
+| 8 | `<ver>-tem` | TEMURIN_PIN_8(空钉回退目录取最新) | |
 | 11 | `<ver>-tem` | 同上 | |
 | 17 | `<ver>-tem` | 同上 | |
 | 21 | `<ver>-tem` | 同上 | |

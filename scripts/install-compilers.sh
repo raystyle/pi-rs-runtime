@@ -67,13 +67,13 @@ for rel in json.load(sys.stdin):
     export PATH=$PATH:/usr/local/go/bin
     # go env 由组首直写 root/ubuntu 两份(GOPROXY=off 默认面);本函数后续 go install
     # 走 common.sh export 的 GOPROXY(env 优先于 go env 文件),不受影响
-    # 黄金三件:调试器 dlv、语言服务器 gopls、静态检查 golangci-lint
+    # 黄金三件:调试器 dlv、语言服务器 gopls、静态检查 golangci-lint(钉版,缺钉即响)
     # 注意:go install 产物落在 $(go env GOPATH)/bin(持久化后为 /opt/go/bin),不在 /usr/local/go/bin
     export GOPATH=/opt/go
     local gobin; gobin="/opt/go/bin"
-    have dlv          || go install github.com/go-delve/delve/cmd/dlv@latest
-    have gopls        || go install golang.org/x/tools/gopls@latest
-    have golangci-lint || go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+    have dlv          || go_install_pin github.com/go-delve/delve/cmd/dlv
+    have gopls        || go_install_pin golang.org/x/tools/gopls
+    have golangci-lint || go_install_pin github.com/golangci/golangci-lint/cmd/golangci-lint
     for b in dlv gopls golangci-lint; do
         [ -e "$gobin/$b" ] && ln -sf "$gobin/$b" "/usr/local/bin/$b"
     done
@@ -160,7 +160,7 @@ EOF
     done
     shared_writable_cache /opt/cargo-zigbuild-cache
     . /opt/cargo/env
-    # pi-rs 件执行链:rust-lld(llvm-tools)+ fmt/clippy + rust-script + cargo-zigbuild
+    # pi-rs 件执行链:rust-lld(llvm-tools)+ fmt/clippy + rust-script + cargo-zigbuild(钉版)
     rustup component add llvm-tools rustfmt clippy rust-analyzer
     # 全平台交叉 target(grok 全平台矩阵):rust-std 必须构建期进 /opt/rustup,离线才链得上
     # 宿主那一档由 stable 默认自带;windows-gnu 链接用 mingw,apple-darwin 纯 Rust 链接用 zig 桩
@@ -173,9 +173,9 @@ EOF
         rustup target add "$_t" 2>/dev/null || echo "target $_t 预加失败(留待排查)"
     done
     rustup target list --installed
-    have rust-script      || cargo install rust-script --locked
-    have cargo-zigbuild   || cargo install cargo-zigbuild --locked
-    have cargo-audit      || cargo install cargo-audit --locked   # 依赖漏洞审计
+    have rust-script      || cargo_install_pin rust-script
+    have cargo-zigbuild   || cargo_install_pin cargo-zigbuild
+    have cargo-audit      || cargo_install_pin cargo-audit   # 依赖漏洞审计
     for b in cargo-audit; do
         [ -e /opt/cargo/bin/$b ] && ln -sf /opt/cargo/bin/$b "/usr/local/bin/$b"
     done
@@ -271,7 +271,7 @@ install_vcpkg() {
     apt-get install -y --no-install-recommends flex bison   # vcpkg 的 libpcap 等源码构建依赖
     if [ ! -d /opt/vcpkg/.git ]; then
         rm -rf /opt/vcpkg
-        git clone --depth 1 https://github.com/microsoft/vcpkg /opt/vcpkg || { echo "vcpkg 克隆失败(git 缺?先跑 install-all 前置批)"; return 1; }
+        clone_pin microsoft/vcpkg /opt/vcpkg || { echo "vcpkg 克隆失败(git 缺?先跑 install-all 前置批)"; return 1; }
     fi
     ( cd /opt/vcpkg && ./bootstrap-vcpkg.sh -disableMetrics ) || { echo "vcpkg bootstrap 失败"; return 1; }
     ln -sf /opt/vcpkg/vcpkg /usr/local/bin/vcpkg
@@ -289,10 +289,11 @@ EOF
 # ---- nim(OffensiveNim 等 maldev 模板的编译器;choosenim 官方安装器) ----------
 # choosenim 归 CHOOSENIM_DIR=/opt/nim;noble apt 的 nim 停 1.6.x 过旧不取
 install_nim() {
-    log "nim (choosenim stable,工具链归 /opt/nim)"
+    log "nim (choosenim 钉 ${NIM_VERSION:-stable},工具链归 /opt/nim)"
     if ! have nim; then
         export CHOOSENIM_DIR=/opt/nim
-        curl -fsSL https://nim-lang.org/choosenim/init.sh | sh -s -- -y \
+        local nimv="${NIM_VERSION#v}"; nimv="${nimv:-stable}"   # pins 存 v 前缀;空钉回退 stable
+        curl -fsSL https://nim-lang.org/choosenim/init.sh | sh -s -- -y "$nimv" \
             || echo "choosenim 失败(nim-lang.org 直连抖动,下轮补)"
         # 最新工具链的 bin 整批链出;nim 经 /proc/self/exe 定位 stdlib,软链安全
         local tc; tc="$(ls -d /opt/nim/toolchains/nim-* 2>/dev/null | sort -V | tail -1)"

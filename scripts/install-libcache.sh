@@ -65,10 +65,10 @@ EOF
         && echo "Go 库已预热进 /opt/go/pkg/mod,解析版本:" \
         && grep -E '^\s' "$dir/go.mod" | grep -v '^go ' || echo "!! go 预热失败"
     # pspy 是命令不是库:go install 进 /usr/local/bin,模块顺带缓存(仓名已改小写,大写会被 go 拒)
-    have pspy || go install github.com/dominicbreuker/pspy@latest 2>/dev/null \
+    have pspy || go_install_pin github.com/dominicbreuker/pspy 2>/dev/null \
         && ln -sf /opt/go/bin/pspy /usr/local/bin/pspy 2>/dev/null || echo "pspy 失败(可忽略)"
     # go-winres 同样是命令(PE 资源编译器,import 会让 go build 报 "is a program")
-    have go-winres || go install github.com/tc-hib/go-winres@latest 2>/dev/null \
+    have go-winres || go_install_pin github.com/tc-hib/go-winres 2>/dev/null \
         && ln -sf /opt/go/bin/go-winres /usr/local/bin/go-winres 2>/dev/null || echo "go-winres 失败(可忽略)"
     true
 }
@@ -106,8 +106,11 @@ install_python() {
     . "$HOME/.local/bin/env" 2>/dev/null || true
     [ -x "$RE_VENV/bin/python" ] || uv venv "$RE_VENV"
     local pkgs="pycryptodome cryptography gmpy2 sympy z3-solver construct pefile pyelftools dnfile pypykatz malduck volatility3 r2pipe httpx beautifulsoup4 lxml pyjwt dpkt xortool"
+    # 钉版(pins.sh):逐件拼 ==,缺钉即响不静默漂
+    local pinned=""; local pk
+    for pk in $pkgs; do pinned="$pinned $pk==$(pypi_pin "$pk")"; done
     # shellcheck disable=SC2086
-    VIRTUAL_ENV="$RE_VENV" uv pip install $pkgs || echo "部分 python 库失败(逐个 tolerant)"
+    VIRTUAL_ENV="$RE_VENV" uv pip install $pinned || echo "部分 python 库失败(逐个 tolerant)"
     # volatility3 的 CLI(vol/volshell)随包装进 venv,链出来才可用
     local vb
     for vb in vol volshell; do
@@ -119,13 +122,11 @@ install_python() {
     VIRTUAL_ENV="$RE_VENV" uv pip install pip >/dev/null 2>&1 || true
     # shellcheck disable=SC2086
     [ -x "$RE_VENV/bin/pip" ] && "$RE_VENV/bin/pip" download -d /opt/wheelhouse \
-        --index-url "$PIP_INDEX" $pkgs 2>/dev/null \
+        --index-url "$PIP_INDEX" $pinned 2>/dev/null \
         && ls /opt/wheelhouse | wc -l || echo "wheelhouse 下载部分失败(pip 未装进 venv?)"
     # RsaCtfTool:RSA 题框架,克隆并锁依赖进同一份 venv
     local gh="${GITHUB_MIRROR}https://github.com"
-    if [ ! -d /opt/RsaCtfTool/.git ]; then
-        git clone --depth 1 "${gh}/RsaCtfTool/RsaCtfTool" /opt/RsaCtfTool || echo "RsaCtfTool 克隆失败"
-    fi
+    clone_pin RsaCtfTool/RsaCtfTool /opt/RsaCtfTool || echo "RsaCtfTool 克隆失败"
     [ -f /opt/RsaCtfTool/requirements.txt ] \
         && VIRTUAL_ENV="$RE_VENV" uv pip install -r /opt/RsaCtfTool/requirements.txt 2>/dev/null \
         && echo "RsaCtfTool 依赖已进 $RE_VENV" || true
@@ -139,22 +140,20 @@ install_node() {
     export NPM_CONFIG_REGISTRY="$NPM_REGISTRY"
     local dir=/opt/js-lab
     install -d "$dir"
-    cat > "$dir/package.json" <<'EOF'
-{
-  "name": "js-lab",
-  "version": "0.0.0",
-  "private": true,
-  "dependencies": {
-    "node-forge": "*", "pkijs": "*", "asn1js": "*", "pvtsutils": "*", "pvutils": "*",
-    "crypto-js": "*", "jsonwebtoken": "*",
-    "@babel/parser": "*", "@babel/traverse": "*", "@babel/generator": "*", "@babel/types": "*",
-    "webcrack": "*", "cheerio": "*", "fast-xml-parser": "*",
-    "ws": "*", "express": "*", "jszip": "*", "sql.js": "*",
-    "protobufjs": "*", "js-yaml": "*", "iconv-lite": "*",
-    "libsodium-wrappers": "*", "pdf-lib": "*", "postject": "*"
-  }
-}
-EOF
+    # 钉版:依赖清单即 NPM_PIN 键(与 resolve-pins.sh 的 NPM_PKGS 同步增减),缺钉即响
+    local deps=(node-forge pkijs asn1js pvtsutils pvutils crypto-js jsonwebtoken
+        @babel/parser @babel/traverse @babel/generator @babel/types
+        webcrack cheerio fast-xml-parser ws express jszip sql.js
+        protobufjs js-yaml iconv-lite libsodium-wrappers pdf-lib postject)
+    {
+        printf '{\n  "name": "js-lab",\n  "version": "0.0.0",\n  "private": true,\n  "dependencies": {\n'
+        local d i=0 n=${#deps[@]}
+        for d in "${deps[@]}"; do
+            i=$((i+1)); local comma=","; [ "$i" -eq "$n" ] && comma=""
+            printf '    "%s": "%s"%s\n' "$d" "${NPM_PIN[$d]:?pins.sh 缺 npm 钉 $d}" "$comma"
+        done
+        printf '  }\n}\n'
+    } > "$dir/package.json"
     if ( cd "$dir" && npm install --no-audit --no-fund ); then
         printf 'export NODE_PATH=/opt/js-lab/node_modules\n' > /etc/profile.d/jslab.sh
         echo "js-lab 就位: $dir/node_modules ($(ls "$dir/node_modules" | wc -l) 个包)"
@@ -280,9 +279,13 @@ install_pwsh() {
     have pwsh || { echo "pwsh 未装,先跑 install-runtimes.sh pwsh"; return 0; }
     # 旧 PackageManagement(Save-Module)在 noble + pwsh 7.4 上段错误;走 inbox PSResourceGet
     install -d /opt/psmodules
-    pwsh -NoProfile -Command "
-        Save-PSResource -Name Posh-SSH,powershell-yaml,ImportExcel,PowerHTML,Pester,PSScriptAnalyzer,Microsoft.PowerShell.SecretManagement,Microsoft.PowerShell.SecretStore -Path /opt/psmodules -TrustRepository -Quiet -ErrorAction SilentlyContinue
-    " || echo "Save-PSResource 部分失败(Gallery 国内不稳,重跑可补)"
+    # 钉版:PSGALLERY_PIN 逐件 -Version(gallery 抖动重跑可补)
+    local pm pv
+    for pm in Posh-SSH powershell-yaml ImportExcel PowerHTML Pester PSScriptAnalyzer Microsoft.PowerShell.SecretManagement Microsoft.PowerShell.SecretStore; do
+        pv="${PSGALLERY_PIN[$pm]:-}"
+        [ -n "$pv" ] || { echo "!! pins.sh 缺 psgallery 钉: $pm"; continue; }
+        pwsh -NoProfile -Command "Save-PSResource -Name '$pm' -Version '$pv' -Path /opt/psmodules -TrustRepository -Quiet -ErrorAction SilentlyContinue" || true
+    done
     cat > /etc/profile.d/psmodules.sh <<'EOF'
 export PSModulePath=/opt/psmodules:${PSModulePath:-}
 EOF
@@ -308,7 +311,12 @@ install_dotnet() {
              BouncyCastle.Cryptography System.DirectoryServices.Protocols \
              Microsoft.NETFramework.ReferenceAssemblies Microsoft.Data.Sqlite SharpZipLib \
              System.CommandLine; do
-        ( cd "$dir" && dotnet add package "$p" 2>/dev/null ) || echo "dotnet add $p 失败"
+        local nv="${NUGET_PIN[${p,,}]:-}"
+        if [ -n "$nv" ]; then
+            ( cd "$dir" && dotnet add package "$p" --version "$nv" 2>/dev/null ) || echo "dotnet add $p 失败"
+        else
+            echo "!! pins.sh 缺 nuget 钉: $p(跑 resolve-pins.sh)"
+        fi
     done
     ( cd "$dir" && dotnet restore --packages /opt/nuget-packages ) || echo "restore 失败"
     # 八 RID 的 self-contained runtime pack(grok 矩阵)
@@ -318,7 +326,7 @@ install_dotnet() {
     done
     # ilspycmd 全局工具到 /opt/dotnet-tools
     install -d /opt/dotnet-tools
-    dotnet tool install --tool-path /opt/dotnet-tools ilspycmd 2>/dev/null || echo "ilspycmd 失败"
+    dotnet tool install --tool-path /opt/dotnet-tools ilspycmd --version "${NUGET_PIN[ilspycmd]:?pins.sh 缺 ilspycmd 钉}" 2>/dev/null || echo "ilspycmd 失败"
     ln -sf /opt/dotnet-tools/ilspycmd /usr/local/bin/ilspycmd 2>/dev/null || true
     ls /opt/nuget-packages 2>/dev/null | wc -l
     true

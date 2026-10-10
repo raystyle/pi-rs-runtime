@@ -2,7 +2,7 @@
 
 > git 历史与云密钥扫描器(与 gitleaks 互补,带 verify 校验) ｜ 状态:已装 ｜ 组:`install-tools.sh secgo`
 
-- **版本钉**:release tag 经 `git ls-remote --tags`(GITHUB_MIRROR 前置)+ 只取 `refs/tags/vX.Y.Z` 纯版本 + `sort -V | tail -1` 取最新;无校验和([known-issues](../../known-issues.md) 登记);`have` 早退,升级须先删 `/usr/local/bin/trufflehog` 再重跑 secgo 组
+- **版本钉**:pins.sh 钉版(标量 `TRUFFLEHOG_VERSION`=v3.99.2;解析日 2026-10-10),升级跑 scripts/resolve-pins.sh;空钉回退 release tag 经 `git ls-remote --tags`(GITHUB_MIRROR 前置)+ 只取 `refs/tags/vX.Y.Z` 纯版本 + `sort -V | tail -1` 取最新;无校验和([known-issues](../../known-issues.md) 登记);`have` 早退,升级=跑解析器刷新钉值后删 `/usr/local/bin/trufflehog` 再重跑 secgo 组
 - **来源与安装**:[trufflesecurity/trufflehog](https://github.com/trufflesecurity/trufflehog) releases 预编译 tarball(`trufflehog_<ver>_linux_<arch>.tar.gz`,arch 只认 amd64/arm64);安装面 `scripts/install-tools.sh` `install_secgo` 尾部(不走 go install,原因见坑①)
 - **落点**:`/usr/local/bin/trufflehog`(`install -m755` 直装,非软链);/tmp 临时档用完即删
 - **配置与缓存**:无
