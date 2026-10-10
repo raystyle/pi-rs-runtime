@@ -8,7 +8,7 @@
 
 ## 当前状态
 
-- 线上镜像:**`31ccc42d8eaf`**(17.3 GB);历史发布链见 [docs/diary/2026-10-10-offline-rounds.md](docs/diary/2026-10-10-offline-rounds.md) 尾部
+- 线上镜像:**`bdf0c319f862`**(17.5 GB);历史发布链见 [docs/diary/2026-10-10-offline-rounds.md](docs/diary/2026-10-10-offline-rounds.md) 尾部
 - 镜像内唯一副本 scripts 在 /root/scripts;复跑/发布命令见 AGENTS.md Commands
 - 钉版轮(2026-10-10,用户裁定「未钉?钉版本啊」):新 `scripts/lib/pins.sh`(258 钉:go 45/crate 11/pypi 44/gem 6/nuget 17/npm 28/psgallery 8/git 克隆 61 + 标量 13 + temurin 5)+ 生成器 `scripts/resolve-pins.sh`(全量重解析约 6 分钟;升级=跑它+审 diff);消费助手进 common.sh(go_install_pin/cargo_install_pin/pypi_pin/clone_pin 幂等,缺钉即响不许漂回);四个安装脚本全部消费点改钉。解析器实证坑:goproxy.cn 冷门模块 404(回退仓 tag→HEAD sha)、npm scoped/下划线文件名、git tag v 系混排(nushell v0.96.0 压过 0.109.0 事故)、nuget flatcontainer 路径、temurin 间接展开要在 local 赋值之后分两行。例外软钉清单见 known-issues
 - 治理面:AGENTS.md(五节合同)、docs/adr/(6 篇 accepted)、docs/items/(逐件一册,件级事实唯一真相)、docs/diary/(轮次留痕)
