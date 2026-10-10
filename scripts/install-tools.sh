@@ -148,7 +148,7 @@ install_secgo() {
         produced="$last"
         [ "$last" = "..." ] && produced="$first"
         if have "$bin"; then echo "$bin 已装,跳过"; continue; fi
-        local sv; sv="$(go_pin_ver "${repo}/${path}")" || { echo "!! $bin 缺钉,跳过"; continue; }
+        local sv; sv="$(go_pin_ver "${repo}/${path%/...}")" || { echo "!! $bin 缺钉,跳过"; continue; }
         echo "--- go install $repo/$path@${sv}(钉)"
         if go install "${repo}/${path}@${sv}"; then
             if ! have "$bin" && [ "$produced" != "$bin" ] && [ -f "$gobin/$produced" ]; then
@@ -1051,10 +1051,20 @@ install_red() {
     local kb_im kb_l3 kb_dn kb_pa
     kb_im="$(pypi_pin impacket)"; kb_l3="$(pypi_pin ldap3)"; kb_dn="$(pypi_pin dnspython)"; kb_pa="$(pypi_pin pyasn1)"
     VIRTUAL_ENV="$RE_VENV" uv pip install "impacket==$kb_im" "ldap3==$kb_l3" "dnspython==$kb_dn" "pyasn1==$kb_pa" >/dev/null 2>&1 || echo "!! krbrelayx 依赖装失败"
-    [ -f /opt/enum4linux-ng/enum4linux-ng.py ] && printf '#!/bin/sh\nexec %s/bin/python /opt/enum4linux-ng/enum4linux-ng.py "$@"\n' "$RE_VENV" > /usr/local/bin/enum4linux-ng \
-        && chmod +x /usr/local/bin/enum4linux-ng
-    [ -f /opt/krbrelayx/krbrelayx.py ] && printf '#!/bin/sh\nexec %s/bin/python /opt/krbrelayx/krbrelayx.py "$@"\n' "$RE_VENV" > /usr/local/bin/krbrelayx \
-        && chmod +x /usr/local/bin/krbrelayx
+    if [ -f /opt/enum4linux-ng/enum4linux-ng.py ] && [ -x "$RE_VENV/bin/python" ] \
+        && "$RE_VENV/bin/python" -c "import impacket, ldap3" 2>/dev/null; then
+        printf '#!/bin/sh\nexec %s/bin/python /opt/enum4linux-ng/enum4linux-ng.py "$@"\n' "$RE_VENV" > /usr/local/bin/enum4linux-ng \
+            && chmod +x /usr/local/bin/enum4linux-ng
+    else
+        echo "!! enum4linux-ng 依赖未就位,wrapper 不写"
+    fi
+    if [ -f /opt/krbrelayx/krbrelayx.py ] && [ -x "$RE_VENV/bin/python" ] \
+        && "$RE_VENV/bin/python" -c "import impacket, ldap3, dns, pyasn1" 2>/dev/null; then
+        printf '#!/bin/sh\nexec %s/bin/python /opt/krbrelayx/krbrelayx.py "$@"\n' "$RE_VENV" > /usr/local/bin/krbrelayx \
+            && chmod +x /usr/local/bin/krbrelayx
+    else
+        echo "!! krbrelayx 依赖未就位,wrapper 不写"
+    fi
     if [ -f /opt/LinkFinder/linkfinder.py ] && [ -x "$RE_VENV/bin/python" ] \
         && "$RE_VENV/bin/python" -c "import jsbeautifier" 2>/dev/null; then
         printf '#!/bin/sh\nexec %s/bin/python /opt/LinkFinder/linkfinder.py "$@"\n' "$RE_VENV" > /usr/local/bin/linkfinder \

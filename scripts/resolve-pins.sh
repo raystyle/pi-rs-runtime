@@ -157,7 +157,7 @@ GO_SPECS=(
     github.com/ffuf/ffuf/v2 github.com/OJ/gobuster/v3 github.com/hahwul/dalfox/v2
     github.com/owasp-amass/amass/v4 github.com/jpillora/chisel github.com/zricethezav/gitleaks/v8
     github.com/tomnomnom/assetfinder github.com/tomnomnom/httprobe github.com/tomnomnom/qsreplace
-    github.com/tomnomnom/waybackurls github.com/lc/gau/v2 github.com/jaeles-project/gospider
+    github.com/tomnomnom/waybackurls github.com/lc/gau/v2/cmd/gau github.com/jaeles-project/gospider
     github.com/sensepost/gowitness github.com/bloodhoundad/azurehound/v2
     github.com/praetorian-inc/nerva/cmd/nerva github.com/praetorian-inc/brutus/cmd/brutus
     github.com/praetorian-inc/aurelian

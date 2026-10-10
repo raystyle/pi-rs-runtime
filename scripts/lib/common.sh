@@ -93,9 +93,11 @@ clone_pin() { # clone_pin <owner/repo> <dest> [submodules]
     local sha="${GIT_PIN[$repo]:-}" url="${GITHUB_MIRROR}https://github.com/${repo}"
     [ -n "$sha" ] || { echo "!! pins.sh 缺 git 钉: $repo(跑 scripts/resolve-pins.sh 补钉)" >&2; return 1; }
     if [ -d "$dest/.git" ] && [ "$(git -C "$dest" rev-parse HEAD 2>/dev/null)" = "$sha" ] \
-        && { [ "$sub" != submodules ] || [ -e "$dest/.git/clone_pin_submodules_ok" ]; }; then
-        return 0   # 已在钉上(要子模块的件还得子模块成功过)
+        && { [ "$sub" != submodules ] || [ "$(cat "$dest/.git/clone_pin_submodules_ok" 2>/dev/null)" = "$sha" ]; }; then
+        return 0   # 已在钉上(要子模块的件还得该钉上子模块成功过)
     fi
+    # 换钉进更新分支:旧标记作废(grok G6 二轮)
+    [ -d "$dest/.git" ] && rm -f "$dest/.git/clone_pin_submodules_ok"
     if [ ! -d "$dest/.git" ]; then
         rm -rf "$dest" && install -d "$dest"
         git -C "$dest" init -q && git -C "$dest" remote add origin "$url"
@@ -106,8 +108,8 @@ clone_pin() { # clone_pin <owner/repo> <dest> [submodules]
     git -C "$dest" checkout -q --force FETCH_HEAD || { echo "!! $repo checkout 失败" >&2; return 1; }
     if [ "$sub" = submodules ]; then
         git -C "$dest" submodule update --init --depth 1 || { echo "!! $repo 子模块失败" >&2; return 1; }
-        # G6(grok):子模块成功留标记;下次重跑 HEAD==钉但无标记仍会补初始化
-        touch "$dest/.git/clone_pin_submodules_ok" 2>/dev/null || true
+        # G6(grok):子模块成功留标记(内容=钉 sha,换钉不假绿);重跑缺标记仍会补初始化
+        printf '%s' "$sha" > "$dest/.git/clone_pin_submodules_ok" 2>/dev/null || true
     fi
 }
 
