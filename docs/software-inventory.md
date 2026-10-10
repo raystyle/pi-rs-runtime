@@ -176,6 +176,7 @@ libcache rust 预热批（`scripts/install-libcache.sh`）另有加密/解析向
 | fnm 数据目录 | `~/.local/share/fnm` | node 18、20、22、24 多版本 |
 | NuGet 配置 | 各用户 `NuGet.Config` | `<clear/>` 后只留华为 v3 源 |
 | /opt/wheelhouse、/opt/js-lab、/opt/maven-prewarm、/opt/dotnet-prewarm、/opt/zig-prewarm、/opt/go-prewarm | 库缓存固化产物 | 八生态预热工程与锁文件；wheelhouse 是 pip 轮子离线重装源 |
+| /opt/smali/lib + wrapper smali/baksmali | dex 汇编/反汇编 CLI | [google/smali](https://github.com/google/smali) 3.0.10 钉版（GMaven com.android.tools.smali;thin jar+17 依赖 jar;上游 JesusFreke/smali 已停更于 2.5.2) |
 
 ## 基础命令行与系统
 

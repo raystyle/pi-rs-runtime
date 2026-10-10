@@ -193,6 +193,10 @@ install_java() {
   <groupId>pi</groupId><artifactId>prewarm</artifactId><version>0</version>
   <packaging>jar</packaging>
   <properties><maven.compiler.source>17</maven.compiler.source><maven.compiler.target>17</maven.compiler.target></properties>
+  <!-- google/smali 发布在 GMaven(maven.google.com),settings 的 mirrorOf=central 不拦它 -->
+  <repositories>
+    <repository><id>gmaven</id><url>https://maven.google.com</url></repository>
+  </repositories>
   <dependencies>
     <dependency><groupId>org.bouncycastle</groupId><artifactId>bcprov-jdk18on</artifactId><version>[0,)</version></dependency>
     <dependency><groupId>org.bouncycastle</groupId><artifactId>bcpkix-jdk18on</artifactId><version>[0,)</version></dependency>
@@ -210,8 +214,11 @@ install_java() {
     <dependency><groupId>com.squareup.okhttp3</groupId><artifactId>okhttp</artifactId><version>[0,)</version></dependency>
     <dependency><groupId>cn.hutool</groupId><artifactId>hutool-all</artifactId><version>[0,)</version></dependency>
     <dependency><groupId>info.picocli</groupId><artifactId>picocli</artifactId><version>[0,)</version></dependency>
-    <!-- org.jf:dexlib2 国内镜像(aliyun/华为)全无件(实证 404),google 已迁 com.google.smali;
-         移出预热,需要时用 apktool 自带 smali 或手工从 Central 拉(known-issues 留痕) -->
+    <!-- org.jf:dexlib2 国内镜像(aliyun/华为)全无件(实证 404),google 已迁 GMaven
+         com.android.tools.smali(上方 repositories);smali/smali-baksmali 钉 3.0.10,
+         dexlib2 经传递依赖进 /opt/m2 -->
+    <dependency><groupId>com.android.tools.smali</groupId><artifactId>smali</artifactId><version>3.0.10</version></dependency>
+    <dependency><groupId>com.android.tools.smali</groupId><artifactId>smali-baksmali</artifactId><version>3.0.10</version></dependency>
   </dependencies>
   <profiles>
     <profile><id>study</id><activation><activeByDefault>false</activeByDefault></activation><dependencies>
@@ -236,6 +243,34 @@ EOF
     ( cd "$dir" && mvn -q -B -Pstudy -DskipTests dependency:go-offline ) \
         && echo "study profile(CVE 复现坐标)已进 /opt/m2" \
         || echo "!! study profile 失败(不影响默认 profile)"
+    # smali/baksmali CLI:官方 fat jar 只源码构建(JDK11 限定),这里 thin jar+传递依赖
+    # 经 mini-pom copy-dependencies 落 /opt/smali/lib,wrapper 走 classpath;
+    # 上面主 pom 的 go-offline 已把字节拉进 /opt/m2,这里解析基本吃缓存
+    local sdir=/opt/smali-cli
+    rm -rf "$sdir" && install -d "$sdir" /opt/smali/lib
+    cat > "$sdir/pom.xml" <<'EOF'
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>pi</groupId><artifactId>smali-cli</artifactId><version>0</version>
+  <packaging>jar</packaging>
+  <repositories>
+    <repository><id>gmaven</id><url>https://maven.google.com</url></repository>
+  </repositories>
+  <dependencies>
+    <dependency><groupId>com.android.tools.smali</groupId><artifactId>smali</artifactId><version>3.0.10</version></dependency>
+    <dependency><groupId>com.android.tools.smali</groupId><artifactId>smali-baksmali</artifactId><version>3.0.10</version></dependency>
+  </dependencies>
+</project>
+EOF
+    if ( cd "$sdir" && mvn -q -B -DskipTests dependency:copy-dependencies -DoutputDirectory=/opt/smali/lib ) \
+        && ls /opt/smali/lib/smali-3.0.10.jar >/dev/null 2>&1; then
+        printf '#!/bin/sh\nexec java -cp "/opt/smali/lib/*" com.android.tools.smali.smali.Main "$@"\n' > /usr/local/bin/smali
+        printf '#!/bin/sh\nexec java -cp "/opt/smali/lib/*" com.android.tools.smali.baksmali.Main "$@"\n' > /usr/local/bin/baksmali
+        chmod +x /usr/local/bin/smali /usr/local/bin/baksmali
+        echo "smali/baksmali CLI 就位(3.0.10,/opt/smali/lib 共 $(ls /opt/smali/lib | wc -l) jar)"
+    else
+        echo "!! smali CLI 失败(GMaven 抖动时重跑)"
+    fi
     true
 }
 
