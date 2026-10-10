@@ -40,7 +40,8 @@
 | pentest | [pentest](tools-pentest/pentest.md)(组册 36 apt 包+接线) · [hashcat](tools-pentest/hashcat.md) · [responder](tools-pentest/responder.md) · [donut](tools-pentest/donut.md) · [frida](tools-pentest/frida.md) |
 | red | [red](tools-red/red.md)(组册 24 件) · [bloodhound-ce](tools-red/bloodhound-ce.md) · [enum4linux-ng](tools-red/enum4linux-ng.md) · [evil-winrm](tools-red/evil-winrm.md) · [cyberchef](tools-red/cyberchef.md) · [trivy](tools-red/trivy.md) |
 | msf | [msf](tools-msf/msf.md) |
+| vnc | [vnc](tools-vnc/vnc.md)(XFCE+TigerVNC+noVNC 桌面与 Web 面) |
 
-计数对账:compilers 6 / runtimes 16 / libcache 8 / tools 41 = 71 册;组册承载的批量件数见各组册成员表(组册成员数 = 脚本实装件数)。
+计数对账:compilers 6 / runtimes 16 / libcache 8 / tools 42 = 72 册;组册承载的批量件数见各组册成员表(组册成员数 = 脚本实装件数)。
 
 返回 [docs 文档地图](../README.md)。

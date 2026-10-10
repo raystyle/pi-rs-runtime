@@ -85,25 +85,27 @@ pypi_pin() { # pypi_pin <pkg> → 版本到 stdout;缺钉返回 1
     [ -n "$v" ] || { echo "!! pins.sh 缺 pypi 钉: $1(跑 scripts/resolve-pins.sh)" >&2; return 1; }
     printf '%s' "$v"
 }
-# 钉版克隆:有钉 fetch 该 commit 深 1;幂等(HEAD 已是钉即跳过);无钉回退 depth 1 并警告
-# 第三参数 submodules 时顺带浅子模块初始化
+# 钉版克隆:有钉 fetch 该 commit 深 1;幂等(HEAD 已是钉即跳过)
+# grok 终审 F1/F2:缺钉即失败(不许漂 HEAD);钉对不上时在原地仓换钉,
+# fetch 成功前不删树(bof-launcher 这类 clone+build 同目录的件,zig-out 不被误伤)
 clone_pin() { # clone_pin <owner/repo> <dest> [submodules]
     local repo="$1" dest="$2" sub="${3:-}"
     local sha="${GIT_PIN[$repo]:-}" url="${GITHUB_MIRROR}https://github.com/${repo}"
-    if [ -z "$sha" ]; then
-        echo "!! pins.sh 缺 git 钉: $repo——回退 depth 1 漂 HEAD(跑 scripts/resolve-pins.sh 补钉)" >&2
-        if [ -d "$dest/.git" ]; then return 0; fi
-        git clone --depth 1 $([ "$sub" = submodules ] && echo --recurse-submodules --shallow-submodules) "$url" "$dest"
-        return
-    fi
+    [ -n "$sha" ] || { echo "!! pins.sh 缺 git 钉: $repo(跑 scripts/resolve-pins.sh 补钉)" >&2; return 1; }
     if [ -d "$dest/.git" ] && [ "$(git -C "$dest" rev-parse HEAD 2>/dev/null)" = "$sha" ]; then
         return 0   # 已在钉上
     fi
-    rm -rf "$dest" && install -d "$dest"
-    git -C "$dest" init -q && git -C "$dest" remote add origin "$url"
-    git -C "$dest" fetch -q --depth 1 origin "$sha" && git -C "$dest" checkout -q FETCH_HEAD
-    [ "$sub" = submodules ] && git -C "$dest" submodule update --init --depth 1
-    true
+    if [ ! -d "$dest/.git" ]; then
+        rm -rf "$dest" && install -d "$dest"
+        git -C "$dest" init -q && git -C "$dest" remote add origin "$url"
+    else
+        git -C "$dest" remote set-url origin "$url" 2>/dev/null || git -C "$dest" remote add origin "$url"
+    fi
+    git -C "$dest" fetch -q --depth 1 origin "$sha" || { echo "!! $repo fetch $sha 失败" >&2; return 1; }
+    git -C "$dest" checkout -q --force FETCH_HEAD || { echo "!! $repo checkout 失败" >&2; return 1; }
+    if [ "$sub" = submodules ]; then
+        git -C "$dest" submodule update --init --depth 1 || { echo "!! $repo 子模块失败" >&2; return 1; }
+    fi
 }
 
 # 共享可写缓存(zig/gradle/cargo-zigbuild 的家目录软链目标):必须可写但不可 1777——

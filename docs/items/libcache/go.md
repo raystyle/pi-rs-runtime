@@ -2,7 +2,7 @@
 
 > 渗透/代理/协议/AD/PE 向 Go 库字节构建期钉进模块缓存,断网 `go build` 直编 ｜ 状态:缓存固化 ｜ 组:`install-libcache.sh go`
 
-- **版本钉**:19 库构建日 `GOFLAGS=-mod=mod go mod tidy` 解析最新,精确版本写回 `/opt/go-prewarm/go.mod` 与 `go.sum`(锁文件即钉版,在镜像侧不入仓——repo 侧回收是 PROGRESS.md 待办 3);pspy、go-winres 两个命令 pins.sh 钉版(`GO_PIN[github.com/dominicbreuker/pspy]`=v1.2.1、`GO_PIN[github.com/tc-hib/go-winres]`=v0.3.3,go_install_pin;解析日 2026-10-10)。升级=跑 scripts/resolve-pins.sh + 有网阶段重跑本组
+- **版本钉**:19 库构建日 `GOFLAGS=-mod=mod go mod tidy` 解析最新,精确版本写回 `/opt/go-prewarm/go.mod` 与 `go.sum`(锁文件即钉版,已入库 `scripts/lock/go/`(go.mod+go.sum),有锁走 `GOFLAGS=-mod=mod go build` 消费,再生跑 `scripts/sync-locks.sh`);pspy、go-winres 两个命令 pins.sh 钉版(`GO_PIN[github.com/dominicbreuker/pspy]`=v1.2.1、`GO_PIN[github.com/tc-hib/go-winres]`=v0.3.3,go_install_pin;解析日 2026-10-10)。升级=跑 scripts/resolve-pins.sh + 有网阶段重跑本组
 - **来源与安装**:各库官方仓经 `GOPROXY`(common.sh 默认 `https://goproxy.cn,direct`)与 `GOSUMDB=sum.golang.google.cn`;脚本面 `scripts/install-libcache.sh` `install_go()`——预热工程 `/opt/go-prewarm`(go.mod 声明 `go 1.23`,main.go blank-import 19 库)`go mod tidy` 把字节钉进模块缓存,pspy/go-winres 以命令身份 `go install` 顺带缓存模块
 - **落点**:`/opt/go/pkg/mod`(GOMODCACHE,库字节);`/opt/go-prewarm`(预热工程与锁文件,兼作离线冒烟样例);命令件 `/opt/go/bin/{pspy,go-winres}` 链 `/usr/local/bin/`
 - **配置与缓存**:运行期发现靠 per-user go env 文件(`install-compilers.sh golang` 组早退前直写,root+ubuntu 各一份 `~/.config/go/env`,非登录 shell 也读):`GOPROXY=off GOSUMDB=sum.golang.google.cn GOPATH=/opt/go GOMODCACHE=/opt/go/pkg/mod`;机制分层见 [offline.md](../../offline.md) §1/§3

@@ -2,7 +2,7 @@
 
 > 交叉编译常用 C 库五件 zig fetch 固化进 /opt/zig-cache,离线 zig build 按 hash 直取 ｜ 状态:缓存固化 ｜ 组:`install-libcache.sh zig`(前置 `install-compilers.sh zig`,0.16.0)
 
-- **版本钉**:五库均钉主干 heads 的构建日快照 tarball(`archive/refs/heads/{master,main}.tar.gz`);zon hash 以镜像内 zig 0.16 现场算为准,`zig fetch --save` 把依赖名与 hash 写进 `/opt/zig-prewarm/build.zig.zon`;不钉 tag——zlib 旧 tag 的 zon 字符串名被 0.16 拒(实证);锁文件(zon hash)在镜像侧 `/opt/zig-prewarm/build.zig.zon`,repo 侧回收是 PROGRESS.md 待办 3
+- **版本钉**:五库均钉主干 heads 的构建日快照 tarball(`archive/refs/heads/{master,main}.tar.gz`);zon hash 以镜像内 zig 0.16 现场算为准,`zig fetch --save` 把依赖名与 hash 写进 `/opt/zig-prewarm/build.zig.zon`;不钉 tag——zlib 旧 tag 的 zon 字符串名被 0.16 拒(实证);锁文件(zon hash)已入库 `scripts/lock/zig/build.zig.zon`,有锁走 `zig build --fetch` 按 zon 补缓存,再生跑 `scripts/sync-locks.sh`
 - **来源与安装**:allyourcodebase 系 GitHub 仓 tarball 经 `GITHUB_MIRROR`(实证 ohmygh 代理不支持 git smart-http,`git+` 全失败,只有 tarball 能过代理);每库三次重试;脚本段 `scripts/install-libcache.sh install_zig`;zig 未装早退(先跑 compilers zig 组)
 
   | 库 | 仓 | 分支 |

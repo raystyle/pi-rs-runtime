@@ -4,7 +4,7 @@
 
 ## 未钉版本(例外清单,其余全部钉在 scripts/lib/pins.sh)
 
-以下因渠道特性不钉(软钉,留痕接受):clickhouse(官方安装脚本设计即最新稳定线)、awscli v2(无干净版本索引)、msf omnibus(apt.metasploit.com 只发最新线;pins.sh 里 MSF_VERSION 留空)、pwsh(MS 仓 apt 浮动)、php/mono/apt 系(noble/sury 源冻结即钉)、mono 的 nuget.exe(dist.nuget.org 只有 latest 链)、sdkman/choosenim/rustup 安装器本体、rustup stable/nightly 工具链、crystal-palace/tcg 官网 tgz、BOF-CATALOG raw 文件、pecl VLD。库缓存层的锁文件(go.mod/go.sum、Cargo.lock、package-lock.json、解析后 pom、build.zig.zon、dotnet csproj)目前在镜像侧,repo 侧回收是 PROGRESS.md 待办 3。`resolve-pins.sh` 解析失败的件会以空钉形态让消费点报错,不许静默漂。
+以下因渠道特性不钉(软钉,留痕接受):clickhouse(官方安装脚本设计即最新稳定线)、awscli v2(无干净版本索引)、msf omnibus(apt.metasploit.com 只发最新线;pins.sh 里 MSF_VERSION 留空)、pwsh(MS 仓 apt 浮动)、php/mono/apt 系(noble/sury 源冻结即钉)、mono 的 nuget.exe(dist.nuget.org 只有 latest 链)、sdkman/choosenim/rustup 安装器本体、rustup stable/nightly 工具链、crystal-palace/tcg 官网 tgz、BOF-CATALOG raw 文件、pecl VLD。库缓存层六生态锁文件(go.mod/go.sum、Cargo.lock、package-lock.json、解析后 pom、build.zig.zon、dotnet csproj)已入库 `scripts/lock/`(2026-10-10 phase B,install-libcache.sh 消费,`scripts/sync-locks.sh` 再生);python/pwsh 无独立锁文件(pins.sh 钉直接依赖,传递闭包仍构建日解析)。`resolve-pins.sh` 解析失败的件会以空钉形态让消费点报错,不许静默漂。
 
 ## 无校验和件(路线已选,留痕接受)
 
@@ -17,7 +17,7 @@ trufflehog release(上游 go.mod 带 replace 不能 `go install @版本`)、meta
 - coffee-ldr nightly 编译失败(上游 `#!feature` 问题,留档;BOF 运行有 bof-launcher 与 mingw/wine 兜底)——见 [items/tools-bof/coffee-ldr.md](items/tools-bof/coffee-ldr.md)
 - trivy 漏洞库/Java 库、nuclei 模板为构建日快照;要新鲜数据回有网环境重跑对应组再 publish
 - nuclei headless 模板依赖 Chrome,定制 Chrome 未合入前不可用(PROGRESS.md 待办 1)
-- VNC 屏幕无 Chrome 与 noVNC;Chrome 官方版不装(ADR-0006)
+- ~~VNC 屏幕无 Chrome 与 noVNC~~(2026-10-10 已解):桌面栈(xfce4+tigervnc+noVNC+websockify)烘焙进镜像(vnc 组),启动面 `vnc-screen desktop`,浏览器经 incus proxy 127.0.0.1:6080 进([items/tools-vnc/vnc.md](items/tools-vnc/vnc.md));Chrome 官方版仍不装,等定制构建合入(ADR-0006)
 - `pi-box-dev` 镜像(pi 二进制、pi-web、定制 Chrome)的构建脚本不在本仓
 
 ## 行为边界(设计如此,不是缺陷)

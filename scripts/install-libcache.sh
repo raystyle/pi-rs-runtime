@@ -3,8 +3,11 @@
 # 在 Ubuntu 24.04 容器(或宿主)内运行,幂等,可重复执行。
 # 目标:离线可用——构建期把库字节钉进 /opt 共享缓存(grok 八生态评审),
 # 运行期不再访问索引;只锁清单不下字节,断网后等于没装。
-# 版本钉策略:构建日用生态工具解析最新并写回锁文件(go.mod/go.sum、Cargo.lock、
-# package-lock.json、pom、csproj),升级单独重跑本脚本。
+# 锁文件策略(phase B):传递闭包钉进仓库 scripts/lock/<生态>/,有锁则消费锁
+# (go build 用 go.sum / cargo fetch --locked / npm ci / mvn 直消费解析后 pom /
+# dotnet restore 钉版 csproj / zig build --fetch 按 zon 补缓存);
+# 无锁或 LIBCACHE_RESOLVE=1 走构建日解析并打印「未锁,构建日解析」。
+# 锁再生:scripts/sync-locks.sh(起临时容器从线上镜像跑解析态,拉回锁文件)。
 # 用法:
 #   ./install-libcache.sh            # 装全部
 #   ./install-libcache.sh go node    # 只装指定项(可多个)
@@ -14,20 +17,21 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
 . "$HERE/lib/common.sh"
 
+# ---- 锁文件入库面(phase B)--------------------------------------------------
+# scripts/lock/<生态>/ 有锁则消费;LIBCACHE_RESOLVE=1 强制解析态(sync-locks.sh 收割用)
+LOCKS="$HERE/lock"
+lock_avail() { [ "${LIBCACHE_RESOLVE:-0}" != 1 ] && compgen -G "$LOCKS/$1" >/dev/null; }
+lock_miss()  { echo "未锁,构建日解析: $1(缺 $LOCKS/$1 或 LIBCACHE_RESOLVE=1;再生跑 scripts/sync-locks.sh)"; }
+
 # ---- Go:库预热进 /opt/go/pkg/mod ------------------------------------------
 # go install 只适合带 main 的命令;库必须 go mod tidy 解析进模块缓存
 install_go() {
-    log "Go 库预热(grok 清单:goperxy 系 + 渗透/协议/AD 库,构建日解析钉版)"
+    log "Go 库预热(grok 清单:goperxy 系 + 渗透/协议/AD 库)"
     export GOPATH=/opt/go GOMODCACHE=/opt/go/pkg/mod
     export PATH="$PATH:/usr/local/go/bin:/opt/go/bin"
     export GOPROXY GOSUMDB
     local dir=/opt/go-prewarm
     rm -rf "$dir" && install -d "$dir"
-    cat > "$dir/go.mod" <<'EOF'
-module prewarm
-
-go 1.23
-EOF
     cat > "$dir/main.go" <<'EOF'
 package main
 
@@ -61,9 +65,23 @@ import (
 
 func main() {}
 EOF
-    ( cd "$dir" && GOFLAGS=-mod=mod go mod tidy ) \
-        && echo "Go 库已预热进 /opt/go/pkg/mod,解析版本:" \
-        && grep -E '^\s' "$dir/go.mod" | grep -v '^go ' || echo "!! go 预热失败"
+    if lock_avail go/go.sum; then
+        # 锁消费:go.mod+go.sum 入库,go build 按锁拉模块(-mod=mod 允许补写缺失 require)
+        cp "$LOCKS/go/go.mod" "$LOCKS/go/go.sum" "$dir/"
+        ( cd "$dir" && GOFLAGS=-mod=mod go build ./... && rm -f prewarm ) \
+            && echo "Go 库已按 scripts/lock/go 锁预热进 /opt/go/pkg/mod,锁定版本:" \
+            && grep -E '^\s' "$dir/go.mod" | grep -v '^go ' || echo "!! go 锁消费失败"
+    else
+        lock_miss go/go.mod+go.sum
+        cat > "$dir/go.mod" <<'EOF'
+module prewarm
+
+go 1.23
+EOF
+        ( cd "$dir" && GOFLAGS=-mod=mod go mod tidy ) \
+            && echo "Go 库已预热进 /opt/go/pkg/mod,解析版本:" \
+            && grep -E '^\s' "$dir/go.mod" | grep -v '^go ' || echo "!! go 预热失败"
+    fi
     # pspy 是命令不是库:go install 进 /usr/local/bin,模块顺带缓存(仓名已改小写,大写会被 go 拒)
     have pspy || go_install_pin github.com/dominicbreuker/pspy 2>/dev/null \
         && ln -sf /opt/go/bin/pspy /usr/local/bin/pspy 2>/dev/null || echo "pspy 失败(可忽略)"
@@ -73,9 +91,10 @@ EOF
     true
 }
 
-# ---- Rust:cargo add 钉版 + fetch 进 /opt/cargo ------------------------------
-# 安装器在 install-compilers.sh 的 rust 组有 29 个件 crate 预热(* 未钉);
-# 这里用 cargo add 追加 grok 清单,cargo add 会解析精确版本写进 Cargo.toml
+# ---- Rust:锁消费 cargo fetch --locked 进 /opt/cargo -------------------------
+# 锁(scripts/lock/rust/Cargo.toml+Cargo.lock)由 sync-locks.sh 收割:LIBCACHE_RESOLVE=1
+# 时按下方 31 crate 清单 cargo add 重建并保留预热工程。安装器在 install-compilers.sh
+# 的 rust 组另有 29 个件 crate 预热;这里补 grok 库清单。
 install_rust() {
     log "Rust 库预热(grok 清单:RustCrypto/iced-x86/goblin/证书/tokio-tungstenite 等)"
     export RUSTUP_HOME=/opt/rustup CARGO_HOME=/opt/cargo
@@ -83,20 +102,34 @@ install_rust() {
     export PATH="$PATH:/opt/cargo/bin"
     local pw=/opt/rust-prewarm-libs
     rm -rf "$pw" && install -d "$pw/src" && printf 'fn main(){}\n' > "$pw/src/main.rs"
-    ( cd "$pw"
-      printf '[package]\nname = "prewarm-libs"\nversion = "0.0.0"\nedition = "2021"\n\n[dependencies]\n' > Cargo.toml
-      local c
-      for c in aes-gcm chacha20poly1305 rsa p256 x25519-dalek md-5 pbkdf2 argon2 \
-               jsonwebtoken rcgen x509-parser pem rasn goblin object iced-x86 nom \
-               ldap3 pnet quinn tokio-tungstenite clap serde thiserror tracing \
-               flate2 zip memmap2 nix fff-search windows-sys; do
-          cargo add "$c" 2>/dev/null || echo "cargo add $c 失败"
-      done
-      cargo fetch --locked 2>/dev/null || cargo fetch \
-        && echo "Rust 库已 fetch 进 /opt/cargo,锁文件: $pw/Cargo.lock" \
-        || echo "!! rust 预热失败"
-    ) || echo "!! rust 预热工程失败"
-    rm -rf "$pw"
+    if lock_avail rust/Cargo.lock; then
+        cp "$LOCKS/rust/Cargo.toml" "$LOCKS/rust/Cargo.lock" "$pw/"
+        ( cd "$pw" && cargo fetch --locked ) \
+            && echo "Rust 库已按 scripts/lock/rust Cargo.lock fetch 进 /opt/cargo" \
+            || echo "!! rust 锁消费失败"
+        rm -rf "$pw"
+    else
+        lock_miss rust/Cargo.toml+Cargo.lock
+        ( cd "$pw"
+          printf '[package]\nname = "prewarm-libs"\nversion = "0.0.0"\nedition = "2021"\n\n[dependencies]\n' > Cargo.toml
+          local c
+          for c in aes-gcm chacha20poly1305 rsa p256 x25519-dalek md-5 pbkdf2 argon2 \
+                   jsonwebtoken rcgen x509-parser pem rasn goblin object iced-x86 nom \
+                   ldap3 pnet quinn tokio-tungstenite clap serde thiserror tracing \
+                   flate2 zip memmap2 nix fff-search windows-sys; do
+              cargo add "$c" 2>/dev/null || echo "cargo add $c 失败"
+          done
+          cargo fetch --locked 2>/dev/null || cargo fetch \
+            && echo "Rust 库已 fetch 进 /opt/cargo,锁文件: $pw/Cargo.lock" \
+            || echo "!! rust 预热失败"
+        ) || echo "!! rust 预热工程失败"
+        # LIBCACHE_RESOLVE=1(sync-locks.sh 收割)保留预热工程供拉锁;正常构建删掉保持镜像干净
+        if [ "${LIBCACHE_RESOLVE:-0}" = 1 ]; then
+            echo "LIBCACHE_RESOLVE=1:预热工程保留在 $pw(Cargo.toml+Cargo.lock 供收割)"
+        else
+            rm -rf "$pw"
+        fi
+    fi
     true
 }
 
@@ -133,7 +166,7 @@ install_python() {
     true
 }
 
-# ---- Node:/opt/js-lab 工程 npm ci 固化 node_modules --------------------------
+# ---- Node:/opt/js-lab 工程锁消费 npm ci 固化 node_modules --------------------
 install_node() {
     log "Node 库固化(grok 清单:forge/pkijs/babel+webcrack/sql.js 等,全纯 JS/wasm)"
     export PATH="$PATH:/opt/node/bin"
@@ -154,11 +187,21 @@ install_node() {
         done
         printf '  }\n}\n'
     } > "$dir/package.json"
-    if ( cd "$dir" && npm install --no-audit --no-fund ); then
+    # 锁消费:package-lock.json 入库则 npm ci(锁与钉值不同步会硬失败——跑 sync-locks.sh 再生);
+    # 未锁走 npm install 构建日解析并留事实快照
+    local ok=""
+    if lock_avail node/package-lock.json; then
+        cp "$LOCKS/node/package-lock.json" "$dir/"
+        if ( cd "$dir" && npm ci --no-audit --no-fund ); then ok=1; fi
+    else
+        lock_miss node/package-lock.json
+        if ( cd "$dir" && npm install --no-audit --no-fund ); then ok=1; fi
+    fi
+    if [ -n "$ok" ]; then
         printf 'export NODE_PATH=/opt/js-lab/node_modules\n' > /etc/profile.d/jslab.sh
         echo "js-lab 就位: $dir/node_modules ($(ls "$dir/node_modules" | wc -l) 个包)"
     else
-        echo "!! npm install 失败"
+        echo "!! npm 固化失败(锁消费路径失败先跑 scripts/sync-locks.sh node 再生)"
     fi
     # 非登录 shell(incus exec)不读 profile.d。注意 require 不查 npm 全局 node_modules,
     # 只认 Module.globalPaths(实证:~/.node_modules、~/.node_libraries、<prefix>/lib/node);
@@ -179,14 +222,22 @@ install_node() {
 }
 
 # ---- Java:/opt/maven-prewarm dependency:go-offline 进 /opt/m2 ---------------
-# 默认 profile 只含当前安全版本;study profile 隔离钉旧版(CVE 复现坐标)
+# 锁消费:scripts/lock/java/pom.xml(resolve-ranges 写回的精确版)直接 go-offline;
+# 未锁才写 [0,) 区间构建日解析。study profile 隔离钉旧版(CVE 复现坐标),两路都跑
 install_java() {
     log "Java 库固化(grok 清单:BC/ASM/Jackson/Spring 等 + study 研究 profile)"
     # 非交互 shell 没有 JAVA_HOME,从 sdkman current 推(install-runtimes 已装)
     export JAVA_HOME="${JAVA_HOME:-/usr/local/sdkman/candidates/java/current}"
     local dir=/opt/maven-prewarm
     install -d "$dir"
-    cat > "$dir/pom.xml" <<'EOF'
+    if lock_avail java/pom.xml; then
+        cp "$LOCKS/java/pom.xml" "$dir/pom.xml"
+        ( cd "$dir" && mvn -q -B -DskipTests dependency:go-offline ) \
+            && echo "Java 库已按 scripts/lock/java pom 进 /opt/m2(默认 profile)" \
+            || echo "!! mvn 默认 profile 锁消费失败(有网阶段重跑可补)"
+    else
+        lock_miss java/pom.xml
+        cat > "$dir/pom.xml" <<'EOF'
 <project xmlns="http://maven.apache.org/POM/4.0.0">
   <modelVersion>4.0.0</modelVersion>
   <groupId>pi</groupId><artifactId>prewarm</artifactId><version>0</version>
@@ -233,12 +284,13 @@ install_java() {
   </profiles>
 </project>
 EOF
-    # 版本钉:写 [0,) 区间,构建日 versions:resolve-ranges 解析成精确版本写回 pom,
-    # 再 dependency:go-offline 把字节拉进 /opt/m2(study profile 一并解析)
-    ( cd "$dir" && mvn -q -B versions:resolve-ranges 2>/dev/null \
-        && mvn -q -B -DskipTests dependency:go-offline ) \
-        && echo "Java 库已进 /opt/m2(默认 profile)" \
-        || echo "!! mvn 默认 profile 失败(有网阶段重跑可补)"
+        # 版本钉:写 [0,) 区间,构建日 versions:resolve-ranges 解析成精确版本写回 pom,
+        # 再 dependency:go-offline 把字节拉进 /opt/m2(study profile 一并解析)
+        ( cd "$dir" && mvn -q -B versions:resolve-ranges 2>/dev/null \
+            && mvn -q -B -DskipTests dependency:go-offline ) \
+            && echo "Java 库已进 /opt/m2(默认 profile)" \
+            || echo "!! mvn 默认 profile 失败(有网阶段重跑可补)"
+    fi
     ( cd "$dir" && mvn -q -B -Pstudy -DskipTests dependency:go-offline ) \
         && echo "study profile(CVE 复现坐标)已进 /opt/m2" \
         || echo "!! study profile 失败(不影响默认 profile)"
@@ -304,20 +356,26 @@ install_dotnet() {
     export PATH="$PATH:/usr/local/bin"
     local dir=/opt/dotnet-prewarm
     rm -rf "$dir"
-    dotnet new classlib -o "$dir" --framework net10.0 >/dev/null 2>&1 || dotnet new classlib -o "$dir" >/dev/null
-    local p
-    for p in dnlib AsmResolver AsmResolver.PE AsmResolver.DotNet Iced Mono.Cecil \
-             ICSharpCode.Decompiler CommandLineParser YamlDotNet Newtonsoft.Json \
-             BouncyCastle.Cryptography System.DirectoryServices.Protocols \
-             Microsoft.NETFramework.ReferenceAssemblies Microsoft.Data.Sqlite SharpZipLib \
-             System.CommandLine; do
-        local nv="${NUGET_PIN[${p,,}]:-}"
-        if [ -n "$nv" ]; then
-            ( cd "$dir" && dotnet add package "$p" --version "$nv" 2>/dev/null ) || echo "dotnet add $p 失败"
-        else
-            echo "!! pins.sh 缺 nuget 钉: $p(跑 resolve-pins.sh)"
-        fi
-    done
+    if lock_avail 'dotnet/*.csproj'; then
+        # 锁消费:csproj 钉值已在库(dotnet add --version 写回),拷进直接 restore
+        install -d "$dir" && cp "$LOCKS"/dotnet/*.csproj "$dir/"
+    else
+        lock_miss 'dotnet/*.csproj'
+        dotnet new classlib -o "$dir" --framework net10.0 >/dev/null 2>&1 || dotnet new classlib -o "$dir" >/dev/null
+        local p
+        for p in dnlib AsmResolver AsmResolver.PE AsmResolver.DotNet Iced Mono.Cecil \
+                 ICSharpCode.Decompiler CommandLineParser YamlDotNet Newtonsoft.Json \
+                 BouncyCastle.Cryptography System.DirectoryServices.Protocols \
+                 Microsoft.NETFramework.ReferenceAssemblies Microsoft.Data.Sqlite SharpZipLib \
+                 System.CommandLine; do
+            local nv="${NUGET_PIN[${p,,}]:-}"
+            if [ -n "$nv" ]; then
+                ( cd "$dir" && dotnet add package "$p" --version "$nv" 2>/dev/null ) || echo "dotnet add $p 失败"
+            else
+                echo "!! pins.sh 缺 nuget 钉: $p(跑 resolve-pins.sh)"
+            fi
+        done
+    fi
     ( cd "$dir" && dotnet restore --packages /opt/nuget-packages ) || echo "restore 失败"
     # 八 RID 的 self-contained runtime pack(grok 矩阵)
     local rid
@@ -332,38 +390,50 @@ install_dotnet() {
     true
 }
 
-# ---- Zig:zig fetch 固化缓存(zon hash 必须用镜像内 zig 0.16 现场算) ----------
+# ---- Zig:锁消费 zig build --fetch 补缓存;未锁走 zig fetch --save 现场算 hash --
 install_zig() {
-    log "Zig 库固化(grok 清单:allyourcodebase 系交叉 C 库,zig fetch 进 /opt/zig-cache)"
+    log "Zig 库固化(grok 清单:allyourcodebase 系交叉 C 库,缓存进 /opt/zig-cache)"
     export ZIG_GLOBAL_CACHE_DIR=/opt/zig-cache
     export PATH="$PATH:/opt/zig:/usr/local/bin"
     have zig || { echo "zig 未装,先跑 install-compilers.sh zig"; return 0; }
     local dir=/opt/zig-prewarm
     rm -rf "$dir" && install -d "$dir" && cd "$dir"
-    # 0.16 起 zig fetch 要求 cwd 是包(实证报 no build.zig):先 zig init 出模板
+    # 0.16 起 zig fetch/zig build 要求 cwd 是包(实证报 no build.zig):先 zig init 出模板
     zig init >/dev/null 2>&1 || true
-    # zig fetch --save 会把依赖写进 build.zig.zon 并填充全局缓存;hash 以 0.16 输出为准
-    # 实证:ohmygh 代理不支持 git smart-http,git+ 全失败;改 tarball(archive/refs)才可过代理。
-    # 五库均钉主干 heads 的构建日快照(zlib 旧 tag 的 zon 字符串名被 0.16 拒);每库三次重试
-    local spec try ok failed=""
-    for spec in \
-        "zlib=${GITHUB_MIRROR}https://github.com/allyourcodebase/zlib/archive/refs/heads/master.tar.gz" \
-        "zstd=${GITHUB_MIRROR}https://github.com/allyourcodebase/zstd/archive/refs/heads/master.tar.gz" \
-        "sqlite3=${GITHUB_MIRROR}https://github.com/allyourcodebase/sqlite3/archive/refs/heads/main.tar.gz" \
-        "mbedtls=${GITHUB_MIRROR}https://github.com/allyourcodebase/mbedtls/archive/refs/heads/main.tar.gz" \
-        "libxml2=${GITHUB_MIRROR}https://github.com/allyourcodebase/libxml2/archive/refs/heads/master.tar.gz"; do
-        ok=0
-        for try in 1 2 3; do
-            zig fetch --save="${spec%%=*}" "${spec#*=}" 2>/dev/null && { ok=1; break; } || { echo "zig fetch ${spec%%=*} 第 $try 次失败"; sleep 2; }
-        done
-        [ "$ok" = 1 ] || failed="$failed ${spec%%=*}"
-    done
-    # 失败要响:缺一库即中断(空目录守卫太弱——旧条目还在就会放行,grok G2)
-    if [ -z "$failed" ]; then
-        echo "zig 库已固化: $(ls /opt/zig-cache/p 2>/dev/null | wc -l) 个包进 /opt/zig-cache;hash 见 /opt/zig-prewarm/build.zig.zon"
+    if lock_avail zig/build.zig.zon; then
+        # 锁消费:zon(依赖名+hash)在库,zig build --fetch 按 zon 把包补进全局缓存
+        cp "$LOCKS/zig/build.zig.zon" "$dir/build.zig.zon"
+        if zig build --fetch; then
+            echo "zig 库已按 scripts/lock/zig/build.zig.zon 补缓存: $(ls /opt/zig-cache/p 2>/dev/null | wc -l) 个包进 /opt/zig-cache"
+        else
+            echo "!! zig 锁消费失败(zig build --fetch;离线 zig 库残缺,查 GITHUB_MIRROR 或跑 sync-locks.sh zig)"
+            return 1
+        fi
     else
-        echo "!! zig fetch 未固化:$failed(离线 zig 库残缺,查 GITHUB_MIRROR)"
-        return 1
+        lock_miss zig/build.zig.zon
+        # zig fetch --save 会把依赖写进 build.zig.zon 并填充全局缓存;hash 以 0.16 输出为准
+        # 实证:ohmygh 代理不支持 git smart-http,git+ 全失败;改 tarball(archive/refs)才可过代理。
+        # 五库均钉主干 heads 的构建日快照(zlib 旧 tag 的 zon 字符串名被 0.16 拒);每库三次重试
+        local spec try ok failed=""
+        for spec in \
+            "zlib=${GITHUB_MIRROR}https://github.com/allyourcodebase/zlib/archive/refs/heads/master.tar.gz" \
+            "zstd=${GITHUB_MIRROR}https://github.com/allyourcodebase/zstd/archive/refs/heads/master.tar.gz" \
+            "sqlite3=${GITHUB_MIRROR}https://github.com/allyourcodebase/sqlite3/archive/refs/heads/main.tar.gz" \
+            "mbedtls=${GITHUB_MIRROR}https://github.com/allyourcodebase/mbedtls/archive/refs/heads/main.tar.gz" \
+            "libxml2=${GITHUB_MIRROR}https://github.com/allyourcodebase/libxml2/archive/refs/heads/master.tar.gz"; do
+            ok=0
+            for try in 1 2 3; do
+                zig fetch --save="${spec%%=*}" "${spec#*=}" 2>/dev/null && { ok=1; break; } || { echo "zig fetch ${spec%%=*} 第 $try 次失败"; sleep 2; }
+            done
+            [ "$ok" = 1 ] || failed="$failed ${spec%%=*}"
+        done
+        # 失败要响:缺一库即中断(空目录守卫太弱——旧条目还在就会放行,grok G2)
+        if [ -z "$failed" ]; then
+            echo "zig 库已固化: $(ls /opt/zig-cache/p 2>/dev/null | wc -l) 个包进 /opt/zig-cache;hash 见 /opt/zig-prewarm/build.zig.zon"
+        else
+            echo "!! zig fetch 未固化:$failed(离线 zig 库残缺,查 GITHUB_MIRROR)"
+            return 1
+        fi
     fi
     # 非登录 shell(incus exec)读不到 ZIG_GLOBAL_CACHE_DIR:默认缓存位软链兜底
     # (clean-image.sh 对软链有守卫,不会删);zig 缓存要可写(z/ 编译产物),

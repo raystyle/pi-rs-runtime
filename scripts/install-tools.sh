@@ -432,7 +432,7 @@ install_p0() {
     # UV_TOOL_BIN_DIR/UV_TOOL_DIR 指到 /opt:shim 与工具体对 ubuntu 可读(评审 F5)
     . "$HOME/.local/bin/env" 2>/dev/null || true
     export UV_TOOL_BIN_DIR=/usr/local/bin UV_TOOL_DIR=/opt/uv-tools
-    have pwndbg || uv tool install "git+${gh}/pwndbg/pwndbg@${GIT_PIN[pwndbg/pwndbg]:-HEAD}" || echo "pwndbg 失败"
+    have pwndbg || uv tool install "git+${gh}/pwndbg/pwndbg@${GIT_PIN[pwndbg/pwndbg]:?pins.sh 缺 pwndbg 钉}" || echo "pwndbg 失败"
     # jadx:CLI zip
     if ! have jadx; then
         local jv; jv="${JADX_VERSION:-1.5.3}"
@@ -961,7 +961,7 @@ install_red() {
     export GOPATH=/opt/go GOPROXY GOSUMDB
     # ghauri 不在任何 pypi(官方源/ tuna /阿里云均 404),只发 git 仓;r0oth3x49/ghauri
     if ! have ghauri; then
-        VIRTUAL_ENV= uv tool install "git+${GITHUB_MIRROR}https://github.com/r0oth3x49/ghauri@${GIT_PIN[r0oth3x49/ghauri]:-HEAD}" >/dev/null 2>&1 \
+        VIRTUAL_ENV= uv tool install "git+${GITHUB_MIRROR}https://github.com/r0oth3x49/ghauri@${GIT_PIN[r0oth3x49/ghauri]:?pins.sh 缺 ghauri 钉}" >/dev/null 2>&1 \
             && echo "ghauri 已装(git 源)" || echo "ghauri 失败(git 源;GitHub 限流窗口重试)"
     fi
     local t
@@ -1035,16 +1035,27 @@ install_red() {
     [ -f /opt/enum4linux-ng/requirements.txt ] \
         && VIRTUAL_ENV="$RE_VENV" uv pip install -r /opt/enum4linux-ng/requirements.txt >/dev/null 2>&1 || true
     # 四件都是仓内脚本无 console script:wrapper 一律 exec re-venv python(依赖已进 re-venv)
-    [ -f /opt/jwt_tool/jwt_tool.py ] && printf '#!/bin/sh\nexec %s/bin/python /opt/jwt_tool/jwt_tool.py "$@"\n' "$RE_VENV" > /usr/local/bin/jwt-tool \
-        && chmod +x /usr/local/bin/jwt-tool
+    # wrapper 只在依赖实证可 import 后写(grok G2:缺钉/装失败时「命令在 import 炸」比没有更坏)
+    if [ -f /opt/jwt_tool/jwt_tool.py ] && [ -x "$RE_VENV/bin/python" ] \
+        && "$RE_VENV/bin/python" -c "import ratelimit, Cryptodome, termcolor, requests" 2>/dev/null; then
+        printf '#!/bin/sh\nexec %s/bin/python /opt/jwt_tool/jwt_tool.py "$@"\n' "$RE_VENV" > /usr/local/bin/jwt-tool \
+            && chmod +x /usr/local/bin/jwt-tool
+    else
+        echo "!! jwt_tool 依赖未就位,wrapper 不写(查钉版与 re-venv)"
+    fi
     # krbrelayx 依赖(impacket/ldap3/dnspython/pyasn1)一并进 re-venv
     VIRTUAL_ENV="$RE_VENV" uv pip install "impacket==$(pypi_pin impacket)" "ldap3==$(pypi_pin ldap3)" "dnspython==$(pypi_pin dnspython)" "pyasn1==$(pypi_pin pyasn1)" >/dev/null 2>&1 || true
     [ -f /opt/enum4linux-ng/enum4linux-ng.py ] && printf '#!/bin/sh\nexec %s/bin/python /opt/enum4linux-ng/enum4linux-ng.py "$@"\n' "$RE_VENV" > /usr/local/bin/enum4linux-ng \
         && chmod +x /usr/local/bin/enum4linux-ng
     [ -f /opt/krbrelayx/krbrelayx.py ] && printf '#!/bin/sh\nexec %s/bin/python /opt/krbrelayx/krbrelayx.py "$@"\n' "$RE_VENV" > /usr/local/bin/krbrelayx \
         && chmod +x /usr/local/bin/krbrelayx
-    [ -f /opt/LinkFinder/linkfinder.py ] && printf '#!/bin/sh\nexec %s/bin/python /opt/LinkFinder/linkfinder.py "$@"\n' "$RE_VENV" > /usr/local/bin/linkfinder \
-        && chmod +x /usr/local/bin/linkfinder
+    if [ -f /opt/LinkFinder/linkfinder.py ] && [ -x "$RE_VENV/bin/python" ] \
+        && "$RE_VENV/bin/python" -c "import jsbeautifier" 2>/dev/null; then
+        printf '#!/bin/sh\nexec %s/bin/python /opt/LinkFinder/linkfinder.py "$@"\n' "$RE_VENV" > /usr/local/bin/linkfinder \
+            && chmod +x /usr/local/bin/linkfinder
+    else
+        echo "!! LinkFinder 依赖未就位,wrapper 不写"
+    fi
 
     log "Ruby 生态引入(gems.ruby-china;解锁 CeWL / evil-winrm)"
     apt-get update -qq
@@ -1160,5 +1171,24 @@ install_msf() {
 }
 
 
-TOOLS_ALL=(fd astgrep cli herdr ghidra re pd secgo secrust pivot p0 c2 bof pz maldev recon nu pentest red msf)
+# ---- VNC 桌面面(xfce4 + TigerVNC + noVNC;浏览器经 incus proxy 6080 进) -------
+# 设计:桌面栈烘焙进镜像,启动面在 vnc-screen.sh(口令首启生成,不落库);
+# websockify 绑 127.0.0.1:6080(回环纪律),宿主经 proxy 设备引 6080
+install_vnc() {
+    log "VNC 桌面面(xfce4+tigervnc+noVNC+websockify;阿里云 apt)"
+    apt-get update -qq
+    apt-get install -y --no-install-recommends \
+        xfce4 xfce4-terminal dbus-x11 \
+        tigervnc-standalone-server tigervnc-common tigervnc-tools \
+        novnc websockify fonts-noto-cjk \
+        xvfb x11vnc x11-utils xterm || true
+    # 验收:noVNC 页面与 tigervnc 本体在
+    ls /usr/share/novnc/vnc.html >/dev/null && echo "noVNC 就位" || echo "!! noVNC 缺 vnc.html"
+    have vncserver && have websockify && echo "tigervnc+websockify 就位" || echo "!! vnc 栈缺件"
+    # 启动面脚本装公共位(/root/scripts 是 0700,ubuntu 够不着)
+    install -m755 "$HERE/vnc-screen.sh" /usr/local/bin/vnc-screen
+    true
+}
+
+TOOLS_ALL=(fd astgrep cli herdr ghidra re pd secgo secrust pivot p0 c2 bof pz maldev recon nu pentest red msf vnc)
 run_category TOOLS_ALL "$@"

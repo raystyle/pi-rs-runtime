@@ -54,8 +54,11 @@ EOF
     for b in dlv gopls golangci-lint; do
         [ -e "/opt/go/bin/$b" ] && ln -sf "/opt/go/bin/$b" "/usr/local/bin/$b"
     done
-    if have go && [ "$(go env GOVERSION)" = "go$GOLANG_VERSION" ]; then
-        echo "已安装 $(go env GOVERSION),跳过"; return
+    # 判据须含三件套二进制本体:go 版本匹配但 dlv/gopls/golangci-lint 缺失(上半程失败残留)
+    # 时若早退,重跑永远跳过 go_install_pin 补救;缺一即落安装段(have X || go_install_pin 幂等补装)
+    if have go && [ "$(go env GOVERSION)" = "go$GOLANG_VERSION" ] \
+        && have dlv && have gopls && have golangci-lint; then
+        echo "已安装 $(go env GOVERSION) 与三件套,跳过"; return
     fi
     local tgz="go${GOLANG_VERSION}.linux-$(dpkg --print-architecture).tar.gz"
     curl -fSL "${GO_DOWNLOAD}/${tgz}" -o "/tmp/${tgz}"
@@ -121,7 +124,9 @@ install_rust() {
     # RUSTUP_HOME/CARGO_HOME 指 /opt:/root 是 0700,ubuntu 执行不了 /root/.cargo 下
     # 的 rustc/cargo;fresh 构建从这起装对位置(评审 F5)
     export RUSTUP_HOME=/opt/rustup CARGO_HOME=/opt/cargo
-    if ! have rustc; then
+    # 判据加执行探针:shim 在但工具链缺(rustup-init 上半程失败残留)时 have 通过,
+    # 下文 rustup component add 必炸且重跑永不重进 rustup-init、无自愈路径;探针失败即重装补链
+    if ! have rustc || ! rustc --version >/dev/null 2>&1; then
         local triple="x86_64-unknown-linux-gnu"
         [ "$(dpkg --print-architecture)" = arm64 ] && triple="aarch64-unknown-linux-gnu"
         curl -fSL "${RUSTUP_UPDATE_ROOT}/dist/${triple}/rustup-init" -o /tmp/rustup-init

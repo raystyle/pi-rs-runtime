@@ -74,12 +74,17 @@ git_head() {
 }
 
 # ---- git 仓:latest tag(原生形态返回;排序键剥前缀与 v,防 v 系/裸系混排错乱,nushell 实证) --
+# ---- git 仓:latest tag(原生形态返回;排序键剥前缀与 v;预发布先滤掉) ------------
+# grok F3:无 $ 锚会把 v0.116.2-rc1 吸进来且 sort 排最后压过正式版;G1:先剥前缀再过滤,
+# 否则 gopls/ 永远配不上
 git_latest_tag() { # git_latest_tag <owner/repo> [tag前缀]
     local repo="$1" prefix="${2:-}" v=""
     for _ in 1 2 3; do
         v="$(git ls-remote --tags --refs "${GH_MIRROR}https://github.com/$repo" 2>/dev/null \
-            | awk -F/ '{print $NF}' | grep -E "^${prefix}v?[0-9]+\.[0-9]+\.[0-9]+" \
-            | while read -r tag; do local k="${tag#"$prefix"}"; printf '%s %s\n' "${k#v}" "$tag"; done \
+            | grep -E "refs/tags/${prefix}v?[0-9]+\.[0-9]+\.[0-9]+$" \
+            | awk -F/ '{print $NF}' \
+            | sed "s/^${prefix}//" \
+            | while read -r tag; do local k="${tag#v}"; printf '%s %s\n' "$k" "$tag"; done \
             | sort -uV -k1,1 | tail -1 | cut -d' ' -f2 || true)"
         if [ -n "$v" ]; then break; fi
         sleep 2
@@ -97,7 +102,15 @@ psgallery_latest() {
 }
 
 # ---- nuget flat:v3 flatcontainer(地址从服务索引 PackageBaseAddress 取,华为实证路径) ----
-nuget_latest() { curl -fsSL -m 15 "${NUGET_FLAT:-https://repo.huaweicloud.com/artifactory/api/nuget/v3/nuget-remote}/$1/index.json" 2>/dev/null | grep -o '"[0-9][^"]*"' | tail -1 | tr -d '"' || true; }
+# grok G4:index 末位可能是预发布(2.9.2-ci-210/14.0.1-beta2),先滤稳定版;
+# 全预发布的包(System.CommandLine 这类常年 beta)回退末位
+nuget_latest() {
+    local all stable
+    all="$(curl -fsSL -m 15 "${NUGET_FLAT:-https://repo.huaweicloud.com/artifactory/api/nuget/v3/nuget-remote}/$1/index.json" 2>/dev/null | grep -o '"[0-9][^"]*"' | tr -d '"' || true)"
+    if [ -z "$all" ]; then return 0; fi
+    stable="$(printf '%s\n' "$all" | grep -v -- '-')"
+    if [ -n "$stable" ]; then printf '%s\n' "$stable" | tail -1; else printf '%s\n' "$all" | tail -1; fi
+}
 
 # ---- temurin:tuna Adoptium 目录列表 ------------------------------------------
 temurin_latest() { # temurin_latest <major> → 目录里的版本串(如 25.0.4.1_9)
@@ -350,8 +363,8 @@ main() {
     else
         mv "$out" "$PINS"
         local missing
-        missing="$(grep -E '\]=""$|^[A-Z_]+=""$' "$PINS" | grep -cE 'AWSCLI_VERSION|MSF_VERSION' -v || true)"
-        local total; total="$(grep -cE '\]="[^"]+"$|^[A-Z_]+="[^"]+"$' "$PINS" || true)"
+        missing="$(grep -E '\]=""$|^[A-Z0-9_]+=""$' "$PINS" | grep -cE 'AWSCLI_VERSION|MSF_VERSION' -v || true)"
+        local total; total="$(grep -cE '\]="[^"]+"$|^[A-Z0-9_]+="[^"]+"$' "$PINS" || true)"
         say "pins.sh 已生成:非空钉 $total;空钉(除软钉) $missing"
         [ "$missing" -eq 0 ] || { say "!! 有空钉,消费点会响;重跑解析器补齐"; exit 1; }
     fi

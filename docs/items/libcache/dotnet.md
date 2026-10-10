@@ -2,7 +2,7 @@
 
 > 16 个 NuGet 库包 + 8 RID self-contained runtime pack 固化进 /opt/nuget-packages;ilspycmd 反编译 CLI ｜ 状态:缓存固化 ｜ 组:`install-libcache.sh dotnet`(前置 `install-runtimes.sh dotnet`,dotnet-sdk-10.0)
 
-- **版本钉**:pins.sh 钉版(`NUGET_PIN[<包id>]`,16 库包 + ilspycmd 共 17 键,如 `NUGET_PIN[dnlib]`=4.5.0、`NUGET_PIN[ilspycmd]`=11.1.0.9782;解析日 2026-10-10),`dotnet add package --version` / `dotnet tool install --version` 把钉值写进 `/opt/dotnet-prewarm/*.csproj` 与 /opt/dotnet-tools(缺钉即响不静默漂),升级跑 scripts/resolve-pins.sh;csproj 即锁文件,在镜像侧,repo 侧回收是 PROGRESS.md 待办 3;8 RID runtime pack 版本随 SDK
+- **版本钉**:pins.sh 钉版(`NUGET_PIN[<包id>]`,16 库包 + ilspycmd 共 17 键,如 `NUGET_PIN[dnlib]`=4.5.0、`NUGET_PIN[ilspycmd]`=11.1.0.9782;解析日 2026-10-10),`dotnet add package --version` / `dotnet tool install --version` 把钉值写进 `/opt/dotnet-prewarm/*.csproj` 与 /opt/dotnet-tools(缺钉即响不静默漂),升级跑 scripts/resolve-pins.sh;csproj 即锁文件,已入库 `scripts/lock/dotnet/`(有锁拷入直接 restore 消费,再生跑 `scripts/sync-locks.sh`);8 RID runtime pack 版本随 SDK
 - **来源与安装**:NuGet 华为 v3 镜像(`NUGET_MIRROR`;root 与 ubuntu 的 NuGet.Config `<clear/>` 后只留它,runtimes dotnet 组写);预热工程 `dotnet new classlib -o /opt/dotnet-prewarm --framework net10.0`(失败回退默认框架);脚本段 `scripts/install-libcache.sh install_dotnet`
 
   16 库包:
