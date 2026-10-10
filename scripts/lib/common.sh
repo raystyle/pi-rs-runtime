@@ -57,8 +57,13 @@ shared_writable_cache() {
     local u
     for u in root ubuntu; do id "$u" >/dev/null 2>&1 && usermod -aG piopt "$u"; done
     chgrp -R piopt "$1" && chmod -R g+rwX "$1" && find "$1" -type d -exec chmod g+s {} +
-    have setfacl && setfacl -R -m g:piopt:rwX "$1" && setfacl -R -d -m g:piopt:rwX "$1"
-    true
+    if have setfacl; then
+        setfacl -R -m g:piopt:rwX "$1" && setfacl -R -d -m g:piopt:rwX "$1"
+    else
+        # 没 setfacl 只剩 setgid,压不住 umask(实证 ubuntu 写不进新子目录)——不响就是假绿
+        echo "!! setfacl 缺失(acl 包未装):$1 共享写不成立,先 apt-get install acl" >&2
+        return 1
+    fi
 }
 
 # 按名单跑安装函数:不带参数装全部

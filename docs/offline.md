@@ -14,10 +14,10 @@
 | Python | `/opt/wheelhouse`(轮子)+ `/opt/re-venv` + `/opt/uv-tools` | 消费:`pip install --no-index --find-links /opt/wheelhouse <包>` |
 | Node | `/opt/js-lab/node_modules`(161 包) | 软链进各 node prefix 的 `lib/node`(Module.globalPaths 只认这条;`node_modules` 面的链仅供 npm -g/bin);NODE_PATH(profile.d)备份 |
 | Java | `/opt/m2`(maven 本地仓) | `/opt/maven/conf/settings.xml` 写死 localRepository(不依赖 shell) |
-| Gradle | `/opt/gradle-home` | 家目录软链 `~/.gradle`;缓存要可写(daemon/锁),piopt 组 + setgid 共享 |
+| Gradle | `/opt/gradle-home` | 家目录软链 `~/.gradle`;缓存要可写(daemon/锁),piopt 组 + 默认 ACL 共享(见 §5) |
 | .NET | `/opt/nuget-packages` | NuGet.Config `fallbackPackageFolders`(NuGet 官方离线机制,root+ubuntu 各一份);不再导出 NUGET_PACKAGES(global 与 fallback 同路径会让登录 restore 写固化仓) |
 | PowerShell | `/opt/psmodules` | 软链进 `/usr/local/share/powershell/Modules`(pwsh 默认系统模块路径) |
-| Zig | `/opt/zig-cache`(hash 钉在 `/opt/zig-prewarm/build.zig.zon`) | 家目录软链 `~/.cache/zig`;可写共享(piopt 组 + setgid);cargo-zigbuild 缓存同形 |
+| Zig | `/opt/zig-cache`(hash 钉在 `/opt/zig-prewarm/build.zig.zon`) | 家目录软链 `~/.cache/zig`;可写共享(piopt 组 + 默认 ACL,见 §5);cargo-zigbuild 缓存同形 |
 | 扫描器库 | `/opt/trivy-db`、`/opt/nuclei-templates`、capa 规则 | wrapper 注入(见下) |
 | 数据 | SecLists、wordlists+rockyou、frida-server 八平台、PoC-in-GitHub 索引 | 直接读盘 |
 
@@ -43,8 +43,10 @@ profile.d 只作登录 shell 的备份面。
 ### 5. 可写共享缓存的权限模型
 
 zig 全局缓存、gradle 家目录、cargo-zigbuild 缓存不是只读仓(编译要写 z/、daemon、锁)。
-软链指到 /opt 后用共同组 `piopt`(root+ubuntu)+ 目录 setgid + g+rwX 共享;**不上 1777**——
-任意用户可写就能换掉 root 下次构建要用的缓存。只读消费面(node lib/node、psmodules、nuget fallback)保持 755。
+软链指到 /opt 后用共同组 `piopt`(root+ubuntu)+ **默认 ACL**(`setfacl -d -m g:piopt:rwX`)共享;
+setgid 只作辅助——它单独压不住 umask 022(实证 zig 自建子目录 g=r-x,ubuntu 写不进),压住 umask 的是默认 ACL。
+`setfacl` 缺失时 `shared_writable_cache` 直接 return 1(假绿比失败更伤)。
+**不上 1777**——任意用户可写就能换掉 root 下次构建要用的缓存。只读消费面(node lib/node、psmodules、nuget fallback)保持 755。
 
 ## 边界(离线做不成的事,属设计)
 
