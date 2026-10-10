@@ -23,11 +23,16 @@
 
 | 文档 | 内容 |
 |------|------|
+| [AGENTS.md](AGENTS.md) | 治理合同：命令、必须/禁止、先读清单、环境（agent 与人都先看它） |
+| [docs/README.md](docs/README.md) | 文档地图 |
+| [docs/items/](docs/items/README.md) | 逐件一册：每个安装/配置件的版本钉、落点、离线行为、坑（件级事实唯一真相，71 册） |
+| [docs/install-surfaces/](docs/install-surfaces/) | 安装面组卡：四个分类脚本的组机制导览（逐件明细链 items） |
+| [docs/software-inventory.md](docs/software-inventory.md) | 计数对账与形态分布（册数/件数，不记逐件事实） |
+| [docs/adr/](docs/adr/README.md) | 不可逆裁定（ADR,6 篇 accepted) |
+| [docs/diary/](docs/diary/) | 每轮构建/评审过程留痕（按日一篇） |
+| [docs/offline.md](docs/offline.md) | 离线运行：固化缓存/wrapper/非登录 shell 兼容三层机制、五生态快失败、断网冒烟验证法 |
 | [docs/params.md](docs/params.md) | 参数表：构建脚本变量、镜像源覆盖、版本钉、路径与工具集 |
-| [docs/install-surfaces/](docs/install-surfaces/) | 安装面清单：四个分类脚本的组|项目|版本|官方来源|安装命令全表（索引 + 编译器/运行时/工具三分册） |
-| [docs/software-inventory.md](docs/software-inventory.md) | 软件清单归档：镜像内全部软件、库与隔离环境，14 分类逐项 |
-| [docs/offline.md](docs/offline.md) | 离线运行：固化缓存/wrapper/非登录 shell 兼容三层机制、边界与断网冒烟验证法 |
-| [docs/known-issues.md](docs/known-issues.md) | 已知限制与未决项 |
+| [docs/known-issues.md](docs/known-issues.md) | 已知限制与未决项（真限制；裁定类在 ADR) |
 | [PROGRESS.md](PROGRESS.md) | 任务进度与历史轨迹（跨会话工作记忆，接续工作前先读） |
 
 ## 步骤

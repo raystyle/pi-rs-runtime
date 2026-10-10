@@ -1,24 +1,19 @@
-# 安装面清单
+# 安装面清单(组卡导览)
 
-本册按「脚本 → 组」分节列出三个分类脚本（外加库缓存脚本）的全部安装面。GitHub 网页上单文件过长，拆为编译器、运行时、工具三个分册，本页是索引。运行步骤见 [README](../../README.md)；参数取值见 [参数表](../params.md)；装完后的全景归档见 [软件清单](../software-inventory.md)。
-
-## 分类与清单入口
-
-三个分类脚本末尾各有 `*_ALL` 名单，`run_category` 校验入参；不传参数装全部，传入选项只装对应函数，未知项直接退出：
-
-- `install-compilers.sh`:`COMPILERS_ALL=(c golang rust zig nim vcpkg)`
-- `install-runtimes.sh`:`RUNTIMES_ALL=(node fnm bun uv python python2 duckdb clickhouse php mono dotnet pwsh sdkman)`
-- `install-tools.sh`:`TOOLS_ALL=(fd astgrep cli herdr ghidra re pd secgo secrust pivot p0 c2 bof pz maldev recon nu pentest red msf)`
-- `install-libcache.sh`:`LIBCACHE_ALL=(go rust python node java pwsh dotnet zig)`(八生态库缓存固化,独立分类)
+> 逐件的版本钉/来源/落点/离线行为已移到 [items/](../items/README.md)(唯一真相);本册只留每个脚本组的安装机制与批量命令骨架,成员明细链 items 册。
 
 ## 分册
 
-| 分册 | 内容 |
-|------|------|
-| [compilers.md](compilers.md) | 编译器 6 组:c、golang、rust、zig、nim、vcpkg |
-| [runtimes.md](runtimes.md) | 运行时 13 组:node、fnm、bun、uv、python、python2、duckdb、clickhouse、php、mono、dotnet、pwsh、sdkman |
-| [tools.md](tools.md) | 工具 20 组:fd、astgrep、cli、herdr、ghidra、re、pd、secgo、secrust、pivot、p0、c2、bof、pz、maldev、recon、nu、pentest、red、msf |
+| 册 | 脚本 | 组 |
+|---|---|---|
+| [compilers.md](compilers.md) | install-compilers.sh | c golang rust zig nim vcpkg |
+| [runtimes.md](runtimes.md) | install-runtimes.sh | node fnm bun uv python python2 duckdb clickhouse php mono dotnet pwsh sdkman |
+| [tools.md](tools.md) | install-tools.sh | fd astgrep cli herdr ghidra re pd secgo secrust pivot p0 c2 bof pz maldev recon nu pentest red msf |
+
+libcache 八生态(go rust python node java pwsh dotnet zig)的组机制直接见 [items/libcache/](../items/README.md#libcacheinstall-libcachesh8-册) 各册(缓存固化不产生安装面命令骨架之外的件)。
 
 ## 口径说明
 
-安装面事实（按代码）。各分册按「脚本 → 组」分节，每组一张三列小表（项目、版本、官方来源），表后 bash 代码块是脚本实际执行命令的摘录，`#` 注释标归属；省略 `have && skip` 幂等判断；`${变量}` 均为 `lib/common.sh` 的镜像源或版本钉，可用环境变量覆盖，取值见 [参数表](../params.md)。
+- 组卡写「这批怎么装」:幂等判据、批量循环、容错与兜底;「每件是什么/在哪/断网如何」一律在 items 册。
+- 版本钉变量集中在 `scripts/lib/common.sh`(参数表 [params.md](../params.md));镜像源口径同册。
+- 改脚本行为时:先改脚本,再同步对应 items 册,组卡只在机制变化时动。

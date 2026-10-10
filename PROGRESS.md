@@ -12,6 +12,7 @@
 - 镜像内唯一副本 scripts 在 /root/scripts;复跑/发布命令见 AGENTS.md Commands
 - 治理面:AGENTS.md(五节合同)、docs/adr/(6 篇 accepted)、docs/items/(逐件一册,件级事实唯一真相)、docs/diary/(轮次留痕)
 - 离线面三层完整:工具断网能跑(冒烟 78/0)+ 缓存构建断网能编(root/ubuntu 双视角)+ 拉新依赖亚秒快失败(五生态);机制与边界见 [docs/offline.md](docs/offline.md)
+- 文档解耦轮(2026-10-10):件级事实唯一真相迁 docs/items/(71 册,逐件七节:版本钉/来源安装/落点/配置缓存/离线行为/坑);install-surfaces 瘦身成组卡(机制+链接),software-inventory 改计数对账面,known-issues 只留真限制(裁定移 ADR);新增 AGENTS.md 五节合同与 docs/adr 6 篇、docs/diary 3 篇,本文件瘦身为会话本位
 - 镜像源与参数口径:[docs/params.md](docs/params.md);GITHUB_MIRROR 默认 `https://proxy.ohmygh.com/`
 
 ## 近三轮(细节在 diary)

@@ -1,20 +1,30 @@
 # 已知限制与未决项
 
-本册登记当前镜像与脚本的已知限制，不阻塞流水线的问题在 [PROGRESS.md](../PROGRESS.md) 待办节跟踪。返回 [README](../README.md)。
+本册只登记当前镜像与脚本的**真限制/未决项**;已裁定项见 [adr/](adr/README.md)(尤其 [ADR-0006 用户裁定留痕](adr/ADR-0006-user-rulings-log.md)),离线机制边界见 [offline.md](offline.md),逐件坑见 [items/](items/README.md) 各册「坑与留痕」节。返回 [README](../README.md)。
 
-- 版本未钉：temurin 小版本随 tuna Adoptium 目录取最新；`dlv`、`gopls`、`golangci-lint` 与 projectdiscovery 全家桶、Go 安全工具组用 `@latest`(`have && skip` 意味着“首次装到的那份”);rizin、rz-ghidra、sigdb、SecLists、yara 规则均为 `--depth 1` 未钉提交；pwndbg 从 git 源装、未钉 rev。
-- 未钉且无校验和的件（同上路线，不重排）：trufflehog release（上游 go.mod 带 replace 不能 `go install @版本`，tag 经 git ls-remote + `sort -V` 取）、metasploit omnibus 安装器（`msfupdate.erb` 加 apt.metasploit.com 仓）。ghidra/herdr/nasm/Go/node 另有 sha256 或 SHASUMS 校验。
-- zig 发行包无国内镜像，直下且无验签。minisig 公钥：`RWSGOq2NVecA2UPNdBUZykf1CCb147pkmdtYxgb3Ti+JO/wCYvhbAb/U`。验签未做。
-- `/root` 0700 的残留面：rust 工具链在 `/opt`（`RUSTUP_HOME=/opt/rustup`、`CARGO_HOME=/opt/cargo`),rust 段新装产物都归 /opt;ast-grep、Rust 安全工具、代理跳板、coffee-ldr 与 fnm 经 root 的 `~/.cargo` 安装再链到 `/usr/local/bin`;tools 各组 `GOPATH=/opt/go`(dlv/gopls/golangci-lint、projectdiscovery 全家桶、Go 安全工具、代理跳板归 /opt/go 并链出）；基础 CLI 组的 yq 与 gh 未设 GOPATH，产物在 /root/go 且只链 yq,`ubuntu` 用户对 gh 不可执行。已有的 /root/.cargo、/root/go 环境不受影响。
-- `install_secrust` 装 rustscan、feroxbuster、RustHound-CE 三件；findomain 不装，依赖多常编不过，注释建议改用 [Findomain/Findomain releases](https://github.com/Findomain/Findomain/releases) 预编译。
-- `install_php` 中 PHP 7.4 已无官方支持，样本动态执行需在无网络、无生产数据挂载的环境里跑，并加 `-d opcache.jit=off`；当前部署链未强制该隔离面。python2 同理（已通过实测含 `import ssl`)。
-- VNC 屏幕无 Chrome 与 noVNC;Chrome 官方版不装，后续定制构建。
-- C2 框架（sliver、merlin、Empire、Covenant、mythic、SILENTTRINITY、AdaptixC2）只克隆到 `/opt/c2dev-ref` 作参考，不安装不运行；载荷与开发模板（maldev 组 41 仓，外加 Crystal Palace/Tradecraft Garden 官网 tgz）同样只克隆，按工件角色轴归档 `/opt/payload-ref` 与 `/opt/tradecraft-ref`；侦察指纹库（recon 组 4 仓）只克隆到 `/opt/recon-ref`；.NET 参考项目（pz 组）同样只克隆。
-- 用户裁定留痕（grok 评审建议后裁定）：移除批（gospider、httprobe、assetfinder、waybackurls、Covenant、SILENTTRINITY）与 EOL 运行时（python2、PHP 7.4/8.1、JDK 11、Node 18/20）**全保留**；impacket 不用 noble apt 冻结版，改 `uv tool install impacket` 上游版（老镜像 apt 版增量迁移自动卸）；fff-mcp 不装二进制，fff-search 只进 rust 库预热；grok 库评审的 BananaPhone、go-clr、garble、obfstr、boost、Detours、JsonSpirit、webshell 样本库与哥斯拉/冰蝎/蚁剑操作台均裁定不进镜像。
-- `pi-box-dev` 镜像（pi 二进制、pi-web、定制 Chrome）的构建脚本不在本仓，`build.sh` 未做。
-- 备选路线：单个实例可直接 `incus launch images:ubuntu/24.04`,`incus stop` 后 `incus publish --alias <名>` 固化，不经 distrobuilder。
-- ~~org.jf:dexlib2 国内镜像无件~~（已解）：上游 google 迁到 GMaven 的 `com.android.tools.smali` 坐标（非 Maven Central 的 com.google.smali，早先留痕有误）。已钉 3.0.10 回 Java 预热（smali/smali-baksmali,GMaven 仓声明在 prewarm pom;settings 的 mirrorOf=central 不拦）,dexlib2 经传递依赖进 /opt/m2;smali/baksmali CLI 落 /usr/local/bin（官方 fat jar 只源码构建且限 JDK11，这里 thin jar+依赖解 /opt/smali/lib,wrapper 走 classpath，断网 roundtrip 实证）。
-- trufflehog 3.99 `filesystem` 零命中也退 1（实证空目录 rc=1)，自动化断言勿看退出码，看输出内容。
-- alias 只在交互登录 shell 生效：`incus exec`（非登录）不读 /etc/profile.d 也不读 /etc/environment。离线必需的环境修正必须落 wrapper 文件、per-user 配置（go env/NuGet.Config）或默认路径软链；profile.d 只是登录 shell 备份面（血泪教训，离线轮实证）。
+## 未钉版本(升级即漂)
 
-本仓只维护 yaml、脚本与文档；镜像产物不入库；distrobuilder 构建缓存与根目录在 `/tmp/distrobuilder`，失败后可手动清理。
+temurin 小版本随 tuna Adoptium 目录;`dlv`/`gopls`/`golangci-lint` 与 projectdiscovery 全家桶、Go 安全工具组用 `@latest`(`have && skip` = 首次装到的那份,升级要删了重跑);rizin、rz-ghidra、sigdb、SecLists、yara 规则、Responder、参考克隆批均 `--depth 1` 未钉提交;pwndbg 从 git 源装未钉 rev;uv 本体、nushell 等随官方安装器最新。
+
+## 无校验和件(路线已选,留痕接受)
+
+trufflehog release(上游 go.mod 带 replace 不能 `go install @版本`)、metasploit omnibus(`msfupdate.erb` + apt.metasploit.com)、zig 发行包(直下无验签,minisig 公钥 `RWSGOq2NVecA2UPNdBUZykf1CCb147pkmdtYxgb3Ti+JO/wCYvhbAb/U` 待接)、duckdb CLI、CyberChef zip、donut release、nasm 源码。
+
+## 构建期已知失败/缺口(不阻塞)
+
+- webcrack 传递依赖 isolated-vm 原生模块 npm install script 被拦
+- frida windows-x86/arm64 server 多数版本上游未发布(容错跳过)
+- coffee-ldr nightly 编译失败(上游 `#!feature` 问题,留档;BOF 运行有 bof-launcher 与 mingw/wine 兜底)——见 [items/tools-bof/coffee-ldr.md](items/tools-bof/coffee-ldr.md)
+- trivy 漏洞库/Java 库、nuclei 模板为构建日快照;要新鲜数据回有网环境重跑对应组再 publish
+- nuclei headless 模板依赖 Chrome,定制 Chrome 未合入前不可用(PROGRESS.md 待办 1)
+- VNC 屏幕无 Chrome 与 noVNC;Chrome 官方版不装(ADR-0006)
+- `pi-box-dev` 镜像(pi 二进制、pi-web、定制 Chrome)的构建脚本不在本仓
+
+## 行为边界(设计如此,不是缺陷)
+
+- 离线期 `apt install` 新件不可用(lists 已清,快失败属预期);五生态拉新件亚秒报错([ADR-0004](adr/ADR-0004-offline-first-fail-fast.md))
+- `incus exec` 非登录 shell 不读 /etc/profile.d 与 /etc/environment;离线必需的件一律走 per-user 配置/默认路径软链/wrapper,profile.d 只是登录备份面
+- npm `--prefix` 会连 prefix 级 npmrc 一起丢;uv 用户级 ~/.config/uv/uv.toml 存在则系统级整份失效
+- alias 只在交互登录 shell 生效,运行期行为修正必须落 wrapper 文件
+
+本仓只维护 yaml、脚本与文档;镜像产物不入库;distrobuilder 构建缓存与根目录在 `/tmp/distrobuilder`,失败后可手动清理。
