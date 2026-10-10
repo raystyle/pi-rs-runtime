@@ -19,9 +19,12 @@ PIP_INDEX="${PIP_INDEX:-$ALIYUN/pypi/simple}" # 写 /etc/pip.conf 与 /etc/uv/uv
 
 # 离线优先默认(纯离线镜像):运行期配置把 go/cargo/npm/uv/pip 钉成快失败(go env 文件、
 # cargo config.toml [net] offline、npmrc offline+fetch-retries=0、uv.toml offline、pip.conf no-index);
-# 构建脚本在此显式拿回在线面——env 优先级高于上述配置文件,全链路 source 本文件即在线
-export CARGO_NET_OFFLINE=false UV_OFFLINE=0 PIP_NO_INDEX=false
+# 构建脚本在此显式拿回在线面——env 优先级恒高于上述配置文件,全链路 source 本文件即在线。
+# uv 特例(实证 uv 0.12.15):UV_OFFLINE=0 压不过配置文件的 offline=true,只有 UV_CONFIG_FILE
+# 指到无 offline 的文件才整面替换,故构建期改用 uv-online.toml
+export CARGO_NET_OFFLINE=false PIP_NO_INDEX=false
 export NPM_CONFIG_OFFLINE=false NPM_CONFIG_FETCH_RETRIES=3 NPM_CONFIG_FETCH_RETRY_MINTIMEOUT=10000 NPM_CONFIG_FETCH_RETRY_MAXTIMEOUT=60000
+[ -f /etc/uv/uv-online.toml ] && export UV_CONFIG_FILE=/etc/uv/uv-online.toml
 ADOPTIUM_MIRROR="${ADOPTIUM_MIRROR:-$TUNA/Adoptium}"  # 阿里云无 Adoptium 镜像
 MAVEN_MIRROR="${MAVEN_MIRROR:-$ALIYUN/apache/maven}"
 

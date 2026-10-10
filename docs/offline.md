@@ -43,7 +43,7 @@ profile.d 只作登录 shell 的备份面。
 | Go | `~/.config/go/env` 里 `GOPROXY=off`(root+ubuntu) | `module lookup disabled by GOPROXY=off`,瞬时 | common.sh export GOPROXY=goproxy.cn |
 | Rust | `/opt/cargo/config.toml` `[net] offline=true` | 未缓存 crate 立即报 not found | `CARGO_NET_OFFLINE=false` |
 | Node | prefix 级 npmrc:`offline=true` + `fetch-retries=0` | `ENOTCACHED` 亚秒;**注意 `--prefix` 会连 npmrc 一起丢掉**(npm 的坑,实证) | `NPM_CONFIG_OFFLINE=false` + `NPM_CONFIG_FETCH_*` |
-| uv | `/etc/uv/uv.toml` `offline=true` | 8ms 报 "network was disabled" | `UV_OFFLINE=0` |
+| uv | `/etc/uv/uv.toml` `offline=true` | 8ms 报 "network was disabled";**注意 uv 不合并配置:用户级 ~/.config/uv/uv.toml 一旦存在,系统级整份被忽略**(离线默认随之失效) | `UV_CONFIG_FILE=/etc/uv/uv-online.toml`(UV_OFFLINE=0 压不过配置文件,实证 uv 0.12.15) |
 | pip | `/etc/pip.conf` `[install] no-index=true find-links=/opt/wheelhouse` | 轮子内的包离线直装;轮子外立即 No matching distribution | `PIP_NO_INDEX=false` |
 
 js-lab 的包走 `require`(全局链)离线可用,但 `npm install` 同一包仍 ENOTCACHED(npm cache 被 clean-image 清掉)——两条消费路径,语义不同,别混。

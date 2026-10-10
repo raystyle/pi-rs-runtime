@@ -91,6 +91,15 @@ install_fnm() {
 export PATH="$HOME/.local/share/fnm:$PATH"
 eval "$(fnm env 2>/dev/null)" || true
 EOF
+    # fnm 各版本 prefix 级 npmrc 离线面:node 组的循环在首轮 install-all 里目录尚不存在
+    # (RUNTIMES_ALL 是 node 先于 fnm,grok G),装完版本后这里兜底再写一遍
+    local v
+    for v in /root/.local/share/fnm/node-versions/*/installation /home/ubuntu/.local/share/fnm/node-versions/*/installation; do
+        [ -d "$v" ] || continue
+        install -d "$v/etc"
+        sed -i -e '/^offline=/d' -e '/^fetch-retries=/d' -e '/^fetch-retry-mintimeout=/d' -e '/^fetch-retry-maxtimeout=/d' "$v/etc/npmrc" 2>/dev/null || true
+        printf 'offline=true\nfetch-retries=0\nfetch-retry-mintimeout=500\nfetch-retry-maxtimeout=1000\n' >> "$v/etc/npmrc"
+    done
     fnm ls
 }
 
@@ -176,10 +185,13 @@ install_python2() {
 install_uv() {
     log "uv (独立安装器,不经过系统 pip;库索引 /etc/uv/uv.toml=$PIP_INDEX)"
     # uv 0.4.23 起 UV_INDEX_URL 废弃;系统配置写 /etc/uv/uv.toml(tuna 帮助口径)
-    # offline = true:运行期 uv 拉新包立即失败;构建脚本经 common.sh export UV_OFFLINE=0 覆盖。
+    # offline = true:运行期 uv 拉新包立即失败。实证(uv 0.12.15):UV_OFFLINE=0 压不过
+    # 配置文件,只有 UV_CONFIG_FILE 指到无 offline 的文件才整面替换——构建期的在线面
+    # 是 uv-online.toml(common.sh 导出 UV_CONFIG_FILE 指过去)。
     # 配置写在早退前(幂等,不依赖网络),否则增量重跑永远刷不上
     install -d /etc/uv
     printf 'offline = true\n\n[[index]]\nurl = "%s"\ndefault = true\n' "$PIP_INDEX" > /etc/uv/uv.toml
+    printf '[[index]]\nurl = "%s"\ndefault = true\n' "$PIP_INDEX" > /etc/uv/uv-online.toml
     if have uv; then uv --version; echo "已安装,跳过"; return; fi
     # 用户裁定:不碰系统 python3,uv 用官方独立安装器(装到 ~/.local/bin)
     curl -LsSf https://astral.sh/uv/install.sh | sh
