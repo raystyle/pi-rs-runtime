@@ -30,8 +30,21 @@ go_latest() { # go_latest <module/path> → vX.Y.Z 或 40 位 sha
     done
     case "$esc" in
         golang.org/x/tools/gopls) git_latest_tag golang/tools "gopls/" ;;
-        github.com/*) local repo; repo="$(echo "$esc" | cut -d/ -f2-3)"
-            v="$(git_latest_tag "$repo")"; [ -n "$v" ] || v="$(git_head "$repo")"
+        github.com/go-gost/gost*)
+            # gost 仓 tag 与模块路径不合规(不用 /vN,tag v2/v3 直装违法),实证只有 master HEAD 伪版本可装
+            git_head go-gost/gost ;;
+        github.com/*)
+            # F4(grok 终审):/vN 后缀模块只取同主版本标签;无后缀模块只取 v0/v1
+            # (v2+ 标签按 go 模块规则要求 /vN 路径,直接装必炸:amass/v4→v5.1.1、azurehound/v2→v3.1.2 实证)
+            local repo mj
+            repo="$(echo "$esc" | cut -d/ -f2-3)"
+            mj="$(echo "$esc" | grep -oE '/v[0-9]+(/|$)' | head -1 | tr -d '/')"
+            if [ -n "$mj" ]; then
+                v="$(git_latest_tag "$repo" "" "${mj#v}")"
+            else
+                v="$(git_latest_tag "$repo" "" "01")"   # 无后缀模块:只 v0/v1 合法
+            fi
+            if [ -z "$v" ]; then v="$(git_head "$repo")"; fi
             printf '%s' "$v" ;;
         *) : ;;
     esac
@@ -77,13 +90,13 @@ git_head() {
 # ---- git 仓:latest tag(原生形态返回;排序键剥前缀与 v;预发布先滤掉) ------------
 # grok F3:无 $ 锚会把 v0.116.2-rc1 吸进来且 sort 排最后压过正式版;G1:先剥前缀再过滤,
 # 否则 gopls/ 永远配不上
-git_latest_tag() { # git_latest_tag <owner/repo> [tag前缀]
-    local repo="$1" prefix="${2:-}" v=""
+git_latest_tag() { # git_latest_tag <owner/repo> [tag前缀] [主版本(N 或 01 表 v0/v1)]
+    local repo="$1" prefix="${2:-}" major="${3:-}" v=""
     for _ in 1 2 3; do
         v="$(git ls-remote --tags --refs "${GH_MIRROR}https://github.com/$repo" 2>/dev/null \
             | grep -E "refs/tags/${prefix}v?[0-9]+\.[0-9]+\.[0-9]+$" \
             | awk -F/ '{print $NF}' \
-            | sed "s/^${prefix}//" \
+            | { if [ -z "$major" ]; then cat; elif [ "$major" = 01 ]; then grep -E "^v?[01]\."; else grep -E "^v?${major}\."; fi; } \
             | while read -r tag; do local k="${tag#v}"; printf '%s %s\n' "$k" "$tag"; done \
             | sort -uV -k1,1 | tail -1 | cut -d' ' -f2 || true)"
         if [ -n "$v" ]; then break; fi
