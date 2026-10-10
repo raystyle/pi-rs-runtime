@@ -34,11 +34,23 @@
 per-user 配置文件(go env、NuGet.Config)、默认路径软链(cargo/rustup/gradle/zig/psmodules/js-lab)、wrapper(trivy/nuclei)。
 profile.d 只作登录 shell 的备份面。
 
-### 4. offline() 快失败函数
+### 4. 默认快失败(离线期拉新依赖立即报错,不挂起)
 
-`/etc/profile.d/offline.sh` 提供 `offline` 命令:`GOPROXY=off CARGO_NET_OFFLINE=true NPM_CONFIG_PREFER_OFFLINE=true UV_OFFLINE=1`。
-离线期新依赖解析默认是长超时挂起,半静默最伤现场;执行 `offline` 后新依赖立即报错。
-注意它同样只在登录 shell 生效;`incus exec` 场景用 `incus exec <容器> -- bash -lc '…'` 或显式带 env。
+运行期配置把五生态钉成离线优先;构建脚本(source `lib/common.sh`)用 env 显式拿回在线面(env 优先级恒高于配置文件):
+
+| 生态 | 运行期配置(默认面) | 离线行为(实证) | 在线覆盖(构建/手工) |
+|---|---|---|---|
+| Go | `~/.config/go/env` 里 `GOPROXY=off`(root+ubuntu) | `module lookup disabled by GOPROXY=off`,瞬时 | common.sh export GOPROXY=goproxy.cn |
+| Rust | `/opt/cargo/config.toml` `[net] offline=true` | 未缓存 crate 立即报 not found | `CARGO_NET_OFFLINE=false` |
+| Node | prefix 级 npmrc:`offline=true` + `fetch-retries=0` | `ENOTCACHED` 亚秒;**注意 `--prefix` 会连 npmrc 一起丢掉**(npm 的坑,实证) | `NPM_CONFIG_OFFLINE=false` + `NPM_CONFIG_FETCH_*` |
+| uv | `/etc/uv/uv.toml` `offline=true` | 8ms 报 "network was disabled" | `UV_OFFLINE=0` |
+| pip | `/etc/pip.conf` `[install] no-index=true find-links=/opt/wheelhouse` | 轮子内的包离线直装;轮子外立即 No matching distribution | `PIP_NO_INDEX=false` |
+
+js-lab 的包走 `require`(全局链)离线可用,但 `npm install` 同一包仍 ENOTCACHED(npm cache 被 clean-image 清掉)——两条消费路径,语义不同,别混。
+
+`/etc/profile.d/offline.sh` 的 `offline()` 函数保留作显式开关(登录 shell);默认面已快失败,它不再是必需品。
+maven/gradle 没有干净的「配置离线+CLI 覆盖」对,不做默认离线:手工 `mvn -o` / `gradle --offline`;
+另注意 gradle wrapper(`./gradlew`)会按 distributionUrl 重新下载发行包,离线期用系统 `gradle` 命令。
 
 ### 5. 可写共享缓存的权限模型
 

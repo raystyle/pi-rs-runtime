@@ -35,11 +35,27 @@ install_node() {
     # 直写 npmrc 文件——npm 会把任意键以 npm_config_* 形式传给生命周期脚本(node-gyp/electron 正是这么读的)
     install -d /opt/node/etc
     # 幂等:先清旧键再写,避免重跑追加
-    sed -i -e '/^disturl=/d' -e '/^electron_mirror=/d' /opt/node/etc/npmrc 2>/dev/null || true
+    sed -i -e '/^disturl=/d' -e '/^electron_mirror=/d' -e '/^offline=/d' -e '/^fetch-retries=/d' -e '/^fetch-retry-mintimeout=/d' -e '/^fetch-retry-maxtimeout=/d' /opt/node/etc/npmrc 2>/dev/null || true
     cat >> /opt/node/etc/npmrc <<EOF
 disturl=https://npmmirror.com/mirrors/node
 electron_mirror=https://npmmirror.com/mirrors/electron/
+# 离线快失败双保险:offline=true 走 cache-only,未命中即 ENOTCACHED 亚秒退;
+# fetch-retries=0 兜住绕过 cache 的解析路径(实证默认重试挂 70s+)。
+# 注意 npmrc 是 prefix 级:npm --prefix 会连配置一起丢(早期误判正源于此),项目内用法才吃到。
+# 构建脚本经 common.sh 的 NPM_CONFIG_OFFLINE=false + NPM_CONFIG_FETCH_* env 拿回在线面
+offline=true
+fetch-retries=0
+fetch-retry-mintimeout=500
+fetch-retry-maxtimeout=1000
 EOF
+    # fnm 各版本同形(prefix 级 npmrc)
+    local fnmv
+    for fnmv in /root/.local/share/fnm/node-versions/*/installation; do
+        [ -d "$fnmv" ] || continue
+        install -d "$fnmv/etc"
+        sed -i -e '/^offline=/d' -e '/^fetch-retries=/d' -e '/^fetch-retry-mintimeout=/d' -e '/^fetch-retry-maxtimeout=/d' "$fnmv/etc/npmrc" 2>/dev/null || true
+        printf 'offline=true\nfetch-retries=0\nfetch-retry-mintimeout=500\nfetch-retry-maxtimeout=1000\n' >> "$fnmv/etc/npmrc"
+    done
     npm install -g typescript          # tsc:pi-rs 基座要求
     ln -sf /opt/node/bin/tsc /usr/local/bin/tsc
     ln -sf /opt/node/bin/tsserver /usr/local/bin/tsserver
@@ -97,7 +113,10 @@ install_python() {
     apt-get update -qq
     apt-get install -y --no-install-recommends python3 python3-pip python3-venv python3-dev
     # 系统级 pip 配置(apt 装的 python3-* 包和 venv 共用索引;不加 extra-index-url 防依赖混淆)
-    printf '[global]\nindex-url = %s\n' "$PIP_INDEX" > /etc/pip.conf
+    # [install] no-index+find-links:运行期 pip install 默认只走 /opt/wheelhouse 快失败
+    # (烘焙轮子内的包离线直接可装);构建脚本经 common.sh export PIP_NO_INDEX=false 覆盖;
+    # pip download 不受 [install] 节影响(wheelhouse 构建不受影响)
+    printf '[global]\nindex-url = %s\n\n[install]\nno-index = true\nfind-links = /opt/wheelhouse\n' "$PIP_INDEX" > /etc/pip.conf
     # 分析 venv:polars/pyarrow/chdb 等全进这里,系统 python 保持干净
     [ -d "$VENV_ANALYTICS" ] || uv venv "$VENV_ANALYTICS"
     VIRTUAL_ENV="$VENV_ANALYTICS" uv pip install polars pyarrow chdb
@@ -156,13 +175,15 @@ install_python2() {
 
 install_uv() {
     log "uv (独立安装器,不经过系统 pip;库索引 /etc/uv/uv.toml=$PIP_INDEX)"
+    # uv 0.4.23 起 UV_INDEX_URL 废弃;系统配置写 /etc/uv/uv.toml(tuna 帮助口径)
+    # offline = true:运行期 uv 拉新包立即失败;构建脚本经 common.sh export UV_OFFLINE=0 覆盖。
+    # 配置写在早退前(幂等,不依赖网络),否则增量重跑永远刷不上
+    install -d /etc/uv
+    printf 'offline = true\n\n[[index]]\nurl = "%s"\ndefault = true\n' "$PIP_INDEX" > /etc/uv/uv.toml
     if have uv; then uv --version; echo "已安装,跳过"; return; fi
     # 用户裁定:不碰系统 python3,uv 用官方独立安装器(装到 ~/.local/bin)
     curl -LsSf https://astral.sh/uv/install.sh | sh
     [ -e "$HOME/.local/bin/uv" ] && ln -sf "$HOME/.local/bin/uv" /usr/local/bin/uv
-    # uv 0.4.23 起 UV_INDEX_URL 废弃;系统配置写 /etc/uv/uv.toml(tuna 帮助口径)
-    install -d /etc/uv
-    printf '[[index]]\nurl = "%s"\ndefault = true\n' "$PIP_INDEX" > /etc/uv/uv.toml
     export UV_DEFAULT_INDEX="$PIP_INDEX"
     uv --version
 }

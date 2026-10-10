@@ -16,6 +16,12 @@ GO_DOWNLOAD="${GO_DOWNLOAD:-https://mirror.nju.edu.cn/golang}" # tuna 无 golang
 NPM_REGISTRY="${NPM_REGISTRY:-https://registry.npmmirror.com}"            # 淘宝 npm 镜像
 NODE_MIRROR="${NODE_MIRROR:-https://registry.npmmirror.com/-/binary/node}" # 淘宝 node 二进制
 PIP_INDEX="${PIP_INDEX:-$ALIYUN/pypi/simple}" # 写 /etc/pip.conf 与 /etc/uv/uv.toml,uv 索引用同一个变量
+
+# 离线优先默认(纯离线镜像):运行期配置把 go/cargo/npm/uv/pip 钉成快失败(go env 文件、
+# cargo config.toml [net] offline、npmrc offline+fetch-retries=0、uv.toml offline、pip.conf no-index);
+# 构建脚本在此显式拿回在线面——env 优先级高于上述配置文件,全链路 source 本文件即在线
+export CARGO_NET_OFFLINE=false UV_OFFLINE=0 PIP_NO_INDEX=false
+export NPM_CONFIG_OFFLINE=false NPM_CONFIG_FETCH_RETRIES=3 NPM_CONFIG_FETCH_RETRY_MINTIMEOUT=10000 NPM_CONFIG_FETCH_RETRY_MAXTIMEOUT=60000
 ADOPTIUM_MIRROR="${ADOPTIUM_MIRROR:-$TUNA/Adoptium}"  # 阿里云无 Adoptium 镜像
 MAVEN_MIRROR="${MAVEN_MIRROR:-$ALIYUN/apache/maven}"
 

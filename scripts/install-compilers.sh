@@ -34,13 +34,16 @@ install_c() {
 
 install_golang() {
     log "golang $GOLANG_VERSION (下载 $GO_DOWNLOAD,GOPROXY=$GOPROXY)"
-    # ubuntu 同形 go env:per-user 文件(非登录 shell 也读),root 那份帮不到 ubuntu;
-    # 写文件不依赖 go 二进制,放在早退前,保证重跑组时也会补上
-    if [ -d /home/ubuntu ]; then
-        install -d /home/ubuntu/.config/go
-        printf 'GOPROXY=%s\nGOSUMDB=%s\nGOPATH=/opt/go\nGOMODCACHE=/opt/go/pkg/mod\n' "${GOPROXY}" "${GOSUMDB}" > /home/ubuntu/.config/go/env
-        chown -R ubuntu:ubuntu /home/ubuntu/.config 2>/dev/null || true
-    fi
+    # go env per-user 文件(非登录 shell 也读),root/ubuntu 同形;默认 GOPROXY=off 快失败
+    # (纯离线镜像默认面;构建脚本经 common.sh export 真实代理,env 优先于此文件);
+    # 放在早退前直写文件(不依赖 go 二进制),保证重跑组时两份都会刷新
+    local gu
+    for gu in /root /home/ubuntu; do
+        [ -d "$gu" ] || continue
+        install -d "$gu/.config/go"
+        printf 'GOPROXY=off\nGOSUMDB=%s\nGOPATH=/opt/go\nGOMODCACHE=/opt/go/pkg/mod\n' "${GOSUMDB}" > "$gu/.config/go/env"
+    done
+    chown -R ubuntu:ubuntu /home/ubuntu/.config 2>/dev/null || true
     if have go && [ "$(go env GOVERSION)" = "go$GOLANG_VERSION" ]; then
         echo "已安装 $(go env GOVERSION),跳过"; return
     fi
@@ -62,9 +65,8 @@ for rel in json.load(sys.stdin):
     rm -rf /usr/local/go && tar -C /usr/local -xzf "/tmp/${tgz}" && rm "/tmp/${tgz}"
     ln -sf /usr/local/go/bin/go /usr/local/bin/go
     export PATH=$PATH:/usr/local/go/bin
-    # go env -w 先于下面的 go install,且 GOPROXY 已 export(common.sh)
-    # 共享缓存:GOPATH/GOMODCACHE 持久化到 /opt,root(0700)家目录里的缓存 ubuntu 用不了
-    /usr/local/bin/go env -w GOPROXY="${GOPROXY}" GOSUMDB="${GOSUMDB}" GOPATH=/opt/go GOMODCACHE=/opt/go/pkg/mod 2>/dev/null || true
+    # go env 由组首直写 root/ubuntu 两份(GOPROXY=off 默认面);本函数后续 go install
+    # 走 common.sh export 的 GOPROXY(env 优先于 go env 文件),不受影响
     # 黄金三件:调试器 dlv、语言服务器 gopls、静态检查 golangci-lint
     # 注意:go install 产物落在 $(go env GOPATH)/bin(持久化后为 /opt/go/bin),不在 /usr/local/go/bin
     export GOPATH=/opt/go
@@ -135,6 +137,9 @@ index = "sparse+${CRATES_INDEX}/"
 
 [net]
 git-fetch-with-cli = true
+# 离线优先默认:运行期 cargo 拉新 crate 立即失败而不是挂起;
+# 构建脚本经 common.sh export CARGO_NET_OFFLINE=false 拿回在线面(env 优先于 config)
+offline = true
 EOF
     # rustup 更新通道持久化(tuna 帮助口径),否则 rustup update 回官方源
     # RUSTUP_HOME/CARGO_HOME 一并导出:不导出则 ubuntu 会在自己家目录再下一套,断网即挂
