@@ -44,6 +44,16 @@ install_golang() {
         printf 'GOPROXY=off\nGOSUMDB=%s\nGOPATH=/opt/go\nGOMODCACHE=/opt/go/pkg/mod\n' "${GOSUMDB}" > "$gu/.config/go/env"
     done
     chown -R ubuntu:ubuntu /home/ubuntu/.config 2>/dev/null || true
+    # profile.d 与 bin 链接同为配置,一并放早退前:存在才链(首装由下文安装段补链),重跑必刷新
+    cat > /etc/profile.d/golang.sh <<EOF
+export PATH=\$PATH:/usr/local/go/bin
+export GOPATH=\${GOPATH:-/opt/go}
+export PATH=\$PATH:\$GOPATH/bin
+EOF
+    [ -e /usr/local/go/bin/go ] && ln -sf /usr/local/go/bin/go /usr/local/bin/go
+    for b in dlv gopls golangci-lint; do
+        [ -e "/opt/go/bin/$b" ] && ln -sf "/opt/go/bin/$b" "/usr/local/bin/$b"
+    done
     if have go && [ "$(go env GOVERSION)" = "go$GOLANG_VERSION" ]; then
         echo "已安装 $(go env GOVERSION),跳过"; return
     fi
@@ -102,11 +112,6 @@ EOF
     ( cd "$gpw" && GOFLAGS=-mod=mod go mod tidy >/dev/null 2>&1 && go build ./... ) \
         && echo "go 跳板库已预热" || echo "!! go 库预热失败(不影响链本体)"
     rm -rf "$gpw"
-    cat > /etc/profile.d/golang.sh <<EOF
-export PATH=\$PATH:/usr/local/go/bin
-export GOPATH=\${GOPATH:-/opt/go}
-export PATH=\$PATH:\$GOPATH/bin
-EOF
     export PATH=$PATH:/usr/local/go/bin
     go version
 }
@@ -244,6 +249,13 @@ EOF
 
 install_zig() {
     log "zig $ZIG_VERSION (ziglang.org 直下,国内无镜像)"
+    # 组首直写配置(不依赖 zig 二进制),增量重跑也刷新(同 install_golang 组首直写);
+    # 全局缓存进 /opt:zig fetch 的包缓存默认在 ~/.cache/zig,留在 /root 则 ubuntu 离线不可用
+    cat > /etc/profile.d/zig.sh <<EOF
+export ZIG_GLOBAL_CACHE_DIR=/opt/zig-cache
+EOF
+    export ZIG_GLOBAL_CACHE_DIR=/opt/zig-cache
+    [ -e /opt/zig/zig ] && ln -sf /opt/zig/zig /usr/local/bin/zig
     if have zig && zig version | grep -q "^${ZIG_VERSION}"; then
         echo "已安装 $(zig version),跳过"; return
     fi
@@ -253,11 +265,6 @@ install_zig() {
     rm -rf /opt/zig && mkdir -p /opt/zig
     tar -C /opt/zig -xJf "/tmp/${tgz}" --strip-components=1 && rm "/tmp/${tgz}"
     ln -sf /opt/zig/zig /usr/local/bin/zig
-    # 全局缓存进 /opt:zig fetch 的包缓存默认在 ~/.cache/zig,留在 /root 则 ubuntu 离线不可用
-    cat > /etc/profile.d/zig.sh <<EOF
-export ZIG_GLOBAL_CACHE_DIR=/opt/zig-cache
-EOF
-    export ZIG_GLOBAL_CACHE_DIR=/opt/zig-cache
     zig version
 }
 
@@ -290,18 +297,20 @@ EOF
 # choosenim 归 CHOOSENIM_DIR=/opt/nim;noble apt 的 nim 停 1.6.x 过旧不取
 install_nim() {
     log "nim (choosenim 钉 ${NIM_VERSION:-stable},工具链归 /opt/nim)"
+    # 组首直写配置(不依赖 nim 二进制),跳出早退守卫,增量重跑也刷新(同 install_golang 组首直写)
+    cat > /etc/profile.d/nim.sh <<'EOF'
+export PATH=$PATH:/opt/nim/bin
+EOF
     if ! have nim; then
         export CHOOSENIM_DIR=/opt/nim
         local nimv="${NIM_VERSION#v}"; nimv="${nimv:-stable}"   # pins 存 v 前缀;空钉回退 stable
         curl -fsSL https://nim-lang.org/choosenim/init.sh | sh -s -- -y "$nimv" \
             || echo "choosenim 失败(nim-lang.org 直连抖动,下轮补)"
-        # 最新工具链的 bin 整批链出;nim 经 /proc/self/exe 定位 stdlib,软链安全
-        local tc; tc="$(ls -d /opt/nim/toolchains/nim-* 2>/dev/null | sort -V | tail -1)"
-        [ -n "$tc" ] && for b in "$tc"/bin/*; do ln -sf "$b" /usr/local/bin/; done
-        cat > /etc/profile.d/nim.sh <<'EOF'
-export PATH=$PATH:/opt/nim/bin
-EOF
     fi
+    # 最新工具链的 bin 整批链出(幂等,守卫外每跑必重链);nim 经 /proc/self/exe 定位 stdlib,软链安全;
+    # 末尾 || true:choosenim 失败/未装时 glob 为空,ls 返回 2,pipefail 下防赋值语句炸(同 install_rust rust-lld 段)
+    local tc; tc="$(ls -d /opt/nim/toolchains/nim-* 2>/dev/null | sort -V | tail -1 || true)"
+    [ -n "$tc" ] && for b in "$tc"/bin/*; do ln -sf "$b" /usr/local/bin/; done
     nim --version 2>/dev/null | head -1 || echo "nim 未装上(下轮补)"
     true
 }

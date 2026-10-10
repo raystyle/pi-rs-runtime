@@ -4,6 +4,7 @@
 # 用法:
 #   ./scripts/resolve-pins.sh          # 全量重解析并覆写 lib/pins.sh
 #   ./scripts/resolve-pins.sh --check  # 只打印会变的行,不写文件(审升级面)
+# 解析按生态分节并行(后台 job 池,上限 RESOLVE_JOBS,默认 16),拼装按固定顺序,输出确定性不变。
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 PINS="$HERE/lib/pins.sh"
@@ -20,11 +21,12 @@ say() { printf '%s\n' "$*" >&2; }
 # ---- go 模块:goproxy /@latest 先行;失败回退仓 tag;无 tag 仓回退 HEAD sha ----
 # (goproxy.cn 对冷门模块「not found: temporarily unavailable」实证;go install @sha 合法)
 go_latest() { # go_latest <module/path> → vX.Y.Z 或 40 位 sha
-    local esc="$1" try v=""
+    local esc="$1" v=""
     esc="$(printf '%s' "$esc" | sed 's/\([A-Z]\)/!\l\1/g')"
-    for try in 1 2; do
+    for _ in 1 2; do
         v="$(curl -fsSL -m 12 "$GOPROXY_API/$esc/@latest" 2>/dev/null | grep -o '"Version": *"[^"]*"' | cut -d'"' -f4 || true)"
-        [ -n "$v" ] && { printf '%s' "$v"; return; } || sleep 1
+        if [ -n "$v" ]; then printf '%s' "$v"; return; fi
+        sleep 1
     done
     case "$esc" in
         golang.org/x/tools/gopls) git_latest_tag golang/tools "gopls/" ;;
@@ -48,10 +50,11 @@ crate_latest() { # crate_latest <name>
 
 # ---- PyPI:pypi.org JSON API(aliyun simple 文件名连字符/下划线不统一,实证) ----
 pypi_latest() {
-    local try v=""
-    for try in 1 2 3; do
+    local v=""
+    for _ in 1 2 3; do
         v="$(curl -fsSL -m 15 "https://pypi.org/pypi/$1/json" 2>/dev/null | grep -o '"version": *"[^"]*"' | head -1 | cut -d'"' -f4 || true)"
-        [ -n "$v" ] && break || sleep 2
+        if [ -n "$v" ]; then break; fi
+        sleep 2
     done
     printf '%s' "$v"
 }
@@ -61,25 +64,27 @@ gem_latest() { curl -fsSL -m 15 "https://rubygems.org/api/v1/versions/$1/latest.
 
 # ---- git 仓:HEAD sha --------------------------------------------------------
 git_head() {
-    local try v=""
-    for try in 1 2 3; do
+    local v=""
+    for _ in 1 2 3; do
         v="$(git ls-remote "${GH_MIRROR}https://github.com/$1" HEAD 2>/dev/null | cut -c1-40 || true)"
-        [ -n "$v" ] && break || sleep 2
+        if [ -n "$v" ]; then break; fi
+        sleep 2
     done
     printf '%s' "$v"
 }
 
 # ---- git 仓:latest tag(原生形态返回;排序键剥前缀与 v,防 v 系/裸系混排错乱,nushell 实证) --
 git_latest_tag() { # git_latest_tag <owner/repo> [tag前缀]
-    local repo="$1" prefix="${2:-}" try v=""
-    for try in 1 2 3; do
+    local repo="$1" prefix="${2:-}" v=""
+    for _ in 1 2 3; do
         v="$(git ls-remote --tags --refs "${GH_MIRROR}https://github.com/$repo" 2>/dev/null \
             | awk -F/ '{print $NF}' | grep -E "^${prefix}v?[0-9]+\.[0-9]+\.[0-9]+" \
-            | while read -r tag; do local k="${tag#$prefix}"; printf '%s %s\n' "${k#v}" "$tag"; done \
+            | while read -r tag; do local k="${tag#"$prefix"}"; printf '%s %s\n' "${k#v}" "$tag"; done \
             | sort -uV -k1,1 | tail -1 | cut -d' ' -f2 || true)"
-        [ -n "$v" ] && break || sleep 2
+        if [ -n "$v" ]; then break; fi
+        sleep 2
     done
-    printf '%s' "${v#$prefix}"   # 返回值剥子目录前缀(gopls/v0.x→v0.x),保留原生 v
+    printf '%s' "${v#"$prefix"}"   # 返回值剥子目录前缀(gopls/v0.x→v0.x),保留原生 v
 }
 
 # ---- npm:npmmirror 包 latest(scoped 包名直接进路径) --------------------------
@@ -149,6 +154,8 @@ PYPI_PKGS=(
     polars pyarrow chdb duckdb ldap3 dnspython pyasn1
     pycryptodome cryptography gmpy2 sympy z3-solver construct pefile pyelftools dnfile pypykatz
     malduck volatility3 r2pipe httpx beautifulsoup4 lxml pyjwt dpkt xortool
+    # red 组 git 克隆批依赖:jwt_tool(ratelimit/pycryptodomex/termcolor/requests)与 LinkFinder(jsbeautifier)
+    ratelimit pycryptodomex termcolor requests jsbeautifier
 )
 
 GEMS=(evil-winrm nokogiri mime mime-types mini_exiftool rubyzip)
@@ -226,80 +233,114 @@ bun_latest() { curl -fsSL -m 15 "https://registry.npmmirror.com/bun/latest" 2>/d
 awscli_soft() { :; }
 msf_soft() { :; }
 
+# ---- 并行解析:每键一个后台任务,钉值落每键一个临时文件(全局 job 池,上限 RESOLVE_JOBS) ----
+# 各节内部并行;拼装阶段按固定顺序读落盘钉值,输出格式与确定性同串行版;
+# 失败警告(say 「!! xx 解析失败」)与空钉统计口径不变,只是改在拼装阶段按原节序发出。
+RESOLVE_JOBS="${RESOLVE_JOBS:-16}"
+TMPD=""
+spawn_resolve() { # spawn_resolve <落盘文件名> <解析器> [参数...]
+    local f="$1"; shift
+    while [ "$(jobs -rp | wc -l)" -ge "$RESOLVE_JOBS" ]; do wait -n || true; done
+    ( v="$("$@" 2>/dev/null)" || v=""; printf '%s' "$v" > "$TMPD/$f" ) &
+}
+read_pin() { cat "$TMPD/$1" 2>/dev/null || true; }
+cleanup() { [ -z "$TMPD" ] || rm -rf -- "$TMPD"; }
+
 main() {
     local out; out="$(mktemp)"
+    TMPD="$(mktemp -d)"
+    trap cleanup EXIT
+    local i spec mod c p g nq r nm ps s name fn arg mj v
+    # 派单:全部生态节共享一个 job 池(并发上限 $RESOLVE_JOBS);go 键先转模块路径
+    for i in "${!GO_SPECS[@]}"; do
+        spec="${GO_SPECS[$i]}"
+        spawn_resolve "go.$i" go_latest "$(go_mod_of "$spec")"
+    done
+    for i in "${!CRATES[@]}"; do spawn_resolve "crate.$i" crate_latest "${CRATES[$i]}"; done
+    for i in "${!PYPI_PKGS[@]}"; do spawn_resolve "pypi.$i" pypi_latest "${PYPI_PKGS[$i]}"; done
+    for i in "${!GEMS[@]}"; do spawn_resolve "gem.$i" gem_latest "${GEMS[$i]}"; done
+    for i in "${!NUGET_PKGS[@]}"; do spawn_resolve "nuget.$i" nuget_latest "${NUGET_PKGS[$i]}"; done
+    for i in "${!GIT_REPOS[@]}"; do spawn_resolve "git.$i" git_head "${GIT_REPOS[$i]}"; done
+    for i in "${!NPM_PKGS[@]}"; do spawn_resolve "npm.$i" npm_latest "${NPM_PKGS[$i]}"; done
+    for i in "${!PSGALLERY_PKGS[@]}"; do spawn_resolve "psgallery.$i" psgallery_latest "${PSGALLERY_PKGS[$i]}"; done
+    for i in "${!SCALARS[@]}"; do
+        s="${SCALARS[$i]}"
+        fn="$(echo "$s" | cut -d: -f2)"; arg="$(echo "$s" | cut -d: -f3)"
+        spawn_resolve "scalar.$i" "$fn" "$arg"
+    done
+    for mj in 8 11 17 21 25; do spawn_resolve "temurin.$mj" temurin_latest "$mj"; done
+    wait
+    # 拼装:固定节序+数组原序,逐键读落盘钉值
     {
         echo '# lib/pins.sh — 版本钉(由 scripts/resolve-pins.sh 生成,勿手改;升级跑解析器再审 diff)'
         echo "PINS_DATE=\"$(date +%F)\""
         echo
         echo 'declare -A GO_PIN=('
-        local spec mod v
-        for spec in "${GO_SPECS[@]}"; do
-            mod="$(go_mod_of "$spec")"; v="$(go_latest "$mod")"
+        for i in "${!GO_SPECS[@]}"; do
+            spec="${GO_SPECS[$i]}"; mod="$(go_mod_of "$spec")"
+            v="$(read_pin "go.$i")"
             [ -n "$v" ] || say "!! go 解析失败: $spec ($mod)"
             printf '    ["%s"]="%s"\n' "$spec" "$v"
         done
         echo ')'
         echo 'declare -A CRATE_PIN=('
-        local c
-        for c in "${CRATES[@]}"; do
-            v="$(crate_latest "$c")"; [ -n "$v" ] || say "!! crate 解析失败: $c"
+        for i in "${!CRATES[@]}"; do
+            c="${CRATES[$i]}"; v="$(read_pin "crate.$i")"
+            [ -n "$v" ] || say "!! crate 解析失败: $c"
             printf '    ["%s"]="%s"\n' "$c" "$v"
         done
         echo ')'
         echo 'declare -A PYPI_PIN=('
-        local p
-        for p in "${PYPI_PKGS[@]}"; do
-            v="$(pypi_latest "$p")"; [ -n "$v" ] || say "!! pypi 解析失败: $p"
+        for i in "${!PYPI_PKGS[@]}"; do
+            p="${PYPI_PKGS[$i]}"; v="$(read_pin "pypi.$i")"
+            [ -n "$v" ] || say "!! pypi 解析失败: $p"
             printf '    ["%s"]="%s"\n' "$p" "$v"
         done
         echo ')'
         echo 'declare -A GEM_PIN=('
-        local g
-        for g in "${GEMS[@]}"; do
-            v="$(gem_latest "$g")"; [ -n "$v" ] || say "!! gem 解析失败: $g"
+        for i in "${!GEMS[@]}"; do
+            g="${GEMS[$i]}"; v="$(read_pin "gem.$i")"
+            [ -n "$v" ] || say "!! gem 解析失败: $g"
             printf '    ["%s"]="%s"\n' "$g" "$v"
         done
         echo ')'
         echo 'declare -A NUGET_PIN=('
-        local nq
-        for nq in "${NUGET_PKGS[@]}"; do
-            v="$(nuget_latest "$nq")"; [ -n "$v" ] || say "!! nuget 解析失败: $nq"
+        for i in "${!NUGET_PKGS[@]}"; do
+            nq="${NUGET_PKGS[$i]}"; v="$(read_pin "nuget.$i")"
+            [ -n "$v" ] || say "!! nuget 解析失败: $nq"
             printf '    ["%s"]="%s"\n' "$nq" "$v"
         done
         echo ')'
         echo 'declare -A GIT_PIN=('
-        local r
-        for r in "${GIT_REPOS[@]}"; do
-            v="$(git_head "$r")"; [ -n "$v" ] || say "!! git 解析失败: $r"
+        for i in "${!GIT_REPOS[@]}"; do
+            r="${GIT_REPOS[$i]}"; v="$(read_pin "git.$i")"
+            [ -n "$v" ] || say "!! git 解析失败: $r"
             printf '    ["%s"]="%s"\n' "$r" "$v"
         done
         echo ')'
         echo 'declare -A NPM_PIN=('
-        local nm
-        for nm in "${NPM_PKGS[@]}"; do
-            v="$(npm_latest "$nm")"; [ -n "$v" ] || say "!! npm 解析失败: $nm"
+        for i in "${!NPM_PKGS[@]}"; do
+            nm="${NPM_PKGS[$i]}"; v="$(read_pin "npm.$i")"
+            [ -n "$v" ] || say "!! npm 解析失败: $nm"
             printf '    ["%s"]="%s"\n' "$nm" "$v"
         done
         echo ')'
         echo 'declare -A PSGALLERY_PIN=('
-        local ps
-        for ps in "${PSGALLERY_PKGS[@]}"; do
-            v="$(psgallery_latest "$ps")"; [ -n "$v" ] || say "!! psgallery 解析失败: $ps"
+        for i in "${!PSGALLERY_PKGS[@]}"; do
+            ps="${PSGALLERY_PKGS[$i]}"; v="$(read_pin "psgallery.$i")"
+            [ -n "$v" ] || say "!! psgallery 解析失败: $ps"
             printf '    ["%s"]="%s"\n' "$ps" "$v"
         done
         echo ')'
         echo '# 标量钉(空串 = 软钉:无干净索引面,消费点回退最新并警告)'
-        local s name fn arg
-        for s in "${SCALARS[@]}"; do
-            name="${s%%:*}"; fn="$(echo "$s" | cut -d: -f2)"; arg="$(echo "$s" | cut -d: -f3)"
-            v="$("$fn" $arg 2>/dev/null)" || v=""
+        for i in "${!SCALARS[@]}"; do
+            s="${SCALARS[$i]}"; name="${s%%:*}"
+            v="$(read_pin "scalar.$i")"
             printf '%s="%s"\n' "$name" "$v"
         done
         echo '# temurin 主版本钉(tuna Adoptium 目录解析;空 = 回退目录最新)'
-        local mj
         for mj in 8 11 17 21 25; do
-            v="$(temurin_latest "$mj")"
+            v="$(read_pin "temurin.$mj")"
             printf 'TEMURIN_PIN_%s="%s"\n' "$mj" "$v"
         done
     } > "$out"

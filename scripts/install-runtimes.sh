@@ -105,15 +105,16 @@ EOF
 
 install_bun() {
     log "bun (经 npmmirror registry 的 npm 全局安装)"
+    # bun 不读 npmrc,要 bunfig;官方推荐写法(root 与 ubuntu 各一份)
+    # 配置写在早退前(幂等,不依赖网络),否则增量重跑永远刷不上
+    for u in /root /home/ubuntu; do
+        [ -d "$u" ] && printf '[install]\nregistry = "%s"\n' "$NPM_REGISTRY" > "$u/.bunfig.toml"
+    done
     if have bun; then bun --version; echo "已安装,跳过"; return; fi
     npm install -g "bun@${BUN_VERSION:?pins.sh 缺 BUN_VERSION,跑 resolve-pins.sh}"
     # npm 的 shim 在 /opt/node/bin(非交互 shell 不在 PATH),固定链接到 /usr/local/bin
     ln -sf /opt/node/bin/bun /usr/local/bin/bun
     ln -sf /opt/node/bin/bunx /usr/local/bin/bunx
-    # bun 不读 npmrc,要 bunfig;官方推荐写法(root 与 ubuntu 各一份)
-    for u in /root /home/ubuntu; do
-        [ -d "$u" ] && printf '[install]\nregistry = "%s"\n' "$NPM_REGISTRY" > "$u/.bunfig.toml"
-    done
     bun --version
 }
 

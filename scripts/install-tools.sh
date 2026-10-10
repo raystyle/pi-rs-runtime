@@ -1026,23 +1026,24 @@ install_red() {
         local d="/opt/$(basename "$r")"
         clone_pin "$r" "$d" || clone_pin "$r" "$d" || echo "$r 克隆失败(2 次)"
     done
-    # LinkFinder / enum4linux-ng 的 python 依赖进 re-venv
+    # LinkFinder / enum4linux-ng / jwt_tool 的 python 依赖进 re-venv
     [ -x "$RE_VENV/bin/python" ] || uv venv "$RE_VENV"
-    [ -f /opt/LinkFinder/requirements.txt ] \
-        && VIRTUAL_ENV="$RE_VENV" uv pip install -r /opt/LinkFinder/requirements.txt >/dev/null 2>&1 || true
+    # jwt_tool:顶层 import ratelimit 无保护;Cryptodome/termcolor/requests 缺失即 exit(1)(钉版)
+    VIRTUAL_ENV="$RE_VENV" uv pip install "ratelimit==$(pypi_pin ratelimit)" "pycryptodomex==$(pypi_pin pycryptodomex)" "termcolor==$(pypi_pin termcolor)" "requests==$(pypi_pin requests)" >/dev/null 2>&1 || true
+    # LinkFinder:顶层 import jsbeautifier(唯一第三方依赖,钉版;不走 -r requirements.txt 漂 HEAD)
+    VIRTUAL_ENV="$RE_VENV" uv pip install "jsbeautifier==$(pypi_pin jsbeautifier)" >/dev/null 2>&1 || true
     [ -f /opt/enum4linux-ng/requirements.txt ] \
         && VIRTUAL_ENV="$RE_VENV" uv pip install -r /opt/enum4linux-ng/requirements.txt >/dev/null 2>&1 || true
-    # jwt_tool 是单文件脚本(非 pip 包),wrapper 直调;enum4linux-ng 有 console script
-    [ -f /opt/jwt_tool/jwt_tool.py ] && printf '#!/bin/sh\nexec python3 /opt/jwt_tool/jwt_tool.py "$@"\n' > /usr/local/bin/jwt-tool \
+    # 四件都是仓内脚本无 console script:wrapper 一律 exec re-venv python(依赖已进 re-venv)
+    [ -f /opt/jwt_tool/jwt_tool.py ] && printf '#!/bin/sh\nexec %s/bin/python /opt/jwt_tool/jwt_tool.py "$@"\n' "$RE_VENV" > /usr/local/bin/jwt-tool \
         && chmod +x /usr/local/bin/jwt-tool
-    # 两者都是仓内脚本无 console script:wrapper 直调 re-venv python;
     # krbrelayx 依赖(impacket/ldap3/dnspython/pyasn1)一并进 re-venv
     VIRTUAL_ENV="$RE_VENV" uv pip install "impacket==$(pypi_pin impacket)" "ldap3==$(pypi_pin ldap3)" "dnspython==$(pypi_pin dnspython)" "pyasn1==$(pypi_pin pyasn1)" >/dev/null 2>&1 || true
     [ -f /opt/enum4linux-ng/enum4linux-ng.py ] && printf '#!/bin/sh\nexec %s/bin/python /opt/enum4linux-ng/enum4linux-ng.py "$@"\n' "$RE_VENV" > /usr/local/bin/enum4linux-ng \
         && chmod +x /usr/local/bin/enum4linux-ng
     [ -f /opt/krbrelayx/krbrelayx.py ] && printf '#!/bin/sh\nexec %s/bin/python /opt/krbrelayx/krbrelayx.py "$@"\n' "$RE_VENV" > /usr/local/bin/krbrelayx \
         && chmod +x /usr/local/bin/krbrelayx
-    [ -f /opt/LinkFinder/linkfinder.py ] && printf '#!/bin/sh\nexec python3 /opt/LinkFinder/linkfinder.py "$@"\n' > /usr/local/bin/linkfinder \
+    [ -f /opt/LinkFinder/linkfinder.py ] && printf '#!/bin/sh\nexec %s/bin/python /opt/LinkFinder/linkfinder.py "$@"\n' "$RE_VENV" > /usr/local/bin/linkfinder \
         && chmod +x /usr/local/bin/linkfinder
 
     log "Ruby 生态引入(gems.ruby-china;解锁 CeWL / evil-winrm)"

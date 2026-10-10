@@ -111,6 +111,11 @@ declare -A PYPI_PIN=(
     ["pyjwt"]="2.15.1"
     ["dpkt"]="1.9.8"
     ["xortool"]="1.1.0"
+    ["ratelimit"]="2.2.1"
+    ["pycryptodomex"]="3.24.0"
+    ["termcolor"]="3.3.0"
+    ["requests"]="2.34.2"
+    ["jsbeautifier"]="2.0.3"
 )
 declare -A GEM_PIN=(
     ["evil-winrm"]="4.1"
@@ -227,7 +232,7 @@ declare -A GIT_PIN=(
 )
 declare -A NPM_PIN=(
     ["typescript"]="7.0.2"
-    ["prettier"]="3.9.9"
+    ["prettier"]="3.9.10"
     ["eslint"]="10.12.0"
     ["dotnetjs"]="1.7.5"
     ["node-forge"]="1.4.0"
