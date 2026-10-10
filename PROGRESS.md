@@ -8,7 +8,7 @@
 
 ## 当前状态
 
-- 线上镜像:**`c4f694e76eaa`**(17.5 GB);历史发布链见 [docs/diary/2026-10-10-offline-rounds.md](docs/diary/2026-10-10-offline-rounds.md) 尾部
+- 线上镜像:**`3f24d84a3af8`**(17.7 GB);历史发布链见 [docs/diary/2026-10-10-offline-rounds.md](docs/diary/2026-10-10-offline-rounds.md) 尾部
 - 镜像内唯一副本 scripts 在 /root/scripts;复跑/发布命令见 AGENTS.md Commands
 - VNC 桌面批(2026-10-10,用户批 grok 配方):install-tools.sh 新 vnc 组(xfce4+tigervnc 三件+noVNC+websockify+fonts-noto-cjk+轻量面 xvfb/x11vnc 烘焙);vnc-screen.sh 重写双形态(轻量 Xvfb :99+x11vnc 5900;桌面 TigerVNC :1+noVNC 127.0.0.1:6080),口令首启随机生成打印一次(不落库),websockify/VNC 都只绑回环(宿主 proxy 引 6080);实证坑:noble tigervnc 的 vncpasswd 在 tigervnc-tools、TigerVNC 读 ~/.vnc/passwd 而 x11vnc 读 passfile(两份都写)。实证:noVNC 页面 200、5901/6080 双回环、jwt-tool/linkfinder 修复件同批
 - grok 钉版批评审(F 3/G 5,报告 /tmp/grok-pin-review.md,全吸收):F1 clone_pin 重写(缺钉 return 1、原地仓换钉 fetch 成功前不删树、宿主三案例实证);F2 缺钉漂 HEAD 收口(pwndbg/ghauri 的 :-HEAD 改 :?);F3 git_latest_tag 管道重写(完整 ref 上先过滤带 $ 锚,预发布进不来;gopls 前缀顺序同修);G2 jwt_tool/LinkFinder wrapper 只在依赖实证可 import 后写;G3 空钉统计正则 ^[A-Z0-9_]+;G4 nuget 先滤稳定版(全预发布包回退末位),dotnet 锁 csproj 经 sync-locks.sh 再生
