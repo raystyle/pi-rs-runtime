@@ -145,6 +145,15 @@ export RUSTUP_DIST_SERVER=${RUSTUP_DIST_SERVER}
 export RUSTUP_UPDATE_ROOT=${RUSTUP_UPDATE_ROOT}
 export CARGO_ZIGBUILD_CACHE_DIR=/opt/cargo-zigbuild-cache
 EOF
+    # 非登录 shell 不读 rustup.sh:默认位软链兜底;缓存要可写,共同组共享(grok F1)
+    install -d /opt/cargo-zigbuild-cache
+    for u in /root /home/ubuntu; do
+        [ -d "$u" ] || continue
+        install -d "$u/.cache"
+        [ -L "$u/.cache/cargo-zigbuild" ] || rm -rf "$u/.cache/cargo-zigbuild"
+        ln -sfn /opt/cargo-zigbuild-cache "$u/.cache/cargo-zigbuild"
+    done
+    shared_writable_cache /opt/cargo-zigbuild-cache
     . /opt/cargo/env
     # pi-rs 件执行链:rust-lld(llvm-tools)+ fmt/clippy + rust-script + cargo-zigbuild
     rustup component add llvm-tools rustfmt clippy rust-analyzer

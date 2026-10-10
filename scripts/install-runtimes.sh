@@ -172,13 +172,13 @@ install_dotnet() {
     apt-get update -qq
     apt-get install -y "$DOTNET_SDK"
     # NuGet 库镜像:华为 v3(已实证 200;不要用 azure.cn 旧 CDN,已解析失败)
-    # 全局包目录指 /opt/nuget-packages:默认 ~/.nuget 在 /root 下,ubuntu 离线 restore 失败
+    # 离线取件走 NuGet.Config 的 fallbackPackageFolders(见下);不要再导出
+    # NUGET_PACKAGES=/opt/nuget-packages——那会把 global 与 fallback 指成同一目录,
+    # 登录 restore 往固化仓写,ubuntu 还会权限失败(grok G3)
     install -d /opt/nuget-packages
     cat > /etc/profile.d/dotnet.sh <<'EOF'
-export NUGET_PACKAGES=/opt/nuget-packages
 export DOTNET_CLI_TELEMETRY_OPTOUT=1
 EOF
-    export NUGET_PACKAGES=/opt/nuget-packages
     for u in /root /home/ubuntu; do
         [ -d "$u" ] && install -d "$u/.nuget/NuGet" && cat > "$u/.nuget/NuGet/NuGet.Config" <<EOF
 <?xml version="1.0" encoding="utf-8"?>
@@ -311,12 +311,14 @@ EOF
     cat > /etc/profile.d/gradle.sh <<'EOF'
 export GRADLE_USER_HOME=/opt/gradle-home
 EOF
-    # 非登录 shell(incus exec)不读 profile.d:家目录默认位软链兜底
+    # 非登录 shell(incus exec)不读 profile.d:家目录默认位软链兜底;
+    # gradle 家目录要可写(daemon/锁),共同组+setgid 共享,不 1777(grok F1)
     for u in /root /home/ubuntu; do
         [ -d "$u" ] || continue
         [ -L "$u/.gradle" ] || rm -rf "$u/.gradle"
         ln -sfn /opt/gradle-home "$u/.gradle"
     done
+    shared_writable_cache /opt/gradle-home
     cat > /opt/gradle-home/init.d/mirrors.gradle <<'EOF'
 allprojects {
     repositories {

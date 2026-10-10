@@ -12,17 +12,18 @@
 | Go | `/opt/go/pkg/mod`(GOMODCACHE) | `go env -w` per-user 文件(root + ubuntu 各一份,非登录 shell 也读) |
 | Rust | `/opt/cargo` registry + `/opt/rustup` | 家目录软链 `~/.cargo`→/opt/cargo、`~/.rustup`→/opt/rustup |
 | Python | `/opt/wheelhouse`(轮子)+ `/opt/re-venv` + `/opt/uv-tools` | 消费:`pip install --no-index --find-links /opt/wheelhouse <包>` |
-| Node | `/opt/js-lab/node_modules`(161 包) | 软链进每个 fnm 版本的全局 node_modules;NODE_PATH(profile.d)备份 |
+| Node | `/opt/js-lab/node_modules`(161 包) | 软链进各 node prefix 的 `lib/node`(Module.globalPaths 只认这条;`node_modules` 面的链仅供 npm -g/bin);NODE_PATH(profile.d)备份 |
 | Java | `/opt/m2`(maven 本地仓) | `/opt/maven/conf/settings.xml` 写死 localRepository(不依赖 shell) |
-| .NET | `/opt/nuget-packages` | NuGet.Config `fallbackPackageFolders`(NuGet 官方离线机制,root+ubuntu 各一份) |
+| Gradle | `/opt/gradle-home` | 家目录软链 `~/.gradle`;缓存要可写(daemon/锁),piopt 组 + setgid 共享 |
+| .NET | `/opt/nuget-packages` | NuGet.Config `fallbackPackageFolders`(NuGet 官方离线机制,root+ubuntu 各一份);不再导出 NUGET_PACKAGES(global 与 fallback 同路径会让登录 restore 写固化仓) |
 | PowerShell | `/opt/psmodules` | 软链进 `/usr/local/share/powershell/Modules`(pwsh 默认系统模块路径) |
-| Zig | `/opt/zig-cache` | 家目录软链 `~/.cache/zig`→/opt/zig-cache |
+| Zig | `/opt/zig-cache`(hash 钉在 `/opt/zig-prewarm/build.zig.zon`) | 家目录软链 `~/.cache/zig`;可写共享(piopt 组 + setgid);cargo-zigbuild 缓存同形 |
 | 扫描器库 | `/opt/trivy-db`、`/opt/nuclei-templates`、capa 规则 | wrapper 注入(见下) |
 | 数据 | SecLists、wordlists+rockyou、frida-server 八平台、PoC-in-GitHub 索引 | 直接读盘 |
 
 ### 2. wrapper 层(/usr/local/bin,压过 PATH 后段)
 
-`nuclei`(-duc 禁更新检查)、`trivy`(默认 `TRIVY_CACHE_DIR=/opt/trivy-db` + `--skip-db-update`;`download-db-only` 直通真身)、`capa`、`poc-search`、`responder`、`enum4linux-ng`、`krbrelayx`、`bloodhound-python`、`cewl`、`jwt-tool`、`linkfinder`。
+`nuclei`(-duc 禁更新检查)、`trivy`(默认 `TRIVY_CACHE_DIR=/opt/trivy-db` + env 注入 `TRIVY_SKIP_DB_UPDATE/TRIVY_SKIP_JAVA_DB_UPDATE/TRIVY_SKIP_CHECK_UPDATE`;`--download-*` 按精确旗标直通真身)、`capa`、`poc-search`、`responder`、`enum4linux-ng`、`krbrelayx`、`bloodhound-python`、`cewl`、`jwt-tool`、`linkfinder`。
 
 注意:**alias 在 `incus exec` 这类非交互 shell 不生效**,所有运行期行为修正都必须落成 wrapper 文件,不能只写 alias。
 
@@ -36,7 +37,14 @@ profile.d 只作登录 shell 的备份面。
 ### 4. offline() 快失败函数
 
 `/etc/profile.d/offline.sh` 提供 `offline` 命令:`GOPROXY=off CARGO_NET_OFFLINE=true NPM_CONFIG_PREFER_OFFLINE=true UV_OFFLINE=1`。
-离线期新依赖解析默认是长超时挂起,半静默最伤现场;登录 shell 里执行 `offline` 后新依赖立即报错。
+离线期新依赖解析默认是长超时挂起,半静默最伤现场;执行 `offline` 后新依赖立即报错。
+注意它同样只在登录 shell 生效;`incus exec` 场景用 `incus exec <容器> -- bash -lc '…'` 或显式带 env。
+
+### 5. 可写共享缓存的权限模型
+
+zig 全局缓存、gradle 家目录、cargo-zigbuild 缓存不是只读仓(编译要写 z/、daemon、锁)。
+软链指到 /opt 后用共同组 `piopt`(root+ubuntu)+ 目录 setgid + g+rwX 共享;**不上 1777**——
+任意用户可写就能换掉 root 下次构建要用的缓存。只读消费面(node lib/node、psmodules、nuget fallback)保持 755。
 
 ## 边界(离线做不成的事,属设计)
 

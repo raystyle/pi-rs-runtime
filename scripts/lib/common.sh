@@ -47,6 +47,20 @@ HERDR_SHA256="${HERDR_SHA256:-18a8dc65f1c2fa485884344356dea1cfd911c6f06cf46fa78e
 log()  { printf '\n\033[1;32m==> %s\033[0m\n' "$*"; }
 have() { command -v "$1" >/dev/null 2>&1; }
 
+# 共享可写缓存(zig/gradle/cargo-zigbuild 的家目录软链目标):必须可写但不可 1777——
+# 任意用户可写就能换掉 root 下次用的缓存(grok F1)。共同组 piopt + 默认 ACL:
+# 实证 setgid 只继承组不继承写位(umask 022 下新目录 g=r-x,ubuntu 写不进),
+# 默认 ACL 才压得住 umask;依赖 acl 包(install-all 前置批装)。
+shared_writable_cache() {
+    [ -d "$1" ] || install -d "$1"
+    groupadd -f piopt
+    local u
+    for u in root ubuntu; do id "$u" >/dev/null 2>&1 && usermod -aG piopt "$u"; done
+    chgrp -R piopt "$1" && chmod -R g+rwX "$1" && find "$1" -type d -exec chmod g+s {} +
+    have setfacl && setfacl -R -m g:piopt:rwX "$1" && setfacl -R -d -m g:piopt:rwX "$1"
+    true
+}
+
 # 按名单跑安装函数:不带参数装全部
 run_category() {
     local -n _all=$1; shift

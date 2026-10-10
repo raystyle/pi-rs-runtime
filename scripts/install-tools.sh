@@ -1108,15 +1108,21 @@ install_red() {
     fi
     if [ -x /usr/bin/trivy ]; then
         install -d /opt/trivy-db
-        # 烘焙用真身:/usr/local/bin wrapper 会注入 skip 行为,与 --download-db-only 冲突
-        TRIVY_CACHE_DIR=/opt/trivy-db /usr/bin/trivy image --download-db-only >/dev/null 2>&1 || echo "trivy db 烘焙失败(离线期将无法扫描)"
+        # 烘焙用真身:/usr/local/bin wrapper 会注入 skip 行为,与 --download-*-only 冲突。
+        # 漏洞库+Java 库全烘(0.75 无 --download-checks-only,实证;skip-check env 留给认它的版本)
+        for dl in --download-db-only --download-java-db-only; do
+            TRIVY_CACHE_DIR=/opt/trivy-db /usr/bin/trivy image "$dl" >/dev/null 2>&1 || echo "trivy $dl 烘焙失败(可重跑)"
+        done
         # alias 在非交互 shell(incus exec)不生效,离线期 trivy 找不到烘焙库会 FATAL
         # "first run cannot skip downloading DB";改 wrapper 指烘焙库。
-        # 0.75 起 --skip-db-update 不是 root 持久旗标(实证 unknown flag),只能走 env 注入
+        # 0.75 起 --skip-db-update 不是 root 持久旗标(实证 unknown flag),只能走 env 注入;
+        # --download-* 按精确旗标直通真身(子串匹配会把 ./download-db-only-notes 误判,grok G1)
         printf '%s\n' '#!/bin/sh' \
             'export TRIVY_CACHE_DIR="${TRIVY_CACHE_DIR:-/opt/trivy-db}"' \
-            'case " $* " in *download-db-only*) exec /usr/bin/trivy "$@";; esac' \
+            'for a in "$@"; do case "$a" in --download-*) exec /usr/bin/trivy "$@";; esac; done' \
             'export TRIVY_SKIP_DB_UPDATE="${TRIVY_SKIP_DB_UPDATE:-true}"' \
+            'export TRIVY_SKIP_JAVA_DB_UPDATE="${TRIVY_SKIP_JAVA_DB_UPDATE:-true}"' \
+            'export TRIVY_SKIP_CHECK_UPDATE="${TRIVY_SKIP_CHECK_UPDATE:-true}"' \
             'exec /usr/bin/trivy "$@"' > /usr/local/bin/trivy
         chmod +x /usr/local/bin/trivy
         cat > /etc/profile.d/trivy.sh <<'EOF'

@@ -9,10 +9,10 @@ set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 
 # 前置依赖批:unzip/zip/xz 是 sdkman/ghidra/jadx/gradle/vcpkg 等的隐式依赖,
-# 极简 cloud 镜像里没有;全量入口先兜底(用户实证:全新容器 unzip 缺失)
+# 极简 cloud 镜像里没有;acl 供共享可写缓存的默认 ACL(shared_writable_cache);全量入口先兜底
 apt-get update -qq
 apt-get install -y --no-install-recommends \
-    ca-certificates curl wget gpg unzip zip xz-utils file git
+    ca-certificates curl wget gpg unzip zip xz-utils file git acl
 
 # cloud 镜像的后台自动升级会与构建抢 dpkg 锁(fresh 验证实证:fd 组被 unattended-upgrades
 # 卡死);构建容器不需要自动升级,停掉计时器(不卸载,保留工具)

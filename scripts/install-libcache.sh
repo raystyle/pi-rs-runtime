@@ -301,27 +301,30 @@ install_zig() {
     zig init >/dev/null 2>&1 || true
     # zig fetch --save 会把依赖写进 build.zig.zon 并填充全局缓存;hash 以 0.16 输出为准
     # 实证:ohmygh 代理不支持 git smart-http,git+ 全失败;改 tarball(archive/refs)才可过代理。
-    # zlib 钉 tag,其余钉主干 heads(构建日快照);每库三次重试
-    local spec try
+    # 五库均钉主干 heads 的构建日快照(zlib 旧 tag 的 zon 字符串名被 0.16 拒);每库三次重试
+    local spec try ok failed=""
     for spec in \
         "zlib=${GITHUB_MIRROR}https://github.com/allyourcodebase/zlib/archive/refs/heads/master.tar.gz" \
         "zstd=${GITHUB_MIRROR}https://github.com/allyourcodebase/zstd/archive/refs/heads/master.tar.gz" \
         "sqlite3=${GITHUB_MIRROR}https://github.com/allyourcodebase/sqlite3/archive/refs/heads/main.tar.gz" \
         "mbedtls=${GITHUB_MIRROR}https://github.com/allyourcodebase/mbedtls/archive/refs/heads/main.tar.gz" \
         "libxml2=${GITHUB_MIRROR}https://github.com/allyourcodebase/libxml2/archive/refs/heads/master.tar.gz"; do
+        ok=0
         for try in 1 2 3; do
-            zig fetch --save="${spec%%=*}" "${spec#*=}" 2>/dev/null && break || { echo "zig fetch ${spec%%=*} 第 $try 次失败"; sleep 2; }
+            zig fetch --save="${spec%%=*}" "${spec#*=}" 2>/dev/null && { ok=1; break; } || { echo "zig fetch ${spec%%=*} 第 $try 次失败"; sleep 2; }
         done
+        [ "$ok" = 1 ] || failed="$failed ${spec%%=*}"
     done
-    # 失败要响:固化缓存为空即中断(离线 zig 库是核心承诺,半静默最伤现场)
-    if [ -n "$(ls -A /opt/zig-cache/p 2>/dev/null)" ]; then
-        echo "zig 库已固化: $(ls /opt/zig-cache/p | wc -l) 个包进 /opt/zig-cache"
+    # 失败要响:缺一库即中断(空目录守卫太弱——旧条目还在就会放行,grok G2)
+    if [ -z "$failed" ]; then
+        echo "zig 库已固化: $(ls /opt/zig-cache/p 2>/dev/null | wc -l) 个包进 /opt/zig-cache;hash 见 /opt/zig-prewarm/build.zig.zon"
     else
-        echo "!! zig fetch 全失败(离线 zig 库缺失,查 GITHUB_MIRROR)"
+        echo "!! zig fetch 未固化:$failed(离线 zig 库残缺,查 GITHUB_MIRROR)"
         return 1
     fi
     # 非登录 shell(incus exec)读不到 ZIG_GLOBAL_CACHE_DIR:默认缓存位软链兜底
-    # (clean-image.sh 对软链有守卫,不会删)
+    # (clean-image.sh 对软链有守卫,不会删);zig 缓存要可写(z/ 编译产物),
+    # 共同组+setgid 共享,不 1777(grok F1:任意用户可写会换掉 root 缓存)
     local u
     for u in /root /home/ubuntu; do
         [ -d "$u" ] || continue
@@ -329,6 +332,7 @@ install_zig() {
         [ -L "$u/.cache/zig" ] || rm -rf "$u/.cache/zig"
         ln -sfn /opt/zig-cache "$u/.cache/zig"
     done
+    shared_writable_cache /opt/zig-cache
     true
 }
 
