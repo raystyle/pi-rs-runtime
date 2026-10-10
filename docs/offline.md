@@ -51,6 +51,7 @@ js-lab 的包走 `require`(全局链)离线可用,但 `npm install` 同一包仍
 `/etc/profile.d/offline.sh` 的 `offline()` 函数保留作显式开关(登录 shell);默认面已快失败,它不再是必需品。
 maven/gradle 没有干净的「配置离线+CLI 覆盖」对,不做默认离线:手工 `mvn -o` / `gradle --offline`;
 另注意 gradle wrapper(`./gradlew`)会按 distributionUrl 重新下载发行包,离线期用系统 `gradle` 命令。
+bun 不读 npmrc(bunfig 才是它的面)、corepack 的 pnpm/yarn 同理,这两个生态离线拉新件仍会按自身重试节奏走,量级小不钉默认。
 
 ### 5. 可写共享缓存的权限模型
 
