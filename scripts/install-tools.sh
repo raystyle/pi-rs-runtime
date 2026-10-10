@@ -828,7 +828,9 @@ install_pentest() {
     log "Responder(LLMNR/NBT-NS 毒化,内网测试起点)"
     local gh="${GITHUB_MIRROR}https://github.com"
     [ -d /opt/Responder/.git ] || git clone --depth 1 "${gh}/lgandx/Responder" /opt/Responder || echo "Responder 克隆失败"
-    ls -d /opt/Responder >/dev/null 2>&1 && echo "Responder 在 /opt/Responder(运行:python3 /opt/Responder/Responder.py -I eth0)"
+    # wrapper:Responder.py 按 cwd 读 Responder.conf/写 logs,先 cd 再 exec
+    [ -f /opt/Responder/Responder.py ] && printf '#!/bin/sh\ncd /opt/Responder\nexec python3 /opt/Responder/Responder.py "$@"\n' > /usr/local/bin/responder \
+        && chmod +x /usr/local/bin/responder && echo "responder 已链(/opt/Responder)"
 
     # donut:PE/.NET/VBS/JS 转 shellcode;release 预编译钉版(banner 不带小版本,用 .version 标记幂等)
     local dv; dv="${DONUT_VERSION:-1.1}"
@@ -954,6 +956,8 @@ EOF
 # 原则:能 uv tool 走 tuna 就走 uv tool;git 克隆钉 /opt;gem 走 ruby-china;Release 钉版
 install_red() {
     log "AD 横向与 Web 工具(uv tool 走 tuna:tuna 有轮子即成功)"
+    # enum4linux-ng 运行依赖:nmblookup/net(samba-common-bin)、smbclient、ldapsearch
+    apt-get update -qq && apt-get install -y --no-install-recommends samba-common-bin smbclient ldap-utils || true
     . "$HOME/.local/bin/env" 2>/dev/null || true
     export PATH="$PATH:/usr/local/bin:/opt/go/bin"
     export UV_TOOL_BIN_DIR=/usr/local/bin UV_TOOL_DIR=/opt/uv-tools
@@ -1036,9 +1040,13 @@ install_red() {
     # jwt_tool 是单文件脚本(非 pip 包),wrapper 直调;enum4linux-ng 有 console script
     [ -f /opt/jwt_tool/jwt_tool.py ] && printf '#!/bin/sh\nexec python3 /opt/jwt_tool/jwt_tool.py "$@"\n' > /usr/local/bin/jwt-tool \
         && chmod +x /usr/local/bin/jwt-tool
-    for b in enum4linux-ng krbrelayx; do
-        [ -e "$RE_VENV/bin/$b" ] && ln -sf "$RE_VENV/bin/$b" "/usr/local/bin/$b" 2>/dev/null
-    done
+    # 两者都是仓内脚本无 console script:wrapper 直调 re-venv python;
+    # krbrelayx 依赖(impacket/ldap3/dnspython/pyasn1)一并进 re-venv
+    VIRTUAL_ENV="$RE_VENV" uv pip install impacket ldap3 dnspython pyasn1 >/dev/null 2>&1 || true
+    [ -f /opt/enum4linux-ng/enum4linux-ng.py ] && printf '#!/bin/sh\nexec %s/bin/python /opt/enum4linux-ng/enum4linux-ng.py "$@"\n' "$RE_VENV" > /usr/local/bin/enum4linux-ng \
+        && chmod +x /usr/local/bin/enum4linux-ng
+    [ -f /opt/krbrelayx/krbrelayx.py ] && printf '#!/bin/sh\nexec %s/bin/python /opt/krbrelayx/krbrelayx.py "$@"\n' "$RE_VENV" > /usr/local/bin/krbrelayx \
+        && chmod +x /usr/local/bin/krbrelayx
     [ -f /opt/LinkFinder/linkfinder.py ] && printf '#!/bin/sh\nexec python3 /opt/LinkFinder/linkfinder.py "$@"\n' > /usr/local/bin/linkfinder \
         && chmod +x /usr/local/bin/linkfinder
 
@@ -1089,7 +1097,7 @@ install_red() {
             && chmod +x /usr/local/bin/kubectl || echo "kubectl 失败(dl.k8s.io 直连不通,有网阶段重试)"
     fi
     # trivy:GitHub .deb + 构建期烘 db 到 /opt/trivy-db(离线期 --skip-db-update)
-    if ! have trivy; then
+    if [ ! -x /usr/bin/trivy ]; then
         local tarch="64bit"; [ "$(dpkg --print-architecture)" = arm64 ] && tarch="ARM64"
         local tv; tv="$(curl -fsSL https://api.github.com/repos/aquasecurity/trivy/releases/latest | grep -o '"tag_name": *"[^"]*"' | cut -d'"' -f4)"
         if [ -n "$tv" ]; then
@@ -1098,13 +1106,21 @@ install_red() {
                 && dpkg -i "/tmp/${tdeb}" && rm "/tmp/${tdeb}" || echo "trivy deb 失败"
         fi
     fi
-    if have trivy; then
-        export TRIVY_CACHE_DIR=/opt/trivy-db
+    if [ -x /usr/bin/trivy ]; then
         install -d /opt/trivy-db
-        trivy image --download-db-only >/dev/null 2>&1 || echo "trivy db 烘焙失败(离线期将无法扫描)"
+        # 烘焙用真身:/usr/local/bin wrapper 会注入 skip 行为,与 --download-db-only 冲突
+        TRIVY_CACHE_DIR=/opt/trivy-db /usr/bin/trivy image --download-db-only >/dev/null 2>&1 || echo "trivy db 烘焙失败(离线期将无法扫描)"
+        # alias 在非交互 shell(incus exec)不生效,离线期 trivy 找不到烘焙库会 FATAL
+        # "first run cannot skip downloading DB";改 wrapper 指烘焙库。
+        # 0.75 起 --skip-db-update 不是 root 持久旗标(实证 unknown flag),只能走 env 注入
+        printf '%s\n' '#!/bin/sh' \
+            'export TRIVY_CACHE_DIR="${TRIVY_CACHE_DIR:-/opt/trivy-db}"' \
+            'case " $* " in *download-db-only*) exec /usr/bin/trivy "$@";; esac' \
+            'export TRIVY_SKIP_DB_UPDATE="${TRIVY_SKIP_DB_UPDATE:-true}"' \
+            'exec /usr/bin/trivy "$@"' > /usr/local/bin/trivy
+        chmod +x /usr/local/bin/trivy
         cat > /etc/profile.d/trivy.sh <<'EOF'
 export TRIVY_CACHE_DIR=/opt/trivy-db
-alias trivy='trivy --skip-db-update'
 EOF
     fi
     # awscli v2:官方 zip 安装器(无国内镜像,构建期直连)

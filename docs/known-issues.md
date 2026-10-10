@@ -13,5 +13,8 @@
 - 用户裁定留痕（grok 评审建议后裁定）：移除批（gospider、httprobe、assetfinder、waybackurls、Covenant、SILENTTRINITY）与 EOL 运行时（python2、PHP 7.4/8.1、JDK 11、Node 18/20）**全保留**；impacket 不用 noble apt 冻结版，改 `uv tool install impacket` 上游版（老镜像 apt 版增量迁移自动卸）；fff-mcp 不装二进制，fff-search 只进 rust 库预热；grok 库评审的 BananaPhone、go-clr、garble、obfstr、boost、Detours、JsonSpirit、webshell 样本库与哥斯拉/冰蝎/蚁剑操作台均裁定不进镜像。
 - `pi-box-dev` 镜像（pi 二进制、pi-web、定制 Chrome）的构建脚本不在本仓，`build.sh` 未做。
 - 备选路线：单个实例可直接 `incus launch images:ubuntu/24.04`,`incus stop` 后 `incus publish --alias <名>` 固化，不经 distrobuilder。
+- org.jf:dexlib2 国内镜像（aliyun/华为）全无件（实证 404;google 已迁 com.google.smali),Java 预热已移除该坐标；要 smali 分析用 apktool 自带件，或手工从 Maven Central 拉。
+- trufflehog 3.99 `filesystem` 零命中也退 1（实证空目录 rc=1)，自动化断言勿看退出码，看输出内容。
+- alias 只在交互登录 shell 生效：`incus exec`（非登录）不读 /etc/profile.d 也不读 /etc/environment。离线必需的环境修正必须落 wrapper 文件、per-user 配置（go env/NuGet.Config）或默认路径软链；profile.d 只是登录 shell 备份面（血泪教训，离线轮实证）。
 
 本仓只维护 yaml、脚本与文档；镜像产物不入库；distrobuilder 构建缓存与根目录在 `/tmp/distrobuilder`，失败后可手动清理。

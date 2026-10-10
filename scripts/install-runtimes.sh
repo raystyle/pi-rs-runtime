@@ -187,6 +187,11 @@ EOF
     <clear />
     <add key="huaweicloud" value="${NUGET_MIRROR}" />
   </packageSources>
+  <!-- 非登录 shell(incus exec)读不到 NUGET_PACKAGES:fallback folder 是 NuGet
+       官方离线机制(同 SDK NuGetFallbackFolder),restore 直接从固化目录取件 -->
+  <fallbackPackageFolders>
+    <add key="prewarm" value="/opt/nuget-packages" />
+  </fallbackPackageFolders>
 </configuration>
 EOF
     done
@@ -306,6 +311,12 @@ EOF
     cat > /etc/profile.d/gradle.sh <<'EOF'
 export GRADLE_USER_HOME=/opt/gradle-home
 EOF
+    # 非登录 shell(incus exec)不读 profile.d:家目录默认位软链兜底
+    for u in /root /home/ubuntu; do
+        [ -d "$u" ] || continue
+        [ -L "$u/.gradle" ] || rm -rf "$u/.gradle"
+        ln -sfn /opt/gradle-home "$u/.gradle"
+    done
     cat > /opt/gradle-home/init.d/mirrors.gradle <<'EOF'
 allprojects {
     repositories {

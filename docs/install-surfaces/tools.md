@@ -585,7 +585,7 @@ install -m755 nu /usr/local/bin/nu
 ```bash
 # lab apt 批 36 包:hashcat CPU 走 pocl;masscan 装后 setcap cap_net_raw,cap_net_admin+eip 免 sudo
 apt-get install -y --no-install-recommends …
-# Responder:运行 python3 /opt/Responder/Responder.py -I eth0
+# Responder:wrapper `responder`(cd 进 /opt/Responder 再 exec,Responder.conf 按 cwd 读)
 git clone --depth 1 … /opt/Responder
 # donut:解到 /opt/donut(含 lib/ 静态动态库与 donut.h),.version 标记幂等
 curl -fSL …/TheWover/donut/releases/download/v${DONUT_VERSION}/donut_v${DONUT_VERSION}.tar.gz
@@ -613,7 +613,9 @@ curl …/download/<ver>/frida-server-<ver>-{windows,android,linux}-<arch>.xz
 | AD 横向/Web/密码/移动/云工具（kerbrute、wafw00f、arjun、ghauri、bloodhound-python、Coercer、mitm6、objection、apkleaks、bloodhound-ce、certipy-ad、bloodyAD、bofhound、semgrep、jwt-tool、LinkFinder、krbrelayx、enum4linux-ng、cewl、evil-winrm、CyberChef、kubectl、trivy、awscli） | 混合 | uv tool 走 tuna；git 克隆钉 `/opt`；gem 走 [gems.ruby-china.com](https://gems.ruby-china.com)（ruby-full + ruby-dev 随源）；Release 钉版 |
 
 ```bash
-# AD 横向/Web/密码/移动/云工具:trivy 构建期 --download-db-only 烘到 /opt/trivy-db
+# AD 横向/Web/密码/移动/云工具:trivy 构建期 --download-db-only 烘到 /opt/trivy-db;
+# wrapper 注入 TRIVY_CACHE_DIR + TRIVY_SKIP_DB_UPDATE(0.75 起 --skip-db-update 非 root 旗标,只能走 env);
+# enum4linux-ng/krbrelayx 是仓内脚本,wrapper 直调 re-venv python,依赖 nmblookup/net 由 samba-common-bin 补齐
 uv tool install <名>
 # AD 现役批(grok 红队评审补充,与 Legacy bloodhound-python 并存):bloodhound-ce 在 tuna 缺失显式走 pypi.org;
 # 入口命令 bloodhound-ce-python,venv 内含 dirkjanm impacket 叉整套脚本(secretsdump.py 解析到 /opt/uv-tools/bloodhound-ce/);

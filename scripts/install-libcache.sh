@@ -57,7 +57,6 @@ import (
 	// PE 与资源
 	_ "github.com/klauspost/compress/zstd"
 	_ "github.com/saferwall/pe"
-	_ "github.com/tc-hib/go-winres"
 )
 
 func main() {}
@@ -65,9 +64,12 @@ EOF
     ( cd "$dir" && GOFLAGS=-mod=mod go mod tidy ) \
         && echo "Go 库已预热进 /opt/go/pkg/mod,解析版本:" \
         && grep -E '^\s' "$dir/go.mod" | grep -v '^go ' || echo "!! go 预热失败"
-    # pspy 是命令不是库:go install 进 /usr/local/bin,模块顺带缓存
-    have pspy || go install github.com/DominicBreuker/pspy@latest 2>/dev/null \
+    # pspy 是命令不是库:go install 进 /usr/local/bin,模块顺带缓存(仓名已改小写,大写会被 go 拒)
+    have pspy || go install github.com/dominicbreuker/pspy@latest 2>/dev/null \
         && ln -sf /opt/go/bin/pspy /usr/local/bin/pspy 2>/dev/null || echo "pspy 失败(可忽略)"
+    # go-winres 同样是命令(PE 资源编译器,import 会让 go build 报 "is a program")
+    have go-winres || go install github.com/tc-hib/go-winres@latest 2>/dev/null \
+        && ln -sf /opt/go/bin/go-winres /usr/local/bin/go-winres 2>/dev/null || echo "go-winres 失败(可忽略)"
     true
 }
 
@@ -159,6 +161,21 @@ EOF
     else
         echo "!! npm install 失败"
     fi
+    # 非登录 shell(incus exec)不读 profile.d。注意 require 不查 npm 全局 node_modules,
+    # 只认 Module.globalPaths(实证:~/.node_modules、~/.node_libraries、<prefix>/lib/node);
+    # 所以链两处:node_modules 供 npm -g/bin 面,lib/node 供裸 require(lib/node 默认不存在,要 install -d)
+    local nmroot p v
+    for nmroot in /opt/node/lib/node_modules /opt/node/lib/node; do
+        install -d "$nmroot"
+        for p in "$dir/node_modules"/*; do [ -e "$p" ] && ln -sfn "$p" "$nmroot/"; done
+    done
+    for v in /root/.local/share/fnm/node-versions/*/; do
+        [ -d "$v" ] || continue
+        for nmroot in "${v}installation/lib/node_modules" "${v}installation/lib/node"; do
+            install -d "$nmroot"
+            for p in "$dir/node_modules"/*; do [ -e "$p" ] && ln -sfn "$p" "$nmroot/"; done
+        done
+    done
     true
 }
 
@@ -193,7 +210,8 @@ install_java() {
     <dependency><groupId>com.squareup.okhttp3</groupId><artifactId>okhttp</artifactId><version>[0,)</version></dependency>
     <dependency><groupId>cn.hutool</groupId><artifactId>hutool-all</artifactId><version>[0,)</version></dependency>
     <dependency><groupId>info.picocli</groupId><artifactId>picocli</artifactId><version>[0,)</version></dependency>
-    <dependency><groupId>org.jf</groupId><artifactId>dexlib2</artifactId><version>[0,)</version></dependency>
+    <!-- org.jf:dexlib2 国内镜像(aliyun/华为)全无件(实证 404),google 已迁 com.google.smali;
+         移出预热,需要时用 apktool 自带 smali 或手工从 Central 拉(known-issues 留痕) -->
   </dependencies>
   <profiles>
     <profile><id>study</id><activation><activeByDefault>false</activeByDefault></activation><dependencies>
@@ -203,8 +221,8 @@ install_java() {
       <dependency><groupId>org.apache.logging.log4j</groupId><artifactId>log4j-core</artifactId><version>2.14.1</version></dependency>
       <dependency><groupId>org.apache.shiro</groupId><artifactId>shiro-core</artifactId><version>1.2.4</version></dependency>
       <dependency><groupId>commons-collections</groupId><artifactId>commons-collections</artifactId><version>3.2.1</version></dependency>
-      <dependency><groupId>commons-io</groupId><artifactId>commons-io</artifactId><version>[0,)</version></dependency>
-      <dependency><groupId>commons-codec</groupId><artifactId>commons-codec</artifactId><version>[0,)</version></dependency>
+      <dependency><groupId>commons-io</groupId><artifactId>commons-io</artifactId><version>2.20.0</version></dependency>
+      <dependency><groupId>commons-codec</groupId><artifactId>commons-codec</artifactId><version>1.20.0</version></dependency>
     </dependencies></profile>
   </profiles>
 </project>
@@ -233,6 +251,9 @@ install_pwsh() {
     cat > /etc/profile.d/psmodules.sh <<'EOF'
 export PSModulePath=/opt/psmodules:${PSModulePath:-}
 EOF
+    # 非登录 shell(incus exec)不读 profile.d:链进 pwsh 默认系统模块路径,全 shell 可见
+    install -d /usr/local/share/powershell/Modules
+    for m in /opt/psmodules/*; do [ -d "$m" ] && ln -sfn "$m" /usr/local/share/powershell/Modules/; done
     ls /opt/psmodules 2>/dev/null || true
     true
 }
@@ -276,17 +297,38 @@ install_zig() {
     have zig || { echo "zig 未装,先跑 install-compilers.sh zig"; return 0; }
     local dir=/opt/zig-prewarm
     rm -rf "$dir" && install -d "$dir" && cd "$dir"
+    # 0.16 起 zig fetch 要求 cwd 是包(实证报 no build.zig):先 zig init 出模板
+    zig init >/dev/null 2>&1 || true
     # zig fetch --save 会把依赖写进 build.zig.zon 并填充全局缓存;hash 以 0.16 输出为准
-    local spec
+    # 实证:ohmygh 代理不支持 git smart-http,git+ 全失败;改 tarball(archive/refs)才可过代理。
+    # zlib 钉 tag,其余钉主干 heads(构建日快照);每库三次重试
+    local spec try
     for spec in \
-        "git+https://github.com/allyourcodebase/zlib.git#1.3.1" \
-        "git+https://github.com/allyourcodebase/zstd.git" \
-        "git+https://github.com/allyourcodebase/sqlite3.git" \
-        "git+https://github.com/allyourcodebase/mbedtls.git" \
-        "git+https://github.com/allyourcodebase/libxml2.git"; do
-        zig fetch --save "$spec" 2>/dev/null || echo "zig fetch $spec 失败(无 Zig 包镜像,GitHub 直下)"
+        "zlib=${GITHUB_MIRROR}https://github.com/allyourcodebase/zlib/archive/refs/heads/master.tar.gz" \
+        "zstd=${GITHUB_MIRROR}https://github.com/allyourcodebase/zstd/archive/refs/heads/master.tar.gz" \
+        "sqlite3=${GITHUB_MIRROR}https://github.com/allyourcodebase/sqlite3/archive/refs/heads/main.tar.gz" \
+        "mbedtls=${GITHUB_MIRROR}https://github.com/allyourcodebase/mbedtls/archive/refs/heads/main.tar.gz" \
+        "libxml2=${GITHUB_MIRROR}https://github.com/allyourcodebase/libxml2/archive/refs/heads/master.tar.gz"; do
+        for try in 1 2 3; do
+            zig fetch --save="${spec%%=*}" "${spec#*=}" 2>/dev/null && break || { echo "zig fetch ${spec%%=*} 第 $try 次失败"; sleep 2; }
+        done
     done
-    ls build.zig.zon 2>/dev/null && echo "zig-prewarm zon 已生成;缓存: /opt/zig-cache" || echo "!! zig fetch 全失败"
+    # 失败要响:固化缓存为空即中断(离线 zig 库是核心承诺,半静默最伤现场)
+    if [ -n "$(ls -A /opt/zig-cache/p 2>/dev/null)" ]; then
+        echo "zig 库已固化: $(ls /opt/zig-cache/p | wc -l) 个包进 /opt/zig-cache"
+    else
+        echo "!! zig fetch 全失败(离线 zig 库缺失,查 GITHUB_MIRROR)"
+        return 1
+    fi
+    # 非登录 shell(incus exec)读不到 ZIG_GLOBAL_CACHE_DIR:默认缓存位软链兜底
+    # (clean-image.sh 对软链有守卫,不会删)
+    local u
+    for u in /root /home/ubuntu; do
+        [ -d "$u" ] || continue
+        install -d "$u/.cache"
+        [ -L "$u/.cache/zig" ] || rm -rf "$u/.cache/zig"
+        ln -sfn /opt/zig-cache "$u/.cache/zig"
+    done
     true
 }
 

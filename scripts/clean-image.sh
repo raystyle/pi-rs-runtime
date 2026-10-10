@@ -9,16 +9,19 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
 . "$HERE/lib/common.sh"
 
-log "apt 缓存(脚本各组自带 apt-get update,lists 可再拉)"
+log "apt 缓存(构建期各组自带 apt-get update 可再拉;成品镜像离线,apt install 新件不可用属预期快失败)"
 apt-get clean
 rm -rf /var/lib/apt/lists/*
 
 log "构建期可再生缓存(实测约 15 GB:go-build/uv/npm/pip/ccache/zig/vcpkg 下载/NuGet http-cache/gem)"
 rm -rf /root/.cache/go-build /root/.cache/uv /root/.cache/pip \
-       /root/.cache/ccache /root/.cache/zig /root/.cache/vcpkg
+       /root/.cache/ccache /root/.cache/vcpkg
+# zig 默认缓存位可能是指向 /opt/zig-cache 的固化软链(install-libcache zig 组建):软链留下,只清真目录
+[ -L /root/.cache/zig ] || rm -rf /root/.cache/zig
 rm -rf /root/.npm/_cacache
 rm -rf /root/.local/share/NuGet/http-cache
-rm -rf /var/lib/gems/*/cache/* /root/.local/share/gem
+# gem 的 cache/* 是 .gem 下载缓存;/root/.local/share/gem 是 --user-install 安装根(非缓存,grok 评审),不删
+rm -rf /var/lib/gems/*/cache/*
 # ubuntu 用户同形(量小,顺手)
 rm -rf /home/ubuntu/.cache/go-build /home/ubuntu/.cache/uv /home/ubuntu/.cache/pip \
        /home/ubuntu/.cache/ccache /home/ubuntu/.npm/_cacache 2>/dev/null || true

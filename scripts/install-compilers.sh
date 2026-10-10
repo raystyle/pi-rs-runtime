@@ -34,6 +34,13 @@ install_c() {
 
 install_golang() {
     log "golang $GOLANG_VERSION (下载 $GO_DOWNLOAD,GOPROXY=$GOPROXY)"
+    # ubuntu 同形 go env:per-user 文件(非登录 shell 也读),root 那份帮不到 ubuntu;
+    # 写文件不依赖 go 二进制,放在早退前,保证重跑组时也会补上
+    if [ -d /home/ubuntu ]; then
+        install -d /home/ubuntu/.config/go
+        printf 'GOPROXY=%s\nGOSUMDB=%s\nGOPATH=/opt/go\nGOMODCACHE=/opt/go/pkg/mod\n' "${GOPROXY}" "${GOSUMDB}" > /home/ubuntu/.config/go/env
+        chown -R ubuntu:ubuntu /home/ubuntu/.config 2>/dev/null || true
+    fi
     if have go && [ "$(go env GOVERSION)" = "go$GOLANG_VERSION" ]; then
         echo "已安装 $(go env GOVERSION),跳过"; return
     fi

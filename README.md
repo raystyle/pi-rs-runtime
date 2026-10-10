@@ -26,6 +26,7 @@
 | [docs/params.md](docs/params.md) | 参数表：构建脚本变量、镜像源覆盖、版本钉、路径与工具集 |
 | [docs/install-surfaces/](docs/install-surfaces/) | 安装面清单：四个分类脚本的组|项目|版本|官方来源|安装命令全表（索引 + 编译器/运行时/工具三分册） |
 | [docs/software-inventory.md](docs/software-inventory.md) | 软件清单归档：镜像内全部软件、库与隔离环境，14 分类逐项 |
+| [docs/offline.md](docs/offline.md) | 离线运行：固化缓存/wrapper/非登录 shell 兼容三层机制、边界与断网冒烟验证法 |
 | [docs/known-issues.md](docs/known-issues.md) | 已知限制与未决项 |
 | [PROGRESS.md](PROGRESS.md) | 任务进度与历史轨迹（跨会话工作记忆，接续工作前先读） |
 
