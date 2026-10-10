@@ -45,7 +45,7 @@ pipefail:`ls` 多 glob 缺操作数返回 2 致赋值退出(rust-lld、ghidra j2
 
 ## 镜像源现状(实测后切换)
 
-apt(yaml 8 处)阿里云;PyPI 阿里云;rustup/crates rsproxy.cn;maven 发行包阿里云;goproxy.cn 不动;npmmirror(即淘宝)不动;南大 golang/sury;华为 nuget/python2;tuna 仅 Adoptium(阿里云无)。GITHUB_MIRROR 默认空,有需要用 `https://proxy.ohmygh.com/`(用户提供的 gh-proxy,实测可用)。
+apt(yaml 8 处)阿里云;PyPI 阿里云;rustup/crates rsproxy.cn;maven 发行包阿里云;goproxy.cn 不动;npmmirror(即淘宝)不动;南大 golang/sury;华为 nuget/python2;tuna 仅 Adoptium(阿里云无)。GITHUB_MIRROR 默认 `https://proxy.ohmygh.com/`(用户提供的 gh-proxy,实测可用;置空回直连)。ubuntu-2404-tuna 试验镜像已清(2026-10-10),剩 ubuntu-24.04-base  distrobuilder 底板。
 
 ## 待办
 
