@@ -16,6 +16,20 @@
 
 [go](libcache/go.md) · [rust](libcache/rust.md) · [python](libcache/python.md) · [node](libcache/node.md) · [java](libcache/java.md) · [pwsh](libcache/pwsh.md) · [dotnet](libcache/dotnet.md) · [zig](libcache/zig.md)
 
+## 归档域视图(七域定稿,grok prt-09;目录=安装组,域=归档架子,两面并存)
+
+| 域 | 判据(这只 id 被拿来干什么) | 例 |
+|---|---|---|
+| 工具环境 | 对目标或实例本身下命令的入口,不属下列专域 | nmap、herdr、aliyun、rctl、agents、vnc、vol、poc-search |
+| 运行时环境 | 跑通用代码的宿主 | python、node、JVM、dotnet |
+| 编程环境 | 为写和编译而固化的工具链与库字节 | rustc、go 模块缓存、capstone 库 |
+| 逆向环境 | 拆、调、模拟、反编译二进制的入口 | ghidra、rizin、rea、jadx、frida、floss、ilspycmd |
+| 数据信息搜索 | 被查的语料:词表、模板、规则、PoC/漏洞索引 | SecLists、nuclei-templates、exploitdb、LOLBAS |
+| 数据分析 | 对表或列做计算的引擎与其专用 venv | duckdb、clickhouse、nu、analytics-venv |
+| 代码样板参考 | 只克隆供读和改,不作已安装入口 | c2/maldev/pz 参考克隆、ysoserial 源码 |
+
+映射规则:`gen-rctl-catalog.sh` env_of(id 名单 + 组默认 + kind=data 到数据信息搜索/ref 到代码样板参考 + 机器行 env= 覆盖);活视图 `rctl --env <域>`、面板七域计数。kind 与域是两个面(clickhouse:kind=runtime,域=数据分析,非双归)。
+
 ## tools(install-tools.sh,48 册)
 
 | 组 | 册 |

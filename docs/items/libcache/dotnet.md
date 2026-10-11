@@ -29,6 +29,6 @@
 - **离线行为**:过, 断网 `dotnet restore` 在断网冒烟批覆盖(见 [offline.md](../../offline.md) 验证节),fallback folder 直取固化件不触网。验证:`ip link set eth0 down` 后 `cd /opt/dotnet-prewarm && dotnet restore`
 ## rctl 面(机器行:catalog 投影声明,audit 豁免依据)
 
-- rctl: ilspycmd kind=tool path=/usr/local/bin/ilspycmd note=.NET 反编译 CLI(NUGET_PIN 独立钉,落 /opt/dotnet-tools)
+- rctl: ilspycmd kind=tool path=/usr/local/bin/ilspycmd env=逆向环境 note=.NET 反编译 CLI(NUGET_PIN 独立钉,落 /opt/dotnet-tools)
 
 - **坑与留痕**:dotnet 未装早退(先跑 runtimes dotnet 组);单包 `dotnet add` 失败 tolerant(回 echo 不中断),restore 与逐 RID restore 分步各自留 echo

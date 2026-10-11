@@ -39,7 +39,7 @@
 
 ## 待办
 
-0. 域分类定稿(grok prt-09 在办):七域草判(工具/运行时/编程/逆向/数据信息搜索/数据分析/代码样板参考)已落 env 第 11 列与 rctl(--env 旗标+面板六/七域计数+show);定稿后 env_of 一函数改映射;CTF/渗透库查漏补缺(grok prt-08 在办,缺口:angr/ropper/qiling/frida-bindings/exploit-db)→ REQ-0003 物化预热批
+0. ~~域分类定稿~~(prt-09 已交并吸收):七域定稿确认(数据分析独立成域正确,不加第八域;kind 与域两面并存);三处改判落地(frida/jadx/apktool/capa/pwndbg 与 floss/ilspycmd/smali/baksmali 到 逆向环境,vol/volshell/netexec/pspy 到 工具环境,poc-search 到 工具环境);一级七域够用,ATT&CK 战术留作 caps 多值标签不进 env;docs/items/README 增七域归档视图;待裁定:angr(单独 venv)/HackTricks(1GiB)/GTFOBins(代理 401)
 
 1. prt-07 阶段 2:闭集族全表生成(impacket 余 ~50 脚本、frida/rz/nim 已过半)+ 漂移守卫;阶段 2 裁定项:microsoft/nuget.exe/httpclient/rwinrm/rwinrmcp(无主)、atlas/nokokiri/ruff(uv-tool shim 未点名);别名行机制已就位(alias 列)
 2. prt-07 阶段 3:拆独立册(SecLists/capa-rules/yara-rules/pspy/volatility3,数据册三条纪律)+ zig 册 id 冲突解(工具链 zig vs 缓存 zig 两册同名,拆缓存行 id=zig-cache);audit 残 12 项目录认领随拆册收口

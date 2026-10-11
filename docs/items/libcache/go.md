@@ -9,7 +9,7 @@
 - **离线行为**:过, 断网构建实证(断网冒烟 78/0 轮):`ip link set eth0 down` 后 `cd /opt/go-prewarm && go build .` 退 0;过, 拉新件瞬时 `module lookup disabled by GOPROXY=off`(五生态快失败轮);在线拉件需 `GOPROXY=https://goproxy.cn,direct` 显式覆盖(构建脚本经 common.sh 自动带)
 ## rctl 面(机器行:catalog 投影声明,audit 豁免依据)
 
-- rctl: pspy kind=tool path=/usr/local/bin/pspy note=无 root 进程刺探(GO_PIN 独立钉,实装在 /opt/go/bin)
+- rctl: pspy kind=tool path=/usr/local/bin/pspy env=工具环境 note=无 root 进程刺探(GO_PIN 独立钉,实装在 /opt/go/bin)
 
 - **坑与留痕**:`go install` 只适合带 main 的命令,库必须 `go mod tidy` 解析进缓存;go-winres 是命令不是库,import 进预热清单会让 `go build` 报 "is a program"(已剔出改 go install);pspy 仓名已改小写 dominicbreuker(大写被 go 拒);GOTOOLCHAIN 下载同样走 GOPROXY,离线期快失败([ADR-0004](../../adr/ADR-0004-offline-first-fail-fast.md));工具链本体与 go env 写入面的坑见 [../compilers/golang.md](../compilers/golang.md)
 

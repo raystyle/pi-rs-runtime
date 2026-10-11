@@ -9,7 +9,12 @@ OUT="scripts/ctl/data/catalog.tsv"
 TMP="$(mktemp)"
 
 env_of() {  # 归档域(七域草判,prt-09 定稿中):id 级覆盖(数据分析栈);组默认;kind 规则由主流程与机器行覆盖
-    if [ -n "$2" ]; then case "$2" in duckdb|clickhouse|nu) echo "数据分析"; return 0;; esac; fi
+    if [ -n "$2" ]; then
+        case "$2" in
+            duckdb|clickhouse|nu) echo "数据分析"; return 0;;
+            frida|jadx|apktool|capa|pwndbg) echo "逆向环境"; return 0;;  # prt-09 改判:册不在逆向目录的逆向入口
+        esac
+    fi
     case "$1" in
         compilers) echo "编程环境" ;;
         runtimes)  echo "运行时环境" ;;
