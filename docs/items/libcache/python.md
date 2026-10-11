@@ -1,4 +1,4 @@
-# Python 库缓存(re-venv 扩展 + wheelhouse)
+# Python 库缓存:re-venv 扩展 + wheelhouse
 
 > 逆向/CTF 向 19 个 PyPI 包装进 /opt/re-venv、轮子下载进 /opt/wheelhouse,断网 pip 免索引重装 ｜ 状态:缓存固化 ｜ 组:`install-libcache.sh python`
 
@@ -7,7 +7,7 @@
 - **落点**:`/opt/re-venv`(19 包 + RsaCtfTool 依赖,与逆向五库/工具同一 venv);`/opt/wheelhouse`(pip 轮子离线重装源);`/opt/RsaCtfTool`(参考克隆);volatility3 的 CLI 链 `/usr/local/bin/{vol,volshell}`
 - **配置与缓存**:运行期消费面是 `/etc/pip.conf`(install-runtimes.sh python 组写):`[install] no-index=true find-links=/opt/wheelhouse`,`pip install <轮子内包>` 免旗标直装;uv 面是 `/etc/uv/uv.toml` `offline=true`(runtimes uv 组)。机制见 [offline.md](../../offline.md) §1/§4
 - **离线行为**:过, 轮子内包断网直装实证(五生态快失败轮,`pip --no-index` 在断网冒烟清单):`ip link set eth0 down` 后 `pip install --no-index --find-links /opt/wheelhouse pefile` 退 0;过, 轮子外的包立即 No matching distribution 快失败;vol/volshell 断网可用 未验 [推断:二进制与依赖全在 /opt/re-venv 盘上,运行不触网]
-## rctl 面(机器行:catalog 投影声明,audit 豁免依据)
+## rctl 面,机器行:catalog 投影声明,audit 豁免依据
 
 - rctl: vol kind=tool path=/usr/local/bin/vol env=工具环境 note=volatility3 CLI(PYPI_PIN 独立钉,re-venv 链出)
 - rctl: volshell kind=tool path=/usr/local/bin/volshell env=工具环境

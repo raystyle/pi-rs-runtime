@@ -12,10 +12,10 @@
 6. red 组 AD 横向与 Web 批、库缓存八生态固化。
 7. README 重写 + 三张安装面表 + 软件清单归档 12 分类。
 
-## fresh 验证修复台账(17 坑,全部已修)
+## fresh 验证修复台账:17 坑,全部已修
 
 pipefail:`ls` 多 glob 缺操作数返回 2 致赋值退出(rust-lld、ghidra j21、nushell tag);`cmd | head` 类。set -e 语义:&& 链只有最后被执行的命令失败才退出(nuclei 模板循环 rmdir 案)。其他:cloud 镜像缺 git(unattended-upgrades 抢 dpkg 锁,前置批停计时器)、ast-grep 的 sg 与 shadow 撞名、cargo/rustup 旧布局假设($HOME/.cargo/env)、fnm 无 RUSTUP_HOME、p0 apt 批无容错(tuna 抖动)、api.github.com 限流 403(nushell/CyberChef 改 git ls-remote;duckdb 链兜底)、GitHub 直连间歇归零(nushell 重试)、ghauri 不在任何 PyPI(只发 git 仓)、bloodhound-python 无 entrypoint、CyberChef 资产名保留 v 前缀、kubectl 国内无镜像、三个克隆仓名错误(ticarpi/jwt_tool、GerbenJavado/LinkFinder、cddmp/enum4linux-ng)。
 
-## 镜像源切换(实测后)
+## 镜像源切换:实测后
 
 apt 阿里云;PyPI 阿里云;rustup/crates rsproxy.cn;maven 发行包阿里云;goproxy.cn 不动;npmmirror 不动;南大 golang/sury;华为 nuget/python2;tuna 仅 Adoptium。

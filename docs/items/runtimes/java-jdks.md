@@ -1,4 +1,4 @@
-# temurin JDK 多版本(8/11/17/21/25)
+# temurin JDK 多版本:8/11/17/21/25
 
 > Adoptium temurin 多主版本并存,sdkman 本地路径注册 ｜ 状态:已装(批量册) ｜ 组:`install-runtimes.sh sdkman`
 
@@ -16,7 +16,7 @@
 
 - **配置与缓存**(批量机制):`JAVA_HOME` 由 `/etc/profile.d/sdkman.sh` 兜底为 `candidates/java/current`(见 [sdkman](sdkman.md));JDK 本体无库缓存,Java 依赖固化在 `/opt/m2`,属 [maven](maven.md) 册(install-libcache.sh java 组)
 - **离线行为**:过, 本地编译/运行不触网;断网冒烟 78/0 含 `mvn -o` 离线构建(走默认 JDK,口径见 [offline.md](../../offline.md) §验证)。验证:`ip link set eth0 down` 后 `java -version && javac -version` 退 0
-## rctl 面(机器行:catalog 投影声明,audit 豁免依据)
+## rctl 面,机器行:catalog 投影声明,audit 豁免依据
 
 - rctl: javac kind=runtime path=/usr/local/bin/javac note=JDK 编译器入口
 

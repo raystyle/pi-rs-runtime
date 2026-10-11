@@ -1,4 +1,4 @@
-# rea(rea-agents)
+# rea:rea-agents
 
 > agent 逆向工具面(morluto/rea:MCP server + CLI,Ghidra 无头 provider,封装 analyzeHeadless)｜ 状态:已装 ｜ 组:`install-tools.sh rea`
 
@@ -7,7 +7,7 @@
 - **落点**:真身 `/opt/node/bin/rea` 与 `/opt/node/bin/rea-agents`;入口 `/usr/local/bin/rea`、`/usr/local/bin/rea-agents` 为 wrapper(export `GHIDRA_INSTALL_DIR` 与 `JAVA_HOME` 后 exec 真身;ghidra 版本目录组内动态取 `/opt/ghidra/ghidra_*_PUBLIC` 最新,JAVA_HOME 取 Ghidra `support/launch.properties` 的 `JAVA_HOME_OVERRIDE`(temurin 21),升级 ghidra 组后重跑本组即刷新);登录 shell 备份面 `/etc/profile.d/rea-ghidra.sh`。**env 固化必须走 wrapper**:非登录 shell(incus exec)不读 profile.d(血泪教训,见 [known-issues](../../known-issues.md))
 - **配置与缓存**:Ghidra provider 依赖镜像内 [ghidra](../tools-ghidra/ghidra.md)(12.1.3;rea 的 verified 版本是 12.1.4,12.1.x 收为 compatible,doctor 报「compatible 12.1.x」属预期不是失败);**rea 无配置文件,配置面全是进程环境**(grok prt-02 源码对账):`GHIDRA_INSTALL_DIR`(不设不自动发现)、`JAVA_HOME`(rea 直 exec `$JAVA_HOME/bin/java`,不读 Ghidra 的 launch.properties override)、`REA_GHIDRA_STARTUP_TIMEOUT_MS`(默认 330000)、`GHIDRA_HEADLESS_MAXMEM`(默认 2G,大二进制才调)、`REA_ANALYSIS_PROVIDER`(多 provider 竞争时显式定 `ghidra`;本镜像只配 Ghidra,auto 实证可用)、`REA_LOG_LEVEL`;每用户状态 `~/.rea/cache` 与 `~/.rea/state`
 - **离线行为**:过,断网全链路实证(2026-10-11):eth0 down 后 `rea doctor` Ghidra provider healthy(20 项 ok)+ 带符号 ELF `rea decompile <bin> main` 出伪代码(provider 12.1.3);边界:装/更新(`npm install -g`、`rea update`、`npx`)、`rea setup` 若涉及 Hopper 与 registry 解析、其它 provider(Hopper/JADX/固件/浏览器面)需在线;Ghidra provider 代码路径无 URL(grok prt-02 源码检索),断网分析不触网
-## rctl 面(机器行:catalog 投影声明,audit 豁免依据)
+## rctl 面,机器行:catalog 投影声明,audit 豁免依据
 
 - rctl: rea-agents kind=tool path=/usr/local/bin/rea-agents note=rea 常驻面入口
 

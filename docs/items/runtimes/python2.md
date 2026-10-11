@@ -7,7 +7,7 @@
 - **落点**:`/usr/local/bin/python2.7` 真身(`altinstall`,不抢 `python` 无版本名);`/usr/local/bin/python2` 软链;共享库 `libpython2.7.so.1.0` 落 `/usr/local/lib` 经 ldconfig 注册(`--enable-shared`);库目录 `/usr/local/lib/python2.7`
 - **配置与缓存**:无(脚本不写任何配置文件;`/etc/pip.conf` 是 python3/pip3 的面,python2 未装 pip)
 - **离线行为**:未验 [推断:纯本地解释器,断网跑脚本不触网;断网冒烟未专项覆盖];构建期已实测 `import ssl` 可用(known-issues 留痕)。验证:`ip link set eth0 down` 后 `python2 -c 'import ssl, zlib, bz2, sqlite3'` 退 0
-## rctl 面(机器行:catalog 投影声明,audit 豁免依据)
+## rctl 面,机器行:catalog 投影声明,audit 豁免依据
 
 - rctl: python2.7 kind=runtime path=/usr/local/bin/python2.7 note=python2 入口
 - rctl: python2.7-config kind=runtime path=/usr/local/bin/python2.7-config

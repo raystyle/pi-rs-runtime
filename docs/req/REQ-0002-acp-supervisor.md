@@ -1,4 +1,4 @@
-# REQ-0002 ACP 监督进程与适配器(实例标准 agent 接入通道)
+# REQ-0002 ACP 监督进程与适配器:实例标准 agent 接入通道
 
 > 状态:implemented ｜ 提出:2026-10-11 ｜ 设计研究:[S-0002](../research/S-0002-instance-rpc-acp.md)(prt-05 定调、prt-06 复核维持) ｜ 前置:REQ-0001(rctl)、agents 批
 
@@ -12,7 +12,7 @@ R5 生命周期适配宿主信号策略:不依赖信号;提供 token 保护的 /
 R6 零网络:stdio 与回环 HTTP 之外不出网;agent 模型调用走 prt-04 凭证/网关道(使用期)
 R7 rctl 关系:rctl 仍是 agent 用的发现 CLI,不做通道;acp 册进 catalog 可搜
 
-## trace(实现回填)
+## trace:实现回填
 
 - T1 REQ 立单(2026-10-11)
 - T2 pins:CLAUDE_ACP_VERSION=0.89.1/CODEX_ACP_VERSION=2.2.2 + npmmirror resolver

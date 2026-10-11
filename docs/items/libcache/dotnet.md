@@ -1,4 +1,4 @@
-# .NET 库缓存(NuGet /opt/nuget-packages + ilspycmd)
+# .NET 库缓存:NuGet /opt/nuget-packages + ilspycmd
 
 > 16 个 NuGet 库包 + 8 RID self-contained runtime pack 固化进 /opt/nuget-packages;ilspycmd 反编译 CLI ｜ 状态:缓存固化 ｜ 组:`install-libcache.sh dotnet`(前置 `install-runtimes.sh dotnet`,dotnet-sdk-10.0)
 
@@ -27,7 +27,7 @@
 - **落点**:`/opt/nuget-packages`(构建期 export `NUGET_PACKAGES` 指向);`/opt/dotnet-prewarm`(预热工程,重跑 rm -rf 重建);`/opt/dotnet-tools/ilspycmd`;`/usr/local/bin/ilspycmd` 软链
 - **配置与缓存**:离线取件走 NuGet.Config `fallbackPackageFolders` 到 /opt/nuget-packages(root+ubuntu 各一份,NuGet 官方离线机制,同 SDK NuGetFallbackFolder,不依赖 shell env);**不再持久导出 NUGET_PACKAGES**,global 与 fallback 同路径会让登录 restore 写固化仓,ubuntu 还会权限失败(grok G3);`/etc/profile.d/dotnet.sh` 只留 `DOTNET_CLI_TELEMETRY_OPTOUT=1`;nuget fallback 是只读消费面,保持 755([offline.md](../../offline.md) §5)
 - **离线行为**:过, 断网 `dotnet restore` 在断网冒烟批覆盖(见 [offline.md](../../offline.md) 验证节),fallback folder 直取固化件不触网。验证:`ip link set eth0 down` 后 `cd /opt/dotnet-prewarm && dotnet restore`
-## rctl 面(机器行:catalog 投影声明,audit 豁免依据)
+## rctl 面,机器行:catalog 投影声明,audit 豁免依据
 
 - rctl: ilspycmd kind=tool path=/usr/local/bin/ilspycmd env=逆向环境 note=.NET 反编译 CLI(NUGET_PIN 独立钉,落 /opt/dotnet-tools)
 - rctl: dotnet-prewarm kind=cache path=/opt/dotnet-prewarm note=restore 预热工程(csproj 锁)

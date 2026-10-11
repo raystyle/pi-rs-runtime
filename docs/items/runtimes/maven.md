@@ -7,7 +7,7 @@
 - **落点**:`/opt/maven`;`/usr/local/bin/mvn`;本地仓 `/opt/m2`(libcache java 组 `/opt/maven-prewarm` 工程固化:`versions:resolve-ranges` 把 `[0,)` 区间解析成精确版本写回 pom,再 `dependency:go-offline` 拉字节;默认 profile 为 BC/ASM/Jackson/Spring/hutool 等当前安全版,study profile 钉 fastjson/log4j-core/shiro 等 CVE 复现坐标;smali/baksmali 3.0.10 经 GMaven,坐标留痕见 [known-issues](../../known-issues.md))
 - **配置与缓存**:`/opt/maven/conf/settings.xml`(安装目录级,对所有调用生效,不依赖 shell):`localRepository=/opt/m2` + mirror `aliyunmaven`(`mirrorOf=central`,url `MAVEN_DEP_MIRROR=https://maven.aliyun.com/repository/public`);非交互 shell 无 JAVA_HOME,构建脚本从 [sdkman](sdkman.md) current 推
 - **离线行为**:不做默认离线配置(maven 无干净「配置离线+CLI 覆盖」对,见 [offline.md](../../offline.md) §4);过, 手工 `mvn -o` 断网实证(冒烟 78/0 覆盖,root/ubuntu 双视角)。验证:`ip link set eth0 down` 后 `cd /opt/maven-prewarm && mvn -o -B -DskipTests package` 退 0
-## rctl 面(机器行:catalog 投影声明,audit 豁免依据)
+## rctl 面,机器行:catalog 投影声明,audit 豁免依据
 
 - rctl: mvn kind=runtime path=/usr/local/bin/mvn note=maven 入口名
 

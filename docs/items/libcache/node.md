@@ -1,4 +1,4 @@
-# Node 库缓存(js-lab)
+# Node 库缓存:js-lab
 
 > 加密/PKI/反混淆/解析向 24 个纯 JS/wasm 包固化进 /opt/js-lab,断网裸 `require` 直用 ｜ 状态:缓存固化 ｜ 组:`install-libcache.sh node`
 

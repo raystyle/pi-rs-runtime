@@ -1,4 +1,4 @@
-# dataref(数据信息资产)
+# dataref:数据信息资产
 
 > PoC/规则/指纹库的克隆面(kind=data,构建日快照,离线直读)｜ 状态:已装 ｜ 组:`install-tools.sh data`
 

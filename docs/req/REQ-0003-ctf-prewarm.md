@@ -1,4 +1,4 @@
-# REQ-0003 CTF/渗透必备库与数据资产物化预热(P0+P1)
+# REQ-0003 CTF/渗透必备库与数据资产物化预热:P0+P1
 
 > 状态:draft ｜ 提出:2026-10-11 ｜ 研究:grok prt-08 回执(P0/P1/P2 判例) ｜ 关联:六域归档(env 分面)、libcache 六生态
 
@@ -11,7 +11,7 @@ R4 P1 数据资产(clone_pin 钉 sha,kind=data):GTFOBins、LOLBAS、enthec/webap
 R5 裁定项(待用户):exploit-db(GitLab 道,GITHUB_MIRROR 不代理,需直连或 Kali orig tar)、angr 10.0.3(单独 /opt/angr-venv+独立轮子切片,禁 extra)、HackTricks(约 1GiB)
 R6 不做清单(grok prt-08 不建议项全收):ropper/pwninit/libc-database 全量/NVD 全量/bin-sploits/cfr/dex2jar/sage/PyPI pwn 空包
 
-## trace(实现回填)
+## trace:实现回填
 
 - T1 REQ 立单(2026-10-11)
 - T2 pins:GEM_PIN one_gadget=1.10.0/seccomp-tools=1.7.1、PYPI_PIN qiling=1.4.6、GIT_PIN LOLBAS/webappanalyzer/exploitdb(exploit-db 走 GitLab 直连,GITHUB_MIRROR 不代理)

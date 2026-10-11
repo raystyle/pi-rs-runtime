@@ -1,4 +1,4 @@
-# 安装面清单 · 运行时(`install-runtimes.sh`)
+# 安装面清单 · 运行时:`install-runtimes.sh`
 
 组卡只写机制;逐件事实在 [items/runtimes/](../items/runtimes/)。
 

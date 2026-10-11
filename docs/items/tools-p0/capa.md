@@ -7,7 +7,7 @@
 - **落点**:zip 解开在 `/opt/capa`;p0 组初装时 `find /opt/capa -name capa` 软链到 `/usr/local/bin/capa`,pentest 组离线固化段把真身挪为 `/usr/local/bin/capa.real`、删链写 wrapper:`exec /usr/local/bin/capa.real -r /opt/capa-rules "$@"`
 - **配置与缓存**:规则库 `/opt/capa-rules`(构建日快照,刷新需回有网环境重跑 p0 组);不指定 `-r` 时 capa 会自下载规则到 `~/.local/share/capa`,离线报晦涩错(脚本留痕),wrapper 钉死 `-r` 后该路径不再触及
 - **离线行为**:未验 [推断:规则与二进制全本地,wrapper 注入 `-r` 后不触网];逐件断网冒烟未单列登记(wrapper 层机制见 [offline.md](../../offline.md))。验证:`ip link set eth0 down` 后 `capa /bin/true` 正常跑完,不因规则缺失报下载错
-## rctl 面(机器行:catalog 投影声明,audit 豁免依据)
+## rctl 面,机器行:catalog 投影声明,audit 豁免依据
 
 - rctl: capa-rules kind=data path=/opt/capa-rules note=能力规则(缺它 capa 自下载;阶段 3 拆册)
 

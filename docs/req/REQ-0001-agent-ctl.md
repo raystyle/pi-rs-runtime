@@ -1,4 +1,4 @@
-# REQ-0001 实例总 ctl(rctl):agent 友好的渐进索引与全资源可搜
+# REQ-0001 实例总 ctl · rctl:agent 友好的渐进索引与全资源可搜
 
 > 状态:implemented ｜ 提出:2026-10-11 ｜ 设计研究:[S-0001](../research/S-0001-agent-ctl.md) ｜ 裁定:[ADR-0008](../adr/ADR-0008-rctl-core-cli.md)
 
@@ -15,7 +15,7 @@ R8 索引:构建期烤能力表(items/ 册投影,投影不双写)+ 镜像内路�
 R9 零网络:全部命令断网可用
 R10 载体:TypeScript + bun 开发,`bun build --compile` 产单文件二进制(用户裁定 2026-10-11;零 npm 依赖,断网可构建)
 
-## trace(实现回填)
+## trace:实现回填
 
 - T1 scripts/ctl/ TS 工程:命令表单一真源,help/--llms/schema 自渲染,bun test 6/6(2026-10-11)
 - T2 scripts/gen-rctl-catalog.sh:75 册蒸馏 274 件(册级+成员级,编号表第二列与缩进表都吃),--check 漂移守卫

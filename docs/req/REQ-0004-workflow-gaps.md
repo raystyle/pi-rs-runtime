@@ -1,4 +1,4 @@
-# REQ-0004 工作流驱动补缺(交叉编译链/stego/web 泄漏/反序列化/SSTI/mobile)
+# REQ-0004 工作流驱动补缺:交叉编译链/stego/web 泄漏/反序列化/SSTI/mobile
 
 > 状态:implemented ｜ 提出:2026-10-11 ｜ 研究:grok prt-10(八项裁定+kill-chain×品类矩阵+交叉链细化) ｜ 前置:REQ-0003
 
@@ -13,12 +13,12 @@ R6 注入:commix(clone,python3 wrapper);foremost(apt,无菜单签名雕刻)
 R7 不做(tplmap/crunch/crossbuild-essential-*/bettercap/firmware-mod-kit,grok prt-10 判)
 R8 P2 留置:fenjing(禁 mcp extra)/stegsnow/pngcheck/riscv64 交叉链
 
-## trace(实现回填)
+## trace:实现回填
 
 - T1 REQ 立单(2026-10-11)
 - T2 pins 全套(git-dumper/apkid/zsteg/phpggc/commix/SSTImap/STEGSEEK 版本+sha256)
 - T3 cross 组(compilers)+pentest 段九件(stego 四/web 三/注入/SSTI)
-- T4 实例装+实证:四架构 g++-13 ✓、aarch64 -static 出真 ELF、gcc -m32 出 i386 ELF、九件断网全过(坑:gcc-multilib 与 cross 包打包互斥到 i386 走 libc6-dev-i386 头道;交叉命令带 -13 代号;stegseek 资产名 stegseek_0.6-1.deb 无 arch 段)
+- T4 实例装+实证:四架构 g++-13 已装、aarch64 -static 出真 ELF、gcc -m32 出 i386 ELF、九件断网全过(坑:gcc-multilib 与 cross 包打包互斥到 i386 走 libc6-dev-i386 头道;交叉命令带 -13 代号;stegseek 资产名 stegseek_0.6-1.deb 无 arch 段)
 - T5 册认领 13 行+catalog+REQ 回填;P2 留置(fenjing/stegsnow/pngcheck/riscv64)
 
 ## 验收判据

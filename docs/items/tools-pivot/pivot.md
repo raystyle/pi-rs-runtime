@@ -1,4 +1,4 @@
-# 代理与隧道工具集(pivot 组册)
+# 代理与隧道工具集:pivot 组册
 
 > 内网代理跳板与隧道:gost/frps/frpc/wstunnel/rathole/bore ｜ 状态:已装 ｜ 组:`install-tools.sh pivot`
 

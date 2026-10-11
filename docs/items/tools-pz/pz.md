@@ -1,4 +1,4 @@
-# Project Zero 工具参考(pz 组册)
+# Project Zero 工具参考:pz 组册
 
 > Windows 沙箱攻击面分析 / .NET 后渗透源码参考(NtObjectManager/NtApiDotNet 系) ｜ 状态:参考克隆 ｜ 组:`install-tools.sh pz`
 

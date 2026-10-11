@@ -7,7 +7,7 @@
 - **落点**:本体 venv /opt/uv-tools/impacket;整套 *.py 入口 shim(secretsdump.py 等)由 uv 落 /usr/local/bin。另:/opt/re-venv 里也装了一份 impacket 作库(red 组 krbrelayx 依赖批带入)
 - **配置与缓存**:无自身配置;/etc/uv/uv.toml 运行期 `offline=true` 只约束 uv 包管理动作,不影响已装入口运行
 - **离线行为**:未验 [推断:] 入口脚本本地可起、可解析本地捕获与票据文件;对目标的动作需到目标的网络,断外网但内网可达仍可用,eth0 全断只剩本地处理。建议验证:`ip link set eth0 down` 后 `secretsdump.py -h` 退 0
-## rctl 面(机器行:catalog 投影声明,audit 豁免依据)
+## rctl 面,机器行:catalog 投影声明,audit 豁免依据
 
 - rctl: secretsdump.py kind=tool path=/usr/local/bin/secretsdump.py
 - rctl: GetNPUsers.py kind=tool path=/usr/local/bin/GetNPUsers.py

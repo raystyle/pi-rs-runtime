@@ -1,22 +1,22 @@
-# 逐件索引(docs/items/)
+# 逐件索引:docs/items/
 
 每件一册,模板见 [TEMPLATE.md](TEMPLATE.md)。目录按脚本分组。件级事实(版本/来源/落点/离线行为/坑)的唯一真相在这里;`install-surfaces/` 只留组机制导览,`software-inventory.md` 只留计数对账。
 
 粒度规则:有独立版本钉/wrapper/缓存/离线行为/坑的件单独成册;同质批量件(apt 批、pd/secgo CLI 集、参考克隆批)由组册承载批量机制与成员表,成员不单独立册。
 
-## compilers(install-compilers.sh,6 册)
+## compilers:install-compilers.sh,6 册
 
 [c-toolchain](compilers/c-toolchain.md)(含 build-essential 21 包+FASM)· [golang](compilers/golang.md) · [rust](compilers/rust.md) · [zig](compilers/zig.md) · [nim](compilers/nim.md) · [vcpkg](compilers/vcpkg.md)
 
-## runtimes(install-runtimes.sh,16 册)
+## runtimes:install-runtimes.sh,16 册
 
 [node](runtimes/node.md) · [fnm](runtimes/fnm.md) · [bun](runtimes/bun.md) · [uv](runtimes/uv.md) · [python](runtimes/python.md) · [python2](runtimes/python2.md) · [duckdb](runtimes/duckdb.md) · [clickhouse](runtimes/clickhouse.md) · [php](runtimes/php.md) · [mono](runtimes/mono.md) · [dotnet](runtimes/dotnet.md) · [pwsh](runtimes/pwsh.md) · [sdkman](runtimes/sdkman.md) · [java-jdks](runtimes/java-jdks.md) · [maven](runtimes/maven.md) · [gradle](runtimes/gradle.md)
 
-## libcache(install-libcache.sh,8 册)
+## libcache:install-libcache.sh,8 册
 
 [go](libcache/go.md) · [rust](libcache/rust.md) · [python](libcache/python.md) · [node](libcache/node.md) · [java](libcache/java.md) · [pwsh](libcache/pwsh.md) · [dotnet](libcache/dotnet.md) · [zig-cache](libcache/zig-cache.md)
 
-## 归档域视图(七域定稿,grok prt-09;目录=安装组,域=归档架子,两面并存)
+## 归档域视图:七域定稿,grok prt-09;目录=安装组,域=归档架子,两面并存
 
 | 域 | 判据(这只 id 被拿来干什么) | 例 |
 |---|---|---|
@@ -30,7 +30,7 @@
 
 映射规则:`gen-rctl-catalog.sh` env_of(id 名单 + 组默认 + kind=data 到数据信息搜索/ref 到代码样板参考 + 机器行 env= 覆盖);活视图 `rctl --env <域>`、面板七域计数。kind 与域是两个面(clickhouse:kind=runtime,域=数据分析,非双归)。
 
-## tools(install-tools.sh,57 册)
+## tools:install-tools.sh,57 册
 
 | 组 | 册 |
 |---|---|

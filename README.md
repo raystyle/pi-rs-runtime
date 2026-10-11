@@ -117,11 +117,11 @@ incus exec pi-dev -- sudo -u ubuntu -i bash -lc 'cd /home/ubuntu/workspace && pi
 容器内（ubuntu 用户）:
 
 ```bash
-# 轻量面(挂单个 GUI 程序):Xvfb :99 + x11vnc 5900
+# 轻量面,挂单个 GUI 程序:Xvfb :99 + x11vnc 5900
 vnc-screen setup && VNC_PASS='<口令>' vnc-screen start
-# 桌面面(XFCE + TigerVNC + noVNC):浏览器经宿主回环 6080 进
+# 桌面面,XFCE + TigerVNC + noVNC:浏览器经宿主回环 6080 进
 VNC_PASS='<口令>' vnc-screen desktop   # 桌面栈已烘焙进镜像
-# clean-chrome 冒烟面(起 :99 屏 + CDP 9222,实证到 Browser 版本号)
+# clean-chrome 冒烟面,起 :99 屏 + CDP 9222,实证到 Browser 版本号
 vnc-screen chrome
 ```
 

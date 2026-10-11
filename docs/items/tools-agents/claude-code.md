@@ -8,7 +8,7 @@
 - **配置与缓存**:凭证 ~/.claude/.credentials.json(0600);无头登录推荐在有浏览器的机器 `claude setup-token` 出长效 token 再注入;root 共用 ubuntu 挂载时设 CLAUDE_CONFIG_DIR=/home/ubuntu/.claude(root 可读 0600,反向不行),不重复挂 /root
 - **离线行为**:边界型,`--version`/`doctor` 不开会话(断网冒烟面);交互启动查更新(changelog 拉 raw.githubusercontent)、模型请求、OAuth 刷新均为使用期触网,**不属离线承诺**;运行期 `npm install -g` 升级被 prefix npmrc offline=true 拦(设计)
 - **网关道(后期,自建 agent API 网关)**:ANTHROPIC_BASE_URL 指网关 + ANTHROPIC_AUTH_TOKEN 注网关令牌(managed settings 的 env 面可系统级烘焙,优先级高于用户 token),实例不挂用户 OAuth,用量集中在网关侧
-## rctl 面(机器行:catalog 投影声明,audit 豁免依据)
+## rctl 面,机器行:catalog 投影声明,audit 豁免依据
 
 - rctl: claude kind=tool path=/usr/local/bin/claude note=claude-code CLI 入口名
 

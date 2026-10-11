@@ -1,4 +1,4 @@
-# 安装面清单 · 编译器(`install-compilers.sh`)
+# 安装面清单 · 编译器:`install-compilers.sh`
 
 组卡只写机制;逐件事实(版本/来源/落点/离线/坑)在 [items/compilers/](../items/compilers/)。
 
@@ -16,6 +16,6 @@
 
 返回 [安装面清单](index.md)。
 
-## 2026-10-11 新增组:cross(REQ-0004)
+## 2026-10-11 新增组:cross,REQ-0004
 
 四套 g++-13 交叉链(aarch64/armhf/mipsel/mips-linux-gnu,不装 crossbuild 元包)+ i386(libc6-dev-i386 头道)。坑(实证入册):gcc-multilib 与 cross 包打包声明互斥;noble 交叉命令带 -13 代号无裸名;aarch64 -static 静态编译实证过。

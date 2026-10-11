@@ -7,7 +7,7 @@
 - **落点**:`/opt/nim`(choosenim 根:`bin/choosenim`、`toolchains/nim-<版本>/`);最新工具链(`sort -V` 取尾)的 `bin/*` 整批软链进 `/usr/local/bin`(nim、nimble 等;nim 经 /proc/self/exe 定位 stdlib,软链安全);choosenim 本体不链出,靠 profile.d 的 PATH 可见
 - **配置与缓存**:`/etc/profile.d/nim.sh` 把 `/opt/nim/bin` 追加进 PATH(登录 shell 面);无 per-user 配置、无库缓存(libcache 八生态无 nim)
 - **离线行为**:过, 断网 `nim --version`(断网冒烟覆盖编译器版本面,当轮 78/0 全绿;[offline.md](../../offline.md) 验证节)。未验 [推断:] 本体编译纯本地无网络依赖,断网可编,验证:`ip link set eth0 down` 后 `echo 'echo "hi"' > /tmp/h.nim && nim c -r /tmp/h.nim` 退 0;未验 [推断:] `nimble` 拉新包断网即败(无固化缓存,nim 不在五生态快失败默认面)
-## rctl 面(机器行:catalog 投影声明,audit 豁免依据)
+## rctl 面,机器行:catalog 投影声明,audit 豁免依据
 
 - rctl: nimble kind=compiler path=/usr/local/bin/nimble
 - rctl: nimgrep kind=compiler path=/usr/local/bin/nimgrep

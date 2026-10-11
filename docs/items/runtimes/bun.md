@@ -7,7 +7,7 @@
 - **落点**:npm shim `/opt/node/bin/{bun,bunx}` 到 软链 `/usr/local/bin/{bun,bunx}`(非交互 shell 的 PATH 不含 /opt/node/bin,固定链接兜底)
 - **配置与缓存**:bun 不读 npmrc,要 bunfig:root 与 ubuntu 各写 `~/.bunfig.toml` 的 `[install] registry = "https://registry.npmmirror.com"`(官方推荐写法);无固化缓存
 - **离线行为**:未验 断网拉新件 [推断:bun 不吃 npmrc 离线双保险,离线拉新按自身重试节奏走;裁定不钉默认离线(量级小),见 [ADR-0004](../../adr/ADR-0004-offline-first-fail-fast.md) 与 [offline.md](../../offline.md) §4,无断网专项实证记录]。验证(待做):`ip link set eth0 down` 后 `mkdir -p /tmp/bt && cd /tmp/bt && bun add lodash` 观察失败节奏
-## rctl 面(机器行:catalog 投影声明,audit 豁免依据)
+## rctl 面,机器行:catalog 投影声明,audit 豁免依据
 
 - rctl: bunx kind=runtime path=/usr/local/bin/bunx
 

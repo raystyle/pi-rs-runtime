@@ -2,7 +2,7 @@
 
 > 本日是仓史上最长单日:从「回归测试实例真实使用情况」起,经 grok 邻居十笺联席,落四张 REQ、十三个主题批。本文按批留痕;逐件事实在 items 册与 REQ trace,不在此重复。
 
-## 批序(git 链可对账)
+## 批序:git 链可对账
 
 1. **回归轮**:断网冒烟双视角重跑抓五缺口(amass/azurehound/cvemap/gost 装而未链、responder 硬查 aioquic、sasquatch 上游重构、zig 嵌套依赖层缺缓存、uv 软链穿 /root),全修;环境大发现:宿主 AppArmor 叠栈信号策略(容器内 kill 族恒 EACCES,grok prt-01 定性,实例级 raw.apparmor 修复选项表留裁定)。
 2. **rea 批**:morluto/rea 6.3.0(Ghidra 无头封装)接入,四象限(在线/断网×root/ubuntu)实证;grok prt-02 配方吸收(JAVA_HOME 取 Ghidra 自钉 temurin21)。
@@ -19,7 +19,7 @@
 
 grok 邻居十笺(prt-01 到 prt-10)全部按三件套走(brief/state/receipt),轮次档 /tmp/herdr-flywheel/2026-10-11-实例回归与rea/;本日验证了「研究全部给 grok、实现归总台」的分工:prt-06 证伪总台中途的 MCP 翻转判断、prt-09 改判总台三处域归类,联席质量高于单边。
 
-## 本日血泪坑(新增)
+## 本日血泪坑:新增
 
 apt 打包互斥(gcc-multilib vs cross);交叉命令带 -13 代号;stegseek 资产名无 arch 段;/proc/net/tcp6 每 32 位字字节序反转;ugrep 皮吞 tsv 匹配(宿主侧 catalog 校验用 awk);aliyun 资产名无 v 前缀;生成器 dedup 按末行 NF 重建列宽(硬编码 11 列解);钉版升级未带断网冒烟即回镜像(responder 漂移整日才被抓);生成器机器行 book/alias 列写反(无 alias 用例时潜伏,首个 alias 行炸出);混合 workspace 根裸 cargo build 只建根包(辅件要 -p 点名);运行期 cargo 默认离线挡构建期取依赖(CARGO_NET_OFFLINE=false 拿回在线面,同 agents 批 npm 口径)。
 

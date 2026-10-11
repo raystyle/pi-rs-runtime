@@ -1,4 +1,4 @@
-# red 组(渗透测试工具增补)
+# red 组:渗透测试工具增补
 
 > AD 横向/Web/密码/移动/云批量工具面(uv tool + git 克隆 + gem + Release 钉版四批)｜ 状态:已装 ｜ 组:`install-tools.sh red`
 
@@ -6,7 +6,7 @@
 - **来源与安装**:`scripts/install-tools.sh` `install_red()`。uv tool 先试构建期默认索引(`UV_CONFIG_FILE=/etc/uv/uv-online.toml`,$PIP_INDEX 面),失败显式 tuna 兜底;bloodhound-ce 例外(tuna 缺失实证,显式走 pypi.org);ghauri 不在任何 PyPI 走 git 源。git 克隆经 `GITHUB_MIRROR` 且重试 2 次。gem 源换 [gems.ruby-china.com](https://gems.ruby-china.com/)(`--remove rubygems.org`)。安装面总表见 [install-surfaces/tools.md red 节](../../install-surfaces/tools.md)
 - **落点与配置缓存**(批量机制):uv tool 隔离装,`UV_TOOL_DIR=/opt/uv-tools`、`UV_TOOL_BIN_DIR=/usr/local/bin`(入口直链);venv 内依赖叉的 `*.py` 按白名单外链(仅 certipy-ad/bloodyad/bofhound/bloodhound-ce 四 venv,bloodhound-ce 殿后同名优先),裁定见 [ADR-0003](../../adr/ADR-0003-uv-tool-isolation-whitelist-linking.md);无 console entrypoint 的包写 wrapper 不硬链(bloodhound-python 到 re-venv `python -m bloodhound`,无条件重写);depjunk 清单清剿指向 uv-tools venv 的非入口依赖 CLI(httpx 还回 pd 组 Go 产物);semgrep 只链 `semgrep`/`pysemgrep` 入口名。git 克隆钉 `/opt/<仓名>`,仓内脚本 wrapper 一律 `exec /opt/re-venv/bin/python` 直调(四件:enum4linux-ng/krbrelayx/jwt_tool/LinkFinder;依赖钉版进 re-venv,jwt_tool 实证顶层裸 import ratelimit、LinkFinder 裸 import jsbeautifier,系统 python3 必炸,2026-10-10 钉版轮修)。CeWL 钉 `/opt/CeWL` + wrapper `cewl`;evil-winrm gem 二进位落 `/usr/local/bin`;CyberChef 钉 `/opt/cyberchef`。组级运行期配置:无(各件自管,见成员册)
 - **离线行为**:wrapper 层六件(enum4linux-ng、krbrelayx、bloodhound-python、cewl、jwt-tool、linkfinder)过, 断网冒烟渗透工具面过(78/0,2026-10-10 离线轮;机制见 [offline.md](../../offline.md) §2)。验证:`ip link set eth0 down` 后逐件起 help 面(如 `enum4linux-ng -h`)退 0。uv tool/gem 纯本地件 未验 [推断:]无自更新机制断网可起,实战动作需目标网络可达;CyberChef 见[件册](cyberchef.md)
-## rctl 面(机器行:catalog 投影声明,audit 豁免依据)
+## rctl 面,机器行:catalog 投影声明,audit 豁免依据
 
 - rctl: jwt-tool kind=tool path=/usr/local/bin/jwt-tool note=wrapper(re-venv)
 - rctl: linkfinder kind=tool path=/usr/local/bin/linkfinder note=wrapper(re-venv)

@@ -7,7 +7,7 @@
 - **落点**:`/opt/ghidra/ghidra_12.1.3_PUBLIC/`(zip 根目录,脚本按 `ls -d /opt/ghidra/ghidra_*/` 首命中取);`/usr/local/bin/ghidraRun` 到 `<gdir>ghidraRun`(GUI);`/usr/local/bin/analyzeHeadless` 到 `<gdir>support/analyzeHeadless`(无头分析链,用法:`analyzeHeadless /tmp/ghidra-proj MyProj -import /path/to/bin`)
 - **配置与缓存**:`<gdir>support/launch.properties` 写 `JAVA_HOME_OVERRIDE=<JDK 21 路径>`,钉死 JDK 21,防多版本共存时被默认 JDK(25)抢;JDK 21 取 `ls -d /opt/jdk/temurin-21* /usr/local/sdkman/candidates/java/21*` 首命中;已有该键则 sed 改写、否则追加,且写在早退判据 `[ ! -d /opt/ghidra ]` 之外,重跑必校准。运行期项目与缓存无固化
 - **离线行为**:未验 [推断:]GUI 与 analyzeHeadless 均为本地 JVM 进程不触网,未进断网冒烟清单实证。验证:`ip link set eth0 down` 后 `analyzeHeadless /tmp/ghidra-proj MyProj -import /bin/ls -deleteProject` 跑完退 0;离线机制总表见 [docs/offline.md](../../offline.md)
-## rctl 面(机器行:catalog 投影声明,audit 豁免依据)
+## rctl 面,机器行:catalog 投影声明,audit 豁免依据
 
 - rctl: ghidraRun kind=tool path=/usr/local/bin/ghidraRun
 - rctl: analyzeHeadless kind=tool path=/usr/local/bin/analyzeHeadless note=无头分析入口

@@ -7,7 +7,7 @@
 - **落点**:`/usr/local/bin/bof-launcher`;源码与构建树 `/opt/payload-ref/loaders/inproc/bof-launcher`([ADR-0002](../../adr/ADR-0002-reference-clone-three-axis.md) inproc 轴);zig 0.15.2 专用副本 `/opt/zig-0.15.2`
 - **配置与缓存**:构建产物在源码树 `zig-out/bin/`(随 inproc 轴归档);无运行期配置
 - **离线行为**:过, 源码在位属断网冒烟「参考库在位」覆盖(78/0,见 [offline.md](../../offline.md) §验证);未验 [推断:] 加载本地 .o 执行(`bof-launcher run bof.o`,脚本出口文案)不依赖网络,断网实证未做。验证:`ip link set eth0 down` 后 `ls /opt/payload-ref/loaders/inproc/bof-launcher/zig-out/bin` 退 0
-## rctl 面(机器行:catalog 投影声明,audit 豁免依据)
+## rctl 面,机器行:catalog 投影声明,audit 豁免依据
 
 - rctl: zig-0.15.2 kind=cache path=/opt/zig-0.15.2 note=bof-launcher 专用 zig 版本副本(versioned-copy)
 

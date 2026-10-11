@@ -7,7 +7,7 @@
 - **落点**:`/opt/node` prefix;`/usr/local/bin/{node,npm,npx,tsc,tsserver,prettier,eslint}` 软链;全局件本体在 `/opt/node/lib/node_modules`,bin 落 `/opt/node/bin`(corepack 的 pnpm/yarn shim 同在此,脚本未链 /usr/local/bin);dotnetjs 只装不链,失败不致命(`|| echo`)
 - **配置与缓存**:prefix 级全局 npmrc `/opt/node/etc/npmrc`(对所有用户生效;默认只写 root ~/.npmrc 不够):registry(`npm config set --location=global`)+ 直写 `disturl=https://npmmirror.com/mirrors/node`、`electron_mirror=https://npmmirror.com/mirrors/electron/`(npm 11 config set 拒这两键,直写文件;npm 把任意键以 npm_config_* 传给生命周期脚本,node-gyp/electron 正这么读)+ 离线双保险 `offline=true` + `fetch-retries=0`(附 mintimeout 500/maxtimeout 1000;幂等:先 sed 清旧键再追加);同形 npmrc 顺写给已存在的 fnm 各版本(见 [fnm 册](fnm.md));构建期在线面由 common.sh export `NPM_CONFIG_OFFLINE=false` + `NPM_CONFIG_FETCH_*`(env 恒优先于配置文件)
 - **离线行为**:过, 断网 `npm install <新件>` 亚秒 `ENOTCACHED`(offline=true 走 cache-only,npm cache 已被 clean-image 清掉必未命中;fetch-retries=0 兜住绕过 cache 的解析路径,实证默认重试挂 70s+)。验证:`ip link set eth0 down` 后 `mkdir -p /tmp/nt && cd /tmp/nt && npm install lodash` 立即 ENOTCACHED。过, js-lab 固化包断网 `node -e "require('node-forge')"` 可用(libcache 组软链进 `<prefix>/lib/node`,Module.globalPaths 只认这条;见 [offline.md](../../offline.md) §1;注意 `npm install` 同包仍 ENOTCACHED,两条消费路径语义不同);corepack 的 pnpm/yarn 不吃 npmrc,裁定不钉默认离线([ADR-0004](../../adr/ADR-0004-offline-first-fail-fast.md))
-## rctl 面(机器行:catalog 投影声明,audit 豁免依据)
+## rctl 面,机器行:catalog 投影声明,audit 豁免依据
 
 - rctl: npm kind=runtime path=/usr/local/bin/npm note=node 包管理器(face)
 - rctl: npx kind=runtime path=/usr/local/bin/npx

@@ -1,4 +1,4 @@
-# ADR-0002 参考克隆三轴归档(工件角色轴)
+# ADR-0002 参考克隆三轴归档:工件角色轴
 
 状态:accepted(2026-10-09,grok 评审裁定)｜ 关联:items/tools-maldev、tools-c2、tools-recon
 

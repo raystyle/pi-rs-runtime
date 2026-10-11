@@ -1,4 +1,4 @@
-# ProjectDiscovery 全家桶(pd 组)
+# ProjectDiscovery 全家桶:pd 组
 
 > 攻击面测绘与侦察 20 件 Go CLI 集(子域/DNS/端口/HTTP/模板扫描/爬虫/云资产) ｜ 状态:已装 ｜ 组:`install-tools.sh pd`
 
@@ -9,7 +9,7 @@
 - **离线行为**:过,版本面/帮助面断网可用(纯 Go 静态二进制、无自更新;渗透工具面断网冒烟口径见 [offline.md](../../offline.md) §验证)。验证:`ip link set eth0 down` 后 `httpx -version` 退 0。边界:外网型动作(subfinder 被动源、uncover/cloudlist/chaos/cvemap 云端 API)断网失败属设计边界([offline.md](../../offline.md) §边界实证口径)。未验[推断]:对本地/内网目标的扫描(naabu/httpx/katana/dnsx)断网可用;验证:断网后 `python3 -m http.server 8000` 起本地服务,`httpx -u http://127.0.0.1:8000 -silent` 有输出
 - **坑与留痕**:python httpx 撞名案:red 组 venv 依赖 CLI 曾盖掉本组 Go httpx,已改白名单链接+残留清理并把 `/opt/go/bin/httpx` 还回(install-tools.sh red 段;[ADR-0003](../../adr/ADR-0003-uv-tool-isolation-whitelist-linking.md));单件编译失败不阻断批(`echo "!! <bin> 编译失败(留待排查)"`),对账以组尾「已装 PD 工具」清单为准;nuclei 的模板钉 /opt 与 `-duc` wrapper 属 pentest 组装机序,单独重跑 pd 组不会重建 wrapper;2026-10-11 回归:cvemap 曾装而未链(直装产物不经组循环),skip 分支补链后销账
 
-## 成员表(20)
+## 成员表 20 件
 
 | 命令 | go install 模块(前缀 `github.com/projectdiscovery/`,@$PD_VERSION) | 用途 |
 |---|---|---|

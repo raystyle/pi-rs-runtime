@@ -1,4 +1,4 @@
-# BOF 工具链(bof 组册)
+# BOF 工具链:bof 组册
 
 > Beacon Object File 工具链:mingw 交叉编译 + 脱离 C2 的运行加载器 + BOF 源码与目录参考 ｜ 状态:已装(工具链)+ 参考克隆(源码) ｜ 组:`install-tools.sh bof`
 

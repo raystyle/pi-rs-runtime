@@ -1,4 +1,4 @@
-# acp(ACP 通道)
+# acp:ACP 通道
 
 > 实例标准 agent 接入通道:ACP v1 + stdio 适配器与监督进程 acpsup(S-0002/REQ-0002)｜ 状态:已装(协议面实证;agent 推理待凭证/网关)｜ 组:`install-tools.sh acp`
 
@@ -7,7 +7,7 @@
 - **落点**:适配器 `/opt/node/lib/node_modules/@agentclientprotocol/`(入口从各包 bin 解析,对布局稳);监督进程 `/usr/local/bin/acpsup`;token `/var/lib/acpsup/token`(首启随机,0600,打印一次,不进镜像);平台面 `127.0.0.1:7663`(引出照 6080 口径:incus proxy + 不裸奔)
 - **配置与缓存**:无配置文件;agent 环境:claude 适配器 DISABLE_UPDATES=1,codex 适配器 `CODEX_PATH=/usr/local/bin/codex`(指镜像内钉版,禁用适配器自带)+ `NO_BROWSER=1`;凭证沿 agents 批(prt-04 网关道/env/挂载),acpsup 不经手
 - **离线行为**:过,断网实证 selftest(initialize protocolVersion=1 + session/new 真 id,eth0 down 下同过);平台面 HTTP 仅回环零外网;prompt 到达模型鉴权层快失败(无凭证边界)属预期,推理走使用期网络不属离线承诺
-## rctl 面(机器行:catalog 投影声明,audit 豁免依据)
+## rctl 面,机器行:catalog 投影声明,audit 豁免依据
 
 - rctl: acpsup kind=service path=/usr/local/bin/acpsup note=ACP 监督进程(平台面 127.0.0.1:7663)
 

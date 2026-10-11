@@ -24,7 +24,7 @@
 - **落点**(批量机制):apt 件归 dpkg 标准面(`/usr/bin` 等,入口名即包内命令);FASM 真身 `/opt/fasm/fasm/fasm.x64`,`/usr/local/bin/fasm` 软链(fasm.x64 不存在时回退链 32 位 `fasm`)
 - **配置与缓存**:无(本组不写任何配置文件;ccache 用各用户默认 `~/.cache/ccache`,未固化进 /opt)
 - **离线行为**:过, 断网冒烟覆盖编译器版本面(78/0,口径见 [离线面验证节](../../offline.md))。验证:`ip link set eth0 down` 后 `gcc --version && clang --version && fasm -v`。实际编译链接(含 musl 静态链、FASM 汇编)断网实做 未验 [推断:二进制、头文件与库全在本地盘,无网络调用];`apt install` 新件离线快失败(`/var/lib/apt/lists` 已清,属设计,见 [offline.md 边界节](../../offline.md))
-## rctl 面(机器行:catalog 投影声明,audit 豁免依据)
+## rctl 面,机器行:catalog 投影声明,audit 豁免依据
 
 - rctl: fasm kind=compiler path=/opt/fasm note=FASM 汇编器本体
 - rctl: aarch64-linux-gnu-g++-13 kind=compiler path=/usr/bin/aarch64-linux-gnu-g++-13 note=arm64 交叉链(静态编译实证)

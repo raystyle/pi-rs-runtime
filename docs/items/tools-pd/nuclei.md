@@ -7,7 +7,7 @@
 - **落点**:真身 `/usr/local/bin/nuclei.real`(pentest 组从 /opt/go/bin 挪入);wrapper `/usr/local/bin/nuclei` = `exec /usr/local/bin/nuclei.real -duc "$@"`;模板 `/opt/nuclei-templates`,root 与 ubuntu 家目录各一条 `~/nuclei-templates` 软链指过去(nuclei 默认模板路径即家目录)
 - **配置与缓存**:模板缓存即 `/opt/nuclei-templates`(盘上直读);`-duc` 恒禁版本检查与模板更新检查;此外无配置写入
 - **离线行为**:过, 断网不卡更新检查、模板从 /opt 盘直读(wrapper 机制见 [offline.md](../../offline.md) §1/§2,渗透工具面断网冒烟口径)。验证:`ip link set eth0 down` 后 `nuclei -tl` 列出本地模板且无更新报错。未验 [推断:] 断网对本机服务真实扫描可用(模板全在盘);验证:断网后 `python3 -m http.server 8000 &` 再 `nuclei -u http://127.0.0.1:8000 -tags tech -silent`
-## rctl 面(机器行:catalog 投影声明,audit 豁免依据)
+## rctl 面,机器行:catalog 投影声明,audit 豁免依据
 
 - rctl: nuclei-templates kind=data path=/opt/nuclei-templates note=模板库(缺它 nuclei 空跑/自下载;GIT_PIN 独立钉)
 

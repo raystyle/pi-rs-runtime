@@ -1,4 +1,4 @@
-# fnm(Node 版本管理器)
+# fnm:Node 版本管理器
 
 > fnm 多版本 node 管理器,预装 18/20/22/24 四条线 ｜ 状态:已装 ｜ 组:`install-runtimes.sh fnm`
 

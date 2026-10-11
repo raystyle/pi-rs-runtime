@@ -1,4 +1,4 @@
-# PowerShell 模块缓存(/opt/psmodules)
+# PowerShell 模块缓存:/opt/psmodules
 
 > Save-PSResource 固化 8 个 PSGallery 模块(含传递依赖),全 shell 可 Import-Module ｜ 状态:缓存固化 ｜ 组:`install-libcache.sh pwsh`(前置 `install-runtimes.sh pwsh`)
 

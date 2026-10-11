@@ -7,7 +7,7 @@
 - **落点**:uv shim `/usr/local/bin/pwndbg`;本体 venv 在 `/opt/uv-tools/pwndbg`(内含 gdbinit.py);配套调试器是 p0 apt 批的 gdb-multiarch
 - **配置与缓存**:pentest 组写系统级 `/etc/gdb/gdbinit`:`source <gdbinit.py 路径>` + `set auto-load safe-path /` + `set history save on` + `set pagination off`;路径每次重跑都 `find /opt/uv-tools -name gdbinit.py -path '*pwndbg*'` 实时定位再整份重写;写完即冒烟 `gdb --batch -ex quit 2>&1 | grep -qi pwndbg`
 - **离线行为**:未验 [推断:插件 python 与 gdbinit 全本地,gdb 加载不触网];构建期接线冒烟已实证(上条),断网逐件冒烟未单列登记。验证:`ip link set eth0 down` 后 `gdb --batch -ex quit 2>&1 | grep -i pwndbg` 见 banner
-## rctl 面(机器行:catalog 投影声明,audit 豁免依据)
+## rctl 面,机器行:catalog 投影声明,audit 豁免依据
 
 - rctl: pwndbg-lldb kind=tool path=/usr/local/bin/pwndbg-lldb note=pwndbg 的 lldb 面
 

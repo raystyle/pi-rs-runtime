@@ -1,4 +1,4 @@
-# .NET SDK(dotnet)
+# .NET SDK:dotnet
 
 > .NET 编译/运行链与 NuGet 包生态 ｜ 状态:已装 ｜ 组:`install-runtimes.sh dotnet` + `install-libcache.sh dotnet`(库固化)
 

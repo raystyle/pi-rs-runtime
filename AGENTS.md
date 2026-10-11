@@ -6,15 +6,15 @@
 
 ```bash
 bash -n scripts/*.sh scripts/lib/*.sh          # 脚本语法检查(改后必跑)
-# 名字 = pi-rs-runtime-YYYYMMDD-HHMM(主机本地时间)。实例用 launch 时刻,镜像版本用 publish 时刻,两个时间不同。
+# 名字 = pi-rs-runtime-YYYYMMDD-HHMM,主机本地时间。实例用 launch 时刻,镜像版本用 publish 时刻,两个时间不同。
 # 禁止 rt-* 、禁止 -dev。当前工作实例: pi-rs-runtime-20261010-2210。有它就不要再 launch。
 incus file push scripts pi-rs-runtime-20261010-2210/root/ -r
 incus exec pi-rs-runtime-20261010-2210 -- bash /root/scripts/install-tools.sh <组>
 incus exec pi-rs-runtime-20261010-2210 -- bash -c 'ip link set eth0 down'   # 断网冒烟
-# 没有存活实例时才 launch(会解包约 3.5 分钟):
-# incus launch pi-rs-runtime "pi-rs-runtime-$(date +%Y%m%d-%H%M)"
+# 没有存活实例时才 launch,会解包约 3.5 分钟:
+ # incus launch pi-rs-runtime "pi-rs-runtime-$(date +%Y%m%d-%H%M)"
 # 这批稳定后先问用户。点头才打包;新镜像别名用打包时刻,浮动别名 pi-rs-runtime 再指向它:
-# incus publish <实例> --alias "pi-rs-runtime-$(date +%Y%m%d-%H%M)"
+ # incus publish <实例> --alias "pi-rs-runtime-$(date +%Y%m%d-%H%M)"
 ```
 
 ## Must

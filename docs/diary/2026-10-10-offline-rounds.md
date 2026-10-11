@@ -6,7 +6,7 @@
 
 先量后清:/root/.cache 14.2 GB(go-build 10.9 GB+uv 3 GB)、/var/cache/apt 1.7 GB、NuGet http-cache 0.5 GB、journal 115 MB、nuclei-templates.bak 87 MB。新 scripts/clean-image.sh(幂等)删可再生缓存与一次性残留,不碰 /opt 固化离线缓存与 fnm node 多版本;install-all.sh 末尾自动调用。21.3 GB 到 16.6 GB。grok 评审 CONFIRM,顺手裁定 /root/.local/share/gem 是安装根不删。
 
-## 纯离线轮(grok 联合评估 到 ADR-0004/0005)
+## 纯离线轮:grok 联合评估 到 ADR-0004/0005
 
 断网实证(rt-offline,eth0 down)三缺口:(1)非登录 shell(incus exec)不读 /etc/profile.d 与 /etc/environment,NUGET_PACKAGES/GRADLE_USER_HOME/ZIG_GLOBAL_CACHE_DIR/NODE_PATH/PSModulePath 全失效,ubuntu 无 go env;(2)zig 五库固化空壳(/opt/zig-cache 4 KB,fetch 全败被静默吞);(3)trivy alias 非交互不生效,离线 FATAL first-run。
 
@@ -22,7 +22,7 @@ grok 二轮:F1 软链指向 root 755 致 ubuntu 编译 AccessDenied 到 piopt �
 
 用户给 JesusFreke/smali 链接;实证该仓停更 v2.5.2,Google 接管为 google/smali 3.0.10,坐标在 GMaven 的 com.android.tools.smali(不在 Maven Central,早先留痕有误)。prewarm pom 加 GMaven 仓+两件钉版(dexlib2 经传递依赖回 /opt/m2,known-issues 销账);CLI 走 /opt/smali/lib 17 jar + wrapper。断网 roundtrip 过。
 
-## 血泪教训汇总(本日新增)
+## 血泪教训汇总:本日新增
 
 跑批中的脚本不可换盘重推(bash 按字节偏移续读);heredoc 不是注释安全区(bash 注释混进 pom.xml 致 Non-parseable POM);trufflehog 3.99 filesystem 零命中退 1,断言看输出别看退出码;管道吃掉退出码;共享缓存权限必须 ubuntu 视角复验(root 冒烟天然看不见);增量验证推不出 fresh 成立(uv Checked 不走网)。
 

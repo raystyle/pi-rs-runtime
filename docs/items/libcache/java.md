@@ -1,4 +1,4 @@
-# Java 库缓存(maven /opt/m2 + smali/baksmali CLI)
+# Java 库缓存:maven /opt/m2 + smali/baksmali CLI
 
 > Java 依赖字节固化进 /opt/m2(默认 profile 安全新版 + study profile CVE 复现坐标)+ smali/baksmali dex 汇编/反汇编 CLI ｜ 状态:缓存固化 ｜ 组:`install-libcache.sh java`(前置 `install-runtimes.sh sdkman` 的 maven 与 JDK)
 
@@ -35,7 +35,7 @@
 - **落点**:`/opt/m2`(maven 本地仓);`/opt/maven-prewarm/pom.xml`(解析后钉版工程);`/opt/smali-cli/pom.xml`(mini-pom,copy-dependencies 落 /opt/smali/lib,解析基本吃 /opt/m2 缓存);`/opt/smali/lib`(smali/baksmali thin jar + 17 个传递依赖 jar);`/usr/local/bin/smali`、`/usr/local/bin/baksmali`(sh wrapper,`java -cp "/opt/smali/lib/*"` 分别起 `com.android.tools.smali.smali.Main` 与 `baksmali.Main`)
 - **配置与缓存**:`/opt/maven/conf/settings.xml`(runtimes sdkman 组写)写死 `<localRepository>/opt/m2</localRepository>`,不依赖 shell,root/ubuntu 共用一份本地仓;非交互 shell 没有 JAVA_HOME,脚本从 sdkman current 推
 - **离线行为**:过, 断网 `mvn -o` 在断网冒烟批覆盖(见 [offline.md](../../offline.md) 验证节);study profile 字节同批进 /opt/m2。过, smali/baksmali 断网 roundtrip 实证。验证:`ip link set eth0 down` 后 `cd /opt/maven-prewarm && mvn -o -q dependency:resolve`;`printf '.class public LA;\n.super Ljava/lang/Object;\n' > a.smali && smali assemble a.smali -o a.dex && baksmali disassemble a.dex`。maven 不做默认离线(没有干净的「配置离线+CLI 覆盖」对),手工 `-o`,边界见 [offline.md](../../offline.md) §4
-## rctl 面(机器行:catalog 投影声明,audit 豁免依据)
+## rctl 面,机器行:catalog 投影声明,audit 豁免依据
 
 - rctl: smali kind=tool path=/usr/local/bin/smali env=逆向环境 note=smali 汇编 CLI(/opt/smali-cli 挂钩)
 - rctl: baksmali kind=tool path=/usr/local/bin/baksmali env=逆向环境

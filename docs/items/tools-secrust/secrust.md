@@ -1,4 +1,4 @@
-# Rust 安全工具集(secrust 组)
+# Rust 安全工具集:secrust 组
 
 > rustscan(快扫)/ feroxbuster(内容发现)/ RustHound-CE(BloodHound CE 采集器) ｜ 状态:已装 ｜ 组:`install-tools.sh secrust`
 
@@ -9,7 +9,7 @@
 - **离线行为**:过, 二进制断网可跑(渗透工具面断网冒烟口径见 [offline.md](../../offline.md) §验证)。验证:`ip link set eth0 down` 后 `rustscan --version` 退 0。未验 [推断:] 断网扫本机/内网目标可用,rustscan 后端调本机 nmap,feroxbuster 用本地词表(`/usr/share/wordlists` 有 rockyou.txt 与 SecLists 软链);验证:断网后 `python3 -m http.server 8000 &` 再 `feroxbuster -u http://127.0.0.1:8000 -w /usr/share/wordlists/SecLists/Discovery/Web-Content/common.txt -n`。未验 [推断:] rusthound-ce 采集面是内网 LDAP/Kerberos 域控,断外网不伤其协议面,但镜像无域环境未实证;验证:`rusthound-ce --help` 退 0
 - **坑与留痕**:RustHound-CE 依赖 libgssapi-sys 要 `gssapi.h`,缺 `libkrb5-dev` 则 bindgen 致命错,脚本构建前先 apt 装;crates.io 无此包只能源码构建,源码归 tradecraft-ref/ad 是 grok 裁定(操作员 AD 工具,归档位置与编不编译脱钩);findomain 不装:依赖多常编不过,要用走 [Findomain releases](https://github.com/Findomain/Findomain/releases) 预编译(脚本注释,[known-issues](../../known-issues.md) 登记);组日志文案「经 tuna crates」沿旧称,实际 `CRATES_INDEX` 默认 `https://rsproxy.cn/index`(lib/common.sh;config.toml 里源名 tuna-sparse 同漂移);幂等:三件各自 `have` 早退,RustHound-CE 构建失败留「下轮补」,升级删 `/usr/local/bin/rusthound-ce` 重跑会拉到新 HEAD
 
-## 成员表(3)
+## 成员表 3 件
 
 | 命令 | 安装路径 | 用途 |
 |---|---|---|

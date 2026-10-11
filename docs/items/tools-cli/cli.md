@@ -1,4 +1,4 @@
-# 基础命令行工具(cli 组)
+# 基础命令行工具:cli 组
 
 > git/jq/yq/shellcheck/gh/just/tmux/rclone/aria2/fzf/bat/htop/ncdu/moreutils/vim 一批 ｜ 状态:已装 ｜ 组:`install-tools.sh cli`
 
@@ -25,7 +25,7 @@
 | gh | `gh` | `go_install_pin …/cli/v2/cmd/gh`(GO_PIN v2.102.0,goproxy.cn) | `/opt/go/bin` 链 `/usr/local/bin` |
 
 - **离线行为**:未验 [推断:]本地件(jq/yq/shellcheck/just/tmux/fzf/bat/htop/ncdu/moreutils/vim、git 本地操作)不触网;联网面(rclone/aria2c 下载、gh API、git remote)断网失败属设计边界,见 [docs/offline.md](../../offline.md) 边界节;断网冒烟 78/0 覆盖工具面但逐件名单未留档,本组未单独实证。验证:`ip link set eth0 down` 后 `yq --version >/dev/null && just --version >/dev/null && gh --version >/dev/null` 退 0
-## rctl 面(机器行:catalog 投影声明,audit 豁免依据)
+## rctl 面,机器行:catalog 投影声明,audit 豁免依据
 
 - rctl: eslint kind=runtime path=/usr/local/bin/eslint note=npm 全局件
 - rctl: prettier kind=runtime path=/usr/local/bin/prettier note=npm 全局件

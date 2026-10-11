@@ -1,4 +1,4 @@
-# Go 库缓存(模块预热)
+# Go 库缓存:模块预热
 
 > 渗透/代理/协议/AD/PE 向 Go 库字节构建期钉进模块缓存,断网 `go build` 直编 ｜ 状态:缓存固化 ｜ 组:`install-libcache.sh go`
 
@@ -7,7 +7,7 @@
 - **落点**:`/opt/go/pkg/mod`(GOMODCACHE,库字节);`/opt/go-prewarm`(预热工程与锁文件,兼作离线冒烟样例);命令件 `/opt/go/bin/{pspy,go-winres}` 链 `/usr/local/bin/`
 - **配置与缓存**:运行期发现靠 per-user go env 文件(`install-compilers.sh golang` 组早退前直写,root+ubuntu 各一份 `~/.config/go/env`,非登录 shell 也读):`GOPROXY=off GOSUMDB=sum.golang.google.cn GOPATH=/opt/go GOMODCACHE=/opt/go/pkg/mod`;机制分层见 [offline.md](../../offline.md) §1/§3
 - **离线行为**:过, 断网构建实证(断网冒烟 78/0 轮):`ip link set eth0 down` 后 `cd /opt/go-prewarm && go build .` 退 0;过, 拉新件瞬时 `module lookup disabled by GOPROXY=off`(五生态快失败轮);在线拉件需 `GOPROXY=https://goproxy.cn,direct` 显式覆盖(构建脚本经 common.sh 自动带)
-## rctl 面(机器行:catalog 投影声明,audit 豁免依据)
+## rctl 面,机器行:catalog 投影声明,audit 豁免依据
 
 - rctl: pspy kind=tool path=/usr/local/bin/pspy env=工具环境 note=无 root 进程刺探(GO_PIN 独立钉,实装在 /opt/go/bin)
 

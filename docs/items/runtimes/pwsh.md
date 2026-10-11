@@ -1,4 +1,4 @@
-# PowerShell(pwsh)
+# PowerShell:pwsh
 
 > 跨平台 PowerShell 运行时(AD/Windows 自动化与脚本样本分析) ｜ 状态:已装 ｜ 组:`install-runtimes.sh pwsh` + `install-libcache.sh pwsh`(模块固化)
 

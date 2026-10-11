@@ -1,4 +1,4 @@
-# S-0001 实例总 ctl 命令(agent 友好:渐进索引与全资源可搜)设计研究
+# S-0001 实例总 ctl 命令设计研究:agent 友好,渐进索引与全资源可搜
 
 > 状态:draft ｜ 起草:2026-10-11 ｜ 信源:本仓 docs/items 74 册实测面、native-design 乙面标准、grok prt-03 先例研究(回执后补评注) ｜ 后续:REQ 立单再实现
 
@@ -8,7 +8,7 @@
 
 目标:一个总 ctl 命令(下称 rctl,名可裁),渐进索引提示所有资源,agent 能搜任意资源、按任务路由能力、稳定机读。
 
-## 二、资源模型(七类)
+## 二、资源模型:七类
 
 | 类 | 例 | 可搜键 |
 | --- | --- | --- |
@@ -38,7 +38,7 @@ rctl docs <册id|组>     # 册投影检索(投影不双写,真相仍在 docs/it
 
 全局七件旗标(--filter-output、--format、--full-output、--help、--llms、--json、--schema)与 json 信封(ok/data/meta.cta)、错误 stderr 单行 JSON、退出码 0/1/2,全按 native-design 乙面,不另造。命令树面抄 gh(子命令树+每层 --help),资源目录面抄 kubectl(「有什么」与「这一项的字段」分两条命令)。
 
-## 四、索引设计(渐进,三层)
+## 四、索引设计:渐进,三层
 
 > 2026-10-11 修订:吸收 grok prt-03 回执。fff(github.com/dmtrKovalenko/fff)定性为常驻内存文件表 + notify 监听(非 mtime 差量库、文件表不落盘、Linux 每目录一 watch),不宜当本镜像总 ctl(冷启动全树 walk、watch 配额、与 prt-01 信号策略叠加的常驻进程不可管理);第一版主路径是「构建时烤小册 + 路径库」,参照 updatedb「目录未变不重读」(plocate 系)。
 
@@ -53,7 +53,7 @@ rctl docs <册id|组>     # 册投影检索(投影不双写,真相仍在 docs/it
 - 渐进提示:裸 rctl 与 search 未命中时的 CTA 面板即「渐进索引提示」呈现层:先给分类计数与热门词,agent 逐层下钻(llms 手册、search、show/caps)
 - token 经济:search 默认 top N 带 id 与一句话,详情走 show;--full-output 与 --token-limit 三件可选扩展
 
-## 五、能力路由(capability)设计要点
+## 五、能力路由设计要点:capability
 
 - 词典来源:items/ 册的用途句 + 组册成员表用途列,构建期蒸馏成 task 到资源的映射(不手维护第二份;漂移守卫锁覆盖)
 - 词条形:`{task 词, tools[], data[], 边界注记, 示例命令[]}`;输出直接带类型化 CTA(命令可照抄)
@@ -73,7 +73,7 @@ rctl docs <册id|组>     # 册投影检索(投影不双写,真相仍在 docs/it
 - 断网:索引与检索全程零网络(离线承诺面);caps 示例命令须全部离线可跑
 - 宿主信号策略(prt-01):rctl 自身不依赖进程管理;faces 面对「stop 摘不掉进程」给边界注记不假装能停
 
-## 八、先例矩阵(grok prt-03 回执已回填,2026-10-11)
+## 八、先例矩阵:grok prt-03 回执已回填,2026-10-11
 
 | 主题 | 先例(链接见回执) | 可抄点 | 采纳态 |
 | --- | --- | --- | --- |

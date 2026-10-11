@@ -1,4 +1,4 @@
-# Go 安全工具集(secgo 组)
+# Go 安全工具集:secgo 组
 
 > 17 件 Go 安全 CLI(fuzz/爆破/爬虫/密钥扫描/隧道/云与 AD 采集)+ trufflehog(release) ｜ 状态:已装 ｜ 组:`install-tools.sh secgo`
 
@@ -9,7 +9,7 @@
 - **离线行为**:过,版本面/帮助面断网可用(纯 Go 静态二进制;渗透工具面断网冒烟口径见 [offline.md](../../offline.md) §验证)。验证:`ip link set eth0 down` 后 `gitleaks version` 退 0。未验[推断]:gitleaks 扫本地仓、chisel 内网两端互连断网可用(纯本地/内网流量);验证:断网后 `gitleaks git /opt/c2dev-ref/sliver` 能跑完出输出。边界:历史库/云 API/被动源类动作(waybackurls、gau、azurehound、云枚举、trufflehog verify)断网失败属设计,同 [offline.md](../../offline.md) §边界实证口径
 - **坑与留痕**:gospider/httprobe/assetfinder/waybackurls 曾被评审建议移除,用户裁定保留([ADR-0006](../../adr/ADR-0006-user-rulings-log.md));gowitness 截图依赖无头 Chrome,镜像暂无([known-issues](../../known-issues.md),定制 Chrome 待合入);trufflehog 的三只坑(replace 拒装/sort -V/零命中退 1)见 [trufflehog.md](trufflehog.md);本组曾登记「单独重跑装新件可能编译成功但未链出」(PATH 只加 /usr/local/go/bin 与 /root/go/bin),2026-10-11 回归根治:gobin 按 GOPATH 算 + 幂等与链接看文件不看 PATH + 组尾链接兜底(见上节落点),该坑销账
 
-## 成员表(18)
+## 成员表 18 件
 
 | 命令 | go install 模块(@$SECGO_VERSION) | 用途 |
 |---|---|---|

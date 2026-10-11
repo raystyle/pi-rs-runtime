@@ -1,4 +1,4 @@
-# cloud(云厂商 CLI)
+# cloud:云厂商 CLI
 
 > 云资产面 CLI:aliyun(阿里云)与 tccli(腾讯云)｜ 状态:已装 ｜ 组:`install-tools.sh cloud`
 

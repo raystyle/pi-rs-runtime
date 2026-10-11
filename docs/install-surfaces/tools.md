@@ -1,8 +1,8 @@
-# 安装面清单 · 工具(`install-tools.sh`)
+# 安装面清单 · 工具:`install-tools.sh`
 
 组卡只写机制;逐件事实在 [items/tools-<组>/](../items/README.md#toolsinstall-toolssh41-册)。
 
-## 组机制(共性)
+## 组机制:共性
 
 - Go 工具批(pd/secgo):`go install` 进 GOPATH=/opt/go/bin 再链 /usr/local/bin;`@latest` + `have` 早退 = 「首次装到的那份」,升级要删了重跑;v2/v3/v8 模块路径产物改名回原名(ffuf/gobuster/gitleaks)
 - uv tool 批(red):UV_TOOL_DIR=/opt/uv-tools,venv 外链到 /usr/local/bin 必须白名单化(ADR-0003)
@@ -26,7 +26,7 @@
 
 返回 [安装面清单](index.md)。
 
-## 2026-10-11 新增组(agent 平台轮)
+## 2026-10-11 新增组:agent 平台轮
 
 | 组 | 机制 |
 |---|---|

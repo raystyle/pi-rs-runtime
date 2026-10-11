@@ -1,4 +1,4 @@
-# vnc(桌面与 Web 面)
+# vnc:桌面与 Web 面
 
 > XFCE 桌面 + TigerVNC + noVNC/websockify,浏览器经 incus proxy 进容器图形面;轻量 Xvfb+x11vnc 面并存 ｜ 状态:已装 ｜ 组:`install-tools.sh vnc`
 
@@ -7,7 +7,7 @@
 - **落点**:TigerVNC `vncserver`、websockify、`/usr/share/novnc/vnc.html`;口令文件 `$HOME/.vnc/passfile`(首启随机生成打印一次,不落库)
 - **配置与缓存**:无镜像级配置;`~/.vnc/xstartup` 首启写 startxfce4
 - **离线行为**:过, 纯本地件,断网可起;验证:容器内 `VNC_PASS=<口令> vnc-screen desktop` 后 `curl -sI http://127.0.0.1:6080/vnc.html` 200 + `ss -ltn` 只见 127.0.0.1
-## rctl 面(机器行:catalog 投影声明,audit 豁免依据)
+## rctl 面,机器行:catalog 投影声明,audit 豁免依据
 
 - rctl: vnc-screen kind=tool path=/usr/local/bin/vnc-screen note=屏幕/VNC 起停面
 

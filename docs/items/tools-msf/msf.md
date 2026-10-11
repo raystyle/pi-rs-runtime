@@ -1,4 +1,4 @@
-# metasploit-framework(msf)
+# metasploit-framework:msf
 
 > 渗透测试框架整套(msfconsole 等)｜ 状态:已装 ｜ 组:`install-tools.sh msf`
 

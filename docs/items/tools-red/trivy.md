@@ -7,7 +7,7 @@
 - **落点**:`/usr/bin/trivy` 真身;`/usr/local/bin/trivy` wrapper(PATH 前段压过真身)
 - **配置与缓存**:漏洞库+Java 库构建期烘焙到 `/opt/trivy-db`(`--download-db-only`、`--download-java-db-only`;0.75 无 --download-checks-only,实证);wrapper 注入 `TRIVY_CACHE_DIR=/opt/trivy-db` + `TRIVY_SKIP_DB_UPDATE/TRIVY_SKIP_JAVA_DB_UPDATE/TRIVY_SKIP_CHECK_UPDATE=true`;`/etc/profile.d/trivy.sh` 仅留 export 备份
 - **离线行为**:过, 断网扫描实证(`trivy fs --scanners vuln /etc/hostname`);库是构建日快照,回有网环境重跑 red 组刷新。验证:`ip link set eth0 down` 后上述命令退 0
-## rctl 面(机器行:catalog 投影声明,audit 豁免依据)
+## rctl 面,机器行:catalog 投影声明,audit 豁免依据
 
 - rctl: trivy-db kind=data path=/opt/trivy-db note=漏洞库快照(缺它 trivy 离线 FATAL;构建日快照)
 
