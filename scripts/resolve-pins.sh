@@ -193,7 +193,7 @@ PYPI_PKGS=(
 GEMS=(evil-winrm nokogiri mime mime-types mini_exiftool rubyzip)
 
 # npm 全局件与 js-lab 固化件
-NPM_PKGS=(typescript prettier eslint dotnetjs
+NPM_PKGS=(rea-agents typescript prettier eslint dotnetjs
     node-forge pkijs asn1js pvtsutils pvutils crypto-js jsonwebtoken
     @babel/parser @babel/traverse @babel/generator @babel/types
     webcrack cheerio fast-xml-parser ws express jszip sql.js

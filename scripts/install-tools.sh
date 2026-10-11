@@ -1231,6 +1231,34 @@ install_msf() {
 }
 
 
+# ---- rea(morluto/rea:agent 逆向工具面,MCP server + CLI;原生 provider 对齐镜像内 Ghidra)----
+install_rea() {
+    log "rea-agents(钉版 npm 全局;Ghidra provider 指镜像 /opt/ghidra)"
+    local rv; rv="${NPM_PIN[rea-agents]:?pins.sh 缺 rea-agents 钉,跑 resolve-pins.sh}"
+    # npm 运行期默认离线(offline=true),构建期显式拿回在线面(offline.md §4 口径)
+    local cur; cur="$(/opt/node/bin/rea --version 2>/dev/null || true)"
+    if [ "$cur" != "$rv" ]; then
+        NPM_CONFIG_OFFLINE=false NPM_CONFIG_FETCH_RETRIES=3 npm install -g "rea-agents@${rv}" \
+            || { echo "!! rea-agents ${rv} 装失败(查 npm 镜像)"; return 1; }
+    fi
+    # wrapper 固化 GHIDRA_INSTALL_DIR + JAVA_HOME:非登录 shell(incus exec)不读 profile.d(血泪教训);
+    # ghidra 版本目录动态取,升级 ghidra 组后重跑本组即刷新。
+    # JAVA_HOME 取 Ghidra 自己 launch.properties 钉的 override(temurin 21):rea 直 exec JAVA_HOME/bin/java,
+    # 不读该 override(grok prt-02 实证);不设则探 PATH 上的 java(镜像是 25,范围合法但偏离发行自钉)
+    local gdir; gdir="$(ls -d /opt/ghidra/ghidra_*_PUBLIC 2>/dev/null | sort -V | tail -1)"
+    [ -n "$gdir" ] || { echo "!! /opt/ghidra 无 Ghidra 发行目录,先跑 ghidra 组"; return 1; }
+    local jhome; jhome="$(sed -n 's|^JAVA_HOME_OVERRIDE=||p' "$gdir/support/launch.properties" 2>/dev/null | tail -1)"
+    [ -n "$jhome" ] || jhome="$(ls -d /opt/jdk/temurin-21* 2>/dev/null | sort -V | tail -1)"
+    [ -n "$jhome" ] || { echo "!! 未找到 JDK 21(launch.properties override 与 /opt/jdk/temurin-21* 均空)"; return 1; }
+    printf '#!/bin/sh\nexport GHIDRA_INSTALL_DIR=%s\nexport JAVA_HOME=%s\nexec /opt/node/bin/rea "$@"\n' "$gdir" "$jhome" > /usr/local/bin/rea
+    printf '#!/bin/sh\nexport GHIDRA_INSTALL_DIR=%s\nexport JAVA_HOME=%s\nexec /opt/node/bin/rea-agents "$@"\n' "$gdir" "$jhome" > /usr/local/bin/rea-agents
+    chmod +x /usr/local/bin/rea /usr/local/bin/rea-agents
+    # 登录 shell 备份面(profile.d 只作备份,非登录走 wrapper;同 offline.md 纪律)
+    printf '#!/bin/sh\nexport GHIDRA_INSTALL_DIR=%s\nexport JAVA_HOME=%s\nexport PATH="/opt/node/bin:%s/bin:$PATH"\n' "$gdir" "$jhome" "$jhome" > /etc/profile.d/rea-ghidra.sh
+    rea --version
+    echo "Ghidra provider 面自检:"; rea doctor 2>&1 | grep -A1 "name: ghidra$" | head -2 || true
+}
+
 # ---- clean-chrome(云端安装道:chrome.ohmygh.com 版本段路由+sha256 锚;钉 pins.sh) ----
 # 双视角落位裁定(ADR-0007):系统级单副本 /opt/clean-chrome/<ver>(/opt 可读,
 # root/ubuntu 同用;browse 合入后经 BROWSE_CHROME 指路或直接用它,不重复装)
@@ -1284,5 +1312,5 @@ install_vnc() {
 }
 
 # chrome 组不在默认全量:上游修 bug 期用户裁定先不装(2026-10-10);要装显式跑 install-tools.sh chrome
-TOOLS_ALL=(fd astgrep cli herdr ghidra re pd secgo secrust pivot p0 c2 bof pz maldev recon nu pentest red msf vnc)
+TOOLS_ALL=(fd astgrep cli herdr ghidra rea re pd secgo secrust pivot p0 c2 bof pz maldev recon nu pentest red msf vnc)
 run_category TOOLS_ALL "$@"

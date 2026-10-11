@@ -232,6 +232,7 @@ declare -A GIT_PIN=(
     ["nomi-sec/PoC-in-GitHub"]="67980f251f42988650afe7b482acb8d5ed3a9fb7"
 )
 declare -A NPM_PIN=(
+    ["rea-agents"]="6.3.0"
     ["typescript"]="7.0.2"
     ["prettier"]="3.9.10"
     ["eslint"]="10.12.0"
