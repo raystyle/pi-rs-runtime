@@ -1266,6 +1266,25 @@ install_data() {
     else
         echo "!! exploit-db 缺 git 钵(exploit-database/exploitdb)"
     fi
+    # HackTricks 文本面:浅克隆后剔 .git 与配图,只留 md(实测 310M 浅克隆 = 144M .git + 150M 图 + 18M 文本;
+    # agent 读文本不读截图,18M 文本面进镜像,2026-10-11 用户裁定「文本没那么大」)
+    local ht_sha="${GIT_PIN[HackTricks-wiki/hacktricks]:-}"
+    if [ -n "$ht_sha" ]; then
+        if [ ! -f /opt/data-ref/hacktricks/.ht-pin ] || [ "$(cat /opt/data-ref/hacktricks/.ht-pin 2>/dev/null)" != "$ht_sha" ]; then
+            rm -rf /tmp/ht-snapshot /opt/data-ref/hacktricks
+            if git clone -q --depth 1 "${gh}/HackTricks-wiki/hacktricks" /tmp/ht-snapshot                 && git -C /tmp/ht-snapshot checkout -q "$ht_sha" 2>/dev/null; then
+                mkdir -p /opt/data-ref/hacktricks
+                (cd /tmp/ht-snapshot && find . -name "*.md" -not -path "./.git/*" -exec install -D -m644 {} /opt/data-ref/hacktricks/{} \;)
+                printf '%s' "$ht_sha" > /opt/data-ref/hacktricks/.ht-pin
+                echo "hacktricks 文本面: $(find /opt/data-ref/hacktricks -name '*.md' | wc -l) 篇,$(du -sh /opt/data-ref/hacktricks | cut -f1)"
+            else
+                echo "!! hacktricks 浅克隆失败"
+            fi
+            rm -rf /tmp/ht-snapshot
+        fi
+    else
+        echo "!! hacktricks 缺 git 钉"
+    fi
     # searchsploit 入口(exploit-db 仓自带 files_exploits.csv;脚本入口用 Kali 版 perl?此面以仓直读+rctl 可搜为准)
     for d in LOLBAS webappanalyzer exploitdb; do
         [ -d "/opt/data-ref/$d" ] && echo "$d: $(find /opt/data-ref/$d -type f 2>/dev/null | wc -l) 文件"

@@ -153,6 +153,7 @@ gospider	tool	`install-tools.sh secgo`	已装	Web 爬虫				docs/items/tools-sec
 gost	tool	`install-tools.sh pivot`	已装	go_install_pin 钉 GO_PIN 伪版本,产物 /opt/go/bin/gost 链出				docs/items/tools-pivot/pivot.md		工具环境
 gowitness	tool	`install-tools.sh secgo`	已装	网页截图(需 Chrome)				docs/items/tools-secgo/secgo.md		工具环境
 gradle	runtime	`install-runtimes.sh sdkman` 内直装	已装	JVM 构建链(共享可写家目录 /opt/gradle-home)	`GRADLE_VERSION=8.14.3`(lib/common.sh)	/opt/gradle/gradle-	不做默认离线配置([offline.md](../../offline.md) §4),手工 `gradle --offline`;未验 [推断:]断网 `gradle --offline` 构建未专项实证,libcache 无 gradle 组,`/opt/gradle-home` 无依	docs/items/runtimes/gradle.md		运行时环境
+hacktricks	data	`install-tools.sh data`	已烘焙	HackTricks 文本面(1095 篇 md 约 18M,剔 .git 与配图,2026-10-11 用户裁定)		/opt/data-ref/hacktricks			docs/items/tools-data/dataref.md	数据信息搜索
 hashcat	tool	`install-tools.sh pentest`	已装	哈希破解(CPU 走 pocl,详 [hashcat](hashcat.md))	noble 随源无钉(清单记录 6.2.6),随 [pentest 组册](pentest.md) apt 批	/usr/bin/hashcat	未验 [推断:] 纯本地计算,运行不触网;断网冒烟(2026-10-10,78/0)覆盖渗透工具面但未留件级命令。脚本构建期冒烟是 `hashcat -I | head -3`(列出 pocl CPU 设备即后�	docs/items/tools-pentest/pentest.md		工具环境
 hashid	tool	`install-tools.sh p0`	已装	哈希类型识别				docs/items/tools-p0/p0.md		工具环境
 hcxtools	tool	`install-tools.sh pentest`	已装	hcxpcapngtool 等 WiFi 抓包转换				docs/items/tools-pentest/pentest.md		工具环境

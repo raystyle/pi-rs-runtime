@@ -215,6 +215,7 @@ NUGET_PKGS=(dnlib asmresolver asmresolver.pe asmresolver.dotnet iced mono.cecil
     system.commandline ilspycmd)
 
 GIT_REPOS=(
+    HackTricks-wiki/hacktricks
     LOLBAS-Project/LOLBAS
     enthec/webappanalyzer
     exploit-database/exploitdb
