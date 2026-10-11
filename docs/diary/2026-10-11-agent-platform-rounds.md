@@ -13,6 +13,7 @@
 7. **物化预热批**(REQ-0003,prt-08):one_gadget(Ruby3.2 面)/seccomp-tools/qiling/angr 独立 venv;数据语料三仓起步。
 8. **HackTricks/GTFOBins 批**:HackTricks 文本面 18M(用户裁定「文本没那么大」,310M=144M .git+150M 图+18M 文本);GTFOBins 走用户给出的 .github.io 源仓道(主仓三通道 403)。
 9. **工作流补缺批**(REQ-0004,prt-10):kill-chain×品类矩阵驱动;交叉编译四套+i386(打包互斥坑)、stego 四件、web 泄漏三件、SSTImap、apkid、commix;九件+四架构断网全过。
+10. **entropia 晚批**(用户点名加项目,prt-11):entropykit/entropia v0.1-experimental 进 bof 组(Windows PIC shellcode/BOF 编译语言,补 mingw 之外的高级语言道);源码 cargo 构建 entc+entc-win32gen,断网编译真 COFF/118 字节 shellcode 实证;顺带修生成器潜伏 bug(机器行 book/alias 两列写反,首个 alias 用例炸出,angr-venv 等纯机器行 id 的 book 列同批回填)。
 
 ## 联席协议实践
 
@@ -20,8 +21,8 @@ grok 邻居十笺(prt-01 到 prt-10)全部按三件套走(brief/state/receipt),�
 
 ## 本日血泪坑(新增)
 
-apt 打包互斥(gcc-multilib vs cross);交叉命令带 -13 代号;stegseek 资产名无 arch 段;/proc/net/tcp6 每 32 位字字节序反转;ugrep 皮吞 tsv 匹配(宿主侧 catalog 校验用 awk);aliyun 资产名无 v 前缀;生成器 dedup 按末行 NF 重建列宽(硬编码 11 列解);钉版升级未带断网冒烟即回镜像(responder 漂移整日才被抓)。
+apt 打包互斥(gcc-multilib vs cross);交叉命令带 -13 代号;stegseek 资产名无 arch 段;/proc/net/tcp6 每 32 位字字节序反转;ugrep 皮吞 tsv 匹配(宿主侧 catalog 校验用 awk);aliyun 资产名无 v 前缀;生成器 dedup 按末行 NF 重建列宽(硬编码 11 列解);钉版升级未带断网冒烟即回镜像(responder 漂移整日才被抓);生成器机器行 book/alias 列写反(无 alias 用例时潜伏,首个 alias 行炸出);混合 workspace 根裸 cargo build 只建根包(辅件要 -p 点名);运行期 cargo 默认离线挡构建期取依赖(CARGO_NET_OFFLINE=false 拿回在线面,同 agents 批 npm 口径)。
 
 ## 里程碑数字
 
-catalog 445 件(audit missing=0)、86 册对账、七域(kind×env 两分面)、12 数据语料库、5 agent 面(CLI×2+ACP 通道+rctl+acpsup)、四 REQ 全 implemented、发布链未动(实例保持开发态,用户裁定修到完美态再打包)。
+catalog 447 件(audit missing=0)、87 册对账、七域(kind×env 两分面)、12 数据语料库、5 agent 面(CLI×2+ACP 通道+rctl+acpsup)、四 REQ 全 implemented、发布链未动(实例保持开发态,用户裁定修到完美态再打包)。

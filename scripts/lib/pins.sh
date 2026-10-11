@@ -196,6 +196,7 @@ declare -A GIT_PIN=(
     ["trustedsec/CS-Situational-Awareness-BOF"]="fd96c4dcd88fd00eea902bebb20d0736e48f5f61"
     ["trustedsec/CS-Remote-OPs-BOF"]="756cabbb4f2ac64e1b9799e09b4fc12f305db915"
     ["The-Z-Labs/bof-launcher"]="c9b600a93c72503900c1fc3792eda5aa5602f922"
+    ["entropykit/entropia"]="05acaba2a1a5fbde8cec3318319d053265ddb7ca"
     ["googleprojectzero/sandbox-attacksurface-analysis-tools"]="852b1586b8c4527f8be3f486801e4830220c76d0"
     ["tyranid/DotNetToJScript"]="4dbe155912186f9574cb1889386540ba0e80c316"
     ["tyranid/windows-logical-eop-workshop"]="68e67f50cdff38cef90e3c9e7a8a1b65e392f979"

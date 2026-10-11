@@ -68,7 +68,7 @@ clean() { # tsv 字段禁 tab/换行
             [ "${rkind:-tool}" = data ] && [ -z "$(printf '%s' "$line" | grep -oP 'env=\K[^ ]+')" ] && renv=数据信息搜索
             printf '%s\t%s\t%s\t%s\t%s\t\t%s\t\t%s\t%s\t%s\n' \
                 "$(clean "$rid")" "$(clean "${rkind:-tool}")" "$(clean "$group")" "已烘焙" \
-                "$(clean "${rnote:-$(clean "$desc")}")" "$(clean "$rpath")" "$(clean "$ralias")" "$f" "$renv"
+                "$(clean "${rnote:-$(clean "$desc")}")" "$(clean "$rpath")" "$f" "$(clean "$ralias")" "$renv"
         done || true
         # 参考克隆是角色不是生命周期:status 原文以「参考克隆」起头时 kind 改 ref(prt-07 分面)
         case "$status" in 参考克隆*) kind=ref;; esac

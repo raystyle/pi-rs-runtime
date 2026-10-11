@@ -15,6 +15,7 @@
 | CS-Remote-OPs-BOF | GIT_PIN 钉 sha | [trustedsec/CS-Remote-OPs-BOF](https://github.com/trustedsec/CS-Remote-OPs-BOF) | /opt/tradecraft-ref/bof/CS-Remote-OPs-BOF |
 | coffee-ldr | cargo nightly + CRATE_PIN 0.2.2 | 见 [coffee-ldr.md](coffee-ldr.md) | 未装上(构建失败留档) |
 | bof-launcher | GIT_PIN 钉 sha | 见 [bof-launcher.md](bof-launcher.md) | /usr/local/bin/bof-launcher + 源码 inproc 轴 |
+| entropia(entc) | GIT_PIN 钉 sha(v0.1-experimental) | 见 [entropia.md](entropia.md) | /usr/local/bin/entc + 源码 /opt/entropia(高级语言道,2026-10-11 加) |
 | BOF-CATALOG.md | main raw(未钉) | [chryzsh/awesome-bof](https://github.com/chryzsh/awesome-bof) | /opt/tradecraft-ref/bof/BOF-CATALOG.md |
 
 - **落点**(批量机制):`inproc=/opt/payload-ref/loaders/inproc`(COFFLoader、bof-launcher 源码原地构建),`bofref=/opt/tradecraft-ref/bof`(atomic-bofs、TrustedSec 两套、目录);克隆幂等判据 `-d <目录>/.git`,COFFLoader 判据 `-f COFFLoader64.exe`(不在则 rm -rf 重克隆重编),BOF-CATALOG.md 每次重跑重下(失败不影响工具链)。用法(脚本出口文案):`x86_64-w64-mingw32-gcc -c bof.c -o bof.o` 后 `coffee run bof.o` / `bof-launcher run bof.o`,Windows 侧 `wine64 COFFLoader64.exe <bof.o>`

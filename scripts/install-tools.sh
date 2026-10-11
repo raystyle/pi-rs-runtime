@@ -590,6 +590,30 @@ install_bof() {
         fi
     fi
     have bof-launcher && echo "bof-launcher 就绪"
+    # entropia(entropykit/entropia):Windows PIC x86-64 shellcode/BOF 编译语言(.etpy),
+    # 补 bof 组高级语言道(mingw 是 C 道);源码构建(release zip 是 Windows 预编,Linux 用不上),
+    # 钉 v0.1-experimental tag(单提交迁移仓,HEAD 即 tag)
+    if ! have entc; then
+        export RUSTUP_HOME=/opt/rustup CARGO_HOME=/opt/cargo
+        . /opt/cargo/env 2>/dev/null || true
+        export PATH="$PATH:/opt/cargo/bin"
+        # 混合 workspace 根的 cargo build 只建根包:辅件显式点名(实证只出 entc)
+        # 构建期拿回在线面:运行期 cargo 默认离线,win32gen 的 windows-metadata 不在烤缓存
+        clone_pin entropykit/entropia /opt/entropia \
+            && ( cd /opt/entropia && CARGO_NET_OFFLINE=false cargo build --release --locked -p entropykit -p entc-win32gen ) \
+            && install -m755 /opt/entropia/target/release/entc /usr/local/bin/entc \
+            || echo "entropia 构建失败(下轮补)"
+        # 辅件尽力:entc-win32gen(win32 头再生,跨平台);entc-debug/bof-runner/bof-loader
+        # 是 Windows 跑面(DAP tracer/harness),Linux 编了用不上,不装
+        [ -f /opt/entropia/target/release/entc-win32gen ] \
+            && install -m755 /opt/entropia/target/release/entc-win32gen /usr/local/bin/entc-win32gen
+    fi
+    if have entc; then
+        # 冒烟:仓内示例编出真 COFF(.x64.o);stdlib 全仓内,编译零网络(断网实证见册)
+        ( cd /opt/entropia && entc compile examples/bof_pslist.etpy --type=bof ) >/dev/null 2>&1 \
+            && file "$(find /opt/entropia/examples -name 'bof_pslist*.x64.o' 2>/dev/null | head -1)" 2>/dev/null | head -1 \
+            || echo "!! entc 示例编译未过(查构建与 stdlib)"
+    fi
     # 参考目录(随 bof 内容归档)
     curl -fsSL "${gh}/chryzsh/awesome-bof/raw/main/BOF-CATALOG.md" -o "$bofref/BOF-CATALOG.md" \
         || echo "目录下载失败(不影响工具链)"
