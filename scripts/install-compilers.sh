@@ -320,5 +320,25 @@ EOF
     true
 }
 
-COMPILERS_ALL=(c golang rust zig nim vcpkg)
+install_cross() {
+    log "交叉编译链(REQ-0004 P0:arm64/armhf/mips/mipsel 四套 g++-13 + i386 multilib;不装 crossbuild 元包,grok prt-10)"
+    apt-get update -qq
+    # 坑(实证):gcc-multilib 与 cross gcc 包互斥(打包声明冲突),i386 面走 libc6-dev-i386 头路线
+    apt-get install -y --no-install-recommends \
+        g++-13-aarch64-linux-gnu g++-13-arm-linux-gnueabihf \
+        g++-13-mipsel-linux-gnu g++-13-mips-linux-gnu \
+        || echo "!! 外国架构交叉链部分失败(可重跑)"
+    apt-get install -y --no-install-recommends libc6-dev-i386 lib32gcc-13-dev lib32stdc++-13-dev \
+        || echo "!! i386 multilib 头失败"
+    # 交叉命令名带 -13 代号(noble 实证:无去版本链接)
+    for t in aarch64-linux-gnu arm-linux-gnueabihf mipsel-linux-gnu mips-linux-gnu; do
+        command -v "${t}-g++-13" >/dev/null && echo "  ${t}-g++-13 ✓"
+    done
+    echo 'int main(){return 0;}' > /tmp/x.c
+    command -v aarch64-linux-gnu-gcc-13 >/dev/null && aarch64-linux-gnu-gcc-13 -static -o /tmp/x-a64 /tmp/x.c && file /tmp/x-a64 | head -1 && rm -f /tmp/x-a64
+    gcc -m32 -o /tmp/x-32 /tmp/x.c 2>/dev/null && file /tmp/x-32 | head -1 || echo "  i386 -m32 未通(查 libc6-dev-i386)"
+    rm -f /tmp/x.c /tmp/x-32
+}
+
+COMPILERS_ALL=(c golang rust zig nim vcpkg cross)
 run_category COMPILERS_ALL "$@"

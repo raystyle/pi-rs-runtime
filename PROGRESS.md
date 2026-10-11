@@ -39,6 +39,8 @@
 
 ## 待办
 
+0. ~~REQ-0004 工作流补缺~~(2026-10-11 完成,grok prt-10):交叉编译四套 g++-13(arm64/armhf/mips/mipsel;aarch64 静态真 ELF 实证)+ i386 multilib(gcc-multilib 与 cross 包打包互斥,走 libc6-dev-i386 头道,gcc -m32 出 i386 ELF 实证);stego 四件(zsteg gem/stegseek deb 钉 sha256/outguess/foremost);web 三件(phpggc wrapper php8.3/git-dumper uv tool/commix);SSTImap 独立 venv(tplmap 停维护不装);apkid uv tool 独立;九件断网全过;P2 留置 fenjing/stegsnow/pngcheck/riscv64 交叉链
+
 0. ~~prt-07 阶段 3 拆册~~(2026-10-11 完成):五短册落地(SecLists/capa-rules/yara-rules 语料册 + pspy/volatility3 一事实一册,原处改链)+ zig 冲突解(缓存册改名 zig-cache.md,工具链独占 zig)+ angr 10.0.3 独立 venv(禁 extra,断网 import 过);待裁定余项:HackTricks(1GiB)/GTFOBins(代理全 403);阶段 2 余项:impacket 全表生成+无主 5 件裁定
 
 0. ~~域分类定稿~~(prt-09 已交并吸收):七域定稿确认(数据分析独立成域正确,不加第八域;kind 与域两面并存);三处改判落地(frida/jadx/apktool/capa/pwndbg 与 floss/ilspycmd/smali/baksmali 到 逆向环境,vol/volshell/netexec/pspy 到 工具环境,poc-search 到 工具环境);一级七域够用,ATT&CK 战术留作 caps 多值标签不进 env;docs/items/README 增七域归档视图;待裁定:angr(单独 venv)/HackTricks(1GiB)/GTFOBins(代理 401)

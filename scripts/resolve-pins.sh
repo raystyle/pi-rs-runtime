@@ -192,6 +192,8 @@ PYPI_PKGS=(
     qiling
     # 符号执行(angr 独立 venv,禁 extra)
     angr
+    git-dumper
+    apkid
 )
 
 GEMS=(evil-winrm nokogiri mime mime-types mini_exiftool rubyzip one_gadget seccomp-tools)
@@ -215,6 +217,9 @@ NUGET_PKGS=(dnlib asmresolver asmresolver.pe asmresolver.dotnet iced mono.cecil
     system.commandline ilspycmd)
 
 GIT_REPOS=(
+    ambionics/phpggc
+    commixproject/commix
+    vladko312/SSTImap
     GTFOBins/GTFOBins.github.io
     HackTricks-wiki/hacktricks
     LOLBAS-Project/LOLBAS

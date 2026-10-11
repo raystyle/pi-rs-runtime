@@ -118,12 +118,15 @@ declare -A PYPI_PIN=(
     ["jsbeautifier"]="2.0.3"
     ["aioquic"]="1.4.0"
     ["qiling"]="1.4.6"
+    ["git-dumper"]="1.0.9"
+    ["apkid"]="3.1.0"
     ["angr"]="10.0.3"
 )
 declare -A GEM_PIN=(
     ["evil-winrm"]="4.1"
     ["one_gadget"]="1.10.0"   # 2.1.1 要 Ruby>=3.3(系统 3.2.3),1.10.0 是 3.2 面最新(实证)
     ["seccomp-tools"]="1.7.1"
+    ["zsteg"]="0.2.14"
     ["nokogiri"]="1.19.4"
     ["mime"]="0.4.4"
     ["mime-types"]="3.7.0"
@@ -156,6 +159,9 @@ declare -A GIT_PIN=(
     ["exploit-database/exploitdb"]="12879ca774a9d7543907d24a7bc1cebb47959afe"
     ["HackTricks-wiki/hacktricks"]="6376548ba37ae9598df582b823dad61e8defb1e7"
     ["GTFOBins/GTFOBins.github.io"]="acd524623f9c406acedd2754ebd9c2431f3675ad"
+    ["ambionics/phpggc"]="f8aebde3a1abb88b02042fd12a71b4c61d6cfe2c"
+    ["commixproject/commix"]="2f2b6aafdd13afc3a667261abe2d91fd34199c3b"
+    ["vladko312/SSTImap"]="1c27fdb4a4cc7d55b66fc0e16937ee7de7047490"
     ["rizinorg/rz-ghidra"]="64ea54a51c7f87983c9eba9cef8ee0c8cf2ac811"
     ["rizinorg/sigdb"]="4addbed50cd3b50eeef5a41d72533d079ebbfbf8"
     ["DidierStevens/DidierStevensSuite"]="b248e9aabac4dedc2619c986d07eb7a5f4c18d37"
@@ -292,6 +298,8 @@ TRIVY_VERSION="v0.75.0"
 NIM_VERSION="v2.2.12"
 KUBECTL_VERSION="v1.37.1"
 BUN_VERSION="1.4.3"
+STEGSEEK_VERSION="0.6"
+STEGSEEK_SHA256="7218c0e0d0cc81e31678eac6d63d1af46eccd6a0d4a9299e3b68b11e7bfc92f3"
 CLAUDE_CODE_VERSION="2.1.296"   # agent CLI:npm @anthropic-ai/claude-code(发版以天计,升级=改此钉)
 CODEX_VERSION="0.162.1"        # agent CLI:npm @openai/codex(同上;alpha 通道不钉)
 ALIYUN_CLI_VERSION="v3.5.1"      # 云 CLI:aliyun/aliyun-cli release(GO 生态,GitHub 道)

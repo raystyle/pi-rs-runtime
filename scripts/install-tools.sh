@@ -850,6 +850,56 @@ install_pentest() {
             || echo "sasquatch 构建失败(不影响 binwalk 本体)"
         rm -rf /tmp/sasquatch
     fi
+    # CTF/工作流补缺批(REQ-0004,grok prt-10 P0/P1):stego 面 + web 泄漏面 + 反序列化生成器
+    apt-get install -y --no-install-recommends outguess foremost || echo "!! outguess/foremost 装失败"
+    # zsteg:PNG/BMP 最低位(gem;steghide 不覆盖)
+    gem install zsteg -v "${GEM_PIN[zsteg]:?pins.sh 缺 zsteg}" --no-document || echo "!! zsteg 装失败"
+    # stegseek:steghide 暴破(钉 release deb+sha256;依赖 libmhash2/libmcrypt4/libjpeg62)
+    local sv="${STEGSEEK_VERSION:?}" ssha="${STEGSEEK_SHA256:?}"
+    if ! have stegseek; then
+        apt-get install -y --no-install-recommends libmhash2 libmcrypt4 libjpeg62 zlib1g >/dev/null 2>&1 || true
+        local sd="stegseek_${sv}-1.deb"   # 资产名无 arch 段(实证)
+        if curl -fSL --retry 3 "${GITHUB_MIRROR}https://github.com/RickdeJager/stegseek/releases/download/v${sv}/${sd}" -o "/tmp/${sd}" \
+            && echo "${ssha}  /tmp/${sd}" | sha256sum -c -; then
+            dpkg -i "/tmp/${sd}" >/dev/null 2>&1 && rm -f "/tmp/${sd}" || echo "!! stegseek dpkg 失败"
+        else
+            echo "!! stegseek 下载/校验失败"
+        fi
+    fi
+    # phpggc:PHP 反序列化 gadget 链生成(wrapper 写死 php8.3,grok prt-10:不赌默认 php 名)
+    clone_pin ambionics/phpggc /opt/phpggc || echo "phpggc 克隆失败"
+    if [ -f /opt/phpggc/phpggc ]; then
+        printf '#!/bin/sh\nexec php8.3 /opt/phpggc/phpggc "$@"\n' > /usr/local/bin/phpggc && chmod +x /usr/local/bin/phpggc
+    fi
+    # git-dumper:web .git 目录还原(uv tool 独立环境)
+    . "$HOME/.local/bin/env" 2>/dev/null || true
+    export UV_TOOL_BIN_DIR=/usr/local/bin UV_TOOL_DIR=/opt/uv-tools
+    have git-dumper || VIRTUAL_ENV= uv tool install "git-dumper==$(pypi_pin git-dumper)" || echo "!! git-dumper 装失败"
+    # apkid:APK 加壳/编译器识别(uv tool 独立;yara-python-dex 依赖不进 re-venv)
+    have apkid || VIRTUAL_ENV= uv tool install "apkid==$(pypi_pin apkid)" || echo "!! apkid 装失败"
+    # commix:OS 命令注入(仓脚本,wrapper python3)
+    clone_pin commixproject/commix /opt/commix || echo "commix 克隆失败"
+    [ -f /opt/commix/commix.py ] && printf '#!/bin/sh\nexec python3 /opt/commix/commix.py "$@"\n' > /usr/local/bin/commix && chmod +x /usr/local/bin/commix
+    # SSTImap:SSTI 探测/利用(独立 venv:requirements 钉旧 requests,不进 re-venv)
+    local SV=/opt/sstimap-venv
+    if [ ! -x "$SV/bin/python" ] || [ ! -f /opt/commix/.sstimap-ok ]; then
+        rm -rf "$SV"
+        if clone_pin vladko312/SSTImap /opt/SSTImap 2>/dev/null; then
+            uv venv "$SV" >/dev/null 2>&1
+            VIRTUAL_ENV="$SV" uv pip install -r /opt/SSTImap/requirements.txt >/dev/null 2>&1 \
+                || echo "!! SSTImap 依赖装失败"
+            printf '#!/bin/sh\nexec %s/bin/python /opt/SSTImap/sstimap.py "$@"\n' "$SV" > /usr/local/bin/sstimap && chmod +x /usr/local/bin/sstimap
+            touch /opt/commix/.sstimap-ok
+        fi
+    fi
+    have zsteg && zsteg --version 2>/dev/null | head -1 || true
+    have stegseek && stegseek --version 2>/dev/null | head -1 || true
+    have phpggc && phpggc -l 2>/dev/null | head -2 || true
+    have git-dumper && git-dumper --help 2>/dev/null | head -1 || true
+    have apkid && apkid --version 2>/dev/null | head -1 || true
+    have commix && commix --version 2>/dev/null | head -1 || true
+    have sstimap && sstimap --help 2>/dev/null | head -1 || true
+
     # CTF pwn 面 gem(REQ-0003 P0/P1):one_gadget(libc 题标准入口,ROPgadget 替代不了)、seccomp-tools
     gem install one_gadget -v "${GEM_PIN[one_gadget]:?pins.sh 缺 one_gadget}" --no-document \
         || echo "!! one_gadget 装失败"

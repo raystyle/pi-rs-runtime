@@ -2,6 +2,7 @@
 # id	kind	group	status	desc	pin	path	offline	book
 2to3	runtime	`install-runtimes.sh python` + `install-libcache.sh python`(wheelhouse 固化)	已烘焙	系统 python3 基座(保持干净) + /etc/pip.conf 离线面 + /opt/analytics 分析 venv + ruff		/usr/local/bin/2to3			docs/items/runtimes/python.md	运行时环境
 7zip	tool	`install-tools.sh p0`	已装	多格式压缩解压				docs/items/tools-p0/p0.md		工具环境
+aarch64-linux-gnu-g++-13	compiler	`install-compilers.sh c`	已烘焙	arm64 交叉链(静态编译实证)		/usr/bin/aarch64-linux-gnu-g++-13			docs/items/compilers/c-toolchain.md	编程环境
 acp	tool	`install-tools.sh acp`	已装(协议面实证;agent 推理待凭证/网关)	实例标准 agent 接入通道:ACP v1 + stdio 适配器与监督进程 acpsup(S-0002/REQ-0002)	pins.sh 标量 `CLAUDE_ACP_VERSION`(当前 0.89.1)与 `CODEX_ACP_VERSION`(当前 2.2.2),2026-10-11 registry 口径,升级=对 registry 再解析改钉重跑;监督进程仓内 `scripts/acp/`(package.j	/opt/node/lib/node_modules/	过,断网实证 selftest(initialize protocolVersion=1 + session/new 真 id,eth0 down 下同过);平台面 HTTP 仅回环零外网;prompt 到达模型鉴权层快失败(无凭证边界)属预期,推�	docs/items/tools-acp/acp.md		工具环境
 acpsup	service	`install-tools.sh acp`	已烘焙	ACP 监督进程(平台面 127.0.0.1:7663)		/usr/local/bin/acpsup			docs/items/tools-acp/acp.md	工具环境
 AdaptixC2	ref	`install-tools.sh c2`	参考克隆	/opt/c2dev-ref/AdaptixC2				docs/items/tools-c2/c2.md		代码样板参考
@@ -14,10 +15,12 @@ android-tools-adb	tool	`install-tools.sh pentest`	已装	adb 安卓调试桥				
 android-tools-fastboot	tool	`install-tools.sh pentest`	已装	fastboot 刷机/引导				docs/items/tools-pentest/pentest.md		工具环境
 angr	tool	`install-tools.sh re`	已装	Python 符号执行与二进制分析框架(platform-independent)	pins.sh `PYPI_PIN[angr]`(当前 10.0.3,2026-10-11 解析);升级跑 resolve-pins.sh 审 diff 重跑本组	/opt/angr-venv	过,断网 `import angr` 实证;分析为本地计算零网络;运行期内存是主要成本(无磁盘下限官方口径)	docs/items/tools-re/angr.md		逆向环境
 angr-venv	runtime	`install-tools.sh re`	已烘焙	angr 独立 venv(符号执行;python -c import angr 消费)		/opt/angr-venv			docs/items/tools-re/angr.md	逆向环境
+apkid	tool	`install-tools.sh p0`	已烘焙	APK 加壳/编译器识别(uv tool 3.1.0,yara-python-dex 独立)		/usr/local/bin/apkid			docs/items/tools-p0/p0.md	工具环境
 apkleaks	tool	`install-tools.sh red`	已装	PyPI				docs/items/tools-red/red.md		工具环境
 apktool	tool	`install-tools.sh p0`	已装	APK 反编译与重打包	`APKTOOL_VERSION=2.12.0`(脚本默认,env 可覆盖);GitHub release 钉版直下,无校验和	/opt/apktool/apktool.jar	未验 [推断:jar 与 wrapper 全本地,运行不触网];逐件断网冒烟未单列登记。验证:`ip link set eth0 down` 后 `apktool --version` 退 0	docs/items/tools-p0/apktool.md		逆向环境
 aria2	tool	`install-tools.sh cli`	已装	`/usr/bin`				docs/items/tools-cli/cli.md		工具环境
 arjun	tool	`install-tools.sh red`	已装	PyPI				docs/items/tools-red/red.md		工具环境
+arm-linux-gnueabihf-g++-13	compiler	`install-compilers.sh c`	已烘焙	armhf 交叉链		/usr/bin/arm-linux-gnueabihf-g++-13			docs/items/compilers/c-toolchain.md	编程环境
 asnmap	tool	`install-tools.sh pd`	已装	ASN 与 CIDR 互查映射				docs/items/tools-pd/pd.md		工具环境
 assetfinder	tool	`install-tools.sh secgo`	已装	子域与相关域发现				docs/items/tools-secgo/secgo.md		工具环境
 ast-grep	tool	`install-tools.sh astgrep`	已烘焙	入口名(带连字符)		/usr/local/bin/ast-grep			docs/items/tools-astgrep/astgrep.md	工具环境
@@ -75,6 +78,8 @@ codex	tool	`install-tools.sh agents`	已装(二进制;凭证经挂载注入,不�
 Coercer	tool	`install-tools.sh red`	已装	PyPI				docs/items/tools-red/red.md		工具环境
 coffee-ldr	tool	`install-tools.sh bof`	已装(工具链)+ 参考克隆(源码)	未装上(构建失败留档)	pins.sh 钉版(`CRATE_PIN[coffee-ldr]`=0.2.2,`cargo +nightly install coffee-ldr --locked --version`;解析日 2026-10-10),升级跑 scripts/resolve-pins.sh;失败只 echo 留档(不再退 `--git` 源)	/opt/cargo/bin/coffee-ldr	件未装上,无运行期离线面;未验 [推断:] nightly 工具链本体随 rustup 固化离线可用	docs/items/tools-bof/bof.md		工具环境
 COFFLoader	tool	`install-tools.sh bof`	已装(工具链)+ 参考克隆(源码)	/opt/payload-ref/loaders/inproc/COFFLoader(`make bof` 交叉编出 COFFLoader64.exe)				docs/items/tools-bof/bof.md		工具环境
+commix	tool	`install-tools.sh pentest`	已烘焙	OS 命令注入(仓 4.2.dev,python3 wrapper)		/usr/local/bin/commix			docs/items/tools-pentest/pentest.md	工具环境
+commix-src	ref	`install-tools.sh pentest`	已烘焙	commix 仓源		/opt/commix			docs/items/tools-pentest/pentest.md	工具环境
 Covenant	ref	`install-tools.sh c2`	参考克隆	/opt/c2dev-ref/Covenant				docs/items/tools-c2/c2.md		代码样板参考
 CS-Remote-OPs-BOF	tool	`install-tools.sh bof`	已装(工具链)+ 参考克隆(源码)	/opt/tradecraft-ref/bof/CS-Remote-OPs-BOF				docs/items/tools-bof/bof.md		工具环境
 CS-Situational-Awareness-BOF	tool	`install-tools.sh bof`	已装(工具链)+ 参考克隆(源码)	/opt/tradecraft-ref/bof/CS-Situational-Awareness-BOF				docs/items/tools-bof/bof.md		工具环境
@@ -108,6 +113,7 @@ ffuf	tool	`install-tools.sh secgo`	已装	Web fuzz(产物名 v2,改名)				docs/
 file	tool	`install-tools.sh re`	已装	文件类型识别				docs/items/tools-re/re.md		逆向环境
 floss	tool	`install-libcache.sh python`	已烘焙	FLARE 伪代码字符串提取(re-venv 链出)		/usr/local/bin/floss			docs/items/libcache/python.md	逆向环境
 fnm	runtime	`install-runtimes.sh fnm`	已装	fnm 多版本 node 管理器,预装 18/20/22/24 四条线	fnm 本体 pins.sh 钉版(`CRATE_PIN[fnm]`=1.39.0,cargo_install_pin 带 `--locked`;解析日 2026-10-10),升级跑 scripts/resolve-pins.sh(构建期 crates 索引走 rsproxy,lib/common.sh `CRATES_INDE	/opt/cargo/bin/fnm	未验 fnm 各版本的 `npm install` 离线快失败 [推断:prefix npmrc 与 /opt/node 逐键同形,机制实证见 [node 册](node.md),无 fnm 版本专属断网实证记录];过, js-lab 固化包�	docs/items/runtimes/fnm.md		运行时环境
+foremost	tool	`install-tools.sh pentest`	已烘焙	无菜单签名雕刻(apt 1.5.7)		/usr/bin/foremost			docs/items/tools-pentest/pentest.md	工具环境
 freerdp2-x11	tool	`install-tools.sh pentest`	已装	xfreerdp RDP 客户端				docs/items/tools-pentest/pentest.md		工具环境
 frida	tool	`install-tools.sh pentest`	已烘焙	frida CLI 本尊	pins.sh 全链钉版(解析日 2026-10-10):客户端 `uv tool install "frida-tools==<PYPI_PIN[frida-tools]>" --with "frida==<FRIDA_VERSION>"`(当前钉值 frida-tools 14.11.0 / frida 17.23.3,标量 `F	/usr/local/bin/frida	过, server 八平台构建期固化 `/opt/frida-server/<ver>/`,[offline.md](../../offline.md) §1 登记「直接读盘」面,断网冒烟 78/0 过发布门禁([ADR-0004](../../adr/ADR-0004-offline-f	docs/items/tools-pentest/frida.md	docs/items/tools-pentest/frida.md	逆向环境
 frida-apk	tool	`install-tools.sh pentest`	已烘焙	动态插桩:frida-tools 客户端 + 八平台 frida-server(版本严格对齐)		/usr/local/bin/frida-apk			docs/items/tools-pentest/frida.md	工具环境
@@ -144,6 +150,7 @@ ghauri	tool	`install-tools.sh red`	已装	[r0oth3x49/ghauri](https://github.com/
 ghidra	tool	`install-tools.sh ghidra`	已装	NSA 开源软件逆向套件(GUI + analyzeHeadless 无头反编译/静态分析)	`GHIDRA_VERSION=12.1.3` / `GHIDRA_DATE=20260817` / `GHIDRA_SHA256=93a5d11a9ad510622acaaf908c556a7b9b764d338e78a7567f3689bf5081fd54`,三者配套钉在 `scripts/lib/common.sh`(换版本同步换,口径	/opt/ghidra/ghidra_12.1.3_PUBLIC/	未验 [推断:]GUI 与 analyzeHeadless 均为本地 JVM 进程不触网,未进断网冒烟清单实证。验证:`ip link set eth0 down` 后 `analyzeHeadless /tmp/ghidra-proj MyProj -import /bin/ls -d	docs/items/tools-ghidra/ghidra.md		逆向环境
 ghidraRun	tool	`install-tools.sh ghidra`	已烘焙	NSA 开源软件逆向套件(GUI + analyzeHeadless 无头反编译/静态分析)		/usr/local/bin/ghidraRun			docs/items/tools-ghidra/ghidra.md	逆向环境
 git	tool	`install-tools.sh cli`	已装	`/usr/bin`				docs/items/tools-cli/cli.md		工具环境
+git-dumper	tool	`install-tools.sh pentest`	已烘焙	web .git 目录还原(uv tool 1.0.9)		/usr/local/bin/git-dumper			docs/items/tools-pentest/pentest.md	工具环境
 gitleaks	tool	`install-tools.sh secgo`	已装	git 仓密钥扫描(产物名 v8,改名;与 trufflehog 互补)				docs/items/tools-secgo/secgo.md		工具环境
 go	cache	`install-libcache.sh go`	缓存固化	渗透/代理/协议/AD/PE 向 Go 库字节构建期钉进模块缓存,断网 `go build` 直编	19 库构建日 `GOFLAGS=-mod=mod go mod tidy` 解析最新,精确版本写回 `/opt/go-prewarm/go.mod` 与 `go.sum`(锁文件即钉版,已入库 `scripts/lock/go/`(go.mod+go.sum),有锁走 `GOFLAGS=-	/opt/go/pkg/mod	过, 断网构建实证(断网冒烟 78/0 轮):`ip link set eth0 down` 后 `cd /opt/go-prewarm && go build .` 退 0;过, 拉新件瞬时 `module lookup disabled by GOPROXY=off`(五生态快失败轮);	docs/items/libcache/go.md		编程环境
 gobuster	tool	`install-tools.sh secgo`	已装	目录/DNS/vhost 爆破(产物名 v3,改名)				docs/items/tools-secgo/secgo.md		工具环境
@@ -211,6 +218,8 @@ Microsoft.NETFramework.ReferenceAssemblies	cache	`install-libcache.sh dotnet`(�
 Microsoft.PowerShell.SecretManagement	cache	`install-libcache.sh pwsh`(前置 `install-runtimes.sh pwsh`)	缓存固化	密钥管理抽象层				docs/items/libcache/pwsh.md		编程环境
 Microsoft.PowerShell.SecretStore	cache	`install-libcache.sh pwsh`(前置 `install-runtimes.sh pwsh`)	缓存固化	本地密钥仓				docs/items/libcache/pwsh.md		编程环境
 mingw-w64	tool	`install-tools.sh bof`	已装(工具链)+ 参考克隆(源码)	/usr/bin/x86_64-w64-mingw32-gcc(交叉编译器)				docs/items/tools-bof/bof.md		工具环境
+mipsel-linux-gnu-g++-13	compiler	`install-compilers.sh c`	已烘焙	mips 小端交叉链(IoT/路由)		/usr/bin/mipsel-linux-gnu-g++-13			docs/items/compilers/c-toolchain.md	编程环境
+mips-linux-gnu-g++-13	compiler	`install-compilers.sh c`	已烘焙	mips 大端交叉链		/usr/bin/mips-linux-gnu-g++-13			docs/items/compilers/c-toolchain.md	编程环境
 mitm6	tool	`install-tools.sh red`	已装	PyPI				docs/items/tools-red/red.md		工具环境
 mitmproxy	tool	`install-tools.sh p0`	已装	HTTP/HTTPS 中间人代理				docs/items/tools-p0/p0.md		工具环境
 mono	runtime	`install-runtimes.sh mono`	已装	老 .NET Framework 项目的构建与运行链:mono 运行时 + xbuild + .NET 4.x 引用程序集	`mono-devel`、`mono-xbuild` noble 源冻结即钉(软钉,留痕 [known-issues](../../known-issues.md));`nuget.exe` 未钉(dist.nuget.org latest 直下,无校验和,pins.sh 未收钉位)	/usr/bin/mono	未验 [推断:]`mono`/`xbuild` 运行与编译本地完成不触网;`nuget.exe restore` 拉未缓存包需联网,mono 面无固化仓兜底;断网冒烟未单独覆盖本件。验证:`ip link set eth	docs/items/runtimes/mono.md		运行时环境
@@ -255,6 +264,7 @@ oleviewdotnet	ref	`install-tools.sh pz`	参考克隆	/opt/oleviewdotnet				docs/
 one_gadget	tool	`install-tools.sh pentest`	已烘焙	libc one-gadget 查找(gem 1.10.0,Ruby3.2 面)		/usr/local/bin/one_gadget			docs/items/tools-pentest/pentest.md	工具环境
 openvpn	tool	`install-tools.sh pentest`	已装	OpenVPN 客户端				docs/items/tools-pentest/pentest.md		工具环境
 osslsigncode	tool	`install-tools.sh pentest`	已装	PE Authenticode 签名/验签(清单记录 2.8-2)				docs/items/tools-pentest/pentest.md		工具环境
+outguess	tool	`install-tools.sh pentest`	已烘焙	outguess 算法隐写(apt)		/usr/bin/outguess			docs/items/tools-pentest/pentest.md	工具环境
 p0	tool	`install-tools.sh p0`	已装	业界调研(Kali/REMnux/FLARE 重叠缺口)的 P0 补齐:apt 20 包 + impacket/nasm 特例 + re-venv 批 + GitHub 钉版批	apt 20 包 noble 随源(阿里云镜像源);impacket 与 nasm 两个特例单独成册([impacket.md](impacket.md)、[nasm.md](nasm.md));re-venv 批与 GitHub 批的逐件钉口径归各自件册(后�	/usr/bin	未验 [推断:] apt 20 包均为本地分析件,无运行期外网依赖;面向目标的动作(nmap/sqlmap 扫描、tcpdump/tshark 抓本网、mitmproxy 拦截)需到目标的网络,断外网但内�	docs/items/tools-p0/p0.md		工具环境
 patchelf	tool	`install-tools.sh p0`	已装	改写 ELF 解释器与 RPATH				docs/items/tools-p0/p0.md		工具环境
 pd	tool	`install-tools.sh pd`	已装	攻击面测绘与侦察 20 件 Go CLI 集(子域/DNS/端口/HTTP/模板扫描/爬虫/云资产)	pins.sh 钉版(解析日 2026-10-10):20 件逐件取 `GO_PIN[github.com/projectdiscovery/<模块>]`(`go_pin_ver`,缺钉即响跳过;旧 `PD_VERSION` 变量已弃用,lib/common.sh 仅保留防空引用	/opt/go	过,版本面/帮助面断网可用(纯 Go 静态二进制、无自更新;渗透工具面断网冒烟口径见 [offline.md](../../offline.md) §验证)。验证:`ip link set eth0 down` 后 `httpx -ver	docs/items/tools-pd/pd.md		工具环境
@@ -264,6 +274,8 @@ pdtm	tool	`install-tools.sh pd`	已装	PD 工具包管理器				docs/items/tools
 pentest	tool	`install-tools.sh pentest`	已装	内网客户端/远程/爆破/取证/移动/无线/签名/VPN/快扫:36 apt 包 + sasquatch 源码 + 离线固化接线	36 apt 包 noble 源冻结即钉(软钉,留痕 [known-issues](../../known-issues.md);清单记录时点版本:hashcat 6.2.6、hydra 9.5、aircrack-ng 1.7、osslsigncode 2.8-2);sasquatch 与离线接�	/usr/bin	过,接线面(模板/规则/词表直接读盘 + wrapper 不触网)登记在 [offline.md](../../offline.md) §1/§2,2026-10-10 断网冒烟 78/0 过发布门禁,2026-10-11 回归冒烟再过([ADR-0004	docs/items/tools-pentest/pentest.md		工具环境
 Pester	cache	`install-libcache.sh pwsh`(前置 `install-runtimes.sh pwsh`)	缓存固化	测试框架				docs/items/libcache/pwsh.md		编程环境
 php	runtime	`install-runtimes.sh php`	已装	webshell 逆向运行时:7.4 复现老样本、8.x 对照现代样本,VLD dump opcode	`PHP_VERSIONS="7.4 8.1 8.3"`(`scripts/lib/common.sh`,env 可覆盖);小版本随 sury 源,apt 源冻结即钉(软钉,留痕 [known-issues](../../known-issues.md));VLD 走 `pecl install vld-beta` 未�	/usr/bin/php7.4	未验 [推断:]CLI 解释器纯本地,`php<v> -d vld.active=1 <样本>` dump opcode 不触网;pecl 新装/升级扩展离线不可用(属预期,同 apt 边界,见 [offline.md](../../offline.md));断�	docs/items/runtimes/php.md		运行时环境
+phpggc	tool	`install-tools.sh pentest`	已烘焙	PHP 反序列化 gadget 链生成(wrapper php8.3)		/usr/local/bin/phpggc			docs/items/tools-pentest/pentest.md	工具环境
+phpggc-src	ref	`install-tools.sh pentest`	已烘焙	phpggc 仓源		/opt/phpggc			docs/items/tools-pentest/pentest.md	工具环境
 pivot	tool	`install-tools.sh pivot`	已装	内网代理跳板与隧道:gost/frps/frpc/wstunnel/rathole/bore	pins.sh 钉版(解析日 2026-10-10),升级跑 scripts/resolve-pins.sh:gost `GO_PIN[github.com/go-gost/gost/cmd/gost]`=v0.0.0-20261007023108-0793f4730f8d(无 tag 仓钉 HEAD 伪版本)、frps/frpc 标	/opt/go/bin	未验: [推断:] server 端起 listener、client 连内网目标均不依赖外网,断外网(内网可达)下可用,eth0 全断退化为 loopback 对连;bore 默认公网服务器 bore.pub 这类天�	docs/items/tools-pivot/pivot.md		工具环境
 pkg-config	tool	`install-tools.sh re`	已装	依赖探测				docs/items/tools-re/re.md		逆向环境
 pocl-opencl-icd	tool	`install-tools.sh pentest`	已装	CPU OpenCL 实现(hashcat 后端)				docs/items/tools-pentest/pentest.md		工具环境
@@ -371,7 +383,11 @@ sqlmap	tool	`install-tools.sh p0`	已装	SQL 注入自动检测与利用				docs
 squashfs-tools	tool	`install-tools.sh p0`	已装	SquashFS 固件镜像解包与重打包				docs/items/tools-p0/p0.md		工具环境
 ssdeep	tool	`install-tools.sh p0`	已装	模糊哈希与相似度比对				docs/items/tools-p0/p0.md		工具环境
 sshuttle	tool	`install-tools.sh pentest`	已装	基于 ssh 的透明代理隧道				docs/items/tools-pentest/pentest.md		工具环境
+sstimap	tool	`install-tools.sh pentest`	已烘焙	SSTI 探测/利用(独立 venv 1.4.0;tplmap 停维护不装)		/usr/local/bin/sstimap			docs/items/tools-pentest/pentest.md	工具环境
+SSTImap-src	ref	`install-tools.sh pentest`	已烘焙	SSTImap 仓源		/opt/SSTImap			docs/items/tools-pentest/pentest.md	工具环境
+sstimap-venv	runtime	`install-tools.sh pentest`	已烘焙	SSTImap 独立 venv		/opt/sstimap-venv			docs/items/tools-pentest/pentest.md	工具环境
 steghide	tool	`install-tools.sh pentest`	已装	图片/音频隐写				docs/items/tools-pentest/pentest.md		工具环境
+stegseek	tool	`install-tools.sh pentest`	已烘焙	steghide 暴破(deb 钉 0.6+sha256)		/usr/local/bin/stegseek			docs/items/tools-pentest/pentest.md	工具环境
 subfinder	tool	`install-tools.sh pd`	已装	子域名被动发现				docs/items/tools-pd/pd.md		工具环境
 System.DirectoryServices.Protocols	cache	`install-libcache.sh dotnet`(前置 `install-runtimes.sh dotnet`,dotnet-sdk-10.0)	缓存固化	LDAP/AD				docs/items/libcache/dotnet.md		编程环境
 tccli	tool	`install-tools.sh cloud`	已烘焙	腾讯云 CLI(uv-tool 面)		/usr/local/bin/tccli			docs/items/tools-cloud/cloud.md	工具环境
@@ -424,4 +440,8 @@ zig-cache	cache	`install-libcache.sh zig`(前置 `install-compilers.sh zig`,0.16
 zig-prewarm	cache	`install-libcache.sh zig`(前置 `install-compilers.sh zig`,0.16.0)	已烘焙	五库预热工程(zon 锁)		/opt/zig-prewarm			docs/items/libcache/zig-cache.md	编程环境
 zlib	cache	`install-libcache.sh zig`(前置 `install-compilers.sh zig`,0.16.0)	缓存固化	master				docs/items/libcache/zig-cache.md		编程环境
 zlib1g-dev	tool	`install-tools.sh re`	已装	压缩库开发面				docs/items/tools-re/re.md		逆向环境
+zpng	tool	`install-tools.sh pentest`	已烘焙	zsteg 副件(PNG 面板)		/usr/local/bin/zpng			docs/items/tools-pentest/pentest.md	工具环境
 zstd	cache	`install-libcache.sh zig`(前置 `install-compilers.sh zig`,0.16.0)	缓存固化	master				docs/items/libcache/zig-cache.md		编程环境
+zsteg	tool	`install-tools.sh pentest`	已烘焙	PNG/BMP 最低位隐写(gem 0.2.14)		/usr/local/bin/zsteg			docs/items/tools-pentest/pentest.md	工具环境
+zsteg-mask	tool	`install-tools.sh pentest`	已烘焙	zsteg 副件		/usr/local/bin/zsteg-mask			docs/items/tools-pentest/pentest.md	工具环境
+zsteg-reflow	tool	`install-tools.sh pentest`	已烘焙	zsteg 副件		/usr/local/bin/zsteg-reflow			docs/items/tools-pentest/pentest.md	工具环境
