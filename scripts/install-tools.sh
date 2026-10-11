@@ -346,6 +346,9 @@ install_re() {
     . "$HOME/.local/bin/env" 2>/dev/null || true
     [ -x "$RE_VENV/bin/python" ] || uv venv "$RE_VENV"
     VIRTUAL_ENV="$RE_VENV" uv pip install "capstone==$(pypi_pin capstone)" "keystone-engine==$(pypi_pin keystone-engine)" "unicorn==$(pypi_pin unicorn)" "lief==$(pypi_pin lief)" "yara-python==$(pypi_pin yara-python)"
+    # qiling 跨架构模拟(REQ-0003 P1;依赖 gevent 等随装,离线以 venv 物化为准)
+    VIRTUAL_ENV="$RE_VENV" uv pip install "qiling==$(pypi_pin qiling)" \
+        || echo "!! qiling 装失败(查钉与索引)"
     "$RE_VENV/bin/python" -c 'import capstone,keystone,unicorn,lief,yara; print("re-venv ok")'
     cat <<EOF
 对应关系:capstone 反汇编 / keystone 汇编 / unicorn 模拟执行 / lief 解析改写 PE-ELF-MachO / yara-python 规则扫描
@@ -839,6 +842,11 @@ install_pentest() {
             || echo "sasquatch 构建失败(不影响 binwalk 本体)"
         rm -rf /tmp/sasquatch
     fi
+    # CTF pwn 面 gem(REQ-0003 P0/P1):one_gadget(libc 题标准入口,ROPgadget 替代不了)、seccomp-tools
+    gem install one_gadget -v "${GEM_PIN[one_gadget]:?pins.sh 缺 one_gadget}" --no-document \
+        || echo "!! one_gadget 装失败"
+    gem install seccomp-tools -v "${GEM_PIN[seccomp-tools]:?pins.sh 缺 seccomp-tools}" --no-document \
+        || echo "!! seccomp-tools 装失败"
     hashcat -I 2>/dev/null | head -3 || echo "hashcat 装不上(查 pocl)"
 
     log "Responder(LLMNR/NBT-NS 毒化,内网测试起点)"
@@ -1231,6 +1239,31 @@ install_msf() {
 }
 
 
+# ---- data(数据信息资产:PoC/规则/指纹库;clone 钉 sha,构建日快照,离线直读)----
+install_data() {
+    log "数据资产(LOLBAS/webappanalyzer/exploit-db;GTFOBins 通道暂拒挂起)"
+    local gh="${GITHUB_MIRROR}https://github.com"
+    mkdir -p /opt/data-ref
+    clone_pin LOLBAS-Project/LOLBAS /opt/data-ref/LOLBAS || echo "LOLBAS 克隆失败"
+    clone_pin enthec/webappanalyzer /opt/data-ref/webappanalyzer || echo "webappanalyzer 克隆失败"
+    # exploit-db 走 GitLab 直连(grok prt-08 实证:GITHUB_MIRROR 不代理 GitLab,直连可达);同 clone_pin 语义的钉克隆
+    local ed_sha="${GIT_PIN[exploit-database/exploitdb]:-}"
+    if [ -n "$ed_sha" ]; then
+        if [ ! -d /opt/data-ref/exploitdb/.git ] || [ "$(git -C /opt/data-ref/exploitdb rev-parse HEAD 2>/dev/null)" != "$ed_sha" ]; then
+            rm -rf /opt/data-ref/exploitdb
+            git clone -q https://gitlab.com/exploit-database/exploitdb.git /opt/data-ref/exploitdb \
+                && git -C /opt/data-ref/exploitdb checkout -q "$ed_sha" \
+                || echo "exploit-db 克隆/钉失败(查 GitLab 直连)"
+        fi
+    else
+        echo "!! exploit-db 缺 git 钵(exploit-database/exploitdb)"
+    fi
+    # searchsploit 入口(exploit-db 仓自带 files_exploits.csv;脚本入口用 Kali 版 perl?此面以仓直读+rctl 可搜为准)
+    for d in LOLBAS webappanalyzer exploitdb; do
+        [ -d "/opt/data-ref/$d" ] && echo "$d: $(find /opt/data-ref/$d -type f 2>/dev/null | wc -l) 文件"
+    done
+}
+
 # ---- cloud(云厂商 CLI:aliyun release 道与 tccli uv tool 道;云 API 枚举的使用期触网属边界)----
 install_cloud() {
     log "云 CLI(aliyun + tccli;钉版 pins.sh)"
@@ -1403,5 +1436,5 @@ install_vnc() {
 }
 
 # chrome 组不在默认全量:上游修 bug 期用户裁定先不装(2026-10-10);要装显式跑 install-tools.sh chrome
-TOOLS_ALL=(fd astgrep cli herdr ghidra rea re pd secgo secrust pivot p0 c2 bof pz maldev recon nu cloud pentest red msf vnc agents acp ctl)
+TOOLS_ALL=(fd astgrep cli herdr ghidra rea re pd secgo secrust pivot p0 c2 bof pz maldev recon nu cloud data pentest red msf vnc agents acp ctl)
 run_category TOOLS_ALL "$@"

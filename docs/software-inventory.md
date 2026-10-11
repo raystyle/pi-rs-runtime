@@ -9,7 +9,7 @@
 | [items/compilers/](items/compilers/) | 6 | 6 组(含 build-essential 21 包、vcpkg 12 库) |
 | [items/runtimes/](items/runtimes/) | 16 | 13 组键(sdkman 拆 4 册) |
 | [items/libcache/](items/libcache/) | 8 | 八生态缓存固化 |
-| [items/tools-*/](items/README.md#toolsinstall-toolssh47-册) | 49 | 26 组(含 apt 36+20 包、pd 20 CLI、secgo 18 CLI、参考克隆 41+7+4+4 仓、maldev 官网 tgz 2 件) |
+| [items/tools-*/](items/README.md#toolsinstall-toolssh48-册) | 50 | 27 组(含 apt 36+20 包、pd 20 CLI、secgo 18 CLI、参考克隆 41+7+4+4 仓、maldev 官网 tgz 2 件) |
 
 ## 形态分布
 

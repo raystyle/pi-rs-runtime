@@ -117,9 +117,12 @@ declare -A PYPI_PIN=(
     ["requests"]="2.34.2"
     ["jsbeautifier"]="2.0.3"
     ["aioquic"]="1.4.0"
+    ["qiling"]="1.4.6"
 )
 declare -A GEM_PIN=(
     ["evil-winrm"]="4.1"
+    ["one_gadget"]="1.10.0"   # 2.1.1 要 Ruby>=3.3(系统 3.2.3),1.10.0 是 3.2 面最新(实证)
+    ["seccomp-tools"]="1.7.1"
     ["nokogiri"]="1.19.4"
     ["mime"]="0.4.4"
     ["mime-types"]="3.7.0"
@@ -147,6 +150,9 @@ declare -A NUGET_PIN=(
 )
 declare -A GIT_PIN=(
     ["rizinorg/rizin"]="3039221889bc690629df8b9d96f51fe66cf2dfe3"
+    ["LOLBAS-Project/LOLBAS"]="2056cb7662509dc998fc6ce79636aec4e6c0397f"
+    ["enthec/webappanalyzer"]="eea872af449e207e055398f7369d11ee48c8ea03"
+    ["exploit-database/exploitdb"]="12879ca774a9d7543907d24a7bc1cebb47959afe"
     ["rizinorg/rz-ghidra"]="64ea54a51c7f87983c9eba9cef8ee0c8cf2ac811"
     ["rizinorg/sigdb"]="4addbed50cd3b50eeef5a41d72533d079ebbfbf8"
     ["DidierStevens/DidierStevensSuite"]="b248e9aabac4dedc2619c986d07eb7a5f4c18d37"

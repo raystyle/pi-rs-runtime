@@ -188,9 +188,11 @@ PYPI_PKGS=(
     ratelimit pycryptodomex termcolor requests jsbeautifier
     # pentest 组 Responder 依赖(aioquic:QUIC 毒化面,钉 sha 起启动硬查)
     aioquic
+    # 逆向模拟(qiling,REQ-0003 P1)
+    qiling
 )
 
-GEMS=(evil-winrm nokogiri mime mime-types mini_exiftool rubyzip)
+GEMS=(evil-winrm nokogiri mime mime-types mini_exiftool rubyzip one_gadget seccomp-tools)
 
 # npm 全局件与 js-lab 固化件
 NPM_PKGS=(rea-agents typescript prettier eslint dotnetjs
@@ -211,6 +213,9 @@ NUGET_PKGS=(dnlib asmresolver asmresolver.pe asmresolver.dotnet iced mono.cecil
     system.commandline ilspycmd)
 
 GIT_REPOS=(
+    LOLBAS-Project/LOLBAS
+    enthec/webappanalyzer
+    exploit-database/exploitdb
     # re/p0/pentest/pivot 操作面
     rizinorg/rizin rizinorg/rz-ghidra rizinorg/sigdb DidierStevens/DidierStevensSuite
     mandiant/capa-rules Yara-Rules/rules danielmiessler/SecLists lgandx/Responder

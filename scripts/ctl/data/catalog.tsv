@@ -80,6 +80,7 @@ cvemap	tool	`install-tools.sh pd`	已装	CVE 数据库导航				docs/items/tools
 cyberchef	tool	`install-tools.sh red`	已装	离线加解密/编码瑞士军刀(纯静态站点)	pins.sh 钉版(标量 `CYBERCHEF_VERSION`=v11.5.0;解析日 2026-10-10),升级跑 scripts/resolve-pins.sh;空钉回退 `git ls-remote --tags` 取最新 `vX.Y.Z`(api.github.com 限流 403 改用此,nus	/opt/cyberchef	未验 [推断:]纯静态站点,设计即离线工具(脚本称「离线瑞士军刀」),本地起服即用,未跑断网实证。验证:`ip link set eth0 down` 后 `cd /opt/cyberchef && python3 -m htt	docs/items/tools-red/cyberchef.md		工具环境
 CyberChef	tool	`install-tools.sh red`	已装	[gchq/CyberChef](https://github.com/gchq/CyberChef);见 [CyberChef 册](cyberchef.md)				docs/items/tools-red/red.md		工具环境
 dalfox	tool	`install-tools.sh secgo`	已装	XSS 参数分析与扫描(产物名 v2,改名)				docs/items/tools-secgo/secgo.md		工具环境
+dataref	tool	`install-tools.sh data`	已装	PoC/规则/指纹库的克隆面(kind=data,构建日快照,离线直读)	pins.sh `GIT_PIN`(LOLBAS、webappanalyzer、exploit-db;解析日 2026-10-11);升级跑 resolve-pins.sh 审 diff 重跑本组;快照随构建日冻结(trivy-db 同口径)	/opt/data-ref/LOLBAS	过,本地直读零网络;新鲜度=构建日快照,要新数据回有网重跑本组(grok prt-08 口径)	docs/items/tools-data/dataref.md		工具环境
 dcomexec.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/dcomexec.py			docs/items/tools-p0/impacket.md	工具环境
 default-mysql-client	tool	`install-tools.sh pentest`	已装	mysql/mariadb 客户端				docs/items/tools-pentest/pentest.md		工具环境
 dnlib	cache	`install-libcache.sh dotnet`(前置 `install-runtimes.sh dotnet`,dotnet-sdk-10.0)	缓存固化	.NET 程序集读写				docs/items/libcache/dotnet.md		编程环境
@@ -94,6 +95,7 @@ Empire	ref	`install-tools.sh c2`	参考克隆	/opt/c2dev-ref/Empire				docs/item
 enum4linux-ng	ref	`install-tools.sh red`	已烘焙	enum4linux-ng 仓(wrapper 同名)	pins.sh 钉版:`GIT_PIN[cddmp/enum4linux-ng]` 钉 sha(clone_pin,幂等:HEAD==钉即跳过;失败重试 2 次;解析日 2026-10-10),升级跑 scripts/resolve-pins.sh	/opt/enum4linux-ng	过, 断网冒烟渗透工具面过(78/0,2026-10-10 离线轮;本件 wrapper 是该轮修复件之一,wrapper 层机制见 [offline.md](../../offline.md) §2)。验证:`ip link set eth0 down` 后 `enu	docs/items/tools-red/enum4linux-ng.md	docs/items/tools-red/red.md	工具环境
 eslint	runtime	`install-tools.sh cli`	已烘焙	npm 全局件		/usr/local/bin/eslint			docs/items/tools-cli/cli.md	工具环境
 evil-winrm	tool	`install-tools.sh red`	已装	[Hackplayers/evil-winrm](https://github.com/Hackplayers/evil-winrm),ruby-china;见 [evil-winrm 册](evil-winrm.md)	pins.sh 钉版(`GEM_PIN[evil-winrm]`,当前钉值 4.1,解析日 2026-10-10),`gem install evil-winrm -v <钉>`(ruby-china 源);升级跑 scripts/resolve-pins.sh	/usr/local/bin/evil-winrm	未验 [推断:]纯 Ruby 本地运行,无自更新机制,断网可起 help 面;连目标 WinRM 需网络。验证:`ip link set eth0 down` 后 `evil-winrm --help` 退 0	docs/items/tools-red/red.md		工具环境
+exploitdb	data	`install-tools.sh data`	已烘焙	Exploit-DB 快照(PoC 全文+csv 索引)		/opt/data-ref/exploitdb			docs/items/tools-data/dataref.md	数据信息搜索
 fasm	compiler	`install-compilers.sh c`	已烘焙	FASM 汇编器本体		/opt/fasm			docs/items/compilers/c-toolchain.md	编程环境
 FASM	compiler	`install-compilers.sh c`	已装	flat 汇编器,Ubuntu 源无包,官方 tarball 直下				docs/items/compilers/c-toolchain.md		编程环境
 fd	tool	`install-tools.sh fd`	已装	文件查找(fd)与内容搜索(rg)双件,fd 组同批装	noble 随源(apt 包 `fd-find`、`ripgrep`,版本随 Ubuntu 源冻结,不另钉)	/usr/bin/fdfind	未验 [推断:]纯本地文件系统工具,无网络面;断网冒烟 78/0 覆盖工具面但逐件名单未留档,本件未单独实证。验证:`ip link set eth0 down` 后 `fd . /etc -d 1 >/dev/null	docs/items/tools-fd/fd.md		工具环境
@@ -187,6 +189,7 @@ libzip-dev	tool	`install-tools.sh re`	已装	rizin 构建依赖(缺了 meson 去
 lief	tool	`install-tools.sh re`	已装	解析改写 PE/ELF/Mach-O				docs/items/tools-re/re.md		逆向环境
 linkfinder	tool	`install-tools.sh red`	已烘焙	wrapper(re-venv)		/usr/local/bin/linkfinder			docs/items/tools-red/red.md	工具环境
 LinkFinder	ref	`install-tools.sh red`	已烘焙	LinkFinder 仓(wrapper 见 linkfinder)		/opt/LinkFinder		docs/items/tools-red/red.md	docs/items/tools-red/red.md	工具环境
+LOLBAS	data	`install-tools.sh data`	已烘焙	Windows 滥用基线库		/opt/data-ref/LOLBAS			docs/items/tools-data/dataref.md	数据信息搜索
 lookupsid.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/lookupsid.py			docs/items/tools-p0/impacket.md	工具环境
 maldev	ref	`install-tools.sh maldev`	参考克隆	载荷开发与操作技法参考仓,只克隆不编译不运行,按工件角色轴归档	41 仓全部 pins.sh `GIT_PIN` 钉 sha(clone_pin,幂等:HEAD==钉即跳过;解析日 2026-10-10),升级跑 scripts/resolve-pins.sh;Crystal Palace / Tradecraft Garden 无 Git 仓,官网 `latest` tgz �	/opt/payload-ref	过, 断网在位核验,断网冒烟覆盖「参考库在位」面([离线机制 §验证](../../offline.md),2026-10-10 轮 78/0);克隆仓纯读盘不触网。验证:`ip link set eth0 down` 后 `find	docs/items/tools-maldev/maldev.md		代码样板参考
 mapcidr	tool	`install-tools.sh pd`	已装	CIDR 切分/聚合				docs/items/tools-pd/pd.md		工具环境
@@ -239,6 +242,7 @@ nuclei-templates	data	`install-tools.sh pd`(本体)+ `install-tools.sh pentest`(
 objection	tool	`install-tools.sh red`	已装	PyPI;启动查一次 PyPI 版本,断网 DNS 快失败不阻塞([offline.md](../../offline.md) 边界)				docs/items/tools-red/red.md		工具环境
 ocl-icd-libopencl1	tool	`install-tools.sh pentest`	已装	OpenCL ICD 加载器				docs/items/tools-pentest/pentest.md		工具环境
 oleviewdotnet	ref	`install-tools.sh pz`	参考克隆	/opt/oleviewdotnet				docs/items/tools-pz/pz.md		代码样板参考
+one_gadget	tool	`install-tools.sh pentest`	已烘焙	libc one-gadget 查找(gem 1.10.0,Ruby3.2 面)		/usr/local/bin/one_gadget			docs/items/tools-pentest/pentest.md	工具环境
 openvpn	tool	`install-tools.sh pentest`	已装	OpenVPN 客户端				docs/items/tools-pentest/pentest.md		工具环境
 osslsigncode	tool	`install-tools.sh pentest`	已装	PE Authenticode 签名/验签(清单记录 2.8-2)				docs/items/tools-pentest/pentest.md		工具环境
 p0	tool	`install-tools.sh p0`	已装	业界调研(Kali/REMnux/FLARE 重叠缺口)的 P0 补齐:apt 20 包 + impacket/nasm 特例 + re-venv 批 + GitHub 钉版批	apt 20 包 noble 随源(阿里云镜像源);impacket 与 nasm 两个特例单独成册([impacket.md](impacket.md)、[nasm.md](nasm.md));re-venv 批与 GitHub 批的逐件钉口径归各自件册(后�	/usr/bin	未验 [推断:] apt 20 包均为本地分析件,无运行期外网依赖;面向目标的动作(nmap/sqlmap 扫描、tcpdump/tshark 抓本网、mitmproxy 拦截)需到目标的网络,断外网但内�	docs/items/tools-p0/p0.md		工具环境
@@ -322,6 +326,7 @@ samrdump.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerber
 sandbox-attacksurface-analysis-tools	ref	`install-tools.sh pz`	参考克隆	/opt/pz-sandbox-tools(有 dotnet 时尽力 `dotnet build` Release)				docs/items/tools-pz/pz.md		代码样板参考
 sasquatch	tool	`install-tools.sh pentest`	已烘焙	补丁版 squashfs 解包器(源码构建)		/usr/local/bin/sasquatch			docs/items/tools-pentest/pentest.md	工具环境
 sdkman	runtime	`install-runtimes.sh sdkman`	已装	多版本 Java 工具链管理入口(`sdk` 命令)	安装器本体未钉(pins.sh 未收钉位,`get.sdkman.io` 直下随官方最新);JDK 侧 temurin 小版本由 pins.sh `TEMURIN_PIN_8/11/17/21/25` 钉(见 [temurin JDK](java-jdks.md));装后 sed 幂�	/usr/local/sdkman	未验 [推断:]已装候选的 `sdk use`/`sdk current` 是纯本地文件操作,且 auto_selfupdate=false 不触网;`sdk install` 从远端候选拉新件需网,本镜像 java 走 tuna 直拉 tarball	docs/items/runtimes/sdkman.md		运行时环境
+seccomp-tools	tool	`install-tools.sh pentest`	已烘焙	seccomp 规则提取/编译(gem 1.7.1)		/usr/local/bin/seccomp-tools			docs/items/tools-pentest/pentest.md	工具环境
 secgo	tool	`install-tools.sh secgo`	已装	17 件 Go 安全 CLI(fuzz/爆破/爬虫/密钥扫描/隧道/云与 AD 采集)+ trufflehog(release)	pins.sh 钉版(解析日 2026-10-10):17 件逐件取 `GO_PIN[<模块>]`(`go_pin_ver`,缺钉即响跳过;旧 `SECGO_VERSION` 变量已弃用,lib/common.sh 仅保留防空引用);trufflehog 走 release 	/opt/go	过,版本面/帮助面断网可用(纯 Go 静态二进制;渗透工具面断网冒烟口径见 [offline.md](../../offline.md) §验证)。验证:`ip link set eth0 down` 后 `gitleaks version` 退 0�	docs/items/tools-secgo/secgo.md		工具环境
 SecLists	data	`install-tools.sh pentest`	已烘焙	词表库(缺它多只工具空跑;阶段 3 拆独立册)		/opt/SecLists			docs/items/tools-pentest/pentest.md	数据信息搜索
 secretsdump.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/secretsdump.py			docs/items/tools-p0/impacket.md	工具环境
@@ -381,6 +386,7 @@ vol	tool	`install-libcache.sh python`	已烘焙	volatility3 CLI(PYPI_PIN 独立�
 volshell	tool	`install-libcache.sh python`	已烘焙	逆向/CTF 向 19 个 PyPI 包装进 /opt/re-venv、轮子下载进 /opt/wheelhouse,断网 pip 免索引重装		/usr/local/bin/volshell			docs/items/libcache/python.md	编程环境
 wafw00f	tool	`install-tools.sh red`	已装	PyPI				docs/items/tools-red/red.md		工具环境
 waybackurls	tool	`install-tools.sh secgo`	已装	Wayback 历史 URL				docs/items/tools-secgo/secgo.md		工具环境
+webappanalyzer	data	`install-tools.sh data`	已烘焙	Web 指纹库		/opt/data-ref/webappanalyzer			docs/items/tools-data/dataref.md	数据信息搜索
 whois	tool	`install-tools.sh pentest`	已装	域名/ASN 注册信息查询				docs/items/tools-pentest/pentest.md		工具环境
 windows-logical-eop-workshop	ref	`install-tools.sh pz`	参考克隆	/opt/windows-logical-eop-workshop(EOP 教材)				docs/items/tools-pz/pz.md		代码样板参考
 wine	tool	`install-tools.sh bof`	已装	在 Linux 下跑交叉编译出的 Windows PE(如 COFFLoader64.exe)的兼容层	noble 随源(实证 wine 9.0,留痕 [diary 2026-10-09](../../diary/2026-10-09-review-rounds.md)),`apt-get install -y --no-install-recommends mingw-w64 wine64 wine`	/usr/bin/wine	未验 [推断:] wine 跑原生 Windows PE 是纯本地动作不依赖网络(未单独断网实证);.NET PE 缺 mono 时会触发组件下载,属在线动作。验证:`ip link set eth0 down` 后 `wine	docs/items/tools-bof/wine.md		工具环境
