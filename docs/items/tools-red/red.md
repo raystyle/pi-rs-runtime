@@ -17,6 +17,11 @@
 - rctl: enum4linux-ng kind=ref path=/opt/enum4linux-ng note=enum4linux-ng 仓(wrapper 同名)
 - rctl: CeWL kind=ref path=/opt/CeWL note=CeWL 仓(wrapper 见 cewl)
 - rctl: RsaCtfTool kind=ref path=/opt/RsaCtfTool note=RsaCtfTool 仓
+- rctl: nokogiri kind=tool path=/usr/local/bin/nokogiri note=ruby gem 副件(HTML 解析,CeWL 依赖)
+- rctl: racc kind=tool path=/usr/local/bin/racc note=ruby gem 副件(解析器生成)
+- rctl: rwinrm kind=tool path=/usr/local/bin/rwinrm note=winrm gem 副件(evil-winrm 依赖链)
+- rctl: rwinrmcp kind=tool path=/usr/local/bin/rwinrmcp note=winrm-fs gem 副件
+- rctl: httpclient kind=tool path=/usr/local/bin/httpclient note=ruby gem 副件
 
 - **坑与留痕**:venv 全目录软链曾把 `bin/python3` 链到 `/usr/local/bin` 劫持系统 python 并成环 ELOOP(semgrep 受害),依赖 CLI(httpx/idna/normalizer 等,实证散在 certipy-ad/bofhound/bloodhound-ce 三 venv)曾盖掉 pd 组 Go httpx 且 `have` 早退不自愈 到 白名单重构([ADR-0003](../../adr/ADR-0003-uv-tool-isolation-whitelist-linking.md),grok 评审 F1);bloodhound-python wrapper 曾被 bofhound 依赖链盖掉故无条件重写;ghauri 官方/tuna/阿里云 PyPI 均 404(实证)只发 git 仓,GitHub 限流窗口需重试;三个克隆仓名曾写错(ticarpi/jwt_tool、GerbenJavado/LinkFinder、cddmp/enum4linux-ng,2026-10-08 fresh 验证修);jwt_tool/LinkFinder 曾 wrapper 走系统 python3 而依赖在 re-venv(linkfinder 实证必然起不来),钉版轮已修(wrapper 改 re-venv python,依赖 ratelimit/pycryptodomex/termcolor/requests/jsbeautifier 钉版进 re-venv)
 

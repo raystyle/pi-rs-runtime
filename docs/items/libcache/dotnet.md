@@ -30,5 +30,8 @@
 ## rctl 面(机器行:catalog 投影声明,audit 豁免依据)
 
 - rctl: ilspycmd kind=tool path=/usr/local/bin/ilspycmd env=逆向环境 note=.NET 反编译 CLI(NUGET_PIN 独立钉,落 /opt/dotnet-tools)
+- rctl: dotnet-prewarm kind=cache path=/opt/dotnet-prewarm note=restore 预热工程(csproj 锁)
+- rctl: microsoft kind=cache path=/opt/microsoft note=dotnet sdk 落点树
+- rctl: nuget.exe kind=tool path=/opt/nuget.exe note=NuGet 命令行(独立件)
 
 - **坑与留痕**:dotnet 未装早退(先跑 runtimes dotnet 组);单包 `dotnet add` 失败 tolerant(回 echo 不中断),restore 与逐 RID restore 分步各自留 echo

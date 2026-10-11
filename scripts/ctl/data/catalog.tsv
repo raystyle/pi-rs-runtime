@@ -23,6 +23,7 @@ assetfinder	tool	`install-tools.sh secgo`	已装	子域与相关域发现				doc
 ast-grep	tool	`install-tools.sh astgrep`	已烘焙	入口名(带连字符)		/usr/local/bin/ast-grep			docs/items/tools-astgrep/astgrep.md	工具环境
 astgrep	tool	`install-tools.sh astgrep`	已装	结构化代码搜索与改写 CLI(入口 `ast-grep` 与 `sg`)	pins.sh 钉版(`CRATE_PIN[ast-grep]`=0.50.0,cargo_install_pin 带 `--locked --version`,锁随 crate 发布自带的 Cargo.lock;解析日 2026-10-10),升级跑 scripts/resolve-pins.sh;幂等判据 `hav	/opt/cargo/bin/ast-grep	未验 [推断:]扫描/改写本地代码不触网;断网重跑本组幂等早退,断网新装会撞 cargo `offline=true` 亚秒快失败(属预期,[ADR-0004](../../adr/ADR-0004-offline-first-fail-fas	docs/items/tools-astgrep/astgrep.md		工具环境
 atexec.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/atexec.py			docs/items/tools-p0/impacket.md	工具环境
+atlas	compiler	`install-compilers.sh nim`	已烘焙	Nim 包克隆器(工具链副件)		/usr/local/bin/atlas			docs/items/compilers/nim.md	编程环境
 atomic-bofs	tool	`install-tools.sh bof`	已装(工具链)+ 参考克隆(源码)	/opt/tradecraft-ref/bof/atomic-bofs				docs/items/tools-bof/bof.md		工具环境
 aurelian	tool	`install-tools.sh secgo`	已装	云环境侦察				docs/items/tools-secgo/secgo.md		工具环境
 aws	tool	`install-tools.sh nu`	已烘焙	AWS CLI v2(awscli 官方 zip 装,无钉属 known-issues 软钉面)		/usr/local/bin/aws			docs/items/tools-nu/nu.md	工具环境
@@ -90,6 +91,7 @@ dnsutils	tool	`install-tools.sh pentest`	已装	dig/nslookup,DNS 查询				docs/
 dnsx	tool	`install-tools.sh pd`	已装	DNS 探测/解析工具包				docs/items/tools-pd/pd.md		工具环境
 donut	tool	`install-tools.sh pentest`	已装	PE/.NET/VBS/JS 转位置无关 shellcode(含 libdonut 库与头文件)	1.1(`DONUT_VERSION`,env 可覆盖),GitHub release 预编译 tar.gz,无校验和	/opt/donut/	未验 [推断:] 本地格式转换器,运行不触网;断网冒烟未留件级命令。脚本冒烟同款复验:`ip link set eth0 down` 后 `donut 2>&1 | head -1` 出 banner	docs/items/tools-pentest/donut.md		工具环境
 dotnet	cache	`install-libcache.sh dotnet`(前置 `install-runtimes.sh dotnet`,dotnet-sdk-10.0)	缓存固化	16 个 NuGet 库包 + 8 RID self-contained runtime pack 固化进 /opt/nuget-packages;ilspycmd 反编译 CLI	pins.sh 钉版(`NUGET_PIN[<包id>]`,16 库包 + ilspycmd 共 17 键,如 `NUGET_PIN[dnlib]`=4.5.0、`NUGET_PIN[ilspycmd]`=11.1.0.9782;解析日 2026-10-10),`dotnet add package --version` / `dotnet tool	/opt/nuget-packages	过, 断网 `dotnet restore` 在断网冒烟批覆盖(见 [offline.md](../../offline.md) 验证节),fallback folder 直取固化件不触网。验证:`ip link set eth0 down` 后 `cd /opt/dotnet-prewar	docs/items/libcache/dotnet.md		编程环境
+dotnet-prewarm	cache	`install-libcache.sh dotnet`(前置 `install-runtimes.sh dotnet`,dotnet-sdk-10.0)	已烘焙	restore 预热工程(csproj 锁)		/opt/dotnet-prewarm			docs/items/libcache/dotnet.md	编程环境
 DotNetToJScript	ref	`install-tools.sh pz`	参考克隆	/opt/DotNetToJScript				docs/items/tools-pz/pz.md		代码样板参考
 duckdb	runtime	`install-runtimes.sh duckdb`	已装	本地列存分析引擎:python 绑定进分析 venv,CLI 单文件直查 parquet/csv	pins.sh 钉版(解析日 2026-10-10),升级跑 scripts/resolve-pins.sh:python 绑定 `PYPI_PIN[duckdb]`=1.5.6(`uv pip install -U duckdb==<钉>`);CLI 标量 `DUCKDB_VERSION`=v1.5.6(空钉回退 api.git	/usr/local/bin/duckdb	未验 [推断:]本地引擎不触网,CLI 直查文件与 venv import 均纯本地;断网冒烟未单独覆盖本件。验证:`ip link set eth0 down` 后 `duckdb -c "SELECT 42"` 与 `/opt/analytics/bi	docs/items/runtimes/duckdb.md		数据分析
 elfutils	tool	`install-tools.sh re`	已装	ELF 后端工具				docs/items/tools-re/re.md		逆向环境
@@ -156,6 +158,7 @@ hashid	tool	`install-tools.sh p0`	已装	哈希类型识别				docs/items/tools-
 hcxtools	tool	`install-tools.sh pentest`	已装	hcxpcapngtool 等 WiFi 抓包转换				docs/items/tools-pentest/pentest.md		工具环境
 herdr	tool	`install-tools.sh herdr`	已装	终端 workspace 管理器(tmux 之外的 agent 编排面)	`HERDR_VERSION=0.9.3`(lib/common.sh,herdr.dev stable 频道);`HERDR_SHA256=18a8dc65f1c2fa485884344356dea1cfd911c6f06cf46fa78e193f4087f4dba7` 钉 linux-x86_64 资产,`sha256sum -c` 校验不过即 `exi	/usr/local/bin/herdr	未验 [推断:]本体是本地终端编排器,起窗格不触网;其编排的智能体后端连通性属各 agent 自身,断网失败不是缺陷(边界见 [docs/offline.md](../../offline.md))。验�	docs/items/tools-herdr/herdr.md		工具环境
 htop	tool	`install-tools.sh cli`	已装	`/usr/bin`				docs/items/tools-cli/cli.md		工具环境
+httpclient	tool	`install-tools.sh red`	已烘焙	ruby gem 副件		/usr/local/bin/httpclient			docs/items/tools-red/red.md	工具环境
 httprobe	tool	`install-tools.sh secgo`	已装	HTTP/HTTPS 探活				docs/items/tools-secgo/secgo.md		工具环境
 httpx	tool	`install-tools.sh pd`	已装	HTTP 探活与指纹				docs/items/tools-pd/pd.md		工具环境
 hydra	tool	`install-tools.sh pentest`	已装	在线口令爆破(清单记录 9.5)				docs/items/tools-pentest/pentest.md		工具环境
@@ -200,6 +203,7 @@ maven	runtime	`install-runtimes.sh sdkman` 内直装 + `install-libcache.sh java
 mbedtls	cache	`install-libcache.sh zig`(前置 `install-compilers.sh zig`,0.16.0)	缓存固化	main				docs/items/libcache/zig-cache.md		编程环境
 merlin	ref	`install-tools.sh c2`	参考克隆	/opt/c2dev-ref/merlin				docs/items/tools-c2/c2.md		代码样板参考
 meson	tool	`install-tools.sh re`	已装	rizin/sigdb 构建系统				docs/items/tools-re/re.md		逆向环境
+microsoft	cache	`install-libcache.sh dotnet`(前置 `install-runtimes.sh dotnet`,dotnet-sdk-10.0)	已烘焙	dotnet sdk 落点树		/opt/microsoft			docs/items/libcache/dotnet.md	编程环境
 Microsoft.Data.Sqlite	cache	`install-libcache.sh dotnet`(前置 `install-runtimes.sh dotnet`,dotnet-sdk-10.0)	缓存固化	SQLite ADO.NET				docs/items/libcache/dotnet.md		编程环境
 Microsoft.NETFramework.ReferenceAssemblies	cache	`install-libcache.sh dotnet`(前置 `install-runtimes.sh dotnet`,dotnet-sdk-10.0)	缓存固化	无 Windows 参照机也能编 .NET Framework 目标				docs/items/libcache/dotnet.md		编程环境
 Microsoft.PowerShell.SecretManagement	cache	`install-libcache.sh pwsh`(前置 `install-runtimes.sh pwsh`)	缓存固化	密钥管理抽象层				docs/items/libcache/pwsh.md		编程环境
@@ -234,6 +238,7 @@ nimsuggest	compiler	`install-compilers.sh nim`	已烘焙	OffensiveNim 等 maldev
 ninja-build	tool	`install-tools.sh re`	已装	meson 后端				docs/items/tools-re/re.md		逆向环境
 nmap	tool	`install-tools.sh p0`	已装	端口扫描与服务识别				docs/items/tools-p0/p0.md		工具环境
 node	cache	`install-libcache.sh node`	缓存固化	加密/PKI/反混淆/解析向 24 个纯 JS/wasm 包固化进 /opt/js-lab,断网裸 `require` 直用	24 个依赖按 `NPM_PIN` 精确钉(package.json 由 pins.sh 生成,缺钉即响),传递闭包再锁进 `scripts/lock/node/package-lock.json`(构建消费走 `npm ci`;再生跑 `scripts/sync-locks.sh`	/opt/js-lab/node_modules	过, 断网 `require` 实证(node require 在断网冒烟清单):`ip link set eth0 down` 后 `node -e "require('node-forge')"` 退 0(fnm 各版本经各自 lib/node 链同形可用);过, `npm install 	docs/items/libcache/node.md		编程环境
+nokogiri	tool	`install-tools.sh red`	已烘焙	ruby gem 副件(HTML 解析,CeWL 依赖)		/usr/local/bin/nokogiri			docs/items/tools-red/red.md	工具环境
 notify	tool	`install-tools.sh pd`	已装	扫描结果通知推送				docs/items/tools-pd/pd.md		工具环境
 npm	runtime	`install-runtimes.sh node`	已烘焙	node 包管理器(face)		/usr/local/bin/npm			docs/items/runtimes/node.md	运行时环境
 npx	runtime	`install-runtimes.sh node`	已烘焙	Node.js LTS 基座 + npm 全局件(tsc/prettier/eslint/dotnetjs)与 corepack(pnpm/yarn)		/usr/local/bin/npx			docs/items/runtimes/node.md	运行时环境
@@ -241,6 +246,7 @@ ntlmrelayx.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerb
 nu	tool	`install-tools.sh nu`	已装	结构化 Shell(数据按表流动的 shell 与脚本语言)	release latest tag 经 `git ls-remote --tags` 取(过滤 `refs/tags/<semver>$`、三段数字排序取尾);不用 api.github.com,未认证限流 60 次/时,fresh 验证实证 403,git 协议不受限�	/usr/local/bin/nu	未验 [推断:]预编译单文件,运行不触网;断网冒烟未单列 nu。验证:`ip link set eth0 down` 后 `nu --version` 退 0	docs/items/tools-nu/nu.md		数据分析
 nuclei	tool	`install-tools.sh pd`	已装	模板化漏洞扫描,单册 [nuclei.md](nuclei.md)	本体 pins.sh 钉版(`GO_PIN[github.com/projectdiscovery/nuclei/v3/cmd/nuclei]`,当前钉值 v3.11.1,解析日 2026-10-10);模板库 `/opt/nuclei-templates` 由 clone_pin 钉 `GIT_PIN[projectdiscover	/usr/local/bin/nuclei.real	过, 断网不卡更新检查、模板从 /opt 盘直读(wrapper 机制见 [offline.md](../../offline.md) §1/§2,渗透工具面断网冒烟口径)。验证:`ip link set eth0 down` 后 `nuclei -tl` �	docs/items/tools-pd/pd.md		工具环境
 nuclei-templates	data	`install-tools.sh pd`(本体)+ `install-tools.sh pentest`(离线接线)	已烘焙	模板库(缺它 nuclei 空跑/自下载;GIT_PIN 独立钉)		/opt/nuclei-templates			docs/items/tools-pd/nuclei.md	数据信息搜索
+nuget.exe	tool	`install-libcache.sh dotnet`(前置 `install-runtimes.sh dotnet`,dotnet-sdk-10.0)	已烘焙	NuGet 命令行(独立件)		/opt/nuget.exe			docs/items/libcache/dotnet.md	编程环境
 objection	tool	`install-tools.sh red`	已装	PyPI;启动查一次 PyPI 版本,断网 DNS 快失败不阻塞([offline.md](../../offline.md) 边界)				docs/items/tools-red/red.md		工具环境
 ocl-icd-libopencl1	tool	`install-tools.sh pentest`	已装	OpenCL ICD 加载器				docs/items/tools-pentest/pentest.md		工具环境
 oleviewdotnet	ref	`install-tools.sh pz`	参考克隆	/opt/oleviewdotnet				docs/items/tools-pz/pz.md		代码样板参考
@@ -290,6 +296,7 @@ pz	ref	`install-tools.sh pz`	参考克隆	Windows 沙箱攻击面分析 / .NET �
 qemu-user-static	tool	`install-tools.sh p0`	已装	用户态异架构 ELF 模拟执行				docs/items/tools-p0/p0.md		工具环境
 qpdf	tool	`install-tools.sh pentest`	已装	PDF 结构变换/解密				docs/items/tools-pentest/pentest.md		工具环境
 qsreplace	tool	`install-tools.sh secgo`	已装	URL 查询参数值批量替换				docs/items/tools-secgo/secgo.md		工具环境
+racc	tool	`install-tools.sh red`	已烘焙	ruby gem 副件(解析器生成)		/usr/local/bin/racc			docs/items/tools-red/red.md	工具环境
 raiseChild.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/raiseChild.py			docs/items/tools-p0/impacket.md	工具环境
 rathole	tool	`install-tools.sh pivot`	已装	cargo_install_pin 钉 CRATE_PIN 0.5.0(`--locked --version`),失败退 `cargo install --git` 钉 GIT_PIN sha,产物 /opt/				docs/items/tools-pivot/pivot.md		工具环境
 rclone	tool	`install-tools.sh cli`	已装	`/usr/bin`				docs/items/tools-cli/cli.md		工具环境
@@ -305,6 +312,7 @@ responder	tool	`install-tools.sh pentest`	已装	LLMNR/NBT-NS 毒化(内网横�
 rizin	tool	`install-tools.sh re`	已装	/usr/local				docs/items/tools-re/re.md		逆向环境
 rpcdump.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/rpcdump.py			docs/items/tools-p0/impacket.md	工具环境
 RsaCtfTool	ref	`install-tools.sh red`	已烘焙	RsaCtfTool 仓		/opt/RsaCtfTool			docs/items/tools-red/red.md	工具环境
+ruff	runtime	`install-tools.sh cli`	已烘焙	Python linter(uv-tool)		/usr/local/bin/ruff			docs/items/tools-cli/cli.md	编程环境
 rust	cache	`install-libcache.sh rust`	缓存固化	加密/证书/解析/协议向 31 个 crate 构建期 fetch 进 /opt/cargo registry,断网 cargo 编译直用	`cargo add <crate>` 构建日解析精确版本写进预热工程 Cargo.toml,`cargo fetch --locked` 钉版拉字节(失败退回 `cargo fetch`);预热工程 `/opt/rust-prewarm-libs` 用后 `rm -rf` �	/opt/cargo	过, 断网拉未缓存 crate 立即报 not found(五生态快失败轮,[offline.md](../../offline.md) §4 标实证);过, 依赖缓存的断网编译 root/ubuntu 双视角实证(cargo-zigbuild 同缓	docs/items/libcache/rust.md		编程环境
 rustc	compiler	`install-compilers.sh rust`	已烘焙	Rust 编译器本尊		/usr/local/bin/rustc			docs/items/compilers/rust.md	编程环境
 rusthound-ce	tool	`install-tools.sh secrust`	已装	BloodHound CE 的 AD 采集器(Linux 直跑)				docs/items/tools-secrust/secrust.md		工具环境
@@ -312,6 +320,9 @@ rust-lld	compiler	`install-compilers.sh rust`	已烘焙	rustup + stable 工具�
 rustscan	tool	`install-tools.sh secrust`	已装	快速端口扫描(批喂 nmap)				docs/items/tools-secrust/secrust.md		工具环境
 rust-script	tool	`install-compilers.sh rust`	已烘焙	单文件 Rust 脚本(CRATE_PIN 独立钉)		/usr/local/bin/rust-script			docs/items/compilers/rust.md	编程环境
 rustup	compiler	`install-compilers.sh rust`	已烘焙	rustup + stable 工具链 + llvm-tools/rustfmt/clippy/rust-analyzer + 十向交叉 target + rust-script/cargo-zigbuild/cargo-audit + 29 件 crate 预热		/usr/local/bin/rustup			docs/items/compilers/rust.md	编程环境
+rustup-home	compiler	`install-compilers.sh rust`	已烘焙	工具链本体树(/usr/local/bin/rustup 的家)		/opt/rustup			docs/items/compilers/rust.md	编程环境
+rwinrm	tool	`install-tools.sh red`	已烘焙	winrm gem 副件(evil-winrm 依赖链)		/usr/local/bin/rwinrm			docs/items/tools-red/red.md	工具环境
+rwinrmcp	tool	`install-tools.sh red`	已烘焙	winrm-fs gem 副件		/usr/local/bin/rwinrmcp			docs/items/tools-red/red.md	工具环境
 rz-ar	tool	`install-tools.sh re`	已烘焙	逆向工程稳定链:系统库 22 项 + rizin/rz-ghidra/sigdb 源码编译 + `/opt/re-venv` 五库		/usr/local/bin/rz-ar			docs/items/tools-re/re.md	逆向环境
 rz-asm	tool	`install-tools.sh re`	已烘焙	逆向工程稳定链:系统库 22 项 + rizin/rz-ghidra/sigdb 源码编译 + `/opt/re-venv` 五库		/usr/local/bin/rz-asm			docs/items/tools-re/re.md	逆向环境
 rz-ax	tool	`install-tools.sh re`	已烘焙	逆向工程稳定链:系统库 22 项 + rizin/rz-ghidra/sigdb 源码编译 + `/opt/re-venv` 五库		/usr/local/bin/rz-ax			docs/items/tools-re/re.md	逆向环境
@@ -346,6 +357,7 @@ simplehttpserver	tool	`install-tools.sh pd`	已装	简易 HTTP(S) 文件服务		
 sleuthkit	tool	`install-tools.sh pentest`	已装	fls/icat 等磁盘取证				docs/items/tools-pentest/pentest.md		工具环境
 sliver	ref	`install-tools.sh c2`	参考克隆	/opt/c2dev-ref/sliver				docs/items/tools-c2/c2.md		代码样板参考
 smali	tool	`install-libcache.sh java`(前置 `install-runtimes.sh sdkman` 的 maven 与 JDK)	已烘焙	smali 汇编 CLI(/opt/smali-cli 挂钩)		/usr/local/bin/smali			docs/items/libcache/java.md	逆向环境
+smali-home	ref	`install-libcache.sh java`(前置 `install-runtimes.sh sdkman` 的 maven 与 JDK)	已烘焙	smali 仓克隆(smali-cli 装配源)		/opt/smali			docs/items/libcache/java.md	编程环境
 smbclient	tool	`install-tools.sh pentest`	已装	SMB 共享客户端				docs/items/tools-pentest/pentest.md		工具环境
 smbclient.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/smbclient.py			docs/items/tools-p0/impacket.md	工具环境
 smbexec.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/smbexec.py			docs/items/tools-p0/impacket.md	工具环境
@@ -405,6 +417,7 @@ yara-rules	data	`install-tools.sh re`	已烘焙	yara 规则集	pins.sh `GIT_PIN[
 yq	tool	`install-tools.sh cli`	已装	`/opt/go/bin` 链 `/usr/local/bin`				docs/items/tools-cli/cli.md		工具环境
 zbar-tools	tool	`install-tools.sh pentest`	已装	zbarimg 条码/二维码识别				docs/items/tools-pentest/pentest.md		工具环境
 zig	compiler	`install-compilers.sh zig` + `install-libcache.sh zig`(库固化册:[libcache/zig](../libcache/zig.md))	已烘焙	zig 工具链本体	`ZIG_VERSION=0.16.0`(scripts/lib/common.sh,env 可覆盖);幂等判据 `zig version` 匹配 `^0.16.0` 即跳过;tarball 无校验和、未验签(留痕 [known-issues](../../known-issues.md))	/opt/zig	过, 断网 `zig version`(断网冒烟覆盖编译器版本面,当轮 78/0 全绿;[offline.md](../../offline.md) 验证节);过, 断网编译写 /opt/zig-cache,root/ubuntu 双视角实证([ADR-0005](.	docs/items/compilers/zig.md	docs/items/compilers/zig.md	编程环境
+zig-0.15.2	cache	`install-tools.sh bof`	已烘焙	bof-launcher 专用 zig 版本副本(versioned-copy)		/opt/zig-0.15.2			docs/items/tools-bof/bof-launcher.md	工具环境
 zig-cache	cache	`install-libcache.sh zig`(前置 `install-compilers.sh zig`,0.16.0)	已烘焙	五库固化缓存	五库均钉主干 heads 的构建日快照 tarball(`archive/refs/heads/{master,main}.tar.gz`);zon hash 以镜像内 zig 0.16 现场算为准,`zig fetch --save` 把依赖名与 hash 写进 `/opt/zig-p	/opt/zig-cache	过,断网编译 root/ubuntu 双视角实证(ADR-0005 终审;冒烟「缓存构建断网能编」覆盖,见 [offline.md](../../offline.md) §1)。验证:`ip link set eth0 down` 后 root 与 ubuntu 各	docs/items/libcache/zig-cache.md	docs/items/libcache/zig-cache.md	编程环境
 zig-prewarm	cache	`install-libcache.sh zig`(前置 `install-compilers.sh zig`,0.16.0)	已烘焙	五库预热工程(zon 锁)		/opt/zig-prewarm			docs/items/libcache/zig-cache.md	编程环境
 zlib	cache	`install-libcache.sh zig`(前置 `install-compilers.sh zig`,0.16.0)	缓存固化	master				docs/items/libcache/zig-cache.md		编程环境

@@ -17,5 +17,6 @@
 - rctl: cargo-audit kind=tool path=/usr/local/bin/cargo-audit note=依赖审计(独立钉)
 - rctl: rust-lld kind=compiler path=/usr/local/bin/rust-lld
 - rctl: rustup kind=compiler path=/opt/rustup note=工具链管理本体(已并入 rust 册 rctl 面)
+- rctl: rustup-home kind=compiler path=/opt/rustup note=工具链本体树(/usr/local/bin/rustup 的家)
 
 - **坑与留痕**:非登录 shell(incus exec)不读 profile.d,rustup shim 回落 `$HOME/.rustup` 报 no default,离线面靠家目录软链不靠 env([ADR-0004](../../adr/ADR-0004-offline-first-fail-fast.md));config 段名 `tuna-sparse` 与 log 文案是历史命名,实际索引由 `CRATES_INDEX` 决定(默认 rsproxy.cn);rust-lld 探测 `ls` 多 glob 缺一操作数即退 2,pipefail 下赋值整句挂,末尾 `|| true` 兜底(/opt/rustup 与旧 /root/.rustup 两布局都探);幂等:仅 rustup-init 有 `have rustc` 早退,config/profile/软链/预热每轮重写;nightly 不在本组,coffee-ldr 需要时由 bof 组按需 `rustup toolchain install nightly`(install-surfaces 与 software-inventory 把 nightly 记在本组系漂移,以脚本为准);tools 组经 root `~/.cargo` 装的件(ast-grep 等)只链二进制,残留面见 [known-issues](../../known-issues.md)

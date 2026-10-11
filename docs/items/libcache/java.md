@@ -39,5 +39,6 @@
 
 - rctl: smali kind=tool path=/usr/local/bin/smali env=逆向环境 note=smali 汇编 CLI(/opt/smali-cli 挂钩)
 - rctl: baksmali kind=tool path=/usr/local/bin/baksmali env=逆向环境
+- rctl: smali-home kind=ref path=/opt/smali note=smali 仓克隆(smali-cli 装配源)
 
 - **坑与留痕**:`org.jf:dexlib2` 国内镜像(aliyun/华为)全无件(实证 404),google 已把 smali 迁到 GMaven `com.android.tools.smali`(非 Maven Central 的 com.google.smali,早先留痕有误),钉 3.0.10 后 dexlib2 经传递依赖回 /opt/m2,来龙去脉见 [known-issues](../../known-issues.md);官方 fat jar 只源码构建且限 JDK11,故走 thin jar+依赖 jar+classpath wrapper;heredoc 里写 shell 注释会混进 pom.xml 致 Non-parseable POM(实证,见 [diary](../../diary/2026-10-10-offline-rounds.md));默认与 study profile 分两次 mvn 各自 tolerant,study 失败不影响默认

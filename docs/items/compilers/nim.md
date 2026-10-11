@@ -16,5 +16,6 @@
 - rctl: nim-gdb kind=compiler path=/usr/local/bin/nim-gdb
 - rctl: nim_dbg kind=compiler path=/usr/local/bin/nim_dbg
 - rctl: testament kind=compiler path=/usr/local/bin/testament
+- rctl: atlas kind=compiler path=/usr/local/bin/atlas note=Nim 包克隆器(工具链副件)
 
 - **坑与留痕**:整组装在 `! have nim` 守卫内且组尾 `true` 兜底:choosenim 失败(nim-lang.org 直连抖动)只 echo「下轮补」不阻塞流水线;已装后重跑本组不补写 profile.d/nim.sh、不补链(golang 组「配置写入放早退前」口径见 [golang 册](golang.md));非登录 shell(incus exec)读不到 /opt/nim/bin,choosenim 不可用,nim 本体经 /usr/local/bin 链出不受影响([ADR-0004](../../adr/ADR-0004-offline-first-fail-fast.md) 非登录机制)
