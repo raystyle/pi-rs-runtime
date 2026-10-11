@@ -13,7 +13,7 @@
 7. **物化预热批**(REQ-0003,prt-08):one_gadget(Ruby3.2 面)/seccomp-tools/qiling/angr 独立 venv;数据语料三仓起步。
 8. **HackTricks/GTFOBins 批**:HackTricks 文本面 18M(用户裁定「文本没那么大」,310M=144M .git+150M 图+18M 文本);GTFOBins 走用户给出的 .github.io 源仓道(主仓三通道 403)。
 9. **工作流补缺批**(REQ-0004,prt-10):kill-chain×品类矩阵驱动;交叉编译四套+i386(打包互斥坑)、stego 四件、web 泄漏三件、SSTImap、apkid、commix;九件+四架构断网全过。
-10. **entropia 晚批**(用户点名加项目,prt-11):entropykit/entropia v0.1-experimental 进 bof 组(Windows PIC shellcode/BOF 编译语言,补 mingw 之外的高级语言道);源码 cargo 构建 entc+entc-win32gen,断网编译真 COFF/118 字节 shellcode 实证;顺带修生成器潜伏 bug(机器行 book/alias 两列写反,首个 alias 用例炸出,angr-venv 等纯机器行 id 的 book 列同批回填)。
+10. **entropia 晚批**(用户点名加项目,prt-11):entropykit/entropia v0.1-experimental 进 bof 组(Windows PIC shellcode/BOF 编译语言,补 mingw 之外的高级语言道);源码 cargo 构建 entc+entc-win32gen,断网编译真 COFF/118 字节 shellcode 实证;顺带修生成器潜伏 bug(机器行 book/alias 两列写反,首个 alias 用例炸出,angr-venv 等纯机器行 id 的 book 列同批回填)。prt-11 回执(16:45)吸收:五问全过,先例稀薄(star 297=公告转发,动手文字两篇),维护者挂未修 resolver 崩溃且 main 自 2026-06-28 无新码,entc 根包零第三方依赖,win32gen 再生头要自备 winmd 离线做不了,跑面唯一候选 wine COFFLoader 且先试不带 --opsec=all 的对象(bof-launcher Linux 面是 ELF 例不接),README 两处与清单不符以 Cargo 书为准。
 
 ## 联席协议实践
 
