@@ -1266,6 +1266,9 @@ install_data() {
     else
         echo "!! exploit-db 缺 git 钵(exploit-database/exploitdb)"
     fi
+    # GTFOBins:主仓被代理 403,走 .github.io 网页源仓(实测可达;_gtfobins/ 478 条全量语料 1.9M,含 _data)
+    clone_pin GTFOBins/GTFOBins.github.io /opt/data-ref/gtfobins || echo "gtfobins 克隆失败"
+    [ -d /opt/data-ref/gtfobins/_gtfobins ] && echo "gtfobins: $(ls /opt/data-ref/gtfobins/_gtfobins | wc -l) 条 Unix 滥用基线"
     # HackTricks 文本面:浅克隆后剔 .git 与配图,只留 md(实测 310M 浅克隆 = 144M .git + 150M 图 + 18M 文本;
     # agent 读文本不读截图,18M 文本面进镜像,2026-10-11 用户裁定「文本没那么大」)
     local ht_sha="${GIT_PIN[HackTricks-wiki/hacktricks]:-}"

@@ -155,6 +155,7 @@ declare -A GIT_PIN=(
     ["enthec/webappanalyzer"]="eea872af449e207e055398f7369d11ee48c8ea03"
     ["exploit-database/exploitdb"]="12879ca774a9d7543907d24a7bc1cebb47959afe"
     ["HackTricks-wiki/hacktricks"]="6376548ba37ae9598df582b823dad61e8defb1e7"
+    ["GTFOBins/GTFOBins.github.io"]="acd524623f9c406acedd2754ebd9c2431f3675ad"
     ["rizinorg/rz-ghidra"]="64ea54a51c7f87983c9eba9cef8ee0c8cf2ac811"
     ["rizinorg/sigdb"]="4addbed50cd3b50eeef5a41d72533d079ebbfbf8"
     ["DidierStevens/DidierStevensSuite"]="b248e9aabac4dedc2619c986d07eb7a5f4c18d37"
