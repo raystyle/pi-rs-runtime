@@ -1,0 +1,11 @@
+{
+  "name": "acpsup",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ACP 监督进程:实例标准 agent 接入通道(stdio 拉适配器,平台面回环 HTTP+token)",
+  "type": "module",
+  "scripts": {
+    "build": "bun build --compile --minify src/main.ts --outfile dist/acpsup",
+    "test": "bun test"
+  }
+}

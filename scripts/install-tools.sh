@@ -1251,6 +1251,32 @@ install_agents() {
     echo "或实例环境变量注 CLAUDE_CODE_OAUTH_TOKEN/CODEX_API_KEY;见 docs/items/tools-agents/"
 }
 
+# ---- acp(标准 agent 接入通道:ACP 适配器钉版 + 监督进程 acpsup,S-0002/REQ-0002)----
+install_acp() {
+    log "ACP 适配器与监督进程(claude-agent-acp + codex-acp 钉版;acpsup 编译)"
+    local cav="${CLAUDE_ACP_VERSION:?pins.sh 缺 CLAUDE_ACP_VERSION}" xav="${CODEX_ACP_VERSION:?pins.sh 缺 CODEX_ACP_VERSION}"
+    # 构建期在线面;索引三级兜底同 agents 批(npmmirror -> npmjs)
+    NPM_CONFIG_OFFLINE=false NPM_CONFIG_FETCH_RETRIES=3 npm install -g \
+        "@agentclientprotocol/claude-agent-acp@${cav}" \
+        || NPM_CONFIG_OFFLINE=false npm install -g --registry=https://registry.npmjs.org \
+            "@agentclientprotocol/claude-agent-acp@${cav}" \
+        || echo "!! claude-agent-acp 装失败"
+    NPM_CONFIG_OFFLINE=false NPM_CONFIG_FETCH_RETRIES=3 npm install -g \
+        "@agentclientprotocol/codex-acp@${xav}" \
+        || NPM_CONFIG_OFFLINE=false npm install -g --registry=https://registry.npmjs.org \
+            "@agentclientprotocol/codex-acp@${xav}" \
+        || echo "!! codex-acp 装失败"
+    # CODEX_PATH 由 acpsup 运行时注入(指镜像内钉版 codex,禁用适配器自带)
+    # 监督进程:bun 编译(rctl 同栈;bun 版本闸同 ctl 组口径)
+    local bv; bv="$(bun --version 2>/dev/null || true)"
+    [ "$bv" = "${BUN_VERSION:?}" ] || { echo "!! bun ${bv:-缺} != 钉 ${BUN_VERSION};先跑 install-runtimes.sh bun"; return 1; }
+    cd /root/scripts/acp
+    bun build --compile --minify src/main.ts --outfile /usr/local/bin/acpsup
+    cd /
+    acpsup --selftest claude || echo "!! acpsup selftest(claude)未过——协议面证据缺失,查适配器 stderr"
+    echo "acpsup 平台面:127.0.0.1:7663,Bearer token 首启随机落 /var/lib/acpsup/token(打印一次);对宿主引出照 6080 口径(incus proxy + 不裸奔)"
+}
+
 # ---- rctl(核心 CLI:实例总控,agent 第一入口;仓内 TS + bun 编译)----
 install_ctl() {
     log "rctl(核心 CLI;bun 编译单文件)"
@@ -1352,5 +1378,5 @@ install_vnc() {
 }
 
 # chrome 组不在默认全量:上游修 bug 期用户裁定先不装(2026-10-10);要装显式跑 install-tools.sh chrome
-TOOLS_ALL=(fd astgrep cli herdr ghidra rea re pd secgo secrust pivot p0 c2 bof pz maldev recon nu pentest red msf vnc agents ctl)
+TOOLS_ALL=(fd astgrep cli herdr ghidra rea re pd secgo secrust pivot p0 c2 bof pz maldev recon nu pentest red msf vnc agents acp ctl)
 run_category TOOLS_ALL "$@"

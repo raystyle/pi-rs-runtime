@@ -1,6 +1,7 @@
 # rctl catalog(生成物勿手改;源 docs/items/,再跑 gen-rctl-catalog.sh)
 # id	kind	group	status	desc	pin	path	offline	book
 7zip	tool	`install-tools.sh p0`	已装	多格式压缩解压				docs/items/tools-p0/p0.md
+acp	tool	`install-tools.sh acp`	已装(协议面实证;agent 推理待凭证/网关)	实例标准 agent 接入通道:ACP v1 + stdio 适配器与监督进程 acpsup(S-0002/REQ-0002)	pins.sh 标量 `CLAUDE_ACP_VERSION`(当前 0.89.1)与 `CODEX_ACP_VERSION`(当前 2.2.2),2026-10-11 registry 口径,升级=对 registry 再解析改钉重跑;监督进程仓内 `scripts/acp/`(package.j	/opt/node/lib/node_modules/	过,断网实证 selftest(initialize protocolVersion=1 + session/new 真 id,eth0 down 下同过);平台面 HTTP 仅回环零外网;prompt 到达模型鉴权层快失败(无凭证边界)属预期,推�	docs/items/tools-acp/acp.md
 AdaptixC2	tool	`install-tools.sh c2`	参考克隆	/opt/c2dev-ref/AdaptixC2				docs/items/tools-c2/c2.md
 aircrack-ng	tool	`install-tools.sh pentest`	已装	WiFi 口令破解套件(清单记录 1.7)				docs/items/tools-pentest/pentest.md
 amass	tool	`install-tools.sh secgo`	已装	攻击面测绘与子域枚举(`/...` 多包,产物名 amass)				docs/items/tools-secgo/secgo.md
