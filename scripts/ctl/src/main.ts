@@ -5,6 +5,7 @@ import { emitOk, die, type CtaItem } from "./envelope.ts"
 import { catalog, caps, search, show, withTaskHints } from "./catalog.ts"
 import { where, buildLib, loadLib } from "./paths.ts"
 import { envFace } from "./envface.ts"
+import { agentsFace } from "./agents.ts"
 
 const args = process.argv.slice(2)
 
@@ -81,6 +82,8 @@ if (!cmd || o.help) {
     const env = envFace()
     const lib = loadLib()
     const kinds = [...byKind.entries()].sort((a, b) => b[1] - a[1]).map(([k, n]) => `${k}=${n}`).join("  ")
+    const ag = agentsFace()
+    const agLine = ag.map((a) => `${a.binary}:${a.cred_present || a.auth_env_present ? "挂载" : "未挂"}`).join("  ")
     const panel = {
       rctl: RCTL_VERSION,
       instance: { net_eth0: env.net.eth0, offline_default: env.net.offline_default },
@@ -94,14 +97,18 @@ if (!cmd || o.help) {
         "rctl --llms             agent 手册",
       ].join("\n"),
     }
-    if (structured) { done(panel, usageCta(), "rctl"); process.exit(0) }
-    console.log(`rctl ${RCTL_VERSION} ｜ net.eth0=${env.net.eth0} ｜ 资源 ${cat.length} 件(${kinds}) ｜ 能力 ${caps().length} 条`)
+    if (structured) {
+      done({ ...panel, agents: ag.map((a) => ({ id: a.id, version: a.version, mounted: a.cred_present || a.auth_env_present })) }, usageCta(), "rctl")
+      process.exit(0)
+    }
+    console.log(`rctl ${RCTL_VERSION} ｜ net.eth0=${env.net.eth0} ｜ 资源 ${cat.length} 件(${kinds}) ｜ 能力 ${caps().length} 条 ｜ agents ${agLine}`)
     console.log("")
     console.log("Next:")
     for (const c of usageCta().concat([
       { command: "rctl search <能力词>", description: "能力问句搜资源" },
       { command: "rctl caps", description: "能力词典(任务到资源组合)" },
       { command: "rctl env", description: "实例态(网络/端口/快失败面)" },
+      { command: "rctl agents", description: "agent CLIs 挂载态" },
     ])) console.log(`  ${c.command} - ${c.description}`)
     if (!lib) console.log(`  rctl index - 路径库未建,where 将现场扫描`)
     process.exit(0)
@@ -178,6 +185,15 @@ switch (cmd) {
       example: first.example,
       note: first.note,
     }, [{ command: first.example.split("\n")[0], description: "配方首行命令" }], "caps")
+    break
+  }
+  case "agents": {
+    const ag = agentsFace()
+    const mounted = ag.filter((a) => a.cred_present || a.auth_env_present).length
+    done(ag, [
+      { command: "rctl show rctl", description: "实例总控册" },
+      ...(mounted === 0 ? [{ command: "rctl docs agents", description: "挂载法(凭证不进镜像)" }] : []),
+    ], "agents")
     break
   }
   case "env":

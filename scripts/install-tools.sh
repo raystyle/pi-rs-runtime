@@ -1231,6 +1231,26 @@ install_msf() {
 }
 
 
+# ---- agents(claude code + codex CLI:钉版 npm 全局;二进制在镜像,凭证走挂载不进 rootfs)----
+install_agents() {
+    log "agent CLIs(claude code + codex;钉版 pins.sh 标量,经 npmmirror)"
+    local cv="${CLAUDE_CODE_VERSION:?pins.sh 缺 CLAUDE_CODE_VERSION}" xv="${CODEX_VERSION:?pins.sh 缺 CODEX_VERSION}"
+    # 构建期拿回在线面(运行期 npm 默认离线);可选依赖(linux-x64 原生包)必须装,禁 --omit=optional
+    NPM_CONFIG_OFFLINE=false NPM_CONFIG_FETCH_RETRIES=3 npm install -g \
+        "@anthropic-ai/claude-code@${cv}" "@openai/codex@${xv}" \
+        || { echo "!! agent CLIs 装失败(查 npmmirror 可达与钉值)"; return 1; }
+    ln -sfn /opt/node/bin/claude /usr/local/bin/claude
+    ln -sfn /opt/node/bin/codex /usr/local/bin/codex
+    # 镜像内只放策略不放密钥:组织级 managed settings(用户文件压不过它)
+    install -d /etc/claude-code
+    printf '{\n  "env": {\n    "DISABLE_UPDATES": "1",\n    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",\n    "DISABLE_TELEMETRY": "1"\n  }\n}\n' \
+        > /etc/claude-code/managed-settings.json
+    claude --version || echo "!! claude 起不来"
+    codex --version || echo "!! codex 起不来"
+    echo "凭证与配置不进镜像:宿主侧 incus disk device 挂 ~/.claude 与 ~/.codex(shift=true),"
+    echo "或实例环境变量注 CLAUDE_CODE_OAUTH_TOKEN/CODEX_API_KEY;见 docs/items/tools-agents/"
+}
+
 # ---- rctl(核心 CLI:实例总控,agent 第一入口;仓内 TS + bun 编译)----
 install_ctl() {
     log "rctl(核心 CLI;bun 编译单文件)"
@@ -1332,5 +1352,5 @@ install_vnc() {
 }
 
 # chrome 组不在默认全量:上游修 bug 期用户裁定先不装(2026-10-10);要装显式跑 install-tools.sh chrome
-TOOLS_ALL=(fd astgrep cli herdr ghidra rea re pd secgo secrust pivot p0 c2 bof pz maldev recon nu pentest red msf vnc ctl)
+TOOLS_ALL=(fd astgrep cli herdr ghidra rea re pd secgo secrust pivot p0 c2 bof pz maldev recon nu pentest red msf vnc agents ctl)
 run_category TOOLS_ALL "$@"

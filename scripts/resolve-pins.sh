@@ -254,6 +254,8 @@ SCALARS=(
     NIM_VERSION:git_latest_tag:nim-lang/Nim
     KUBECTL_VERSION:kubectl_stable:
     BUN_VERSION:bun_latest:
+    CLAUDE_CODE_VERSION:claude_code_latest:
+    CODEX_VERSION:codex_latest:
     FRIDA_VERSION:git_latest_tag:frida/frida
     FRIDA_TOOLS_VERSION:pypi_latest:frida-tools
     AWSCLI_VERSION:awscli_soft:
@@ -262,6 +264,8 @@ SCALARS=(
 )
 kubectl_stable() { curl -fsSL -m 15 "https://dl.k8s.io/release/stable.txt" 2>/dev/null || true; }
 bun_latest() { curl -fsSL -m 15 "https://registry.npmmirror.com/bun/latest" 2>/dev/null | grep -o '"version":"[^"]*"' | cut -d'"' -f4 || true; }
+claude_code_latest() { npm_latest "@anthropic-ai/claude-code"; }
+codex_latest() { npm_latest "@openai/codex"; }
 # 无干净索引面:软钉留空,消费点回退最新并警告(known-issues 留痕)
 awscli_soft() { :; }
 msf_soft() { :; }

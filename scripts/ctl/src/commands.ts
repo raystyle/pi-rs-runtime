@@ -43,6 +43,14 @@ export const COMMANDS: Cmd[] = [
     ],
   },
   {
+    name: "agents",
+    desc: "agent CLIs 运行态:claude code 与 codex 的版本/配置目录/凭证在位布尔(不读内容)",
+    examples: [
+      { cmd: "rctl agents", desc: "看挂载态" },
+      { cmd: "rctl agents --json", desc: "机读(平台集成面)" },
+    ],
+  },
+  {
     name: "env",
     desc: "实例态:网络、五生态快失败面、端口监听、运行时版本面、已知边界",
     examples: [{ cmd: "rctl env --json", desc: "机读实例态" }],
