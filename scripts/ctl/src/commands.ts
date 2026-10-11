@@ -18,7 +18,7 @@ export const COMMANDS: Cmd[] = [
       { cmd: "rctl search hash", desc: "搜破解/哈希相关资源" },
       { cmd: "rctl search subdomain --kind tool", desc: "只搜工具类" },
     ],
-    flags: ["--kind <tool|data|cache|ref|service|compiler|runtime>", "--limit <n>"],
+    flags: ["--kind <tool|data|cache|ref|service|compiler|runtime>", "--env <工具环境|运行时环境|编程环境|逆向环境|数据信息搜索|数据分析|代码样板参考>", "--limit <n>"],
   },
   {
     name: "where",

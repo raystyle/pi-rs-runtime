@@ -9,6 +9,7 @@
 - **离线行为**:过, 断网下 wheelhouse 内的包 `pip install` 免旗标直装,轮子外立即 "No matching distribution"(纯离线轮五生态实证,机制见 [offline.md](../../offline.md) §4);在线拉新件 `PIP_NO_INDEX=false pip install <包>`。验证:`ip link set eth0 down` 后 `pip install pefile`(wheelhouse 烘焙清单内)成功、`pip install <未烘焙包>` 立即报 "No matching distribution"。分析 venv 断网 import:未验 [推断:venv 为纯本地路径,import 不触网;断网冒烟未专项覆盖]
 ## rctl 面(机器行:catalog 投影声明,audit 豁免依据)
 
+- rctl: analytics-venv kind=runtime path=/opt/analytics env=数据分析 note=数据分析 venv(polars/pyarrow/chdb 物化)
 - rctl: 2to3 kind=runtime path=/usr/local/bin/2to3
 - rctl: idle kind=runtime path=/usr/local/bin/idle
 - rctl: pydoc kind=runtime path=/usr/local/bin/pydoc

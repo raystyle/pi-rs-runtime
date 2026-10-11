@@ -7,6 +7,7 @@ export interface Rec {
   id: string; kind: string; group: string; status: string
   desc: string; pin: string; path: string; offline: string; book: string
   alias?: string
+  env?: string
   taskHint?: string
 }
 
@@ -36,6 +37,7 @@ export function catalog(): Rec[] {
     id: f[0] ?? "", kind: f[1] ?? "tool", group: f[2] ?? "", status: f[3] ?? "",
     desc: f[4] ?? "", pin: f[5] ?? "", path: f[6] ?? "", offline: f[7] ?? "", book: f[8] ?? "",
     alias: f[9] ?? "",
+    env: f[10] ?? "",
   }))
 }
 
@@ -78,9 +80,9 @@ export function withTaskHints(recs: Rec[], capList: Cap[]): Rec[] {
   return recs
 }
 
-export function search(q: string, kind: string | undefined, limit: number): Rec[] {
+export function search(q: string, kind: string | undefined, limit: number, env?: string): Rec[] {
   const all = withTaskHints(catalog(), caps())
-  const pool = kind ? all.filter((r) => r.kind === kind) : all
+  const pool = all.filter((r) => (!kind || r.kind === kind) && (!env || r.env === env))
   return pool
     .map((r) => ({ r, s: score(r, q) }))
     .filter((x) => x.s > 0)

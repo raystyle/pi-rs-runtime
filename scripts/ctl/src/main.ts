@@ -37,6 +37,8 @@ for (let i = 0; i < args.length; i++) {
   else if (a === "--filter-output") o.filter = (args[++i] ?? "").split(",").map((s) => s.trim()).filter(Boolean)
   else if (a.startsWith("--filter-output=")) o.filter = a.slice(16).split(",").map((s) => s.trim()).filter(Boolean)
   else if (a === "--kind") o.kind = args[++i]
+  else if (a === "--env") (o as any).env = args[++i]
+  else if (a.startsWith("--env=")) (o as any).env = a.slice(6)
   else if (a === "--class") (o as any).class = args[++i]
   else if (a.startsWith("--class=")) (o as any).class = a.slice(8)
   else if (a.startsWith("--kind=")) o.kind = a.slice(7)
@@ -85,6 +87,9 @@ if (!cmd || o.help) {
     const env = envFace()
     const lib = loadLib()
     const kinds = [...byKind.entries()].sort((a, b) => b[1] - a[1]).map(([k, n]) => `${k}=${n}`).join("  ")
+    const byEnv = new Map<string, number>()
+    for (const r of cat) if (r.env) byEnv.set(r.env, (byEnv.get(r.env) ?? 0) + 1)
+    const envs = [...byEnv.entries()].sort((a, b) => b[1] - a[1]).map(([k, n]) => `${k}=${n}`).join("  ")
     const ag = agentsFace()
     const agLine = ag.map((a) => `${a.binary}:${a.cred_present || a.auth_env_present ? "挂载" : "未挂"}`).join("  ")
     const panel = {
@@ -104,7 +109,8 @@ if (!cmd || o.help) {
       done({ ...panel, agents: ag.map((a) => ({ id: a.id, version: a.version, mounted: a.cred_present || a.auth_env_present })) }, usageCta(), "rctl")
       process.exit(0)
     }
-    console.log(`rctl ${RCTL_VERSION} ｜ net.eth0=${env.net.eth0} ｜ 资源 ${cat.length} 件(${kinds}) ｜ 能力 ${caps().length} 条 ｜ agents ${agLine}`)
+    console.log(`rctl ${RCTL_VERSION} ｜ net.eth0=${env.net.eth0} ｜ 资源 ${cat.length} 件(${kinds}) ｜ 六域 ${envs}`)
+    console.log(`能力 ${caps().length} 条 ｜ agents ${agLine}`)
     console.log("")
     console.log("Next:")
     for (const c of usageCta().concat([
@@ -135,7 +141,7 @@ switch (cmd) {
   case "search": {
     const q = rest.join(" ")
     if (!q) die("usage", "search 需要查询词", structured, 2, [{ command: "rctl search hash", description: "示例" }])
-    const hits = search(q, o.kind, o.limit)
+    const hits = search(q, o.kind, o.limit, (o as any).env)
     if (hits.length === 0) nohit(`search ${q}`, [
       { command: `rctl search ${q.split(/\s+/)[0]}`, description: "放宽到单词" },
       { command: "rctl caps", description: "改走能力词典" },
@@ -161,7 +167,7 @@ switch (cmd) {
     const r = show(id)
     if (!r) nohit(`show ${id}`, [{ command: `rctl search ${id}`, description: "改搜" }])
     const capRefs = caps().filter((c) => c.ids.split(",").map((x) => x.trim()).includes(r!.id))
-    done({ ...r, in_caps: capRefs.map((c) => c.task) }, [
+    done({ ...r, env: r.env ?? "", in_caps: capRefs.map((c) => c.task) }, [
       { command: `rctl docs ${r!.id}`, description: "册投影全文" },
     ], "show")
     break

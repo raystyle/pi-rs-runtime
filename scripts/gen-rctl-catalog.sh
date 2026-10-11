@@ -8,6 +8,18 @@ cd "$(dirname "$0")/.."
 OUT="scripts/ctl/data/catalog.tsv"
 TMP="$(mktemp)"
 
+env_of() {  # 归档域(七域草判,prt-09 定稿中):id 级覆盖(数据分析栈);组默认;kind 规则由主流程与机器行覆盖
+    if [ -n "$2" ]; then case "$2" in duckdb|clickhouse|nu) echo "数据分析"; return 0;; esac; fi
+    case "$1" in
+        compilers) echo "编程环境" ;;
+        runtimes)  echo "运行时环境" ;;
+        libcache)  echo "编程环境" ;;
+        tools-ghidra|tools-rea|tools-re) echo "逆向环境" ;;
+        tools-c2|tools-maldev|tools-pz|tools-recon) echo "代码样板参考" ;;
+        *) echo "工具环境" ;;
+    esac
+}
+
 kind_of() {
     case "$1" in
         compilers) echo compiler ;;
@@ -46,15 +58,21 @@ clean() { # tsv 字段禁 tab/换行
             rpath=$(printf '%s' "$line" | grep -oP 'path=\K[^ ]+' || true)
             ralias=$(printf '%s' "$line" | grep -oP 'alias=\K[^ ]+' || true)
             rnote=$(printf '%s' "$line" | grep -oP 'note=\K.*' || true)
-            printf '%s\t%s\t%s\t%s\t%s\t\t%s\t\t%s\t%s\n' \
+            renv=$(printf '%s' "$line" | grep -oP 'env=\K[^ ]+' || true)
+            : "${renv:=$(env_of "$dir" "$rid")}"
+            [ "${rkind:-tool}" = data ] && [ -z "$(printf '%s' "$line" | grep -oP 'env=\K[^ ]+')" ] && renv=数据信息搜索
+            printf '%s\t%s\t%s\t%s\t%s\t\t%s\t\t%s\t%s\t%s\n' \
                 "$(clean "$rid")" "$(clean "${rkind:-tool}")" "$(clean "$group")" "已烘焙" \
-                "$(clean "${rnote:-$(clean "$desc")}")" "$(clean "$rpath")" "$f" "$(clean "$ralias")"
+                "$(clean "${rnote:-$(clean "$desc")}")" "$(clean "$rpath")" "$(clean "$ralias")" "$f" "$renv"
         done || true
         # 参考克隆是角色不是生命周期:status 原文以「参考克隆」起头时 kind 改 ref(prt-07 分面)
         case "$status" in 参考克隆*) kind=ref;; esac
-        printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t\n' \
+        renv="$(env_of "$dir" "$id")"
+        [ "$kind" = ref ] && renv=代码样板参考
+        [ "$kind" = data ] && renv=数据信息搜索
+        printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t\t%s\n' \
             "$(clean "$id")" "$(clean "$kind")" "$(clean "$group")" "$(clean "$status")" \
-            "$(clean "$desc")" "$(clean "$pin")" "$(clean "$path")" "$(clean "$offline")" "$(clean "$f")"
+            "$(clean "$desc")" "$(clean "$pin")" "$(clean "$path")" "$(clean "$offline")" "$(clean "$f")" "$renv"
         # 成员表蒸馏:组册表行第一列(或编号表的第二列)是 ascii 件名,成员继承册的组/状态/书
         awk -F'|' '
             /^[ \t]*\|/ && NF>=4 {
@@ -63,15 +81,15 @@ clean() { # tsv 字段禁 tab/换行
                 # 编号表:第一列纯数字时件名在第二列
                 if (c1 ~ /^[0-9]+$/) { c1=$3; gsub(/^[ \t]+|[ \t]+$/, "", c1) }
                 if (c1 ~ /^[a-zA-Z0-9_.-]+$/ && c1 ~ /[a-zA-Z]/ && c1 !~ /^:?-/) {
-                    if (length(d)>2) printf "%s\t%s\t%s\t%s\t%s\t\t\t\t%s\n", c1, K, G, S, substr(d,1,120), B
+                    if (length(d)>2) printf "%s\t%s\t%s\t%s\t%s\t\t\t\t%s\t\t%s\n", c1, K, G, S, substr(d,1,120), B, ENV
                 }
-            }' K="$kind" G="$(clean "$group")" S="$(clean "$status")" B="$f" "$f"
+            }' K="$kind" G="$(clean "$group")" S="$(clean "$status")" B="$f" ENV="$(env_of "$dir" "")" "$f"
     done | sort -t$'\t' -k1,1 | awk -F'\t' '
         {
             if (!(($1) in seen)) { seen[$1]=1; for (i=1;i<=NF;i++) best[$1,i]=$i }
             else { for (i=2;i<=NF;i++) if ($i!="" && best[$1,i]=="") best[$1,i]=$i }
         }
-        END { for (k in seen) { line=k; for (i=2;i<=NF;i++) line=line "\t" best[k,i]; print line } }' | sort -t$'\t' -k1,1
+        END { for (k in seen) { line=k; for (i=2;i<=11;i++) line=line "\t" (best[k,i]==""?"":best[k,i]); print line } }' | sort -t$'\t' -k1,1
 } > "$TMP"
 
 mkdir -p "$(dirname "$OUT")"
