@@ -25,29 +25,33 @@
 ```text
 pictl                    # 裸调用:渐进提示面板(实例态一行 + 分类计数 + 下一步 CTA),exit 0
 pictl --llms [--json]    # 120 行紧凑手册(七件旗标、退出码、信封);manifest 版本注入
-pictl index [--refresh]  # 渐进索引:三层索引建/增量刷新(mtime),打印索引统计
+pictl index [--refresh]  # 索引建/增量刷新(L2 路径库跳变式增量;L3 语义层镜像固化),打印索引统计
 pictl search <q> [--kind tool|data|cache|service|capability|doc|boundary] [--limit N]
-                         # 跨类模糊搜:名称/路径/tag/册描述;exit 1 未命中,CTA 给放宽建议
-pictl show <id>          # 单资源全息:kind、落点、版本钉、组、离线行为、wrapper 关系、册链接
+                         # 能力问句:打 L3 能力表(id/tag/一句话/册描述);exit 1 未命中,CTA 给放宽建议
+pictl where <path-q>     # 路径问句:打 L2 路径库(文件在哪,apt-file 语义)
+pictl show <id>          # 单资源全息(kubectl explain 语义):kind、落点、版本钉、组、离线行为、wrapper 关系、册链接
 pictl caps [<task>]      # 能力路由:无参列能力词典;带任务词给资源组合+命令示例+CTA
 pictl env                # 实例状态:离线态、eth0、PATH 面、五生态快失败、JDK/node 面、端口面
 pictl faces              # 服务面:端口监听与回环绑定、vnc 形态、CDP 态
 pictl docs <册id|组>     # 册投影检索(投影不双写,真相仍在 docs/items/)
 ```
 
-全局七件旗标(--filter-output、--format、--full-output、--help、--llms、--json、--schema)与 json 信封(ok/data/meta.cta)、错误 stderr 单行 JSON、退出码 0/1/2,全按 native-design 乙面,不另造。
+全局七件旗标(--filter-output、--format、--full-output、--help、--llms、--json、--schema)与 json 信封(ok/data/meta.cta)、错误 stderr 单行 JSON、退出码 0/1/2,全按 native-design 乙面,不另造。命令树面抄 gh(子命令树+每层 --help),资源目录面抄 kubectl(「有什么」与「这一项的字段」分两条命令)。
 
 ## 四、索引设计(渐进,三层)
+
+> 2026-10-11 修订:吸收 grok prt-03 回执。fff(github.com/dmtrKovalenko/fff)定性为常驻内存文件表 + notify 监听(非 mtime 差量库、文件表不落盘、Linux 每目录一 watch),不宜当本镜像总 ctl(冷启动全树 walk、watch 配额、与 prt-01 信号策略叠加的常驻进程不可管理);第一版主路径是「构建时烤小册 + 路径库」,参照 updatedb「目录未变不重读」(plocate 系)。
 
 | 层 | 面 | 建法 | 成本 | 新鲜度 |
 | --- | --- | --- | --- | --- |
 | L1 | PATH 与 wrapper 面 | 枚举 /usr/local/bin 与 PATH,解析软链与 .real 真身 | 亚秒 | 每次命令顺带重建 |
-| L2 | /opt 资源树 | walker 扫目录元数据(名、类型、大小、mtime、条目数),mtime 增量跳过未变子树 | 首次秒级到几十秒,增量亚秒 | mtime 驱动,--refresh 强刷 |
-| L3 | 语义层 | 构建期生成:items/ 册投影 + caps 词典 + wrapper 接线表,随镜像走 | 构建期一次 | 镜像发布时固化(实例开发态重跑生成命令即刷) |
+| L2 | 资源路径库 | 构建期烤库:根限定名单(/opt 资源树、/usr/local/bin、wrapper),剪枝词表正文/db/wheelhouse/构建缓存;运行期新增走下次调用时的跳变式增量(未变目录不重读) | 首次毫秒级查询 | 镜像发布时固化;增量按需 |
+| L3 | 语义层(能力记录) | 构建期生成:items/ 册投影 + caps 词典 + wrapper 接线表,随镜像走;记录字段固定为 id、namespace/tags、一句话、落点、离线可用、下一步命令 | 构建期一次 | 镜像发布时固化(实例开发态重跑生成命令即刷) |
 
-- 索引落点 `/var/lib/pictl/`(jsonl,root 可写、ubuntu 可读);无常驻进程(增量按需触发)。无常驻是刻意:本机宿主信号策略(prt-01)下守护进程不可管理,且镜像态资源只增不减,按需扫描足够
-- 渐进提示:裸 pictl 与 search 未命中时的 CTA 面板即「渐进索引提示」的呈现层:先给分类计数与热门词,agent 逐层下钻(search,再 show/caps)
-- token 经济:search 默认 top N 带 id 与一行描述,详情走 show;--full-output 与 --token-limit 三件可选扩展
+- 索引落点 `/var/lib/pictl/`(jsonl 或烤库,root 可写、ubuntu 可读);**无常驻进程、无 inotify 整树监听**(prt-01 信号策略下守护不可管理;镜像态资源 publish 时冻结,运行期只增少数工作文件,新鲜度便宜的做法是索引跟镜像走)
+- **三种问句三条命令,不混一个模糊框**(apt-file 与 brew search 故意分开的先例):能力问句(caps/search 打 L3 能力表)、路径问句(where 打 L2 路径库)、内容 grep(只对件级文档与短 wrapper 开,不对 SecLists/nuclei 模板正文/trivy-db/wheelhouse/五生态缓存建内容索引,那些用 tag 与目录语义进 L3)
+- 渐进提示:裸 pictl 与 search 未命中时的 CTA 面板即「渐进索引提示」呈现层:先给分类计数与热门词,agent 逐层下钻(llms 手册、search、show/caps)
+- token 经济:search 默认 top N 带 id 与一句话,详情走 show;--full-output 与 --token-limit 三件可选扩展
 
 ## 五、能力路由(capability)设计要点
 
@@ -69,11 +73,14 @@ pictl docs <册id|组>     # 册投影检索(投影不双写,真相仍在 docs/i
 - 断网:索引与检索全程零网络(离线承诺面);caps 示例命令须全部离线可跑
 - 宿主信号策略(prt-01):pictl 自身不依赖进程管理;faces 面对「stop 摘不掉进程」给边界注记不假装能停
 
-## 八、先例矩阵(占位,grok prt-03 回执后回填)
+## 八、先例矩阵(grok prt-03 回执已回填,2026-10-11)
 
-| 主题 | 先例 | 可抄点 | 回执三态 |
+| 主题 | 先例(链接见回执) | 可抄点 | 采纳态 |
 | --- | --- | --- | --- |
-| 渐进索引 | fff(待定位) | 待回执 | 待 |
-| 发现通道 | 待回执 | 待 | 待 |
-| 能力路由 | 待回执 | 待 | 待 |
-| 索引工程 | 待回执 | 待 | 待 |
+| 渐进索引(fff 定位) | dmtrKovalenko/fff(常驻内存表+notify 监听;同名干扰:dylanaraps/fff 是 bash 文件管理器、EdgeOfAssembly/ffind 同型异名) | 不抄其常驻/监听形态;抄「先短索引再下钻」的查询分层;fff 留作「同一会话上百次搜同一小树」场景的后续候选 | 需改(不当总 ctl) |
+| 发现通道 | llms.txt(llmstxt.org)、kubectl api-resources/explain 分离、gh 命令树、nix search 搜描述、apt-file/brew search 异键异索引 | --llms 短手册;「有什么」与「字段下钻」分命令;能力命中说明文字不命中文件名;路径问句与能力问句分开 | 可直接采纳 |
+| 能力路由 | kubectl explain 点路径、navi cheat 标签+一句话+可执行模板(--print 不执行)、capa namespace 前缀/nuclei tags/SecLists 目录语义 | 词条=标签+一句话+命令模板;语义资产用自带 tag 面不扫正文;默认打印不执行 | 可直接采纳 |
+| 索引工程 | 构建时烤小册(主路径)、plocate/updatedb 跳变式增量、fd/fzf 每次走查(仅交互用)、inotify 整树(否决:watch 配额) | L2 用烤库+未变目录跳过;内容索引只开件级文档与短 wrapper;SecLists/模板/db/缓存不进内容索引 | 可直接采纳 |
+| 回执否决项对照 | 把 fff 装成总 ctl、/opt 开内容索引与 inotify、第一版就上 fff、三种问句混一个模糊框 | 本稿第四节修订已按否决项收口(分命令、烤小册、无常驻) | 不建议项均已避 |
+
+回执对设计意图的三态意见与本稿逐节对照:全部「可直接采纳」项已吸收进第三、四、五节;「需改」「不建议」项见上表末行自查。
