@@ -1231,6 +1231,26 @@ install_msf() {
 }
 
 
+# ---- rctl(核心 CLI:实例总控,agent 第一入口;仓内 TS + bun 编译)----
+install_ctl() {
+    log "rctl(核心 CLI;bun 编译单文件)"
+    # bun 版本闸:发版频繁,编译期钉死(用户裁定 2026-10-11)
+    local bv; bv="$(bun --version 2>/dev/null || true)"
+    if [ "$bv" != "${BUN_VERSION:?pins.sh 缺 BUN_VERSION}" ]; then
+        echo "!! bun ${bv:-缺} != 钉 ${BUN_VERSION};先跑 install-runtimes.sh bun 对钉" >&2
+        return 1
+    fi
+    cd /root/scripts/ctl
+    bun build --compile --minify src/main.ts --outfile /usr/local/bin/rctl
+    install -d /var/lib/rctl
+    install -m644 data/catalog.tsv data/caps.tsv /var/lib/rctl/
+    cd /
+    # 路径库首建(限根名单+剪枝,见 src/paths.ts)
+    rctl index
+    echo "rctl 自检:"; rctl --llms | head -3
+    command -v rctl >/dev/null && echo "rctl 装好(/usr/local/bin/rctl)"
+}
+
 # ---- rea(morluto/rea:agent 逆向工具面,MCP server + CLI;原生 provider 对齐镜像内 Ghidra)----
 install_rea() {
     log "rea-agents(钉版 npm 全局;Ghidra provider 指镜像 /opt/ghidra)"
@@ -1312,5 +1332,5 @@ install_vnc() {
 }
 
 # chrome 组不在默认全量:上游修 bug 期用户裁定先不装(2026-10-10);要装显式跑 install-tools.sh chrome
-TOOLS_ALL=(fd astgrep cli herdr ghidra rea re pd secgo secrust pivot p0 c2 bof pz maldev recon nu pentest red msf vnc)
+TOOLS_ALL=(fd astgrep cli herdr ghidra rea re pd secgo secrust pivot p0 c2 bof pz maldev recon nu pentest red msf vnc ctl)
 run_category TOOLS_ALL "$@"

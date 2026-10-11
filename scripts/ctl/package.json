@@ -1,0 +1,11 @@
+{
+  "name": "rctl",
+  "version": "0.1.0",
+  "private": true,
+  "description": "pi runtime 实例总 ctl(agent 第一入口)",
+  "type": "module",
+  "scripts": {
+    "build": "bun build --compile --minify src/main.ts --outfile dist/rctl",
+    "test": "bun test"
+  }
+}

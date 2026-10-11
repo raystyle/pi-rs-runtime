@@ -1,0 +1,19 @@
+# rctl caps 能力词典:task	ids(须在 catalog)	example(可抄命令,断网可跑)	note
+# 种子版;ids 漂移由 drift.test.ts 守卫
+破解hash	hashcat,john	hashcat -m 1000 hash.txt /usr/share/wordlists/rockyou.txt	rockyou 走 rctl where rockyou;规则面 hashcat --example-hashes
+子域枚举	subfinder,dnsx,shuffledns,amass,assetfinder	subfinder -d example.com	被动源断网失败属边界
+端口扫描	naabu,masscan,nmap	naabu -host 127.0.0.1 -top-ports 100	naabu/masscan 有 setcap 免 sudo
+web探活指纹	httpx,katana,feroxbuster	httpx -u http://127.0.0.1:8000 -silent	本地目标断网可跑
+漏洞扫描	nuclei,trivy	nuclei -duc -u http://127.0.0.1:8000	模板离线可用;trivy db 构建日快照
+目录爆破	ffuf,gobuster,feroxbuster	ffuf -w /opt/SecLists/Discovery/Web-Content/common.txt -u http://127.0.0.1:8000/FUZZ	词表直读 /opt/SecLists
+源码审计泄漏	gitleaks,trufflehog,semgrep	gitleaks git /opt/c2dev-ref/sliver	trufflehog 零命中退 1 属语义
+逆向ELF	ghidra,rizin,rea,capa,pwndbg	rea decompile /bin/ls main	rea 是 Ghidra 无头封装;剥离件用地址取函数
+逆向安卓	jadx,apktool,frida	jadx --version	apk 重打包链 apktool;frida-server 八平台 /opt/frida-server
+逆向.NET	dotnet,mono	dotnet --version	ILSpy 无独立 CLI 时走 dotnet 工具链面
+AD域横向	bloodhound-python,certipy-ad,bloodyAD,mitm6,kerbrute,evil-winrm,responder	responder -h	采集与滥用面;responder 依赖已进 re-venv
+隧道出网	gost,chisel,frps,frpc,wstunnel,rathole,bore	gost -V	六件全离线可用;bore.pub 公网依赖属边界
+凭据提取	impacket,frida	rctl docs impacket	impacket 上游脚本全家族在 PATH(secretsdump.py 等)
+流量抓包分析	tcpdump,tshark,mitmproxy	tcpdump -D	tshark 捕获网卡名用 -D 查
+固件解包	binwalk	binwalk 固件.bin	sasquatch 补丁版 squashfs 解包器已装(册:pentest)
+BOF利用链	bof-launcher,bof	bof-launcher --help	mingw/wine 面同组;coffee-ldr 上游编不过属 known-issues
+实例总控	rctl	rctl --llms	本工具;env 子命令看实例态

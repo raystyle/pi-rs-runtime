@@ -1,6 +1,6 @@
 # REQ-0001 实例总 ctl(rctl):agent 友好的渐进索引与全资源可搜
 
-> 状态:draft ｜ 提出:2026-10-11 ｜ 设计研究:[S-0001](../research/S-0001-agent-ctl.md) ｜ 裁定:[ADR-0008](../adr/ADR-0008-rctl-core-cli.md)
+> 状态:implemented ｜ 提出:2026-10-11 ｜ 设计研究:[S-0001](../research/S-0001-agent-ctl.md) ｜ 裁定:[ADR-0008](../adr/ADR-0008-rctl-core-cli.md)
 
 ## 需求
 
@@ -17,12 +17,12 @@ R10 载体:TypeScript + bun 开发,`bun build --compile` 产单文件二进制(�
 
 ## trace(实现回填)
 
-- T1 ctl/ TypeScript 工程:命令表单一真源,help/--llms 自渲染(待回填)
-- T2 scripts/gen-rctl-catalog.sh:items/ 册蒸馏 catalog.tsv,--check 漂移守卫(待回填)
-- T3 scripts/ctl/caps.tsv 能力词典(种子版,ids 必须在 catalog,守卫)(待回填)
-- T4 install-tools.sh ctl 组:bun 编译+装 /usr/local/bin/rctl+烤库到 /var/lib/rctl(待回填)
-- T5 容器实证:断网 root/ubuntu 双视角跑 R2-R7(待回填)
-- T6 册 tools-ctl/rctl.md + 门禁接线(待回填)
+- T1 scripts/ctl/ TS 工程:命令表单一真源,help/--llms/schema 自渲染,bun test 6/6(2026-10-11)
+- T2 scripts/gen-rctl-catalog.sh:75 册蒸馏 274 件(册级+成员级,编号表第二列与缩进表都吃),--check 漂移守卫
+- T3 scripts/ctl/data/caps.tsv 种子 17 条,caps ids 对 catalog 全命中(drift.test.ts 守卫)
+- T4 install-tools.sh ctl 组:bun 版本闸(BUN_VERSION 1.4.3)后编译装 /usr/local/bin/rctl+烤库 /var/lib/rctl+rctl index 建路径库
+- T5 容器实证 2026-10-11:断网(eth0 down)root/ubuntu 双视角,面板 274 件/17 条、search/caps/show/where(paths.json 命中 rockyou)/env(--json 信封,五生态快失败面与 listeners 实测准,::1 回环判定修两次字节序坑)
+- T6 册 tools-ctl/rctl.md 已立;门禁接线:gen --check 与 bun test 进门禁(本批随提交)
 
 ## 验收判据
 
