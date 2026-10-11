@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url"
 export interface Rec {
   id: string; kind: string; group: string; status: string
   desc: string; pin: string; path: string; offline: string; book: string
+  alias?: string
   taskHint?: string
 }
 
@@ -34,6 +35,7 @@ export function catalog(): Rec[] {
   return loadTsv("catalog.tsv").map((f) => ({
     id: f[0] ?? "", kind: f[1] ?? "tool", group: f[2] ?? "", status: f[3] ?? "",
     desc: f[4] ?? "", pin: f[5] ?? "", path: f[6] ?? "", offline: f[7] ?? "", book: f[8] ?? "",
+    alias: f[9] ?? "",
   }))
 }
 

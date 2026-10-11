@@ -38,7 +38,21 @@ clean() { # tsv 字段禁 tab/换行
         pin="$(grep -m1 '^- \*\*版本钉\*\*' "$f" | sed 's/^- \*\*版本钉\*\*:*//' || true)"
         path="$(grep -m1 '^- \*\*落点\*\*' "$f" | grep -oP '/(opt|usr|etc|var|root|home)[A-Za-z0-9_./-]*' | head -1 || true)"
         offline="$(grep -m1 '^- \*\*离线行为\*\*' "$f" | sed 's/^- \*\*离线行为\*\*:*//' || true)"
-        printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
+        # 机器小表(prt-07 件2):一册可发多行多 kind,声明即册内真相,不另维护全局例外文件
+        # 形式:- rctl: <id> kind=<kind> path=<path> [alias=<bin>] [note=<一句话>]
+        grep -E '^- rctl: ' "$f" | while IFS= read -r line; do   # grep 无匹配在 pipefail 下退 1,由末行 || true 兜底
+            rid=$(printf '%s' "$line" | sed -E 's/^- rctl: ([^ ]+).*/\1/')
+            rkind=$(printf '%s' "$line" | grep -oP 'kind=\K[^ ]+' || true)
+            rpath=$(printf '%s' "$line" | grep -oP 'path=\K[^ ]+' || true)
+            ralias=$(printf '%s' "$line" | grep -oP 'alias=\K[^ ]+' || true)
+            rnote=$(printf '%s' "$line" | grep -oP 'note=\K.*' || true)
+            printf '%s\t%s\t%s\t%s\t%s\t\t%s\t\t%s\t%s\n' \
+                "$(clean "$rid")" "$(clean "${rkind:-tool}")" "$(clean "$group")" "已烘焙" \
+                "$(clean "${rnote:-$(clean "$desc")}")" "$(clean "$rpath")" "$f" "$(clean "$ralias")"
+        done || true
+        # 参考克隆是角色不是生命周期:status 原文以「参考克隆」起头时 kind 改 ref(prt-07 分面)
+        case "$status" in 参考克隆*) kind=ref;; esac
+        printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t\n' \
             "$(clean "$id")" "$(clean "$kind")" "$(clean "$group")" "$(clean "$status")" \
             "$(clean "$desc")" "$(clean "$pin")" "$(clean "$path")" "$(clean "$offline")" "$(clean "$f")"
         # 成员表蒸馏:组册表行第一列(或编号表的第二列)是 ascii 件名,成员继承册的组/状态/书
@@ -54,10 +68,10 @@ clean() { # tsv 字段禁 tab/换行
             }' K="$kind" G="$(clean "$group")" S="$(clean "$status")" B="$f" "$f"
     done | sort -t$'\t' -k1,1 | awk -F'\t' '
         {
-            filled=0; for (i=1;i<=NF;i++) if ($i!="") filled++
-            if (!(($1) in best) || filled>bestfill[$1]) { best[$1]=$0; bestfill[$1]=filled }
+            if (!(($1) in seen)) { seen[$1]=1; for (i=1;i<=NF;i++) best[$1,i]=$i }
+            else { for (i=2;i<=NF;i++) if ($i!="" && best[$1,i]=="") best[$1,i]=$i }
         }
-        END { for (k in best) print best[k] }' | sort -t$'\t' -k1,1
+        END { for (k in seen) { line=k; for (i=2;i<=NF;i++) line=line "\t" best[k,i]; print line } }' | sort -t$'\t' -k1,1
 } > "$TMP"
 
 mkdir -p "$(dirname "$OUT")"

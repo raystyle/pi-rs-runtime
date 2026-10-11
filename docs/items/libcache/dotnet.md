@@ -27,4 +27,8 @@
 - **落点**:`/opt/nuget-packages`(构建期 export `NUGET_PACKAGES` 指向);`/opt/dotnet-prewarm`(预热工程,重跑 rm -rf 重建);`/opt/dotnet-tools/ilspycmd`;`/usr/local/bin/ilspycmd` 软链
 - **配置与缓存**:离线取件走 NuGet.Config `fallbackPackageFolders` → /opt/nuget-packages(root+ubuntu 各一份,NuGet 官方离线机制,同 SDK NuGetFallbackFolder,不依赖 shell env);**不再持久导出 NUGET_PACKAGES**——global 与 fallback 同路径会让登录 restore 写固化仓,ubuntu 还会权限失败(grok G3);`/etc/profile.d/dotnet.sh` 只留 `DOTNET_CLI_TELEMETRY_OPTOUT=1`;nuget fallback 是只读消费面,保持 755([offline.md](../../offline.md) §5)
 - **离线行为**:✅ 断网 `dotnet restore` 在断网冒烟批覆盖(见 [offline.md](../../offline.md) 验证节),fallback folder 直取固化件不触网。验证:`ip link set eth0 down` 后 `cd /opt/dotnet-prewarm && dotnet restore`
+## rctl 面(机器行:catalog 投影声明,audit 豁免依据)
+
+- rctl: ilspycmd kind=tool path=/usr/local/bin/ilspycmd note=.NET 反编译 CLI(NUGET_PIN 独立钉,落 /opt/dotnet-tools)
+
 - **坑与留痕**:dotnet 未装早退(先跑 runtimes dotnet 组);单包 `dotnet add` 失败 tolerant(回 echo 不中断),restore 与逐 RID restore 分步各自留 echo

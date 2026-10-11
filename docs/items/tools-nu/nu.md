@@ -7,4 +7,9 @@
 - **落点**:`/usr/local/bin/nu` 单文件真身,无 wrapper
 - **配置与缓存**:无(脚本不写配置、不固化缓存)
 - **离线行为**:☐ [推断:]预编译单文件,运行不触网;断网冒烟未单列 nu。验证:`ip link set eth0 down` 后 `nu --version` 退 0
+## rctl 面(机器行:catalog 投影声明,audit 豁免依据)
+
+- rctl: aws kind=tool path=/usr/local/bin/aws note=AWS CLI v2(awscli 官方 zip 装,无钉属 known-issues 软钉面)
+- rctl: aws_completer kind=tool path=/usr/local/bin/aws_completer note=aws CLI 补全副件
+
 - **坑与留痕**:GitHub 直连间歇性归零(与 tuna 抖动同期),取 tag 重试 3 次(间隔 sleep 5);pipefail 下 ls-remote 失败整条管道非零、命令替换赋值即触发 set -e 退出,故 `|| true` 兜底;tag 取不到只 echo「下轮补」不退出(`have nu` 幂等早退,下轮重跑补装);api.github.com 403 与 pipefail 赋值坑的实证留痕 [docs/diary/2026-10-08](../../diary/2026-10-08-build-baseline.md)

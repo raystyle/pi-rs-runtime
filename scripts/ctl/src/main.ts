@@ -6,6 +6,7 @@ import { catalog, caps, search, show, withTaskHints } from "./catalog.ts"
 import { where, buildLib, loadLib } from "./paths.ts"
 import { envFace } from "./envface.ts"
 import { agentsFace } from "./agents.ts"
+import { audit } from "./audit.ts"
 
 const args = process.argv.slice(2)
 
@@ -36,6 +37,8 @@ for (let i = 0; i < args.length; i++) {
   else if (a === "--filter-output") o.filter = (args[++i] ?? "").split(",").map((s) => s.trim()).filter(Boolean)
   else if (a.startsWith("--filter-output=")) o.filter = a.slice(16).split(",").map((s) => s.trim()).filter(Boolean)
   else if (a === "--kind") o.kind = args[++i]
+  else if (a === "--class") (o as any).class = args[++i]
+  else if (a.startsWith("--class=")) (o as any).class = a.slice(8)
   else if (a.startsWith("--kind=")) o.kind = a.slice(7)
   else if (a === "--limit") o.limit = Number(args[++i] ?? 20)
   else if (a.startsWith("--limit=")) o.limit = Number(a.slice(8))
@@ -210,6 +213,29 @@ switch (cmd) {
     done(hits.map((r) => ({ id: r.id, book: r.book, offline: r.offline.slice(0, 90), pin: r.pin.slice(0, 80) })), [
       { command: `rctl show ${hits[0].id}`, description: "单件全息" },
     ], "docs")
+    break
+  }
+  case "audit": {
+    const { rows, summary } = audit()
+    const bad = rows.filter((r) => r.class !== "ok" && r.class !== "alias" && r.class !== "exempt").length
+    const cls = o.kind // 复用解析槽位:--kind 未给时当 --class 用
+    const shown = o.class ?? undefined
+    const data = shown ? rows.filter((r) => r.class === shown) : rows
+    if (o.format === "json") {
+      emitOk({ summary, rows: data }, { format: "json", filter: o.filter, full: o.full, command: "audit", durationMs: Date.now() - t0 }, [])
+      process.exit(bad > 0 ? 1 : 0)
+    }
+    console.log(`summary: ${Object.entries(summary).map(([k, v]) => `${k}=${v}`).join("  ")}`)
+    for (const r of data) {
+      if (r.class === "ok" && !shown) continue // 人读默认只看未解释项
+      console.log(`${r.class.padEnd(11)} ${r.side.padEnd(3)} ${r.name}${r.id ? ` (${r.id})` : ""} - ${r.note}`)
+    }
+    if (bad > 0) {
+      process.stderr.write(`rctl: ${bad} 个未解释项(missing-id/stale)
+`)
+      process.exit(1)
+    }
+    process.exit(0)
     break
   }
   case "index": {

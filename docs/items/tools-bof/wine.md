@@ -7,4 +7,8 @@
 - **落点**:`/usr/bin/wine`(wine 包);`/usr/local/bin/wine64` 兜底软链 → `$(command -v wine)`(脚本 `have wine64 || { have wine && ln -sf … }`,幂等判据 `have wine64`);wine loader 本体在 `/usr/lib/wine/`
 - **配置与缓存**:脚本不写配置;首跑 PE 时就地建 `~/.wine` prefix ☐ [推断:]
 - **离线行为**:☐ [推断:] wine 跑原生 Windows PE 是纯本地动作不依赖网络(未单独断网实证);.NET PE 缺 mono 时会触发组件下载,属在线动作。验证:`ip link set eth0 down` 后 `wine64 --version` 退 0
+## rctl 面(机器行:catalog 投影声明,audit 豁免依据)
+
+- rctl: wine64 kind=tool path=/usr/local/bin/wine64 note=wine 主入口
+
 - **坑与留痕**:noble 的 wine64 包不带 PATH 命令(实证 `dpkg -L` 无 `bin/`),`/usr/bin/wine` 在 wine 包里——只装 wine64 会出现「包装了却没有命令」;wine64 命令名由 wine 包链出,脚本再兜底软链 `/usr/local/bin/wine64`(实证留痕 [diary 2026-10-09](../../diary/2026-10-09-review-rounds.md));安装期 `wine64 --version` 不过只告警不阻塞(PE 验证路径缺,下轮补)

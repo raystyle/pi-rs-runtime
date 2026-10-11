@@ -16,7 +16,7 @@
 
 [go](libcache/go.md) · [rust](libcache/rust.md) · [python](libcache/python.md) · [node](libcache/node.md) · [java](libcache/java.md) · [pwsh](libcache/pwsh.md) · [dotnet](libcache/dotnet.md) · [zig](libcache/zig.md)
 
-## tools(install-tools.sh,46 册)
+## tools(install-tools.sh,47 册)
 
 | 组 | 册 |
 |---|---|
@@ -44,9 +44,10 @@
 | vnc | [vnc](tools-vnc/vnc.md)(XFCE+TigerVNC+noVNC 桌面与 Web 面) |
 | ctl | [rctl](tools-ctl/rctl.md)(核心 CLI:实例总控,渐进索引与全资源可搜) |
 | agents | [claude-code](tools-agents/claude-code.md) · [codex](tools-agents/codex.md)(agent CLIs,凭证经挂载不进镜像) |
+| cloud | [cloud](tools-cloud/cloud.md)(云 CLI:aliyun+tccli,凭证使用期注入) |
 | acp | [acp](tools-acp/acp.md)(ACP v1+stdio 通道:适配器+监督进程 acpsup,REQ-0002) |
 | chrome | [clean-chrome](tools-chrome/clean-chrome.md)(定制 Chromium 155,云端道+sha256 锚) |
 
-计数对账:compilers 6 / runtimes 16 / libcache 8 / tools 48 = 78 册;组册承载的批量件数见各组册成员表(组册成员数 = 脚本实装件数)。
+计数对账:compilers 6 / runtimes 16 / libcache 8 / tools 49 = 79 册;组册承载的批量件数见各组册成员表(组册成员数 = 脚本实装件数)。
 
 返回 [docs 文档地图](../README.md)。

@@ -7,4 +7,8 @@
 - **落点**:TigerVNC `vncserver`、websockify、`/usr/share/novnc/vnc.html`;口令文件 `$HOME/.vnc/passfile`(首启随机生成打印一次,不落库)
 - **配置与缓存**:无镜像级配置;`~/.vnc/xstartup` 首启写 startxfce4
 - **离线行为**:✅ 纯本地件,断网可起;验证:容器内 `VNC_PASS=<口令> vnc-screen desktop` 后 `curl -sI http://127.0.0.1:6080/vnc.html` 200 + `ss -ltn` 只见 127.0.0.1
+## rctl 面(机器行:catalog 投影声明,audit 豁免依据)
+
+- rctl: vnc-screen kind=tool path=/usr/local/bin/vnc-screen note=屏幕/VNC 起停面
+
 - **坑与留痕**:websockify 与 VNC 都只绑回环(宿主经 proxy 设备引:`incus config device add <实例> novnc proxy listen=tcp:127.0.0.1:6080 connect=tcp:127.0.0.1:6080`);官方 Chrome 不装([ADR-0006](../../adr/ADR-0006-user-rulings-log.md)),桌面里浏览器件等定制 Chrome 合入;nuclei headless 同理不可用([known-issues](../../known-issues.md));轻量面(Xvfb :99+x11vnc 5900)与桌面面(:1+6080)并存不互斥,`vnc-screen status` 两面同查。**实证坑**:noble 的 tigervnc 拆分装,口令工具 `vncpasswd` 在 `tigervnc-tools`(只装 server+common 会缺,桌面起不来时它交互要密码卡死);TigerVNC 读 `~/.vnc/passwd`(vncpasswd -f 写),x11vnc 读 `~/.vnc/passfile`(-storepasswd),两个文件名各认各的,`need_pass` 两份都写

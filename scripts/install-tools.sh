@@ -1231,6 +1231,31 @@ install_msf() {
 }
 
 
+# ---- cloud(云厂商 CLI:aliyun release 道与 tccli uv tool 道;云 API 枚举的使用期触网属边界)----
+install_cloud() {
+    log "云 CLI(aliyun + tccli;钉版 pins.sh)"
+    local gh="${GITHUB_MIRROR}https://github.com"
+    local av="${ALIYUN_CLI_VERSION:?pins.sh 缺 ALIYUN_CLI_VERSION}"
+    if ! have aliyun; then
+        local tgz="aliyun-cli-linux-${av#v}-amd64.tgz"   # tag 带 v、文件名不带(实证 v3.5.1)
+        curl -fSL --retry 3 "${gh}/aliyun/aliyun-cli/releases/download/${av}/${tgz}" -o "/tmp/${tgz}" \
+            && tar -xzf "/tmp/${tgz}" -C /tmp aliyun \
+            && install -m755 /tmp/aliyun /usr/local/bin/aliyun \
+            && rm -f "/tmp/${tgz}" /tmp/aliyun \
+            || echo "!! aliyun CLI 装失败"
+    fi
+    . "$HOME/.local/bin/env" 2>/dev/null || true
+    export UV_TOOL_BIN_DIR=/usr/local/bin UV_TOOL_DIR=/opt/uv-tools
+    local tv="${TCCLI_VERSION:?pins.sh 缺 TCCLI_VERSION}"
+    if ! have tccli; then
+        VIRTUAL_ENV= uv tool install "tccli==${tv}" \
+            || VIRTUAL_ENV= uv tool install --index-url "https://pypi.tuna.tsinghua.edu.cn/simple" "tccli==${tv}" \
+            || echo "!! tccli 装失败(默认源/tuna 兜底均败)"
+    fi
+    have aliyun && aliyun version | head -1
+    have tccli && tccli --version 2>&1 | head -1
+}
+
 # ---- agents(claude code + codex CLI:钉版 npm 全局;二进制在镜像,凭证走挂载不进 rootfs)----
 install_agents() {
     log "agent CLIs(claude code + codex;钉版 pins.sh 标量,经 npmmirror)"
@@ -1378,5 +1403,5 @@ install_vnc() {
 }
 
 # chrome 组不在默认全量:上游修 bug 期用户裁定先不装(2026-10-10);要装显式跑 install-tools.sh chrome
-TOOLS_ALL=(fd astgrep cli herdr ghidra rea re pd secgo secrust pivot p0 c2 bof pz maldev recon nu pentest red msf vnc agents acp ctl)
+TOOLS_ALL=(fd astgrep cli herdr ghidra rea re pd secgo secrust pivot p0 c2 bof pz maldev recon nu cloud pentest red msf vnc agents acp ctl)
 run_category TOOLS_ALL "$@"

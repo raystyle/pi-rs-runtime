@@ -18,7 +18,7 @@ export const COMMANDS: Cmd[] = [
       { cmd: "rctl search hash", desc: "搜破解/哈希相关资源" },
       { cmd: "rctl search subdomain --kind tool", desc: "只搜工具类" },
     ],
-    flags: ["--kind <tool|data|cache|service|capability|doc|boundary|compiler|runtime|ref>", "--limit <n>"],
+    flags: ["--kind <tool|data|cache|ref|service|compiler|runtime>", "--limit <n>"],
   },
   {
     name: "where",
@@ -60,6 +60,15 @@ export const COMMANDS: Cmd[] = [
     args: "<id|组|query>",
     desc: "册问句:件级册投影检索(真相在 docs/items/,此处只投影)",
     examples: [{ cmd: "rctl docs zig", desc: "zig 相关册" }],
+  },
+  {
+    name: "audit",
+    desc: "资源对账:/usr/local/bin 与 /opt 顶层 vs 能力表,输出 ok/alias/exempt/missing-id/stale;退出码 1=有未解释项",
+    examples: [
+      { cmd: "rctl audit", desc: "人读对账表" },
+      { cmd: "rctl audit --json --filter-output summary", desc: "只看分类计数" },
+    ],
+    flags: ["--class <ok|alias|exempt|missing-id|stale>"],
   },
   {
     name: "index",

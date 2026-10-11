@@ -7,4 +7,31 @@
 - **落点**:本体 venv /opt/uv-tools/impacket;整套 *.py 入口 shim(secretsdump.py 等)由 uv 落 /usr/local/bin。另:/opt/re-venv 里也装了一份 impacket 作库(red 组 krbrelayx 依赖批带入)
 - **配置与缓存**:无自身配置;/etc/uv/uv.toml 运行期 `offline=true` 只约束 uv 包管理动作,不影响已装入口运行
 - **离线行为**:☐ [推断:] 入口脚本本地可起、可解析本地捕获与票据文件;对目标的动作需到目标的网络——断外网但内网可达仍可用,eth0 全断只剩本地处理。建议验证:`ip link set eth0 down` 后 `secretsdump.py -h` 退 0
+## rctl 面(机器行:catalog 投影声明,audit 豁免依据)
+
+- rctl: secretsdump.py kind=tool path=/usr/local/bin/secretsdump.py
+- rctl: GetNPUsers.py kind=tool path=/usr/local/bin/GetNPUsers.py
+- rctl: GetUserSPNs.py kind=tool path=/usr/local/bin/GetUserSPNs.py
+- rctl: getST.py kind=tool path=/usr/local/bin/getST.py
+- rctl: getTGT.py kind=tool path=/usr/local/bin/getTGT.py
+- rctl: psexec.py kind=tool path=/usr/local/bin/psexec.py
+- rctl: wmiexec.py kind=tool path=/usr/local/bin/wmiexec.py
+- rctl: smbexec.py kind=tool path=/usr/local/bin/smbexec.py
+- rctl: atexec.py kind=tool path=/usr/local/bin/atexec.py
+- rctl: dcomexec.py kind=tool path=/usr/local/bin/dcomexec.py
+- rctl: ntlmrelayx.py kind=tool path=/usr/local/bin/ntlmrelayx.py
+- rctl: smbclient.py kind=tool path=/usr/local/bin/smbclient.py
+- rctl: ticketer.py kind=tool path=/usr/local/bin/ticketer.py
+- rctl: rpcdump.py kind=tool path=/usr/local/bin/rpcdump.py
+- rctl: lookupsid.py kind=tool path=/usr/local/bin/lookupsid.py
+- rctl: netview.py kind=tool path=/usr/local/bin/netview.py
+- rctl: mqtt_check.py kind=tool path=/usr/local/bin/mqtt_check.py
+- rctl: mssqlclient.py kind=tool path=/usr/local/bin/mssqlclient.py
+- rctl: raiseChild.py kind=tool path=/usr/local/bin/raiseChild.py
+- rctl: goldenPac.py kind=tool path=/usr/local/bin/goldenPac.py
+- rctl: karmaSMB.py kind=tool path=/usr/local/bin/karmaSMB.py
+- rctl: reg.py kind=tool path=/usr/local/bin/reg.py
+- rctl: samrdump.py kind=tool path=/usr/local/bin/samrdump.py
+- rctl: services.py kind=tool path=/usr/local/bin/services.py
+
 - **坑与留痕**:uv 隔离面与白名单外链裁定见 [ADR-0003](../../adr/ADR-0003-uv-tool-isolation-whitelist-linking.md);secretsdump.py 等同名 *.py 入口会被 red 组白名单链接覆盖到 bloodhound-ce venv 内的 dirkjanm impacket 叉(bloodhound-ce 殿后保持其优先,脚本注释与 [software-inventory](../../software-inventory.md) 口径)——PATH 直调实际执行的是叉版,要 upstream 原版需显式调 /opt/uv-tools/impacket/bin/ 下入口 [实证:install_red 链接循环];无 `have` 早退,重跑幂等性依赖 uv 自身行为,未单独实证 [假设:uv 对已装 tool 可能报 already installed,重跑日志若见「impacket uv 安装失败」先核实在位状态];组册见 [p0.md](p0.md)

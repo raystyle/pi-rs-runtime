@@ -285,6 +285,8 @@ KUBECTL_VERSION="v1.37.1"
 BUN_VERSION="1.4.3"
 CLAUDE_CODE_VERSION="2.1.296"   # agent CLI:npm @anthropic-ai/claude-code(发版以天计,升级=改此钉)
 CODEX_VERSION="0.162.1"        # agent CLI:npm @openai/codex(同上;alpha 通道不钉)
+ALIYUN_CLI_VERSION="v3.5.1"      # 云 CLI:aliyun/aliyun-cli release(GO 生态,GitHub 道)
+TCCLI_VERSION="3.1.180.1"        # 云 CLI:tccli(PyPI,uv tool 装)
 CLAUDE_ACP_VERSION="0.89.1"    # ACP 适配器:@agentclientprotocol/claude-agent-acp(registry 2026-10-11;装前对一次)
 CODEX_ACP_VERSION="2.2.2"      # ACP 适配器:@agentclientprotocol/codex-acp(CODEX_PATH 指镜像内 codex)
 FRIDA_VERSION="17.23.3"

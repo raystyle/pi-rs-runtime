@@ -7,4 +7,9 @@
 - **落点**:`make install` 落 /usr/local/bin/nasm 与 /usr/local/bin/ndisasm
 - **配置与缓存**:无
 - **离线行为**:☐ [推断:] 纯本地汇编器,运行期无网络依赖;未进归档断网冒烟逐件明细。建议验证:`ip link set eth0 down` 后 `printf 'bits 64\nsection .text\nnop\n' > /tmp/n.asm && nasm -f elf64 /tmp/n.asm -o /tmp/n.o` 退 0
+## rctl 面(机器行:catalog 投影声明,audit 豁免依据)
+
+- rctl: nasm kind=tool path=/usr/local/bin/nasm
+- rctl: ndisasm kind=tool path=/usr/local/bin/ndisasm note=反汇编面
+
 - **坑与留痕**:[known-issues](../../known-issues.md) 口径「nasm 另有 sha256 校验」与脚本不符——当前安装段无校验步骤,以脚本为准(直下不校验),留痕待改文档或补校验;组册见 [p0.md](p0.md)

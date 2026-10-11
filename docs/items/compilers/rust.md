@@ -7,4 +7,15 @@
 - **落点**:`RUSTUP_HOME=/opt/rustup`、`CARGO_HOME=/opt/cargo`(/root 是 0700,归 /opt 才多用户可读,评审 F5);`/usr/local/bin` 链出 rustc、cargo、rustup、rust-script、cargo-zigbuild、cargo-audit;rust-lld 从 `/opt/rustup/toolchains/*/lib/rustlib/*/bin/rust-lld` 探出链 `/usr/local/bin/rust-lld`(pi-rs 件执行链直接当链接器用);家目录兼容链 `~/.rustup`→/opt/rustup、`~/.cargo`→/opt/cargo(root+ubuntu,已有真目录挪 `.bak`)
 - **配置与缓存**:`/opt/cargo/config.toml`:crates-io 换 sparse 索引(`CRATES_INDEX` 默认 `https://rsproxy.cn/index`)+ `git-fetch-with-cli=true` + `[net] offline=true`(离线优先默认面,构建脚本经 common.sh export `CARGO_NET_OFFLINE=false` 拿回在线,env 优先于 config);`/etc/profile.d/rustup.sh` 导出 RUSTUP_HOME/CARGO_HOME/RUSTUP_DIST_SERVER/RUSTUP_UPDATE_ROOT 与 `CARGO_ZIGBUILD_CACHE_DIR=/opt/cargo-zigbuild-cache`(仅登录 shell 备份面);cargo-zigbuild 缓存共享:/opt/cargo-zigbuild-cache + `~/.cache/cargo-zigbuild` 软链(root+ubuntu),piopt 组 + 默认 ACL 共享可写([ADR-0005](../../adr/ADR-0005-shared-writable-cache-piopt-acl.md));件 crate 预热 29 个(ureq/tokio/rustls/reqwest/tungstenite/regex/grep-*/tokio-socks 等,`cargo fetch` 进 /opt/cargo registry;cj-*/cancel-this 为仓内 vendor 不预热);libcache rust 组另有 31 个加密/解析向 crate `cargo add` 钉版后 fetch(`install-libcache.sh rust`)
 - **离线行为**:✅ 断网拉未缓存 crate 立即报 not found 不挂起(`[net] offline=true`,五生态快失败实证之一;机制见 [offline.md](../../offline.md) §4)。验证:`ip link set eth0 down` 后在新工程 `cargo add <未缓存crate>` 瞬时失败;✅ 工具链/组件/target 字节构建期全进 /opt/rustup、预热 crate 在 /opt/cargo registry,断网 `rustc --version` 与依赖全缓存的工程 `cargo build` 不触网(家目录软链 fresh 验收实证);☐ [推断:] windows-gnu 经 mingw-w64(install-tools.sh bof 组)、apple-darwin 纯 Rust 经 zig 桩的离线交叉链接未单独断网冒烟;☐ [推断:] cargo-audit 首跑要拉 rustsec advisory-db,断网不可用属预期
+## rctl 面(机器行:catalog 投影声明,audit 豁免依据)
+
+- rctl: rustc kind=compiler path=/usr/local/bin/rustc note=Rust 编译器本尊
+- rctl: cargo kind=compiler path=/usr/local/bin/cargo
+- rctl: rustup kind=compiler path=/usr/local/bin/rustup
+- rctl: rust-script kind=tool path=/usr/local/bin/rust-script note=单文件 Rust 脚本(CRATE_PIN 独立钉)
+- rctl: cargo-zigbuild kind=tool path=/usr/local/bin/cargo-zigbuild note=cargo 交叉编译 zig 后端(独立钉)
+- rctl: cargo-audit kind=tool path=/usr/local/bin/cargo-audit note=依赖审计(独立钉)
+- rctl: rust-lld kind=compiler path=/usr/local/bin/rust-lld
+- rctl: rustup kind=compiler path=/opt/rustup note=工具链管理本体(已并入 rust 册 rctl 面)
+
 - **坑与留痕**:非登录 shell(incus exec)不读 profile.d,rustup shim 回落 `$HOME/.rustup` 报 no default——离线面靠家目录软链不靠 env([ADR-0004](../../adr/ADR-0004-offline-first-fail-fast.md));config 段名 `tuna-sparse` 与 log 文案是历史命名,实际索引由 `CRATES_INDEX` 决定(默认 rsproxy.cn);rust-lld 探测 `ls` 多 glob 缺一操作数即退 2,pipefail 下赋值整句挂,末尾 `|| true` 兜底(/opt/rustup 与旧 /root/.rustup 两布局都探);幂等:仅 rustup-init 有 `have rustc` 早退,config/profile/软链/预热每轮重写;nightly 不在本组——coffee-ldr 需要时由 bof 组按需 `rustup toolchain install nightly`(install-surfaces 与 software-inventory 把 nightly 记在本组系漂移,以脚本为准);tools 组经 root `~/.cargo` 装的件(ast-grep 等)只链二进制,残留面见 [known-issues](../../known-issues.md)

@@ -7,6 +7,13 @@
 - **落点**:`/opt/re-venv`(19 包 + RsaCtfTool 依赖,与逆向五库/工具同一 venv);`/opt/wheelhouse`(pip 轮子离线重装源);`/opt/RsaCtfTool`(参考克隆);volatility3 的 CLI 链 `/usr/local/bin/{vol,volshell}`
 - **配置与缓存**:运行期消费面是 `/etc/pip.conf`(install-runtimes.sh python 组写):`[install] no-index=true find-links=/opt/wheelhouse`,`pip install <轮子内包>` 免旗标直装;uv 面是 `/etc/uv/uv.toml` `offline=true`(runtimes uv 组)。机制见 [offline.md](../../offline.md) §1/§4
 - **离线行为**:✅ 轮子内包断网直装实证(五生态快失败轮,`pip --no-index` 在断网冒烟清单):`ip link set eth0 down` 后 `pip install --no-index --find-links /opt/wheelhouse pefile` 退 0;✅ 轮子外的包立即 No matching distribution 快失败;vol/volshell 断网可用 ☐ [推断:二进制与依赖全在 /opt/re-venv 盘上,运行不触网]
+## rctl 面(机器行:catalog 投影声明,audit 豁免依据)
+
+- rctl: vol kind=tool path=/usr/local/bin/vol note=volatility3 CLI(PYPI_PIN 独立钉,re-venv 链出)
+- rctl: volshell kind=tool path=/usr/local/bin/volshell
+- rctl: netexec kind=tool path=/usr/local/bin/netexec note=NetExec(原 CrackMapExec 续作,re-venv 链出)
+- rctl: floss kind=tool path=/usr/local/bin/floss note=FLARE 伪代码字符串提取(re-venv 链出)
+
 - **坑与留痕**:uv 无 `pip download` 子命令,须先给 venv 装 pip 再拉轮子(`pip download` 不受 pip.conf `[install]` 节影响,构建期不被离线面拦);volatility3 的 CLI 随包装进 venv,不链出就没有 vol 命令;只锁 requirements 断网等于没装(没有索引可解析),必须固化轮子字节;uv 不合并配置——用户级 `~/.config/uv/uv.toml` 一旦存在,系统级 `/etc/uv/uv.toml` 整份被忽略,离线默认随之失效(实证 uv 0.12.15,[ADR-0004](../../adr/ADR-0004-offline-first-fail-fast.md))
 
 成员清单(19 包 + RsaCtfTool,以脚本 `install_python()` 为准):

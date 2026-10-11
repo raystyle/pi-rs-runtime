@@ -257,6 +257,8 @@ SCALARS=(
     CLAUDE_CODE_VERSION:claude_code_latest:
     CODEX_VERSION:codex_latest:
     CLAUDE_ACP_VERSION:claude_acp_latest:
+    ALIYUN_CLI_VERSION:aliyun_cli_latest:
+    TCCLI_VERSION:tccli_latest:
     CODEX_ACP_VERSION:codex_acp_latest:
     FRIDA_VERSION:git_latest_tag:frida/frida
     FRIDA_TOOLS_VERSION:pypi_latest:frida-tools
@@ -269,6 +271,8 @@ bun_latest() { curl -fsSL -m 15 "https://registry.npmmirror.com/bun/latest" 2>/d
 claude_code_latest() { npm_latest "@anthropic-ai/claude-code"; }
 codex_latest() { npm_latest "@openai/codex"; }
 claude_acp_latest() { npm_latest "@agentclientprotocol/claude-agent-acp"; }
+aliyun_cli_latest() { git_latest_tag "aliyun/aliyun-cli" "v"; }
+tccli_latest() { curl -fsSL -m 15 "https://pypi.org/pypi/tccli.json" 2>/dev/null | grep -o '"version":"[^"]*"' | head -1 | cut -d'"' -f4 || true; }
 codex_acp_latest() { npm_latest "@agentclientprotocol/codex-acp"; }
 # 无干净索引面:软钉留空,消费点回退最新并警告(known-issues 留痕)
 awscli_soft() { :; }

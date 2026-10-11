@@ -25,4 +25,11 @@
 | gh | `gh` | `go_install_pin …/cli/v2/cmd/gh`(GO_PIN v2.102.0,goproxy.cn) | `/opt/go/bin` 链 `/usr/local/bin` |
 
 - **离线行为**:☐ [推断:]本地件(jq/yq/shellcheck/just/tmux/fzf/bat/htop/ncdu/moreutils/vim、git 本地操作)不触网;联网面(rclone/aria2c 下载、gh API、git remote)断网失败属设计边界,见 [docs/offline.md](../../offline.md) 边界节;断网冒烟 78/0 覆盖工具面但逐件名单未留档,本组未单独实证。验证:`ip link set eth0 down` 后 `yq --version >/dev/null && just --version >/dev/null && gh --version >/dev/null` 退 0
+## rctl 面(机器行:catalog 投影声明,audit 豁免依据)
+
+- rctl: eslint kind=runtime path=/usr/local/bin/eslint note=npm 全局件
+- rctl: prettier kind=runtime path=/usr/local/bin/prettier note=npm 全局件
+- rctl: typescript kind=runtime path=/usr/local/bin/tsc note=ts 编译器(npm 全局)
+- rctl: tsserver kind=runtime path=/usr/local/bin/tsserver note=typescript LSP 服务面
+
 - **坑与留痕**:**go 产物必须 `GOPATH=/opt/go`**——不设则 `go install` 落 `/root/go`(0700),ubuntu 不可执行(脚本注释实证;旧镜像曾未设 GOPATH 且只链 yq,gh 对 ubuntu 不可执行,留痕 [known-issues](../../known-issues.md),现脚本 yq/gh 都设都链);**just 兜底必须显式指 /opt/cargo**(与 [astgrep](../tools-astgrep/astgrep.md) 同式 export RUSTUP_HOME/CARGO_HOME + PATH),否则 cargo 产物落 `/root/.cargo`(0700),ubuntu 同样不可执行;离线期 yq/gh/just 的 go/cargo 重装会撞快失败默认,属预期([ADR-0004](../../adr/ADR-0004-offline-first-fail-fast.md))
