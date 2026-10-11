@@ -15,3 +15,7 @@
 [c-toolchain(21 apt+FASM)](../items/compilers/c-toolchain.md) · [golang](../items/compilers/golang.md) · [rust](../items/compilers/rust.md) · [zig](../items/compilers/zig.md) · [nim](../items/compilers/nim.md) · [vcpkg](../items/compilers/vcpkg.md)
 
 返回 [安装面清单](index.md)。
+
+## 2026-10-11 新增组:cross(REQ-0004)
+
+四套 g++-13 交叉链(aarch64/armhf/mipsel/mips-linux-gnu,不装 crossbuild 元包)+ i386(libc6-dev-i386 头道)。坑(实证入册):gcc-multilib 与 cross 包打包声明互斥;noble 交叉命令带 -13 代号无裸名;aarch64 -static 静态编译实证过。

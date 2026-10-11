@@ -30,7 +30,7 @@
 
 映射规则:`gen-rctl-catalog.sh` env_of(id 名单 + 组默认 + kind=data 到数据信息搜索/ref 到代码样板参考 + 机器行 env= 覆盖);活视图 `rctl --env <域>`、面板七域计数。kind 与域是两个面(clickhouse:kind=runtime,域=数据分析,非双归)。
 
-## tools(install-tools.sh,52 册)
+## tools(install-tools.sh,56 册)
 
 | 组 | 册 |
 |---|---|
@@ -65,6 +65,6 @@
 | acp | [acp](tools-acp/acp.md)(ACP v1+stdio 通道:适配器+监督进程 acpsup,REQ-0002) |
 | chrome | [clean-chrome](tools-chrome/clean-chrome.md)(定制 Chromium 155,云端道+sha256 锚) |
 
-计数对账:compilers 6 / runtimes 16 / libcache 8 / tools 54 = 84 册;组册承载的批量件数见各组册成员表(组册成员数 = 脚本实装件数)。
+计数对账:compilers 6 / runtimes 16 / libcache 8 / tools 56 = 86 册(2026-10-11 复点);组册承载的批量件数见各组册成员表(组册成员数 = 脚本实装件数)。
 
 返回 [docs 文档地图](../README.md)。

@@ -62,3 +62,16 @@
 | `VNC_RES` / `VNC_DISPLAY` / `VNC_PORT` | `1280x800x24` / `:99` / `5900` | `vnc-screen.sh`;VNC 只绑 `127.0.0.1` |
 | `VNC_PASS` | 空 | 未提供且 `~/.vnc/passfile` 不存在时生成 12 位随机口令并打印 |
 
+
+
+## 2026-10-11 新增标量钉(agent 平台轮)
+
+| 标量 | 当前 | 面 |
+|---|---|---|
+| BUN_VERSION | 1.4.3 | bun(rctl/acpsup 编译期闸) |
+| CLAUDE_CODE_VERSION / CODEX_VERSION | 2.1.296 / 0.162.1 | agent CLI |
+| CLAUDE_ACP_VERSION / CODEX_ACP_VERSION | 0.89.1 / 2.2.2 | ACP 适配器 |
+| ALIYUN_CLI_VERSION / TCCLI_VERSION | v3.5.1 / 3.1.180.1 | 云 CLI |
+| STEGSEEK_VERSION + STEGSEEK_SHA256 | 0.6 + deb sha256 | stegseek(release deb 锚) |
+
+npm/pypi/git/gem 新钉:rea-agents 6.3.0、aioquic 1.4.0、qiling 1.4.6、angr 10.0.3、git-dumper 1.0.9、apkid 3.1.0、one_gadget 1.10.0(Ruby3.2 面)、seccomp-tools 1.7.1、zsteg 0.2.14;git 新钉:LOLBAS/webappanalyzer/exploitdb(GitLab 直连道)/hacktricks(浅克隆文本面)/gtfobins(.github.io 源仓)/phpggc/commix/SSTImap。

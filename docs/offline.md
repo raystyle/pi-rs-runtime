@@ -19,11 +19,11 @@
 | PowerShell | `/opt/psmodules` | 软链进 `/usr/local/share/powershell/Modules`(pwsh 默认系统模块路径) |
 | Zig | `/opt/zig-cache`(hash 钉在 `/opt/zig-prewarm/build.zig.zon`) | 家目录软链 `~/.cache/zig`;可写共享(piopt 组 + 默认 ACL,见 §5);cargo-zigbuild 缓存同形 |
 | 扫描器库 | `/opt/trivy-db`、`/opt/nuclei-templates`、capa 规则 | wrapper 注入(见下) |
-| 数据 | SecLists、wordlists+rockyou、frida-server 八平台、PoC-in-GitHub 索引 | 直接读盘 |
+| 数据 | SecLists、wordlists+rockyou、frida-server 八平台、PoC-in-GitHub 索引;2026-10-11 扩:exploitdb(47799 文件)、LOLBAS、gtfobins(.github.io 源仓 478 条)、webappanalyzer、hacktricks 文本面(1095 篇 18M) | 直接读盘 |
 
 ### 2. wrapper 层(/usr/local/bin,压过 PATH 后段)
 
-`nuclei`(-duc 禁更新检查)、`trivy`(默认 `TRIVY_CACHE_DIR=/opt/trivy-db` + env 注入 `TRIVY_SKIP_DB_UPDATE/TRIVY_SKIP_JAVA_DB_UPDATE/TRIVY_SKIP_CHECK_UPDATE`;`--download-*` 按精确旗标直通真身)、`capa`、`poc-search`、`responder`、`enum4linux-ng`、`krbrelayx`、`bloodhound-python`、`cewl`、`jwt-tool`、`linkfinder`。
+`nuclei`(-duc 禁更新检查)、`trivy`(默认 `TRIVY_CACHE_DIR=/opt/trivy-db` + env 注入 `TRIVY_SKIP_DB_UPDATE/TRIVY_SKIP_JAVA_DB_UPDATE/TRIVY_SKIP_CHECK_UPDATE`;`--download-*` 按精确旗标直通真身)、`capa`、`poc-search`、`responder`(re-venv python,aioquic 依赖)、`enum4linux-ng`、`krbrelayx`、`bloodhound-python`、`cewl`、`jwt-tool`、`linkfinder`;2026-10-11 扩:`rea`(Ghidra provider env 固化)、`rctl`(数据面直读零网络)、`acpsup`(stdio+回环 7663)、`phpggc`(php8.3)、`commix`(python3)、`sstimap`(独立 venv)、`rea-agents`。
 
 注意:**alias 在 `incus exec` 这类非交互 shell 不生效**,所有运行期行为修正都必须落成 wrapper 文件,不能只写 alias。
 

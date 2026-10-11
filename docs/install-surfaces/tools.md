@@ -25,3 +25,15 @@
 | pentest / red / msf / vnc | [pentest(36 apt+接线)](../items/tools-pentest/pentest.md) · [hashcat](../items/tools-pentest/hashcat.md) · [responder](../items/tools-pentest/responder.md) · [donut](../items/tools-pentest/donut.md) · [frida](../items/tools-pentest/frida.md) · [red(24 件)](../items/tools-red/red.md) · [bloodhound-ce](../items/tools-red/bloodhound-ce.md) · [enum4linux-ng](../items/tools-red/enum4linux-ng.md) · [evil-winrm](../items/tools-red/evil-winrm.md) · [cyberchef](../items/tools-red/cyberchef.md) · [trivy](../items/tools-red/trivy.md) · [msf](../items/tools-msf/msf.md) · [vnc(桌面+noVNC Web 面)](../items/tools-vnc/vnc.md) |
 
 返回 [安装面清单](index.md)。
+
+## 2026-10-11 新增组(agent 平台轮)
+
+| 组 | 机制 |
+|---|---|
+| `cloud` | aliyun(release tar 道,资产名无 v 前缀)+ tccli(uv tool 道);凭证使用期注入 |
+| `data` | 数据语料面:LOLBAS/webappanalyzer(GitHub 钉)/exploitdb(**GitLab 直连道**,同 clone_pin 语义内联)/hacktricks(浅克隆剔 .git/图,18M 文本面)/gtfobins(.github.io 源仓道,主仓被代理 403);.ht-pin 幂等 |
+| `agents` | claude-code/codex npm 钉版(linux-x64 可选依赖禁 omit)+ managed-settings.json 策略(凭证不进 rootfs) |
+| `acp` | ACP 适配器钉版+acpsup 监督进程(bun 编译);selftest 协议级自证 |
+| `ctl` | rctl 核心 CLI(bun 编译,bun 版本闸;烤库 /var/lib/rctl+index) |
+
+`pentest` 组同批扩:CFT pwn gems(one_gadget Ruby3.2 面 1.10.0/seccomp-tools)、REQ-0004 九件(zsteg gem/stegseek deb sha256 钉/outguess/foremost apt/phpggc wrapper php8.3/git-dumper/apkid uv-tool/commix wrapper/SSTImap 独立 venv);`re` 组扩:qiling 进 re-venv、angr 独立 /opt/angr-venv(禁 extra)。
