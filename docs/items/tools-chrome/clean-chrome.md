@@ -1,6 +1,6 @@
 # clean-chrome
 
-> 定制 Chromium(云安全场景:`--auto-allow-devtools-connections`、`--remote-debugging-address`、bad-flags 黄条已剔除)｜ 状态:已装 ｜ 组:`install-tools.sh chrome`
+> 定制 Chromium(云安全场景:`--auto-allow-devtools-connections`、bad-flags 黄条已剔除)｜ 状态:**暂不装**(上游修 bug 期用户裁定 2026-10-10;组保留,显式 `install-tools.sh chrome` 可装)｜ 组:`install-tools.sh chrome`
 
 - **版本钉**:pins.sh 标量 `CHROME_VERSION`(当前 155.0.8059.39,跟云端 latest 指针)+ `CHROME_SHA256` 锚;升级跑 `scripts/resolve-pins.sh`(解析器二段:先 latest 指针再边车 sha)
 - **来源与安装**:云端安装道 `chrome.ohmygh.com/<版本>/chromium-<版本>-x86_64-unknown-linux-gnu.zip` + 同名 `.sha256` 边车(无 manifest;**非 GitHub 系,不走 GITHUB_MIRROR**);下载 → sha256 校验(不符即 return 1)→ 解到 `/opt/clean-chrome/<ver>` 并摊平顶层目录 → `.version` 标记幂等 → `/opt/clean-chrome/CURRENT` 写当前版(云端道 manifest 的最小复刻)

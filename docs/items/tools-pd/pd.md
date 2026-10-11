@@ -4,10 +4,10 @@
 
 - **版本钉**:pins.sh 钉版(解析日 2026-10-10):20 件逐件取 `GO_PIN[github.com/projectdiscovery/<模块>]`(`go_pin_ver`,缺钉即响跳过;旧 `PD_VERSION` 变量已弃用,lib/common.sh 仅保留防空引用);`have` 早退意味着「钉版首次装到的那份」,升级跑 scripts/resolve-pins.sh 换钉后删二进制重跑
 - **来源与安装**:[projectdiscovery.io](https://projectdiscovery.io)(各件仓在 github.com/projectdiscovery 组织下,成员表列模块路径);安装面 `scripts/install-tools.sh` `install_pd`;经 `GOPROXY=goproxy.cn,direct` + `GOSUMDB=sum.golang.google.cn`(common.sh export);清单可用 `PD_TOOLS` 环境变量整表替换(默认 `PD_TOOLS_DEFAULT` 20 件)
-- **落点**(批量机制):组内显式 `export GOPATH=/opt/go`,产物落 `/opt/go/bin/<bin>` 并逐件 `ln -sf` 到 `/usr/local/bin/<bin>`;二进制名取模块路径末段(`chaos-client/cmd/chaos` → `chaos`,`interactsh/cmd/interactsh-client` → `interactsh-client`);naabu 另装 `libpcap-dev` 并 `setcap cap_net_raw,cap_net_admin+eip`(SYN 扫描免 sudo,ubuntu 视角可跑)
-- **配置与缓存**(批量机制):无组级配置文件;go 模块缓存共用 `/opt/go/pkg/mod`,运行期 `GOPROXY=off` 默认见 [offline.md](../../offline.md) §1/§4;nuclei 模板缓存与 wrapper 不在本组——是 pentest 组的离线接线,见 [nuclei.md](nuclei.md)
-- **离线行为**:✅ 版本面/帮助面断网可用(纯 Go 静态二进制、无自更新;渗透工具面断网冒烟口径见 [offline.md](../../offline.md) §验证)。验证:`ip link set eth0 down` 后 `httpx -version` 退 0。✅ 外网型动作(subfinder 被动源、uncover/cloudlist/chaos/cvemap 云端 API)断网失败属设计边界([offline.md](../../offline.md) §边界实证口径)。☐ [推断:] 对本地/内网目标的扫描(naabu/httpx/katana/dnsx)断网可用;验证:断网后 `python3 -m http.server 8000` 起本地服务,`httpx -u http://127.0.0.1:8000 -silent` 有输出
-- **坑与留痕**:python httpx 撞名案——red 组 venv 依赖 CLI 曾盖掉本组 Go httpx,已改白名单链接+残留清理并把 `/opt/go/bin/httpx` 还回(install-tools.sh red 段;[ADR-0003](../../adr/ADR-0003-uv-tool-isolation-whitelist-linking.md));单件编译失败不阻断批(`echo "!! <bin> 编译失败(留待排查)"`),对账以组尾「已装 PD 工具」清单为准;nuclei 的模板钉 /opt 与 `-duc` wrapper 属 pentest 组装机序,单独重跑 pd 组不会重建 wrapper
+- **落点**(批量机制):组内显式 `export GOPATH=/opt/go`,产物落 `/opt/go/bin/<bin>` 并逐件 `ln -sf` 到 `/usr/local/bin/<bin>`;二进制名取模块路径末段(`chaos-client/cmd/chaos` 的 bin 是 `chaos`,`interactsh/cmd/interactsh-client` 的 bin 是 `interactsh-client`);naabu 另装 `libpcap-dev` 并 `setcap cap_net_raw,cap_net_admin+eip`(SYN 扫描免 sudo,ubuntu 视角可跑)。2026-10-11 回归修:幂等判据与链接从 PATH 的 `have` 改看 `$GOPATH/bin/<bin>` 文件,skip 分支也补链(实证修复 cvemap 装而未链,F4 批直装产物不经组循环时的漏链面)
+- **配置与缓存**(批量机制):无组级配置文件;go 模块缓存共用 `/opt/go/pkg/mod`,运行期 `GOPROXY=off` 默认见 [offline.md](../../offline.md) §1/§4;nuclei 模板缓存与 wrapper 不在本组,是 pentest 组的离线接线,见 [nuclei.md](nuclei.md)
+- **离线行为**:过,版本面/帮助面断网可用(纯 Go 静态二进制、无自更新;渗透工具面断网冒烟口径见 [offline.md](../../offline.md) §验证)。验证:`ip link set eth0 down` 后 `httpx -version` 退 0。边界:外网型动作(subfinder 被动源、uncover/cloudlist/chaos/cvemap 云端 API)断网失败属设计边界([offline.md](../../offline.md) §边界实证口径)。未验[推断]:对本地/内网目标的扫描(naabu/httpx/katana/dnsx)断网可用;验证:断网后 `python3 -m http.server 8000` 起本地服务,`httpx -u http://127.0.0.1:8000 -silent` 有输出
+- **坑与留痕**:python httpx 撞名案:red 组 venv 依赖 CLI 曾盖掉本组 Go httpx,已改白名单链接+残留清理并把 `/opt/go/bin/httpx` 还回(install-tools.sh red 段;[ADR-0003](../../adr/ADR-0003-uv-tool-isolation-whitelist-linking.md));单件编译失败不阻断批(`echo "!! <bin> 编译失败(留待排查)"`),对账以组尾「已装 PD 工具」清单为准;nuclei 的模板钉 /opt 与 `-duc` wrapper 属 pentest 组装机序,单独重跑 pd 组不会重建 wrapper;2026-10-11 回归:cvemap 曾装而未链(直装产物不经组循环),skip 分支补链后销账
 
 ## 成员表(20)
 
@@ -25,7 +25,7 @@
 | interactsh-client | interactsh/cmd/interactsh-client | OOB 外带交互客户端 |
 | chaos | chaos-client/cmd/chaos | Chaos DNS 数据集客户端(二进制名 chaos) |
 | mapcidr | mapcidr/cmd/mapcidr | CIDR 切分/聚合 |
-| asnmap | asnmap/cmd/asnmap | ASN↔CIDR 映射 |
+| asnmap | asnmap/cmd/asnmap | ASN 与 CIDR 互查映射 |
 | tlsx | tlsx/cmd/tlsx | TLS 配置分析 |
 | proxify | proxify/cmd/proxify | 抓包代理 |
 | simplehttpserver | simplehttpserver/cmd/simplehttpserver | 简易 HTTP(S) 文件服务 |

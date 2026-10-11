@@ -199,7 +199,9 @@ install_uv() {
     if have uv; then uv --version; echo "已安装,跳过"; return; fi
     # 用户裁定:不碰系统 python3,uv 用官方独立安装器(装到 ~/.local/bin),钉版走版本化 URL
     curl -LsSf "https://astral.sh/uv/${UV_VERSION:+${UV_VERSION}/}install.sh" | sh
-    [ -e "$HOME/.local/bin/uv" ] && ln -sf "$HOME/.local/bin/uv" /usr/local/bin/uv
+    # 链接不许进 /root:root 家目录 0700,软链穿不过去,ubuntu 视角 exec 即 Permission denied
+    # (2026-10-11 回归实证);uv 是独立静态件,直接拷成实体
+    [ -e "$HOME/.local/bin/uv" ] && install -m755 "$HOME/.local/bin/uv" /usr/local/bin/uv
     export UV_DEFAULT_INDEX="$PIP_INDEX"
     uv --version
 }

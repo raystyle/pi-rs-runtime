@@ -11,6 +11,9 @@
 #   ./vnc-screen.sh status          # 校验屏幕与监听只绑回环
 #   ./vnc-screen.sh chrome          # clean-chrome 上 :99 屏 + CDP 9222 冒烟(T3)
 #   ./vnc-screen.sh stop            # 停轻量面;desktop-stop 停桌面面
+# 环境限制(2026-10-11 实证,known-issues「宿主层信号投递策略」):本机容器内非 pid1
+# 进程的信号 syscall 全被宿主侧策略拦(EPERM),stop/chrome-stop 的 pkill 摘不掉进程,
+# 只能等自然退出或 incus restart 清残留;端口监听的面照常可查(status)。
 # 宿主侧一次性(把端口引到宿主回环,不开公网):
 #   轻量:sudo incus config device add <实例> vnc proxy listen=tcp:127.0.0.1:5900 connect=tcp:127.0.0.1:5900
 #   桌面:sudo incus config device add <实例> novnc proxy listen=tcp:127.0.0.1:6080 connect=tcp:127.0.0.1:6080

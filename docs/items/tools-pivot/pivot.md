@@ -7,14 +7,14 @@
 
   | 件 | 来源 | 安装方式 |
   |---|---|---|
-  | gost | [go-gost/gost](https://github.com/go-gost/gost)(v3;失败退回 [ginuerzh/gost](https://github.com/ginuerzh/gost)) | go_install_pin 钉 GO_PIN 伪版本 → /opt/go/bin/gost 链出 |
+  | gost | [go-gost/gost](https://github.com/go-gost/gost)(v3;失败退回 [ginuerzh/gost](https://github.com/ginuerzh/gost)) | go_install_pin 钉 GO_PIN 伪版本,产物 /opt/go/bin/gost 链出 |
   | frps | [fatedier/frp](https://github.com/fatedier/frp) releases | 按 `FRP_VERSION`(v0.71.0)下 release tarball(空钉回退 api.github.com latest),`install -m755` 直落 /usr/local/bin;架构按 `dpkg --print-architecture` 自动取 amd64/arm64 |
   | frpc | 同上(同一 tarball) | 同上,直落 /usr/local/bin |
-  | wstunnel | [erebe/wstunnel](https://github.com/erebe/wstunnel) | 不在 crates.io,`cargo install --git … --locked --rev` 钉 GIT_PIN sha → /opt/cargo/bin 链出 |
-  | rathole | [rathole-org/rathole](https://github.com/rathole-org/rathole) | cargo_install_pin 钉 CRATE_PIN 0.5.0(`--locked --version`),失败退 `cargo install --git` 钉 GIT_PIN sha → /opt/cargo/bin 链出 |
-  | bore | [ekzhang/bore](https://github.com/ekzhang/bore) | cargo_install_pin 钉 CRATE_PIN 0.6.0(crate 名 bore-cli,二进制 bore,`--locked`) → /opt/cargo/bin 链出 |
+  | wstunnel | [erebe/wstunnel](https://github.com/erebe/wstunnel) | 不在 crates.io,`cargo install --git … --locked --rev` 钉 GIT_PIN sha,产物 /opt/cargo/bin 链出 |
+  | rathole | [rathole-org/rathole](https://github.com/rathole-org/rathole) | cargo_install_pin 钉 CRATE_PIN 0.5.0(`--locked --version`),失败退 `cargo install --git` 钉 GIT_PIN sha,产物 /opt/cargo/bin 链出 |
+  | bore | [ekzhang/bore](https://github.com/ekzhang/bore) | cargo_install_pin 钉 CRATE_PIN 0.6.0(crate 名 bore-cli,二进制 bore,`--locked`),产物 /opt/cargo/bin 链出 |
 
-- **落点**(批量机制):Go 产物落 /opt/go/bin(`GOPATH=/opt/go`)再 `ln -sf` 到 /usr/local/bin;Rust 产物落 /opt/cargo/bin(`CARGO_HOME=/opt/cargo`;链接循环用 root 的 ~/.cargo/bin 做存在判断,~/.cargo 是 /opt/cargo 的软链)再链 /usr/local/bin;frps/frpc 例外,直落 /usr/local/bin。六件入口名同件名
-- **配置与缓存**:无——不写配置、不做 wrapper、不固化缓存;构建期 go/cargo 在线面由 lib/common.sh 提供(导出 `GOPROXY`、`CARGO_NET_OFFLINE=false`),运行期离线默认见 [offline.md](../../offline.md) §4
-- **离线行为**:☐ [推断:] server 端起 listener、client 连内网目标均不依赖外网,断外网(内网可达)下可用,eth0 全断退化为 loopback 对连;bore 默认公网服务器 bore.pub 这类天然面向外网的用法断网不可用,属设计([offline.md](../../offline.md) 边界同口径)。发布门禁断网冒烟 78/0 通过(覆盖面含渗透工具面,逐件明细未归档)。建议验证:`ip link set eth0 down` 后 `gost -V && frps -v && bore --version` 退 0
-- **坑与留痕**:frp 不走 go install——go.mod 带 replace 被拒、源码 build 又缺 web/dist(embed 失败),改 release 预编译(脚本注释实证);注释「arm 机器改 FRP_ARCH」是旧口径,代码已自动按架构取值,以代码为准;rathole 钉 0.5.0——其老锁在新 rustc 上可能编不过,cargo_install_pin 失败则退 git 钉 sha 退路;升级任一件需先删 /opt/go/bin 或 /opt/cargo/bin 对应产物再重跑本组
+- **落点**(批量机制):Go 产物落 /opt/go/bin(`GOPATH=/opt/go`)再 `ln -sf` 到 /usr/local/bin;Rust 产物落 /opt/cargo/bin(`CARGO_HOME=/opt/cargo`;链接循环用 root 的 ~/.cargo/bin 做存在判断,~/.cargo 是 /opt/cargo 的软链)再链 /usr/local/bin;frps/frpc 例外,直落 /usr/local/bin。六件入口名同件名。2026-10-11 回归注:gost 曾由 F4 钉版批直装进 /opt/go/bin(不经本组循环),组尾链接循环没再跑致 /usr/local/bin 缺链、非登录 shell 不可用;重跑本组即愈(链接循环按 $gobin 存在性无条件链)
+- **配置与缓存**:无,不写配置、不做 wrapper、不固化缓存;构建期 go/cargo 在线面由 lib/common.sh 提供(导出 `GOPROXY`、`CARGO_NET_OFFLINE=false`),运行期离线默认见 [offline.md](../../offline.md) §4
+- **离线行为**:未验: [推断:] server 端起 listener、client 连内网目标均不依赖外网,断外网(内网可达)下可用,eth0 全断退化为 loopback 对连;bore 默认公网服务器 bore.pub 这类天然面向外网的用法断网不可用,属设计([offline.md](../../offline.md) 边界同口径)。发布门禁断网冒烟 78/0 通过(覆盖面含渗透工具面,逐件明细未归档)。建议验证:`ip link set eth0 down` 后 `gost -V && frps -v && bore --version` 退 0
+- **坑与留痕**:frp 不走 go install,go.mod 带 replace 被拒、源码 build 又缺 web/dist(embed 失败),改 release 预编译(脚本注释实证);注释「arm 机器改 FRP_ARCH」是旧口径,代码已自动按架构取值,以代码为准;rathole 钉 0.5.0,其老锁在新 rustc 上可能编不过,cargo_install_pin 失败则退 git 钉 sha 退路;升级任一件需先删 /opt/go/bin 或 /opt/cargo/bin 对应产物再重跑本组

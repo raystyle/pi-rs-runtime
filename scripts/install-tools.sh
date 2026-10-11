@@ -96,13 +96,19 @@ install_pd() {
     # shellcheck disable=SC2206
     local tools=( ${PD_TOOLS:-} ); [ ${#tools[@]} -eq 0 ] && tools=("${PD_TOOLS_DEFAULT[@]}")
     local t bin
+    local gobin; gobin="$(go env GOPATH 2>/dev/null || echo "$HOME/go")/bin"
     for t in "${tools[@]}"; do
         bin="${t##*/}"
-        if have "$bin"; then echo "$bin 已装,跳过"; continue; fi
+        # 幂等判据看 $gobin 文件(组内已 export PATH 含它,但别处直装进 $gobin 的件——
+        # 回归实证 cvemap——skip 分支也必须补链,否则非登录 shell 整件不可用)
+        if [ -e "$gobin/$bin" ]; then
+            ln -sf "$gobin/$bin" "/usr/local/bin/$bin"
+            echo "$bin 已装($gobin/$bin),跳过"; continue
+        fi
         local pv; pv="$(go_pin_ver "github.com/projectdiscovery/${t}")" || { echo "!! $bin 缺钉,跳过"; continue; }
         echo "--- go install $t@${pv}(钉)"
-        go install "github.com/projectdiscovery/${t}@${pv}" || echo "!! $bin 编译失败(留待排查)" 
-        have "$bin" && ln -sf "$(command -v "$bin")" "/usr/local/bin/$bin"
+        go install "github.com/projectdiscovery/${t}@${pv}" || echo "!! $bin 编译失败(留待排查)"
+        [ -e "$gobin/$bin" ] && ln -sf "$gobin/$bin" "/usr/local/bin/$bin"
     done
     echo "已装 PD 工具:"; for t in "${tools[@]}"; do command -v "${t##*/}" >/dev/null && printf '  %s\n' "${t##*/}"; done
     # nuclei 模板(从 GitHub 拉,国内可能慢,失败不影响工具本体)
@@ -139,7 +145,10 @@ install_secgo() {
     # shellcheck disable=SC2206
     local tools=( ${SECGO_TOOLS:-} ); [ ${#tools[@]} -eq 0 ] && tools=("${SECGO_TOOLS_DEFAULT[@]}")
     local spec path repo bin first last produced
-    local gobin; gobin="$(go env GOBIN 2>/dev/null || true)"; [ -n "$gobin" ] || gobin="$HOME/go/bin"
+    # gobin 兜底必须走 GOPATH/bin:GOPATH=/opt/go 时 $HOME/go/bin 是错位路径,
+    # 链接会悬空(回归实证:amass/azurehound 装进 /opt/go/bin 而 /usr/local/bin 无链)
+    local gobin; gobin="$(go env GOBIN 2>/dev/null || true)"
+    [ -n "$gobin" ] || gobin="$(go env GOPATH 2>/dev/null || echo "$HOME/go")/bin"
     for spec in "${tools[@]}"; do
         path="${spec%@*}"; repo="${spec#*@}"
         first="${path%%/*}"; last="${path##*/}"
@@ -147,17 +156,25 @@ install_secgo() {
         bin="$first"
         produced="$last"
         [ "$last" = "..." ] && produced="$first"
-        if have "$bin"; then echo "$bin 已装,跳过"; continue; fi
+        # 幂等判据看文件不看 PATH:非登录 shell 的 PATH 不含 $gobin,have 会假阴,
+        # 已装件会被反复 go install(回归实证:换 shell 视角即整组重编译)
+        if [ -e "$gobin/$bin" ]; then echo "$bin 已装($gobin/$bin),跳过"; continue; fi
         local sv; sv="$(go_pin_ver "${repo}/${path%/...}")" || { echo "!! $bin 缺钉,跳过"; continue; }
         echo "--- go install $repo/$path@${sv}(钉)"
         if go install "${repo}/${path}@${sv}"; then
-            if ! have "$bin" && [ "$produced" != "$bin" ] && [ -f "$gobin/$produced" ]; then
+            if [ "$produced" != "$bin" ] && [ -f "$gobin/$produced" ] && [ ! -e "$gobin/$bin" ]; then
                 mv "$gobin/$produced" "$gobin/$bin"   # v2/v3/v8 -> ffuf/gobuster/gitleaks
             fi
-            have "$bin" && ln -sf "$gobin/$bin" "/usr/local/bin/$bin"
+            [ -e "$gobin/$bin" ] && ln -sf "$gobin/$bin" "/usr/local/bin/$bin"
         else
             echo "!! $bin 编译失败(留待排查)"
         fi
+    done
+    # 链接兜底:$gobin 有本体而 /usr/local/bin 缺链的(历史批次装后未链——非登录 shell
+    # PATH 不含 $gobin,链接缺即整件不可用;回归实证 amass/azurehound 两件)
+    for spec in "${tools[@]}"; do
+        path="${spec%@*}"; bin="${path%%/*}"
+        [ -e "$gobin/$bin" ] && ln -sf "$gobin/$bin" "/usr/local/bin/$bin"
     done
     echo "已装:"; for spec in "${tools[@]}"; do path="${spec%@*}"; bin="${path%%/*}"; have "$bin" && printf '  %s\n' "$bin"; done
     # trufflehog:上游 go.mod 带 replace 指令,@版本 被 go 拒装(实证 v3.99.2);改 release 预编译
@@ -810,10 +827,16 @@ install_pentest() {
     # masscan 与 naabu 同理:原始套接字,给 ubuntu 用户免 sudo 跑
     have masscan && setcap cap_net_raw,cap_net_admin+eip "$(command -v masscan)" 2>/dev/null || true
     # sasquatch:binwalk 解非标准 SquashFS 的补丁版,源码构建
+    # 钉 sha b34aa5e 起上游重构:根目录 build.sh 已删,构建面是 squashfs-tools/Makefile
+    # 的 all: sasquatch 目标(产物即名 sasquatch;实证 2026-10-11,旧 ./build.sh 报 No such file)
+    # Makefile 默认全压缩机,xz/lzo/lz4/zstd 四个 dev 头必须先装(实证缺一即 fatal error)
     if ! have sasquatch; then
         local gh="${GITHUB_MIRROR}https://github.com"
+        apt-get install -y --no-install-recommends liblzma-dev liblzo2-dev liblz4-dev libzstd-dev zlib1g-dev || true
         clone_pin onekey-sec/sasquatch /tmp/sasquatch \
-            && ( cd /tmp/sasquatch && ./build.sh ) || echo "sasquatch 构建失败(不影响 binwalk 本体)"
+            && ( cd /tmp/sasquatch/squashfs-tools && make -j"$(nproc)" \
+                && install -m755 sasquatch /usr/local/bin/sasquatch ) \
+            || echo "sasquatch 构建失败(不影响 binwalk 本体)"
         rm -rf /tmp/sasquatch
     fi
     hashcat -I 2>/dev/null | head -3 || echo "hashcat 装不上(查 pocl)"
@@ -821,9 +844,30 @@ install_pentest() {
     log "Responder(LLMNR/NBT-NS 毒化,内网测试起点)"
     local gh="${GITHUB_MIRROR}https://github.com"
     clone_pin lgandx/Responder /opt/Responder || echo "Responder 克隆失败"
-    # wrapper:Responder.py 按 cwd 读 Responder.conf/写 logs,先 cd 再 exec
-    [ -f /opt/Responder/Responder.py ] && printf '#!/bin/sh\ncd /opt/Responder\nexec python3 /opt/Responder/Responder.py "$@"\n' > /usr/local/bin/responder \
-        && chmod +x /usr/local/bin/responder && echo "responder 已链(/opt/Responder)"
+    # 依赖 aioquic(QUIC 毒化面):钉 sha 起启动硬查,系统 python3 缺它连 -h 都不出
+    # (回归实证 2026-10-11)。进 re-venv(与 jwt_tool/LinkFinder 同面);
+    # wrapper 只在依赖实证可 import 后写(grok G2 口径)
+    . "$HOME/.local/bin/env" 2>/dev/null || true
+    [ -x "$RE_VENV/bin/python" ] || uv venv "$RE_VENV"
+    local rs_aq; rs_aq="$(pypi_pin aioquic)" || rs_aq=""
+    if [ -n "$rs_aq" ]; then
+        # 索引三级兜底(实证:阿里云镜像未同步 1.4.0 时默认源报 no solution)
+        if ! "$RE_VENV/bin/python" -c "import aioquic" 2>/dev/null; then
+            VIRTUAL_ENV="$RE_VENV" uv pip install "aioquic==$rs_aq" >/dev/null 2>&1 \
+                || VIRTUAL_ENV="$RE_VENV" uv pip install "aioquic==$rs_aq" --index-url https://pypi.tuna.tsinghua.edu.cn/simple >/dev/null 2>&1 \
+                || VIRTUAL_ENV="$RE_VENV" uv pip install "aioquic==$rs_aq" --index-url https://pypi.org/simple >/dev/null 2>&1 \
+                || echo "!! aioquic 装失败(默认源/tuna/pypi 三级兜底均败)"
+        fi
+    else
+        echo "!! aioquic 缺钉,先跑 resolve-pins.sh 补钉"
+    fi
+    if [ -f /opt/Responder/Responder.py ] && "$RE_VENV/bin/python" -c "import aioquic" 2>/dev/null; then
+        # wrapper:Responder.py 按 cwd 读 Responder.conf/写 logs,先 cd 再 exec re-venv python
+        printf '#!/bin/sh\ncd /opt/Responder\nexec %s/bin/python /opt/Responder/Responder.py "$@"\n' "$RE_VENV" > /usr/local/bin/responder \
+            && chmod +x /usr/local/bin/responder && echo "responder 已链(/opt/Responder,re-venv python)"
+    else
+        echo "!! responder 依赖未就位,wrapper 不写(查 aioquic 钉与 re-venv)"
+    fi
 
     # donut:PE/.NET/VBS/JS 转 shellcode;release 预编译钉版(banner 不带小版本,用 .version 标记幂等)
     local dv; dv="${DONUT_VERSION:-1.1}"
@@ -1239,5 +1283,6 @@ install_vnc() {
     true
 }
 
-TOOLS_ALL=(fd astgrep cli herdr ghidra re pd secgo secrust pivot p0 c2 bof pz maldev recon nu pentest red msf vnc chrome)
+# chrome 组不在默认全量:上游修 bug 期用户裁定先不装(2026-10-10);要装显式跑 install-tools.sh chrome
+TOOLS_ALL=(fd astgrep cli herdr ghidra re pd secgo secrust pivot p0 c2 bof pz maldev recon nu pentest red msf vnc)
 run_category TOOLS_ALL "$@"

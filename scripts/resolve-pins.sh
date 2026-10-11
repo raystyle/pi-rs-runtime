@@ -186,6 +186,8 @@ PYPI_PKGS=(
     malduck volatility3 r2pipe httpx beautifulsoup4 lxml pyjwt dpkt xortool
     # red 组 git 克隆批依赖:jwt_tool(ratelimit/pycryptodomex/termcolor/requests)与 LinkFinder(jsbeautifier)
     ratelimit pycryptodomex termcolor requests jsbeautifier
+    # pentest 组 Responder 依赖(aioquic:QUIC 毒化面,钉 sha 起启动硬查)
+    aioquic
 )
 
 GEMS=(evil-winrm nokogiri mime mime-types mini_exiftool rubyzip)

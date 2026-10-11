@@ -116,6 +116,7 @@ declare -A PYPI_PIN=(
     ["termcolor"]="3.3.0"
     ["requests"]="2.34.2"
     ["jsbeautifier"]="2.0.3"
+    ["aioquic"]="1.4.0"
 )
 declare -A GEM_PIN=(
     ["evil-winrm"]="4.1"
