@@ -349,6 +349,14 @@ install_re() {
     # qiling 跨架构模拟(REQ-0003 P1;依赖 gevent 等随装,离线以 venv 物化为准)
     VIRTUAL_ENV="$RE_VENV" uv pip install "qiling==$(pypi_pin qiling)" \
         || echo "!! qiling 装失败(查钉与索引)"
+    # angr 符号执行:独立 venv(grok prt-08:上游要求独立环境,禁 extra llm/unicorn/management;不混 wheelhouse)
+    local AV=/opt/angr-venv
+    if [ ! -x "$AV/bin/python" ] || ! "$AV/bin/python" -c "import angr" 2>/dev/null; then
+        rm -rf "$AV"; uv venv "$AV"
+        VIRTUAL_ENV="$AV" uv pip install "angr==$(pypi_pin angr)" \
+            || echo "!! angr 装失败(查钉与索引)"
+    fi
+    "$AV/bin/python" -c "import angr; print('angr', angr.__version__)" 2>/dev/null || true
     "$RE_VENV/bin/python" -c 'import capstone,keystone,unicorn,lief,yara; print("re-venv ok")'
     cat <<EOF
 对应关系:capstone 反汇编 / keystone 汇编 / unicorn 模拟执行 / lief 解析改写 PE-ELF-MachO / yara-python 规则扫描

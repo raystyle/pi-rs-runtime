@@ -30,7 +30,7 @@
 
 映射规则:`gen-rctl-catalog.sh` env_of(id 名单 + 组默认 + kind=data 到数据信息搜索/ref 到代码样板参考 + 机器行 env= 覆盖);活视图 `rctl --env <域>`、面板七域计数。kind 与域是两个面(clickhouse:kind=runtime,域=数据分析,非双归)。
 
-## tools(install-tools.sh,48 册)
+## tools(install-tools.sh,49 册)
 
 | 组 | 册 |
 |---|---|
@@ -40,7 +40,7 @@
 | herdr | [herdr](tools-herdr/herdr.md) |
 | ghidra | [ghidra](tools-ghidra/ghidra.md) |
 | rea | [rea](tools-rea/rea.md)(morluto/rea,MCP+CLI,Ghidra 无头 provider) |
-| re | [re](tools-re/re.md)(组册:系统库 22 项+rizin/rz-ghidra/sigdb+re-venv) |
+| re | [re](tools-re/re.md)(组册:系统库 22 项+rizin/rz-ghidra/sigdb+re-venv) · [angr](tools-re/angr.md)(符号执行,独立 venv) |
 | pd | [pd](tools-pd/pd.md)(组册 20 CLI)· [nuclei](tools-pd/nuclei.md) |
 | secgo | [secgo](tools-secgo/secgo.md)(组册 18 CLI)· [trufflehog](tools-secgo/trufflehog.md) |
 | secrust | [secrust](tools-secrust/secrust.md)(组册 3 件) |
@@ -63,6 +63,6 @@
 | acp | [acp](tools-acp/acp.md)(ACP v1+stdio 通道:适配器+监督进程 acpsup,REQ-0002) |
 | chrome | [clean-chrome](tools-chrome/clean-chrome.md)(定制 Chromium 155,云端道+sha256 锚) |
 
-计数对账:compilers 6 / runtimes 16 / libcache 8 / tools 50 = 80 册;组册承载的批量件数见各组册成员表(组册成员数 = 脚本实装件数)。
+计数对账:compilers 6 / runtimes 16 / libcache 8 / tools 51 = 81 册;组册承载的批量件数见各组册成员表(组册成员数 = 脚本实装件数)。
 
 返回 [docs 文档地图](../README.md)。

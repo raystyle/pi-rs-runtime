@@ -190,6 +190,8 @@ PYPI_PKGS=(
     aioquic
     # 逆向模拟(qiling,REQ-0003 P1)
     qiling
+    # 符号执行(angr 独立 venv,禁 extra)
+    angr
 )
 
 GEMS=(evil-winrm nokogiri mime mime-types mini_exiftool rubyzip one_gadget seccomp-tools)

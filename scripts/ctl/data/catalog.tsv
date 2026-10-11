@@ -12,6 +12,8 @@ analytics-venv	runtime	`install-runtimes.sh python` + `install-libcache.sh pytho
 analyzeHeadless	tool	`install-tools.sh ghidra`	已烘焙	无头分析入口		/usr/local/bin/analyzeHeadless			docs/items/tools-ghidra/ghidra.md	逆向环境
 android-tools-adb	tool	`install-tools.sh pentest`	已装	adb 安卓调试桥				docs/items/tools-pentest/pentest.md		工具环境
 android-tools-fastboot	tool	`install-tools.sh pentest`	已装	fastboot 刷机/引导				docs/items/tools-pentest/pentest.md		工具环境
+angr	tool	`install-tools.sh re`	已装	Python 符号执行与二进制分析框架(platform-independent)	pins.sh `PYPI_PIN[angr]`(当前 10.0.3,2026-10-11 解析);升级跑 resolve-pins.sh 审 diff 重跑本组	/opt/angr-venv	过,断网 `import angr` 实证;分析为本地计算零网络;运行期内存是主要成本(无磁盘下限官方口径)	docs/items/tools-re/angr.md		逆向环境
+angr-venv	runtime	`install-tools.sh re`	已烘焙	angr 独立 venv(符号执行;python -c import angr 消费)		/opt/angr-venv			docs/items/tools-re/angr.md	逆向环境
 apkleaks	tool	`install-tools.sh red`	已装	PyPI				docs/items/tools-red/red.md		工具环境
 apktool	tool	`install-tools.sh p0`	已装	APK 反编译与重打包	`APKTOOL_VERSION=2.12.0`(脚本默认,env 可覆盖);GitHub release 钉版直下,无校验和	/opt/apktool/apktool.jar	未验 [推断:jar 与 wrapper 全本地,运行不触网];逐件断网冒烟未单列登记。验证:`ip link set eth0 down` 后 `apktool --version` 退 0	docs/items/tools-p0/apktool.md		逆向环境
 aria2	tool	`install-tools.sh cli`	已装	`/usr/bin`				docs/items/tools-cli/cli.md		工具环境
