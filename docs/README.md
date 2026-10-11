@@ -5,6 +5,7 @@
 | [items/](items/README.md) | **逐件一册**:每个安装/部署/配置件的版本钉、落点、配置缓存、离线行为、坑,件级事实的唯一真相 |
 | [install-surfaces/](install-surfaces/index.md) | 按脚本组的安装面:组机制与批量命令(逐件细节链 items,不重复) |
 | [adr/](adr/README.md) | 不可逆裁定的 why(ADR,accepted/superseded 状态机) |
+| [req/](req/) | 需求登记(draft 到 implemented,带 trace 回填) |
 | [research/](research/) | 一题一篇的设计研究(S 编号,六态结论与信源;回执吸收后定稿) |
 | [diary/](diary/) | 每轮构建/评审的过程留痕(按日一篇) |
 | [offline.md](offline.md) | 离线运行的机制、边界与断网验证法 |
