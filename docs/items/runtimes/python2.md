@@ -6,7 +6,7 @@
 - **来源与安装**:[python.org 2.7.18](https://www.python.org/downloads/release/python-2718/) 源码包;noble 官方源已无 python2,`scripts/install-runtimes.sh` `install_python2()` 源码编译:先 apt 装构建依赖(libssl-dev、zlib1g-dev、libbz2-dev、libreadline-dev、libsqlite3-dev、libncursesw5-dev、xz-utils、libffi-dev),再 `./configure --prefix=/usr/local --enable-shared && make -j$(nproc) && make altinstall && ldconfig`,最后软链 `python2`
 - **落点**:`/usr/local/bin/python2.7` 真身(`altinstall`,不抢 `python` 无版本名);`/usr/local/bin/python2` 软链;共享库 `libpython2.7.so.1.0` 落 `/usr/local/lib` 经 ldconfig 注册(`--enable-shared`);库目录 `/usr/local/lib/python2.7`
 - **配置与缓存**:无(脚本不写任何配置文件;`/etc/pip.conf` 是 python3/pip3 的面,python2 未装 pip)
-- **离线行为**:☐ [推断:纯本地解释器,断网跑脚本不触网;断网冒烟未专项覆盖];构建期已实测 `import ssl` 可用(known-issues 留痕)。验证:`ip link set eth0 down` 后 `python2 -c 'import ssl, zlib, bz2, sqlite3'` 退 0
+- **离线行为**:未验 [推断:纯本地解释器,断网跑脚本不触网;断网冒烟未专项覆盖];构建期已实测 `import ssl` 可用(known-issues 留痕)。验证:`ip link set eth0 down` 后 `python2 -c 'import ssl, zlib, bz2, sqlite3'` 退 0
 ## rctl 面(机器行:catalog 投影声明,audit 豁免依据)
 
 - rctl: python2.7 kind=runtime path=/usr/local/bin/python2.7 note=python2 入口

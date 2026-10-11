@@ -10,7 +10,7 @@
 | 生态 | 固化位置 | 运行期如何被找到 |
 |---|---|---|
 | Go | `/opt/go/pkg/mod`(GOMODCACHE) | `go env -w` per-user 文件(root + ubuntu 各一份,非登录 shell 也读) |
-| Rust | `/opt/cargo` registry + `/opt/rustup` | 家目录软链 `~/.cargo`→/opt/cargo、`~/.rustup`→/opt/rustup |
+| Rust | `/opt/cargo` registry + `/opt/rustup` | 家目录软链 `~/.cargo`到/opt/cargo、`~/.rustup`到/opt/rustup |
 | Python | `/opt/wheelhouse`(轮子)+ `/opt/re-venv` + `/opt/uv-tools` | 消费:`pip install --no-index --find-links /opt/wheelhouse <包>` |
 | Node | `/opt/js-lab/node_modules`(161 包) | 软链进各 node prefix 的 `lib/node`(Module.globalPaths 只认这条;`node_modules` 面的链仅供 npm -g/bin);NODE_PATH(profile.d)备份 |
 | Java | `/opt/m2`(maven 本地仓) | `/opt/maven/conf/settings.xml` 写死 localRepository(不依赖 shell) |
@@ -46,7 +46,7 @@ profile.d 只作登录 shell 的备份面。
 | uv | `/etc/uv/uv.toml` `offline=true` | 8ms 报 "network was disabled";**注意 uv 不合并配置:用户级 ~/.config/uv/uv.toml 一旦存在,系统级整份被忽略**(离线默认随之失效) | `UV_CONFIG_FILE=/etc/uv/uv-online.toml`(UV_OFFLINE=0 压不过配置文件,实证 uv 0.12.15) |
 | pip | `/etc/pip.conf` `[install] no-index=true find-links=/opt/wheelhouse` | 轮子内的包离线直装;轮子外立即 No matching distribution | `PIP_NO_INDEX=false` |
 
-js-lab 的包走 `require`(全局链)离线可用,但 `npm install` 同一包仍 ENOTCACHED(npm cache 被 clean-image 清掉)——两条消费路径,语义不同,别混。
+js-lab 的包走 `require`(全局链)离线可用,但 `npm install` 同一包仍 ENOTCACHED(npm cache 被 clean-image 清掉),两条消费路径,语义不同,别混。
 
 `/etc/profile.d/offline.sh` 的 `offline()` 函数保留作显式开关(登录 shell);默认面已快失败,它不再是必需品。
 maven/gradle 没有干净的「配置离线+CLI 覆盖」对,不做默认离线:手工 `mvn -o` / `gradle --offline`;
@@ -57,9 +57,9 @@ bun 不读 npmrc(bunfig 才是它的面)、corepack 的 pnpm/yarn 同理,这两�
 
 zig 全局缓存、gradle 家目录、cargo-zigbuild 缓存不是只读仓(编译要写 z/、daemon、锁)。
 软链指到 /opt 后用共同组 `piopt`(root+ubuntu)+ **默认 ACL**(`setfacl -d -m g:piopt:rwX`)共享;
-setgid 只作辅助——它单独压不住 umask 022(实证 zig 自建子目录 g=r-x,ubuntu 写不进),压住 umask 的是默认 ACL。
+setgid 只作辅助,它单独压不住 umask 022(实证 zig 自建子目录 g=r-x,ubuntu 写不进),压住 umask 的是默认 ACL。
 `setfacl` 缺失时 `shared_writable_cache` 直接 return 1(假绿比失败更伤)。
-**不上 1777**——任意用户可写就能换掉 root 下次构建要用的缓存。只读消费面(node lib/node、psmodules、nuget fallback)保持 755。
+**不上 1777**,任意用户可写就能换掉 root 下次构建要用的缓存。只读消费面(node lib/node、psmodules、nuget fallback)保持 755。
 
 ## 边界(离线做不成的事,属设计)
 

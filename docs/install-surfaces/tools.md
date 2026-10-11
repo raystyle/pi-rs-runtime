@@ -9,7 +9,7 @@
 - Release 钉版批:tag 经 `git ls-remote` 取(api.github.com 限流 403 实证),资产名校验架构映射;无校验和的件在 known-issues 留痕
 - git 克隆批:`--depth 1` 钉 /opt,升级靠重跑;参考克隆只归档不安装(ADR-0002)
 - apt 批:阿里云源(image-defs/ubuntu.yaml 钉入),整批一条命令,成员表在组册
-- wrapper 层:/usr/local/bin 压过 PATH 后段,承载运行期行为修正(trivy/nuclei/capa/responder/bloodhound-python 等;ADR-0004——alias 在非交互 shell 不生效)
+- wrapper 层:/usr/local/bin 压过 PATH 后段,承载运行期行为修正(trivy/nuclei/capa/responder/bloodhound-python 等;ADR-0004,alias 在非交互 shell 不生效)
 - 收尾卫生:clean-image.sh(install-all.sh 末尾)清可再生缓存,不碰 /opt 固化件
 
 ## 册索引

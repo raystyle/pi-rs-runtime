@@ -9,7 +9,7 @@
 ## Decision
 
 - **保留不移除**:gospider、httprobe、assetfinder、waybackurls(攻击面测绘批);Covenant、SILENTTRINITY(c2dev-ref 参考克隆)
-- **EOL 运行时全保留**:python2、PHP 7.4/8.1、JDK 11、Node 18/20——样本兼容与 CVE 复现场景必需,评审的「EOL 风险」意见已知悉不采纳
+- **EOL 运行时全保留**:python2、PHP 7.4/8.1、JDK 11、Node 18/20,样本兼容与 CVE 复现场景必需,评审的「EOL 风险」意见已知悉不采纳
 - impacket 用 uv 上游版,不用 noble apt 冻结版
 - fff-mcp 不装二进制,fff-search 只进 rust 库预热
 - 不进镜像(grok 库评审建议后裁定):BananaPhone、go-clr、garble、obfstr、boost、Detours、JsonSpirit、webshell 样本库、哥斯拉/冰蝎/蚁剑操作台

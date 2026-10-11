@@ -8,7 +8,7 @@
 
 ## Decision
 
-仓库只维护 yaml、脚本与文档。一批环境改动共用一个已解开的工作实例:改动进这个实例(推 scripts、只跑改动组、断网冒烟),不要为每笔改动再 `incus launch`。没有存活实例时才从线上镜像 launch 一次。这批改到稳定状态后先问用户,点头才 `incus publish` 一次(整盘 gzip,不是增量)→ 删旧镜像。全量链(distrobuilder 基础镜像 + install-all.sh)只在基础镜像或脚本大改后用。publish 前必跑 `clean-image.sh`(install-all.sh 末尾自动)。
+仓库只维护 yaml、脚本与文档。一批环境改动共用一个已解开的工作实例:改动进这个实例(推 scripts、只跑改动组、断网冒烟),不要为每笔改动再 `incus launch`。没有存活实例时才从线上镜像 launch 一次。这批改到稳定状态后先问用户,点头才 `incus publish` 一次(整盘 gzip,不是增量)到 删旧镜像。全量链(distrobuilder 基础镜像 + install-all.sh)只在基础镜像或脚本大改后用。publish 前必跑 `clean-image.sh`(install-all.sh 末尾自动)。
 
 名字用主机本地时间做版本,格式 `pi-rs-runtime-YYYYMMDD-HHMM`。实例名是 launch 时刻,新镜像别名是 publish 时刻,两个时间必须不同。浮动别名 `pi-rs-runtime` 只指向最新已发布镜像,供下一次 launch。禁止 `rt-*` 和 `-dev`。
 

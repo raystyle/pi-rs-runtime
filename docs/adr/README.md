@@ -1,6 +1,6 @@
 # ADR 索引
 
-不可逆技术裁定的档案。状态机:proposed → accepted → superseded(互指);编号接最大号,退役不复用。写法:Context / Decision / Consequences 三段。
+不可逆技术裁定的档案。状态机:proposed 到 accepted 到 superseded(互指);编号接最大号,退役不复用。写法:Context / Decision / Consequences 三段。
 
 | 编号 | 裁定 | 状态 | 日期 |
 |---|---|---|---|

@@ -6,7 +6,7 @@
 - **来源与安装**:`scripts/install-tools.sh install_vnc`;桌面栈烘焙进镜像;启动面脚本装公共位 `/usr/local/bin/vnc-screen`(/root/scripts 是 0700,ubuntu 够不着)
 - **落点**:TigerVNC `vncserver`、websockify、`/usr/share/novnc/vnc.html`;口令文件 `$HOME/.vnc/passfile`(首启随机生成打印一次,不落库)
 - **配置与缓存**:无镜像级配置;`~/.vnc/xstartup` 首启写 startxfce4
-- **离线行为**:✅ 纯本地件,断网可起;验证:容器内 `VNC_PASS=<口令> vnc-screen desktop` 后 `curl -sI http://127.0.0.1:6080/vnc.html` 200 + `ss -ltn` 只见 127.0.0.1
+- **离线行为**:过, 纯本地件,断网可起;验证:容器内 `VNC_PASS=<口令> vnc-screen desktop` 后 `curl -sI http://127.0.0.1:6080/vnc.html` 200 + `ss -ltn` 只见 127.0.0.1
 ## rctl 面(机器行:catalog 投影声明,audit 豁免依据)
 
 - rctl: vnc-screen kind=tool path=/usr/local/bin/vnc-screen note=屏幕/VNC 起停面

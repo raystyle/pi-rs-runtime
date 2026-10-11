@@ -6,7 +6,7 @@
 
 1. 基础镜像流水线:`image-defs/ubuntu.yaml`(distrobuilder,cloud 变体)+ `build-base-image.sh`,别名 `ubuntu-24.04-base`。
 2. 分类脚本四件套:install-compilers(c/golang/rust/zig/nim/vcpkg)、install-runtimes(node/fnm/bun/uv/python/python2/duckdb/clickhouse/php/mono/dotnet/pwsh/sdkman)、install-libcache(八生态库缓存固化)、install-tools(20 组);install-all.sh 顺序串跑,前置批装 git 等隐式依赖并停掉自动升级计时器。
-3. 评审吸收:grok 两份(八生态库清单+全平台编译矩阵)、claude 一份(环境体检)→ P0/P1 实施。
+3. 评审吸收:grok 两份(八生态库清单+全平台编译矩阵)、claude 一份(环境体检)到 P0/P1 实施。
 4. 共享缓存归 /opt 并 profile.d 导出(后被 ADR-0004 的非登录机制取代);家目录 .rustup/.cargo 兼容链。
 5. pentest 组底线批、hashcat+pocl、frida 全链、nuclei 模板钉 /opt、词表、pwndbg gdbinit、时区上海+zh_CN。
 6. red 组 AD 横向与 Web 批、库缓存八生态固化。

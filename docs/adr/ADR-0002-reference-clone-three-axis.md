@@ -11,7 +11,7 @@
 参考克隆按**工件角色轴**归档,只克隆不编译不运行:
 
 - `/opt/c2dev-ref/`:C2 框架(sliver/merlin/Empire/Covenant/mythic/SILENTTRINITY/AdaptixC2)
-- `/opt/payload-ref/`:载荷开发——generators{deserialization,pe-to-shellcode}、loaders{droppers,inproc}、evasion、curricula{zig,rust,nim,go 教材系}、analysis
+- `/opt/payload-ref/`:载荷开发,generators{deserialization,pe-to-shellcode}、loaders{droppers,inproc}、evasion、curricula{zig,rust,nim,go 教材系}、analysis
 - `/opt/tradecraft-ref/`:ad/bof/opsec 技法
 - `/opt/recon-ref/`:指纹与侦察库(mac-tracker/recog/hickory-dns/PoC-in-GitHub)
 
