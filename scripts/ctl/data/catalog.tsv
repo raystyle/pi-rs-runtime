@@ -49,7 +49,7 @@ bunx	runtime	`install-runtimes.sh bun`	已烘焙	bun/bunx 一体化 JS 运行时
 c2	ref	`install-tools.sh c2`	参考克隆	C2 框架源码参考,只克隆不安装不运行	7 仓全部 pins.sh `GIT_PIN` 钉 sha(clone_pin,幂等:HEAD==钉即跳过;解析日 2026-10-10),升级跑 scripts/resolve-pins.sh 刷新钉值再重跑组;统一经 GITHUB_MIRROR(默认 `https://proxy	/opt/c2dev-ref/	过, 断网冒烟「参考库在位」覆盖(78/0,见 [offline.md](../../offline.md) §验证);纯读盘,无网络依赖。验证:`ip link set eth0 down` 后 `ls /opt/c2dev-ref` 退 0	docs/items/tools-c2/c2.md		代码样板参考
 cabextract	tool	`install-tools.sh pentest`	已装	Microsoft CAB 解包				docs/items/tools-pentest/pentest.md		工具环境
 capa	tool	`install-tools.sh p0` 装本体与规则、`install-tools.sh pentest` 接线	已装(wrapper 接规则)	恶意软件能力识别(静态特征 到 能力/ATT&CK 映射)	`CAPA_VERSION=9.4.0`(脚本默认,env 可覆盖;脚本留痕「v9.5.0 上游不存在,latest=v9.4.0(已核)」);规则库 pins.sh `GIT_PIN[mandiant/capa-rules]` 钉 sha(805f9eaccfb6a4e1ddffc809d71d1e2	/opt/capa	未验 [推断:规则与二进制全本地,wrapper 注入 `-r` 后不触网];逐件断网冒烟未单列登记(wrapper 层机制见 [offline.md](../../offline.md))。验证:`ip link set eth0 down` 后	docs/items/tools-p0/capa.md		逆向环境
-capa-rules	data	`install-tools.sh p0` 装本体与规则、`install-tools.sh pentest` 接线	已烘焙	能力规则(缺它 capa 自下载;阶段 3 拆册)		/opt/capa-rules			docs/items/tools-p0/capa.md	数据信息搜索
+capa-rules	data	`install-tools.sh p0` 装本体与规则、`install-tools.sh pentest` 接线	已烘焙	能力规则(缺它 capa 自下载;阶段 3 拆册)	pins.sh `GIT_PIN[mandiant/capa-rules]` 钉 sha;与 capa 二进制不同钉(规则库独立演进)	/opt/capa-rules	过,本地直读;缺它 capa 自下载规则到家目录(晦涩错,数据册验收句命中)	docs/items/tools-data/capa-rules.md	docs/items/tools-p0/capa.md	数据信息搜索
 capstone	tool	`install-tools.sh re`	已装	反汇编				docs/items/tools-re/re.md		逆向环境
 capstone-tool	tool	`install-tools.sh re`	已装	capstone CLI				docs/items/tools-re/re.md		逆向环境
 cargo	compiler	`install-compilers.sh rust`	已烘焙	rustup + stable 工具链 + llvm-tools/rustfmt/clippy/rust-analyzer + 十向交叉 target + rust-script/cargo-zigbuild/cargo-audit + 29 件 crate 预热		/usr/local/bin/cargo			docs/items/compilers/rust.md	编程环境
@@ -185,7 +185,7 @@ ldap-utils	tool	`install-tools.sh pentest`	已装	ldapsearch 等 LDAP 客户端	
 libcapstone-dev	tool	`install-tools.sh re`	已装	反汇编开发面				docs/items/tools-re/re.md		逆向环境
 libimage-exiftool-perl	tool	`install-tools.sh p0`	已装	文件元数据读取				docs/items/tools-p0/p0.md		工具环境
 libpugixml-dev	tool	`install-tools.sh re`	已装	rz-ghidra `USE_SYSTEM_PUGIXML=ON` 用系统包				docs/items/tools-re/re.md		逆向环境
-libxml2	cache	`install-libcache.sh zig`(前置 `install-compilers.sh zig`,0.16.0)	缓存固化	master				docs/items/libcache/zig.md		编程环境
+libxml2	cache	`install-libcache.sh zig`(前置 `install-compilers.sh zig`,0.16.0)	缓存固化	master				docs/items/libcache/zig-cache.md		编程环境
 libyara-dev	tool	`install-tools.sh re`	已装	yara 开发面				docs/items/tools-re/re.md		逆向环境
 libzip-dev	tool	`install-tools.sh re`	已装	rizin 构建依赖(缺了 meson 去 libzip.org 拉子项目,必给)				docs/items/tools-re/re.md		逆向环境
 lief	tool	`install-tools.sh re`	已装	解析改写 PE/ELF/Mach-O				docs/items/tools-re/re.md		逆向环境
@@ -197,7 +197,7 @@ maldev	ref	`install-tools.sh maldev`	参考克隆	载荷开发与操作技法参
 mapcidr	tool	`install-tools.sh pd`	已装	CIDR 切分/聚合				docs/items/tools-pd/pd.md		工具环境
 masscan	tool	`install-tools.sh pentest`	已装	大规模端口快扫(setcap 免 sudo,见落点)				docs/items/tools-pentest/pentest.md		工具环境
 maven	runtime	`install-runtimes.sh sdkman` 内直装 + `install-libcache.sh java`(依赖固化)	已装	Java 构建与依赖管理(本地仓 /opt/m2 双用户共享)	`MAVEN_VERSION=3.9.16`(lib/common.sh)	/opt/maven	不做默认离线配置(maven 无干净「配置离线+CLI 覆盖」对,见 [offline.md](../../offline.md) §4);过, 手工 `mvn -o` 断网实证(冒烟 78/0 覆盖,root/ubuntu 双视角)。验证:`i	docs/items/runtimes/maven.md		运行时环境
-mbedtls	cache	`install-libcache.sh zig`(前置 `install-compilers.sh zig`,0.16.0)	缓存固化	main				docs/items/libcache/zig.md		编程环境
+mbedtls	cache	`install-libcache.sh zig`(前置 `install-compilers.sh zig`,0.16.0)	缓存固化	main				docs/items/libcache/zig-cache.md		编程环境
 merlin	ref	`install-tools.sh c2`	参考克隆	/opt/c2dev-ref/merlin				docs/items/tools-c2/c2.md		代码样板参考
 meson	tool	`install-tools.sh re`	已装	rizin/sigdb 构建系统				docs/items/tools-re/re.md		逆向环境
 Microsoft.Data.Sqlite	cache	`install-libcache.sh dotnet`(前置 `install-runtimes.sh dotnet`,dotnet-sdk-10.0)	缓存固化	SQLite ADO.NET				docs/items/libcache/dotnet.md		编程环境
@@ -269,7 +269,7 @@ prettier	runtime	`install-tools.sh cli`	已烘焙	npm 全局件		/usr/local/bin/
 proxify	tool	`install-tools.sh pd`	已装	抓包代理				docs/items/tools-pd/pd.md		工具环境
 proxychains4	tool	`install-tools.sh pentest`	已装	任意 TCP 程序裹代理链				docs/items/tools-pentest/pentest.md		工具环境
 psexec.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/psexec.py			docs/items/tools-p0/impacket.md	工具环境
-pspy	tool	`install-libcache.sh go`	已烘焙	无 root 进程刺探(GO_PIN 独立钉,实装在 /opt/go/bin)		/usr/local/bin/pspy			docs/items/libcache/go.md	工具环境
+pspy	tool	`install-libcache.sh go`	已烘焙	无 root 进程刺探(GO_PIN 独立钉,实装在 /opt/go/bin)	pins.sh `GO_PIN[github.com/DominicBreuker/pspy]`(实装产物 /opt/go/bin/pspy,链 /usr/local/bin)	/usr/local/bin/pspy	过,纯本地(枚举 /proc 与 inotify)	docs/items/tools-p0/pspy.md	docs/items/libcache/go.md	工具环境
 PSScriptAnalyzer	cache	`install-libcache.sh pwsh`(前置 `install-runtimes.sh pwsh`)	缓存固化	脚本静态分析				docs/items/libcache/pwsh.md		编程环境
 pwndbg	tool	`install-tools.sh p0` 装本体、`install-tools.sh pentest` 接线	已装(系统 gdbinit 接线 + 冒烟)	GDB 调试增强插件(pwn/逆向)	pins.sh 钉版,uv tool 从 git 源按 `git+<GITHUB_MIRROR>github.com/pwndbg/pwndbg@<sha>` 装,`GIT_PIN[pwndbg/pwndbg]`=3c627ae656b0959eb9de566f7f4129134924922e(解析日 2026-10-10),升级跑 scripts/	/usr/local/bin/pwndbg	未验 [推断:插件 python 与 gdbinit 全本地,gdb 加载不触网];构建期接线冒烟已实证(上条),断网逐件冒烟未单列登记。验证:`ip link set eth0 down` 后 `gdb --batch -ex q	docs/items/tools-p0/pwndbg.md		逆向环境
 pwndbg-lldb	tool	`install-tools.sh p0` 装本体、`install-tools.sh pentest` 接线	已烘焙	pwndbg 的 lldb 面		/usr/local/bin/pwndbg-lldb			docs/items/tools-p0/pwndbg.md	工具环境
@@ -330,6 +330,7 @@ sasquatch	tool	`install-tools.sh pentest`	已烘焙	补丁版 squashfs 解包器
 sdkman	runtime	`install-runtimes.sh sdkman`	已装	多版本 Java 工具链管理入口(`sdk` 命令)	安装器本体未钉(pins.sh 未收钉位,`get.sdkman.io` 直下随官方最新);JDK 侧 temurin 小版本由 pins.sh `TEMURIN_PIN_8/11/17/21/25` 钉(见 [temurin JDK](java-jdks.md));装后 sed 幂�	/usr/local/sdkman	未验 [推断:]已装候选的 `sdk use`/`sdk current` 是纯本地文件操作,且 auto_selfupdate=false 不触网;`sdk install` 从远端候选拉新件需网,本镜像 java 走 tuna 直拉 tarball	docs/items/runtimes/sdkman.md		运行时环境
 seccomp-tools	tool	`install-tools.sh pentest`	已烘焙	seccomp 规则提取/编译(gem 1.7.1)		/usr/local/bin/seccomp-tools			docs/items/tools-pentest/pentest.md	工具环境
 secgo	tool	`install-tools.sh secgo`	已装	17 件 Go 安全 CLI(fuzz/爆破/爬虫/密钥扫描/隧道/云与 AD 采集)+ trufflehog(release)	pins.sh 钉版(解析日 2026-10-10):17 件逐件取 `GO_PIN[<模块>]`(`go_pin_ver`,缺钉即响跳过;旧 `SECGO_VERSION` 变量已弃用,lib/common.sh 仅保留防空引用);trufflehog 走 release 	/opt/go	过,版本面/帮助面断网可用(纯 Go 静态二进制;渗透工具面断网冒烟口径见 [offline.md](../../offline.md) §验证)。验证:`ip link set eth0 down` 后 `gitleaks version` 退 0�	docs/items/tools-secgo/secgo.md		工具环境
+seclists	tool	装面在 pentest 组接线,本册独立登记	已装(构建日快照)	渗透测试词表与数据集合集(用户名/密码/URL/敏感模式/载荷等)	pins.sh `GIT_PIN[danielmiessler/SecLists]` 钉 sha(clone_pin 幂等);升级跑 resolve-pins.sh 重跑 pentest 组	/opt/SecLists	过,本地直读;缺它多只工具空跑或自下载(数据册验收句);新鲜度=构建日快照	docs/items/tools-data/seclists.md		工具环境
 SecLists	data	`install-tools.sh pentest`	已烘焙	词表库(缺它多只工具空跑;阶段 3 拆独立册)		/opt/SecLists			docs/items/tools-pentest/pentest.md	数据信息搜索
 secretsdump.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/secretsdump.py			docs/items/tools-p0/impacket.md	工具环境
 secrust	tool	`install-tools.sh secrust`	已装	rustscan(快扫)/ feroxbuster(内容发现)/ RustHound-CE(BloodHound CE 采集器)	pins.sh 钉版(解析日 2026-10-10):rustscan `CRATE_PIN[rustscan]`=2.4.1、feroxbuster `CRATE_PIN[feroxbuster]`=2.13.1(`cargo install <crate> --locked --version <钉>`,`--locked` 用其自带 Cargo.l	/opt/cargo/bin	过, 二进制断网可跑(渗透工具面断网冒烟口径见 [offline.md](../../offline.md) §验证)。验证:`ip link set eth0 down` 后 `rustscan --version` 退 0。未验 [推断:] 断网扫本	docs/items/tools-secrust/secrust.md		工具环境
@@ -351,7 +352,7 @@ smbexec.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerbero
 smtpd.py	runtime	`install-runtimes.sh python` + `install-libcache.sh python`(wheelhouse 固化)	已烘焙	stdlib 邮件服务脚本(uv-tools 副件)		/usr/local/bin/smtpd.py			docs/items/runtimes/python.md	运行时环境
 snmp	tool	`install-tools.sh pentest`	已装	snmpwalk 等 SNMP 客户端套件				docs/items/tools-pentest/pentest.md		工具环境
 socat	tool	`install-tools.sh pentest`	已装	双向通道/端口转发				docs/items/tools-pentest/pentest.md		工具环境
-sqlite3	cache	`install-libcache.sh zig`(前置 `install-compilers.sh zig`,0.16.0)	缓存固化	main				docs/items/libcache/zig.md		编程环境
+sqlite3	cache	`install-libcache.sh zig`(前置 `install-compilers.sh zig`,0.16.0)	缓存固化	main				docs/items/libcache/zig-cache.md		编程环境
 sqlmap	tool	`install-tools.sh p0`	已装	SQL 注入自动检测与利用				docs/items/tools-p0/p0.md		工具环境
 squashfs-tools	tool	`install-tools.sh p0`	已装	SquashFS 固件镜像解包与重打包				docs/items/tools-p0/p0.md		工具环境
 ssdeep	tool	`install-tools.sh p0`	已装	模糊哈希与相似度比对				docs/items/tools-p0/p0.md		工具环境
@@ -385,6 +386,7 @@ vim	tool	`install-tools.sh cli`	已装	`/usr/bin`				docs/items/tools-cli/cli.md
 vnc	tool	`install-tools.sh vnc`	已装	XFCE 桌面 + TigerVNC + noVNC/websockify,浏览器经 incus proxy 进容器图形面;轻量 Xvfb+x11vnc 面并存	apt noble 源冻结即钉(xfce4/xfce4-terminal/dbus-x11/tigervnc-standalone-server/tigervnc-common/novnc/websockify/fonts-noto-cjk,阿里云)	/usr/share/novnc/vnc.html	过, 纯本地件,断网可起;验证:容器内 `VNC_PASS=<口令> vnc-screen desktop` 后 `curl -sI http://127.0.0.1:6080/vnc.html` 200 + `ss -ltn` 只见 127.0.0.1	docs/items/tools-vnc/vnc.md		工具环境
 vnc-screen	tool	`install-tools.sh vnc`	已烘焙	屏幕/VNC 起停面		/usr/local/bin/vnc-screen			docs/items/tools-vnc/vnc.md	工具环境
 vol	tool	`install-libcache.sh python`	已烘焙	volatility3 CLI(PYPI_PIN 独立钉,re-venv 链出)		/usr/local/bin/vol			docs/items/libcache/python.md	工具环境
+volatility3	tool	`install-tools.sh re`(re-venv 链出)	已装	内存取证框架(CLI:vol/volshell)	pins.sh `PYPI_PIN[volatility3]`	/opt/re-venv	过,CLI 本地读;2026-10-11 从 libcache/python 册拆出一事实一册,原处留链接	docs/items/tools-p0/volatility3.md		工具环境
 volshell	tool	`install-libcache.sh python`	已烘焙	逆向/CTF 向 19 个 PyPI 包装进 /opt/re-venv、轮子下载进 /opt/wheelhouse,断网 pip 免索引重装		/usr/local/bin/volshell			docs/items/libcache/python.md	工具环境
 wafw00f	tool	`install-tools.sh red`	已装	PyPI				docs/items/tools-red/red.md		工具环境
 waybackurls	tool	`install-tools.sh secgo`	已装	Wayback 历史 URL				docs/items/tools-secgo/secgo.md		工具环境
@@ -399,11 +401,12 @@ wstunnel	tool	`install-tools.sh pivot`	已装	不在 crates.io,`cargo install --
 xxd	tool	`install-tools.sh p0`	已装	十六进制转储与回写				docs/items/tools-p0/p0.md		工具环境
 yara	tool	`install-tools.sh re`	已装	样本特征规则扫描				docs/items/tools-re/re.md		逆向环境
 yara-python	tool	`install-tools.sh re`	已装	规则扫描				docs/items/tools-re/re.md		逆向环境
-yara-rules	data	`install-tools.sh re`	已烘焙	yara 规则集		/opt/yara-rules			docs/items/tools-re/re.md	数据信息搜索
+yara-rules	data	`install-tools.sh re`	已烘焙	yara 规则集	pins.sh `GIT_PIN[Yara-Rules/rules]` 钉 sha(clone_pin)	/opt/yara-rules	过,本地直读;规则是语料不是查询引擎(prt-09 分界)	docs/items/tools-data/yara-rules.md	docs/items/tools-re/re.md	数据信息搜索
 yq	tool	`install-tools.sh cli`	已装	`/opt/go/bin` 链 `/usr/local/bin`				docs/items/tools-cli/cli.md		工具环境
 zbar-tools	tool	`install-tools.sh pentest`	已装	zbarimg 条码/二维码识别				docs/items/tools-pentest/pentest.md		工具环境
-zig	cache	`install-libcache.sh zig`(前置 `install-compilers.sh zig`,0.16.0)	缓存固化	交叉编译常用 C 库五件 zig fetch 固化进 /opt/zig-cache,离线 zig build 按 hash 直取	五库均钉主干 heads 的构建日快照 tarball(`archive/refs/heads/{master,main}.tar.gz`);zon hash 以镜像内 zig 0.16 现场算为准,`zig fetch --save` 把依赖名与 hash 写进 `/opt/zig-p	/opt/zig-cache	过,断网编译 root/ubuntu 双视角实证(ADR-0005 终审;冒烟「缓存构建断网能编」覆盖,见 [offline.md](../../offline.md) §1)。验证:`ip link set eth0 down` 后 root 与 ubuntu 各	docs/items/libcache/zig.md	docs/items/compilers/zig.md	编程环境
-zig-prewarm	cache	`install-libcache.sh zig`(前置 `install-compilers.sh zig`,0.16.0)	已烘焙	五库预热工程(zon 锁)		/opt/zig-prewarm			docs/items/libcache/zig.md	编程环境
-zlib	cache	`install-libcache.sh zig`(前置 `install-compilers.sh zig`,0.16.0)	缓存固化	master				docs/items/libcache/zig.md		编程环境
+zig	compiler	`install-compilers.sh zig` + `install-libcache.sh zig`(库固化册:[libcache/zig](../libcache/zig.md))	已烘焙	zig 工具链本体	`ZIG_VERSION=0.16.0`(scripts/lib/common.sh,env 可覆盖);幂等判据 `zig version` 匹配 `^0.16.0` 即跳过;tarball 无校验和、未验签(留痕 [known-issues](../../known-issues.md))	/opt/zig	过, 断网 `zig version`(断网冒烟覆盖编译器版本面,当轮 78/0 全绿;[offline.md](../../offline.md) 验证节);过, 断网编译写 /opt/zig-cache,root/ubuntu 双视角实证([ADR-0005](.	docs/items/compilers/zig.md	docs/items/compilers/zig.md	编程环境
+zig-cache	cache	`install-libcache.sh zig`(前置 `install-compilers.sh zig`,0.16.0)	已烘焙	五库固化缓存	五库均钉主干 heads 的构建日快照 tarball(`archive/refs/heads/{master,main}.tar.gz`);zon hash 以镜像内 zig 0.16 现场算为准,`zig fetch --save` 把依赖名与 hash 写进 `/opt/zig-p	/opt/zig-cache	过,断网编译 root/ubuntu 双视角实证(ADR-0005 终审;冒烟「缓存构建断网能编」覆盖,见 [offline.md](../../offline.md) §1)。验证:`ip link set eth0 down` 后 root 与 ubuntu 各	docs/items/libcache/zig-cache.md	docs/items/libcache/zig-cache.md	编程环境
+zig-prewarm	cache	`install-libcache.sh zig`(前置 `install-compilers.sh zig`,0.16.0)	已烘焙	五库预热工程(zon 锁)		/opt/zig-prewarm			docs/items/libcache/zig-cache.md	编程环境
+zlib	cache	`install-libcache.sh zig`(前置 `install-compilers.sh zig`,0.16.0)	缓存固化	master				docs/items/libcache/zig-cache.md		编程环境
 zlib1g-dev	tool	`install-tools.sh re`	已装	压缩库开发面				docs/items/tools-re/re.md		逆向环境
-zstd	cache	`install-libcache.sh zig`(前置 `install-compilers.sh zig`,0.16.0)	缓存固化	master				docs/items/libcache/zig.md		编程环境
+zstd	cache	`install-libcache.sh zig`(前置 `install-compilers.sh zig`,0.16.0)	缓存固化	master				docs/items/libcache/zig-cache.md		编程环境

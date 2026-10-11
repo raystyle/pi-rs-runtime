@@ -39,6 +39,8 @@
 
 ## 待办
 
+0. ~~prt-07 阶段 3 拆册~~(2026-10-11 完成):五短册落地(SecLists/capa-rules/yara-rules 语料册 + pspy/volatility3 一事实一册,原处改链)+ zig 冲突解(缓存册改名 zig-cache.md,工具链独占 zig)+ angr 10.0.3 独立 venv(禁 extra,断网 import 过);待裁定余项:HackTricks(1GiB)/GTFOBins(代理全 403);阶段 2 余项:impacket 全表生成+无主 5 件裁定
+
 0. ~~域分类定稿~~(prt-09 已交并吸收):七域定稿确认(数据分析独立成域正确,不加第八域;kind 与域两面并存);三处改判落地(frida/jadx/apktool/capa/pwndbg 与 floss/ilspycmd/smali/baksmali 到 逆向环境,vol/volshell/netexec/pspy 到 工具环境,poc-search 到 工具环境);一级七域够用,ATT&CK 战术留作 caps 多值标签不进 env;docs/items/README 增七域归档视图;待裁定:angr(单独 venv)/HackTricks(1GiB)/GTFOBins(代理 401)
 
 1. prt-07 阶段 2:闭集族全表生成(impacket 余 ~50 脚本、frida/rz/nim 已过半)+ 漂移守卫;阶段 2 裁定项:microsoft/nuget.exe/httpclient/rwinrm/rwinrmcp(无主)、atlas/nokokiri/ruff(uv-tool shim 未点名);别名行机制已就位(alias 列)

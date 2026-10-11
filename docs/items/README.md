@@ -14,7 +14,7 @@
 
 ## libcache(install-libcache.sh,8 册)
 
-[go](libcache/go.md) · [rust](libcache/rust.md) · [python](libcache/python.md) · [node](libcache/node.md) · [java](libcache/java.md) · [pwsh](libcache/pwsh.md) · [dotnet](libcache/dotnet.md) · [zig](libcache/zig.md)
+[go](libcache/go.md) · [rust](libcache/rust.md) · [python](libcache/python.md) · [node](libcache/node.md) · [java](libcache/java.md) · [pwsh](libcache/pwsh.md) · [dotnet](libcache/dotnet.md) · [zig-cache](libcache/zig-cache.md)
 
 ## 归档域视图(七域定稿,grok prt-09;目录=安装组,域=归档架子,两面并存)
 
@@ -30,7 +30,7 @@
 
 映射规则:`gen-rctl-catalog.sh` env_of(id 名单 + 组默认 + kind=data 到数据信息搜索/ref 到代码样板参考 + 机器行 env= 覆盖);活视图 `rctl --env <域>`、面板七域计数。kind 与域是两个面(clickhouse:kind=runtime,域=数据分析,非双归)。
 
-## tools(install-tools.sh,49 册)
+## tools(install-tools.sh,52 册)
 
 | 组 | 册 |
 |---|---|
@@ -41,6 +41,8 @@
 | ghidra | [ghidra](tools-ghidra/ghidra.md) |
 | rea | [rea](tools-rea/rea.md)(morluto/rea,MCP+CLI,Ghidra 无头 provider) |
 | re | [re](tools-re/re.md)(组册:系统库 22 项+rizin/rz-ghidra/sigdb+re-venv) · [angr](tools-re/angr.md)(符号执行,独立 venv) |
+| p0 拆册 | [pspy](tools-p0/pspy.md)(无 root 进程刺探) · [volatility3](tools-p0/volatility3.md)(内存取证) |
+| data 拆册 | [seclists](tools-data/seclists.md) · [capa-rules](tools-data/capa-rules.md) · [yara-rules](tools-data/yara-rules.md)(语料独立登记) |
 | pd | [pd](tools-pd/pd.md)(组册 20 CLI)· [nuclei](tools-pd/nuclei.md) |
 | secgo | [secgo](tools-secgo/secgo.md)(组册 18 CLI)· [trufflehog](tools-secgo/trufflehog.md) |
 | secrust | [secrust](tools-secrust/secrust.md)(组册 3 件) |
@@ -63,6 +65,6 @@
 | acp | [acp](tools-acp/acp.md)(ACP v1+stdio 通道:适配器+监督进程 acpsup,REQ-0002) |
 | chrome | [clean-chrome](tools-chrome/clean-chrome.md)(定制 Chromium 155,云端道+sha256 锚) |
 
-计数对账:compilers 6 / runtimes 16 / libcache 8 / tools 51 = 81 册;组册承载的批量件数见各组册成员表(组册成员数 = 脚本实装件数)。
+计数对账:compilers 6 / runtimes 16 / libcache 8 / tools 54 = 84 册;组册承载的批量件数见各组册成员表(组册成员数 = 脚本实装件数)。
 
 返回 [docs 文档地图](../README.md)。
