@@ -4,7 +4,7 @@
 
 ## 版本
 
-- 默认 profile 的 16 件写 `[0,` 区间。
+- 默认 profile 的 16 件写 `[0,)` 区间。
 - 构建日执行 `mvn versions:resolve-ranges`,把区间解析成精确版本。
 - 解析结果写回 `/opt/maven-prewarm/pom.xml`。
 - 写回的 pom 即锁文件。
@@ -29,7 +29,7 @@
 
 | 坐标 | 钉版 |
 |---|---|
-| org.bouncycastle:bcprov-jdk18on / bcpkix-jdk18on | `[0,` 构建日解析 |
+| org.bouncycastle:bcprov-jdk18on / bcpkix-jdk18on | `[0,)` 构建日解析 |
 | org.ow2.asm:asm / asm-commons / asm-util | 同上 |
 | org.javassist:javassist | 同上 |
 | com.fasterxml.jackson.core:jackson-databind | 同上 |

@@ -2,9 +2,49 @@
 
 > 本地列存分析引擎:python 绑定进分析 venv,CLI 单文件直查 parquet/csv ｜ 状态:已装 ｜ 组:`install-runtimes.sh duckdb`
 
-- **版本钉**:pins.sh 钉版(解析日 2026-10-10),升级跑 scripts/resolve-pins.sh:python 绑定 `PYPI_PIN[duckdb]`=1.5.6(`uv pip install -U duckdb==<钉>`);CLI 标量 `DUCKDB_VERSION`=v1.5.6(空钉回退 api.github.com latest tag;zip 无校验和)
-- **来源与安装**:[duckdb/duckdb](https://github.com/duckdb/duckdb);python 绑定经 uv 装进 `$VENV_ANALYTICS`(默认 `/opt/analytics`,索引进 `/etc/uv/uv.toml`,默认阿里云 pypi);CLI zip `duckdb_cli-linux-{amd64|aarch64}.zip` 从 github.com 直连下载(不走 GITHUB_MIRROR),unzip 后 `install -m755`(`scripts/install-runtimes.sh` `install_duckdb`)
-- **落点**:`/usr/local/bin/duckdb`(CLI 被包装的程序,无 wrapper);python 绑定在 `/opt/analytics` venv 的 site-packages,经 `/opt/analytics/bin/python` 调用
-- **配置与缓存**:无(不写配置、不固化缓存;venv 本体由 python 组建,见 `install-runtimes.sh python`)
-- **离线行为**:未验 [推断:]本地引擎不触网,CLI 直查文件与 venv import 均纯本地;断网冒烟未单独覆盖本件。验证:`ip link set eth0 down` 后 `duckdb -c "SELECT 42"` 与 `/opt/analytics/bin/python -c "import duckdb; print(duckdb.__version__)"`
-- **限制**:空钉回退 api.github.com 取 latest 时,限流 403 会让 tag 取空,脚本 `|| true` 兜底本次不安装,再次执行该组时安装(有钉后不走这路),首轮可能只有 python 绑定没有 CLI 是钉版前(见 [日记 2026-10-08](../../diary/2026-10-08-build-baseline.md));幂等判据 `have duckdb` 只看 CLI,python 绑定每轮 `-U` 照跑(钉值精确,无害)
+## 版本
+
+- `PYPI_PIN[duckdb]` = 1.5.6(解析日 2026-10-10)。安装命令是 `uv pip install -U duckdb==<钉>`。
+- `DUCKDB_VERSION` = v1.5.6(解析日 2026-10-10)。
+- 升级:运行 `scripts/resolve-pins.sh`,再重跑本组。
+- CLI 空钉时回退到 api.github.com 的 latest tag。
+- zip 无校验和。
+
+## 来源与安装
+
+- 上游:[duckdb/duckdb](https://github.com/duckdb/duckdb)。
+- python 绑定经 uv 装进 `$VENV_ANALYTICS`(默认 `/opt/analytics`)。
+- 索引进 `/etc/uv/uv.toml`,默认阿里云 pypi。
+- CLI zip 是 `duckdb_cli-linux-{amd64|aarch64}.zip`,从 github.com 直连下载,不走 `GITHUB_MIRROR`。
+- unzip 之后 `install -m755`。
+- 脚本:`scripts/install-runtimes.sh` 的 `install_duckdb`。
+
+## 文件
+
+- `/usr/local/bin/duckdb` 是 CLI 被包装的程序,无 wrapper。
+- python 绑定在 `/opt/analytics` venv 的 site-packages。
+- 调用入口是 `/opt/analytics/bin/python`。
+
+## 配置
+
+- 不写配置,不固化缓存。
+- venv 本体由 python 组建。见 `install-runtimes.sh` 的 python 组。
+
+## 离线行为
+
+- 未验证:CLI 直查文件与 venv import。本地引擎不访问网络。断网冒烟未单独覆盖本件。
+- 判定:关闭 eth0 后执行 `duckdb -c "SELECT 42"`。
+- 判定:关闭 eth0 后执行 `/opt/analytics/bin/python -c "import duckdb; print(duckdb.__version__)"`。
+
+## 限制
+
+- 空钉回退 api.github.com 取 latest 时,限流 403 会让 tag 取空。
+- 脚本以 `|| true` 兜底。该次执行不安装 CLI。再次执行该组时安装。
+- 已经有钉之后,不走这条回退。
+- 钉版之前,镜像上可能只有 python 绑定,没有 CLI。
+- 幂等判据 `have duckdb` 只看 CLI。
+- python 绑定每次都以 `-U` 重跑。钉值精确,这一步无害。
+
+## 参见
+
+- [python 册](python.md)

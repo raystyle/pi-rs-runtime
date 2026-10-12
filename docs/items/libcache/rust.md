@@ -73,7 +73,6 @@
 
 - [offline.md](../../offline.md)
 - [known-issues.md](../../known-issues.md)
-- [software-inventory](../../software-inventory.md)
 
 ## rctl 面,机器行
 
