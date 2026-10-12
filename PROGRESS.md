@@ -28,7 +28,7 @@
 
 0. ~~域分类定稿~~(prt-09 已交并吸收):七域定稿确认(数据分析独立成域正确,不加第八域;kind 与域两面并存);三处改判落地(frida/jadx/apktool/capa/pwndbg 与 floss/ilspycmd/smali/baksmali 到 逆向环境,vol/volshell/netexec/pspy 到 工具环境,poc-search 到 工具环境);一级七域够用,ATT&CK 战术留作 caps 多值标签不进 env;docs/items/README 增七域归档视图;待裁定:angr(单独 venv)/HackTricks(1GiB)/GTFOBins(代理 401)
 
-1. prt-07 阶段 2:闭集族全表生成(impacket 46 件已落表 2026-10-12 收口、frida/rz/nim 已过半)+ 漂移守卫;阶段 2 裁定项:microsoft/nuget.exe/httpclient/rwinrm/rwinrmcp(无主)、atlas/nokokiri/ruff(uv-tool shim 未点名);别名行机制已就位(alias 列)
+1. prt-07 阶段 2:闭集族全表生成 2026-10-12 核对收口(impacket +46 落表;frida 17/17 本就全,nim 本尊+8 副件全,re 补 rizin/rz-ghidra 显式行填空 path,catalog 493 件)+ 漂移守卫(剩面:catalog 约 190 空 path 行多为 apt 包名蒸馏形,属守卫战役)+ 裁定项:microsoft/nuget.exe/httpclient/rwinrm/rwinrmcp(无主)、atlas/nokokiri/ruff(uv-tool shim 未点名);别名行机制已就位(alias 列)
 2. prt-07 阶段 3:拆独立册(SecLists/capa-rules/yara-rules/pspy/volatility3,数据册三条纪律)+ zig 册 id 冲突解(工具链 zig vs 缓存 zig 两册同名,拆缓存行 id=zig-cache);audit 残 12 项目录认领随拆册收口
 
 1. ~~合入定制 Chrome~~(2026-10-10 prt-01 完成;**同日晚又因上游修 bug 裁定下架**:镜像卸 /opt/clean-chrome 与三链,chrome 组移出 TOOLS_ALL 默认(显式可跑),机制与 ADR-0007 留仓备用;browse CLI 维持不装):browse CLI 暂缓(仓不可达,T1 挂起等凭证);clean-chrome 155.0.8059.39 经云端道(chrome.ohmygh.com 版本段路由+sha256 锚)进镜像,系统级单副本 /opt/clean-chrome(ADR-0007);vnc-screen.sh 增 chrome 冒烟面(CDP 9222,实证 root/ubuntu/断网三视角 `Chrome/155.0.8059.39`);实证坑:155 挂 --remote-debugging-address 就绑不了 CDP 口(摘除),Chrome 136+ 无 --user-data-dir 时 CDP 静默不开。

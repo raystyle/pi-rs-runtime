@@ -350,7 +350,7 @@ rbcd.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/M
 rclone	tool	`install-tools.sh cli`	已装	`/usr/bin`				docs/items/tools-cli/cli.md		工具环境
 rctl	tool	`install-tools.sh ctl`	已装	pi runtime 实例总 ctl:agent 第一入口,渐进索引与全资源可搜(search/where/caps/show/env)	仓内源码 `scripts/ctl/`(package.json version,当前 0.1.0);bun 编译期钉 `BUN_VERSION`(pins.sh 标量,当前 1.4.3);能力表 `scripts/ctl/data/catalog.tsv` 是 docs/items/ 的生成投影(`scr	/usr/local/bin/rctl	过,全命令零网络(能力表与路径库都是本地烤库;env 面只读 /proc 与配置文件);断网实证见 REQ-0001 trace	docs/items/tools-ctl/rctl.md		工具环境
 rdp_check.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/rdp_check.py		docs/items/tools-p0/impacket.md		工具环境
-re	tool	`install-tools.sh re`	已装	逆向工程稳定链:系统库 22 项 + rizin/rz-ghidra/sigdb 源码编译 + `/opt/re-venv` 五库	系统库 22 项 apt noble 源冻结即钉(软钉,留痕 [known-issues](../../known-issues.md));rizin / rz-ghidra / sigdb 由 pins.sh `GIT_PIN[rizinorg/…]` 钉 sha(clone_pin,幂等:HEAD==钉即跳�		未验 [推断:]readelf/objdump/eu-readelf/yara/cstool/file/binwalk 与 rizin(含 rz-ghidra 反编译)、re-venv 五库 import 均纯本地不触网,未进断网冒烟清单逐项实证。验证:`ip l	docs/items/tools-re/re.md		逆向环境
+re	tool	`install-tools.sh re`	已装	逆向工程稳定链:系统库 22 项 + rizin/rz-ghidra/sigdb 源码编译 + `/opt/re-venv` 五库	系统库 22 项 apt noble 源冻结即钉(软钉,留痕 [known-issues](../../known-issues.md));rizin / rz-ghidra / sigdb 由 pins.sh `GIT_PIN[rizinorg/…]` 钉 sha(clone_pin,幂等:HEAD==钉即跳�		部分已验(2026-10-12,eth0 down 断网,root 视角)`rizin -qc 'Lc' /bin/ls | grep -i ghidra` 退 0(rz-ghidra 反编译面加载,rizin 0.10.0)与 `/opt/re-venv/bin/python -c 'import capstone,keystone	docs/items/tools-re/re.md		逆向环境
 rea	tool	`install-tools.sh rea`	已装	agent 逆向工具面(morluto/rea:MCP server + CLI,Ghidra 无头 provider,封装 analyzeHeadless)	pins.sh `NPM_PIN[rea-agents]`(当前 6.3.0);升级跑 `scripts/resolve-pins.sh` 审 diff 后重跑本组(组内按版本比对幂等跳装)	/opt/node/bin/rea	过,断网全链路实证(2026-10-11):eth0 down 后 `rea doctor` Ghidra provider healthy(20 项 ok)+ 带符号 ELF `rea decompile <bin> main` 出伪代码(provider 12.1.3);边界:装/更新(`npm insta	docs/items/tools-rea/rea.md		逆向环境
 rea-agents	tool	`install-tools.sh rea`	已烘焙	rea 常驻面入口		/usr/local/bin/rea-agents		docs/items/tools-rea/rea.md		逆向环境
 recon	ref	`install-tools.sh recon`	参考克隆	MAC/服务指纹库与 DNS 协议栈、CVE PoC 索引参考,只克隆归档	4 仓全部 pins.sh `GIT_PIN` 钉 sha(clone_pin,幂等:HEAD==钉即跳过;解析日 2026-10-10),升级跑 scripts/resolve-pins.sh	/opt/recon-ref/	过, 断网在位核验,断网冒烟覆盖「参考库在位」面([离线机制 §验证](../../offline.md),2026-10-10 轮 78/0);指纹库纯读盘不触网。验证:`ip link set eth0 down` 后 `ls /	docs/items/tools-recon/recon.md		代码样板参考
@@ -360,7 +360,7 @@ registry-read.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/K
 reg.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/reg.py		docs/items/tools-p0/impacket.md		工具环境
 regsecrets.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/regsecrets.py		docs/items/tools-p0/impacket.md		工具环境
 responder	tool	`install-tools.sh pentest`	已装	LLMNR/NBT-NS 毒化(内网横向测试起点)	pins.sh 钉版:`GIT_PIN[lgandx/Responder]` 钉 sha(clone_pin,幂等:HEAD==钉即跳过;解析日 2026-10-10),升级跑 scripts/resolve-pins.sh	/opt/Responder/	过,毒化监听只需二层广播域,不依赖外网;断网冒烟覆盖。验证:`ip link set eth0 down` 后 `responder -h` 出 banner(wrapper cd + re-venv python + aioquic 加载链路全通,2026-10	docs/items/tools-pentest/responder.md		工具环境
-rizin	tool	`install-tools.sh re`	已装	/usr/local				docs/items/tools-re/re.md		逆向环境
+rizin	tool	`install-tools.sh re`	已烘焙	rizin 本尊,rz-ghidra 反编译面经它出(pdg)		/usr/local/bin/rizin		docs/items/tools-re/re.md		逆向环境
 rpcdump.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/rpcdump.py		docs/items/tools-p0/impacket.md		工具环境
 rpcmap.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/rpcmap.py		docs/items/tools-p0/impacket.md		工具环境
 RsaCtfTool	ref	`install-tools.sh red`	已烘焙	RsaCtfTool 仓		/opt/RsaCtfTool		docs/items/tools-red/red.md		工具环境
@@ -382,7 +382,7 @@ rz-bin	tool	`install-tools.sh re`	已烘焙	逆向工程稳定链:系统库 22 �
 rz-diff	tool	`install-tools.sh re`	已烘焙	逆向工程稳定链:系统库 22 项 + rizin/rz-ghidra/sigdb 源码编译 + `/opt/re-venv` 五库		/usr/local/bin/rz-diff		docs/items/tools-re/re.md		逆向环境
 rz-find	tool	`install-tools.sh re`	已烘焙	逆向工程稳定链:系统库 22 项 + rizin/rz-ghidra/sigdb 源码编译 + `/opt/re-venv` 五库		/usr/local/bin/rz-find		docs/items/tools-re/re.md		逆向环境
 rz-gg	tool	`install-tools.sh re`	已烘焙	逆向工程稳定链:系统库 22 项 + rizin/rz-ghidra/sigdb 源码编译 + `/opt/re-venv` 五库		/usr/local/bin/rz-gg		docs/items/tools-re/re.md		逆向环境
-rz-ghidra	tool	`install-tools.sh re`	已装	rizin 插件目录				docs/items/tools-re/re.md		逆向环境
+rz-ghidra	tool	`install-tools.sh re`	已烘焙	rizin 反编译插件,analysis/asm/core 三 so 加 rz_ghidra_sleigh 数据同域		/usr/local/lib/x86_64-linux-gnu/rizin/plugins/core_ghidra.so		docs/items/tools-re/re.md		逆向环境
 rz-hash	tool	`install-tools.sh re`	已烘焙	逆向工程稳定链:系统库 22 项 + rizin/rz-ghidra/sigdb 源码编译 + `/opt/re-venv` 五库		/usr/local/bin/rz-hash		docs/items/tools-re/re.md		逆向环境
 rz-run	tool	`install-tools.sh re`	已烘焙	逆向工程稳定链:系统库 22 项 + rizin/rz-ghidra/sigdb 源码编译 + `/opt/re-venv` 五库		/usr/local/bin/rz-run		docs/items/tools-re/re.md		逆向环境
 rz-sign	tool	`install-tools.sh re`	已烘焙	逆向工程稳定链:系统库 22 项 + rizin/rz-ghidra/sigdb 源码编译 + `/opt/re-venv` 五库		/usr/local/bin/rz-sign		docs/items/tools-re/re.md		逆向环境
