@@ -79,16 +79,40 @@ clean() { # tsv 字段禁 tab/换行
             "$(clean "$id")" "$(clean "$kind")" "$(clean "$group")" "$(clean "$status")" \
             "$(clean "$desc")" "$(clean "$pin")" "$(clean "$path")" "$(clean "$offline")" "$(clean "$f")" "$renv"
         # 成员表蒸馏:组册表行第一列(或编号表的第二列)是 ascii 件名,成员继承册的组/状态/书
+        # 落点蒸馏(pathq-01 裁定 2026-10-12):表头有「入口」「落点」列时派生 path——
+        #   落点单元格绝对路径,目录形(尾段 bin/sbin)拼入口单命令名、文件形直取;
+        #   无落点列时,册落点节写明 apt 落 /usr/bin 的组按 /usr/bin/<入口> 兜;
+        #   入口格多名/带说明(dig/nslookup、import scapy、binfmt_misc 注册)不猜,path 留空
+        aptusr=0; grep -m1 '^- \*\*落点' "$f" | grep -q '/usr/bin' && aptusr=1
         awk -F'|' '
-            /^[ \t]*\|/ && NF>=4 {
-                c1=$2; gsub(/^[ \t]+|[ \t]+$/, "", c1)
-                d=$(NF-1); gsub(/^[ \t]+|[ \t]+$/, "", d)
-                # 编号表:第一列纯数字时件名在第二列
-                if (c1 ~ /^[0-9]+$/) { c1=$3; gsub(/^[ \t]+|[ \t]+$/, "", c1) }
-                if (c1 ~ /^[a-zA-Z0-9_.-]+$/ && c1 ~ /[a-zA-Z]/ && c1 !~ /^:?-/) {
-                    if (length(d)>2) printf "%s\t%s\t%s\t%s\t%s\t\t\t\t%s\t\t%s\n", c1, K, G, S, substr(d,1,120), B, ENV
+            function trim(s){ gsub(/^[ \t]+|[ \t]+$/,"",s); return s }
+            function strip(s){ gsub(/^[ \t`]+|[ \t`]+$/,"",s); return s }
+            ! /^[ \t]*\|/ { intab=0; CENT=0; CLOC=0; next }
+            NF>=4 {
+                if (!intab) {          # 本表首行=表头:记入口/落点列号
+                    for (i=2;i<NF;i++) { h=strip($i)
+                        if (h=="入口") CENT=i
+                        if (h=="落点") CLOC=i
+                    }
+                    intab=1; next
                 }
-            }' K="$kind" G="$(clean "$group")" S="$(clean "$status")" B="$f" ENV="$(env_of "$dir" "")" "$f"
+                c1=trim($2); d=trim($(NF-1))
+                # 编号表:第一列纯数字时件名在第二列
+                if (c1 ~ /^[0-9]+$/) c1=trim($3)
+                if (c1 ~ /^[a-zA-Z0-9_.-]+$/ && c1 ~ /[a-zA-Z]/ && c1 !~ /^:?-/) {
+                    ent=""; loc=""; p=""
+                    if (CENT) ent=strip($CENT)
+                    if (CLOC) loc=strip($CLOC)
+                    # 落点格可带尾注(/usr/bin/batcat + 软链句):取头部绝对路径段;
+                    # 文件形直取(pathq-01 规则 a,入口格多名不挡);目录形拼入口、apt 兜底才要单命令名
+                    if (match(loc, /^\/[a-zA-Z0-9._\/-]+/)) {
+                        lp=substr(loc, RSTART, RLENGTH)
+                        if (lp ~ /\/(bin|sbin)$/) { if (ent ~ /^[a-zA-Z0-9][a-zA-Z0-9._-]*$/) p=lp "/" ent }
+                        else p=lp
+                    } else if (APTUSR && ent ~ /^[a-zA-Z0-9][a-zA-Z0-9._-]*$/) p="/usr/bin/" ent
+                    if (length(d)>2) printf "%s\t%s\t%s\t%s\t%s\t\t%s\t\t%s\t\t%s\n", c1, K, G, S, substr(d,1,120), p, B, ENV
+                }
+            }' K="$kind" G="$(clean "$group")" S="$(clean "$status")" B="$f" ENV="$(env_of "$dir" "")" APTUSR="$aptusr" "$f"
     done | sort -t$'\t' -k1,1 | awk -F'\t' '
         {
             if (!(($1) in seen)) { seen[$1]=1; for (i=1;i<=NF;i++) best[$1,i]=$i }

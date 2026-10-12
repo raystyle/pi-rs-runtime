@@ -22,6 +22,8 @@ incus exec pi-rs-runtime-20261010-2210 --user 1000 --group 1000 -- env HOME=/hom
 
 ## Must
 
+- **开工先查资源清单**:接手任何「待办/补缺/新增」前,先对关键词查三面——`grep <词> scripts/`(实现面)、`awk -F'\t' '$1~/<词>/' scripts/ctl/data/catalog.tsv`(已收录面)、`grep -rl <词> docs/items/`(册面);三面任一命中即先核对现状再决定做不做(2026-10-12 两回重复实现教训:待办口径会滞后于已实现)
+- 待办收口同步:条目完成时当场划掉或删,收口批必须带 PROGRESS 待办同步(防旧口径钓后人)
 - 脚本幂等 + 钉版 + 可升级;幂等判据存在早退的组,配置写入一律放早退之前
 - **钉版纪律**:安装脚本只消费 `scripts/lib/pins.sh`(go/crate/pypi/gem/nuget/npm/psgallery/git 八映射 + 标量);新增消费点必须先把清单加进 `scripts/resolve-pins.sh` 并跑它补钉;缺钉直接失败,禁止漂回 @latest/漂 HEAD;升级 = 跑 `scripts/resolve-pins.sh`(全量约 21s,并行 16)+ 审 diff;库缓存传递闭包锁在 `scripts/lock/`(六生态),升级传递闭包再加跑 `scripts/sync-locks.sh`(容器内再生+校验拉回);锁与钉失步时 npm ci/cargo --locked 会硬失败(设计意图)
 - 一切能力声明要容器实证(断网冒烟),不许「应该能跑」;验证要覆盖 root 与 ubuntu 双视角

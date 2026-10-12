@@ -1349,7 +1349,7 @@ install_data() {
     if [ -n "$ht_sha" ]; then
         if [ ! -f /opt/data-ref/hacktricks/.ht-pin ] || [ "$(cat /opt/data-ref/hacktricks/.ht-pin 2>/dev/null)" != "$ht_sha" ]; then
             rm -rf /tmp/ht-snapshot /opt/data-ref/hacktricks
-            if git clone -q --depth 1 "${gh}/HackTricks-wiki/hacktricks" /tmp/ht-snapshot                 && git -C /tmp/ht-snapshot checkout -q "$ht_sha" 2>/dev/null; then
+            if git clone -q --depth 1 "${gh}/HackTricks-wiki/hacktricks" /tmp/ht-snapshot                 && { git -C /tmp/ht-snapshot checkout -q "$ht_sha" 2>/dev/null                 || { git -C /tmp/ht-snapshot fetch -q --depth 1 origin "$ht_sha" && git -C /tmp/ht-snapshot checkout -q FETCH_HEAD; }; }; then
                 mkdir -p /opt/data-ref/hacktricks
                 (cd /tmp/ht-snapshot && find . -name "*.md" -not -path "./.git/*" -exec install -D -m644 {} /opt/data-ref/hacktricks/{} \;)
                 printf '%s' "$ht_sha" > /opt/data-ref/hacktricks/.ht-pin

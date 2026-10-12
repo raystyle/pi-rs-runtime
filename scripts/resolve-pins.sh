@@ -76,10 +76,15 @@ pypi_latest() {
 gem_latest() { curl -fsSL -m 15 "https://rubygems.org/api/v1/versions/$1/latest.json" 2>/dev/null | grep -o '"version": *"[^"]*"' | cut -d'"' -f4 || true; }
 
 # ---- git 仓:HEAD sha --------------------------------------------------------
+# 非 GitHub 源覆写表(edb-01 裁定 2026-10-12:exploitdb 官方本尊在 GitLab,GitHub 键是死址;
+# 值为完整 ls-remote URL,不经 GH_MIRROR)
+declare -A GIT_SOURCE_URL=(
+    ["exploit-database/exploitdb"]="https://gitlab.com/exploit-database/exploitdb.git"
+)
 git_head() {
-    local v=""
+    local v="" url="${GIT_SOURCE_URL[$1]:-${GH_MIRROR}https://github.com/$1}"
     for _ in 1 2 3; do
-        v="$(git ls-remote "${GH_MIRROR}https://github.com/$1" HEAD 2>/dev/null | cut -c1-40 || true)"
+        v="$(git ls-remote "$url" HEAD 2>/dev/null | cut -c1-40 || true)"
         if [ -n "$v" ]; then break; fi
         sleep 2
     done
@@ -287,7 +292,10 @@ claude_code_latest() { npm_latest "@anthropic-ai/claude-code"; }
 codex_latest() { npm_latest "@openai/codex"; }
 claude_acp_latest() { npm_latest "@agentclientprotocol/claude-agent-acp"; }
 aliyun_cli_latest() { git_latest_tag "aliyun/aliyun-cli" "v"; }
-tccli_latest() { curl -fsSL -m 15 "https://pypi.org/pypi/tccli.json" 2>/dev/null | grep -o '"version":"[^"]*"' | head -1 | cut -d'"' -f4 || true; }
+tccli_latest() { # pypi.org 直连回 HTML 挑战页、tuna JSON 镜像滞后(2026-10-12 实证);aliyun simple 面(仓内 PIP_INDEX 同源)排序取最大,直连 JSON 兜底
+    curl -fsSL -m 15 "${ALIYUN:-https://mirrors.aliyun.com}/pypi/simple/tccli/" 2>/dev/null | grep -oE 'tccli-[0-9.]+\.tar\.gz' | sort -V | tail -1 | sed -E 's/^tccli-//; s/\.tar\.gz$//' \
+        || curl -fsSL -m 15 "https://pypi.org/pypi/tccli.json" 2>/dev/null | grep -o '"version": *"[^"]*"' | head -1 | cut -d'"' -f4 || true
+}
 codex_acp_latest() { npm_latest "@agentclientprotocol/codex-acp"; }
 # 无干净索引面:软钉留空,消费点回退最新并警告(known-issues 留痕)
 awscli_soft() { :; }
