@@ -16,6 +16,7 @@ import json, os, re, sys
 root, bl_path, mode = sys.argv[1:4]
 
 # 禁词表(doc-spec.md §5 左列 + 过程引用类)
+ENUM = {"已装","参考克隆","缓存固化","已烘焙","未装"}
 BAD = ["血泪教训","血泪坑","坑与留痕","坑","留痕","实证","顺手","顺带","炸出","收口","落字",
        "口径","下轮","钓后人","真身","摆设","来龙去脉","假绿","半静默","教训",
        "用户裁定","grok","prt-","工位","评审"]
@@ -24,6 +25,7 @@ OLD_TAGS = ["坑与留痕","血泪教训","血泪坑"]
 doc = json.load(open(os.path.join(root, "scripts/ctl/data/resources.json"), encoding="utf-8"))
 field_over = 0; field_bad = 0
 for r in doc["resources"]:
+    if r.get("status","") not in ENUM: field_bad += 1
     d, p, o = r.get("desc",""), r.get("pin",""), r.get("offline","")
     if not d or len(d) > 80: field_over += 1
     if p and len(p) > 80: field_over += 1
