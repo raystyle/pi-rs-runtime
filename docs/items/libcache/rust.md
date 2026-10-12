@@ -10,7 +10,7 @@
 - 预热工程是 `/opt/rust-prewarm-libs`。
 - 用完后 `rm -rf` 删除该工程。
 - 预热工程删除后,Cargo.lock 不留在该目录。
-- 钉版记录只在构建日志里,字节留在缓存。
+- 锁定版本记录只在构建日志里,字节留在缓存。
 - 锁已入库 `scripts/lock/rust/`(Cargo.toml 与 Cargo.lock)。
 - 这套锁按 31 个 crate 的清单重建,并用 generate-lockfile 收割。
 - 有锁时用 `cargo fetch --locked` 消费。
@@ -59,7 +59,7 @@
 ## 限制
 
 - install-compilers.sh 的 rust 组另有 29 个件级 crate 预热。
-- 这 29 个用 `*` ,未钉版本。
+- 这 29 个用 `*` ,未锁定版本。
 - 清单见 [software-inventory](../../software-inventory.md) 的预缓存库节。
 - 这 29 个与本批 31 个互补。
 - fff-mcp 不安装二进制。

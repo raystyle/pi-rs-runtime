@@ -1,6 +1,6 @@
 # 参数表
 
-本册汇总全部可调参数：构建脚本变量、镜像源覆盖、版本钉、路径与工具集。镜像源与版本钉均定义在 `scripts/lib/common.sh`，可用环境变量覆盖。返回 [README](../README.md)。
+本册汇总全部可调参数：构建脚本变量、镜像源覆盖、版本锁定、路径与工具集。镜像源与版本锁定均定义在 `scripts/lib/common.sh`，可用环境变量覆盖。返回 [README](../README.md)。
 
 ## 构建脚本（`build-base-image.sh`）
 
@@ -28,7 +28,7 @@
 | `SURY_MIRROR` | `https://mirror.nju.edu.cn/sury` | tuna 无 sury;GPG key 仍从官方取一次 |
 | `GITHUB_MIRROR` | `https://proxy.ohmygh.com/` | GitHub 前置代理，拼在 `https://github.com` 前；置空则直连 |
 
-## 版本钉（`lib/common.sh`，全部可选）
+## 版本锁定（`lib/common.sh`，全部可选）
 
 | 名称 | 默认 | 约束 |
 |------|------|------|
@@ -37,7 +37,7 @@
 | `FNM_NODE_VERSIONS` | `18 20 22 24` | fnm 预装的 node 大版本，空格分隔 |
 | `DOTNET_SDK` | `dotnet-sdk-10.0` | noble 自带源(即 tuna);MS 仓仅 pwsh 注册 |
 
-| 钉版机制 | [pins.sh](../scripts/lib/pins.sh) | 版本钉唯一真相:go/crate/pypi/gem/nuget/git 五映射+标量,由 `scripts/resolve-pins.sh` 解析生成;升级跑它再审 diff。镜像内锁文件(go.mod/Cargo.lock/package-lock/maven pom)为库缓存层的构建日钉 |
+| 版本锁定 | [pins.sh](../scripts/lib/pins.sh) | go/crate/pypi/gem/nuget/git 五映射与标量,由 `scripts/resolve-pins.sh` 生成;升级时跑它再审 diff。库缓存锁文件是构建日锁定的版本 |
 | `ZIG_VERSION` | `0.16.0` | ziglang.org 直下，无国内镜像；仅 amd64/arm64 |
 | `MAVEN_VERSION` / `GRADLE_VERSION` | `3.9.16` / `8.14.3` | |
 | `JAVA_VERSIONS` | `8 11 17 21 25` | sdkman 预装的 temurin 主版本；小版本随 tuna 目录取最新 |
@@ -64,7 +64,7 @@
 
 
 
-## 2026-10-11 新增标量钉:agent 平台轮
+## 2026-10-11 新增标量锁定版本:agent 平台轮
 
 | 标量 | 当前 | 面 |
 |---|---|---|
@@ -74,4 +74,4 @@
 | ALIYUN_CLI_VERSION / TCCLI_VERSION | v3.5.1 / 3.1.180.1 | 云 CLI |
 | STEGSEEK_VERSION + STEGSEEK_SHA256 | 0.6 + deb sha256 | stegseek(release deb 锚) |
 
-npm/pypi/git/gem 新钉:rea-agents 6.3.0、aioquic 1.4.0、qiling 1.4.6、angr 10.0.3、git-dumper 1.0.9、apkid 3.1.0、one_gadget 1.10.0(Ruby3.2 面)、seccomp-tools 1.7.1、zsteg 0.2.14;git 新钉:LOLBAS/webappanalyzer/exploitdb(GitLab 直连道)/hacktricks(浅克隆文本面)/gtfobins(.github.io 源仓)/phpggc/commix/SSTImap。
+npm/pypi/git/gem 新增锁定版本:rea-agents 6.3.0、aioquic 1.4.0、qiling 1.4.6、angr 10.0.3、git-dumper 1.0.9、apkid 3.1.0、one_gadget 1.10.0(Ruby3.2 面)、seccomp-tools 1.7.1、zsteg 0.2.14;git 新增锁定版本:LOLBAS/webappanalyzer/exploitdb(GitLab 直连道)/hacktricks(浅克隆文本面)/gtfobins(.github.io 源仓)/phpggc/commix/SSTImap。

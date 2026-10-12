@@ -4,9 +4,9 @@
 
 ## 版本
 
-- 24 个直接依赖按 `NPM_PIN` 精确钉版。
+- 24 个直接依赖按 `NPM_PIN` 精确锁定版本。
 - package.json 由 pins.sh 生成。
-- 缺钉即失败。
+- 缺少锁定版本即失败。
 - 传递闭包锁在 `scripts/lock/node/package-lock.json`。
 - 构建消费走 `npm ci`。
 - 再生执行 `scripts/sync-locks.sh`。

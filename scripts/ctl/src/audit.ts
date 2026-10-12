@@ -58,7 +58,7 @@ export function audit(): { rows: AuditRow[]; summary: Record<string, number> } {
   try { opts = readdirSync("/opt") } catch { opts = [] }
   for (const name of opts.sort()) {
     if (optClaimed.has(name)) {
-      rows.push({ name, side: "opt", class: "ok", note: "册落点认领" })
+      rows.push({ name, side: "opt", class: "ok", note: "册内安装路径已登记" })
       continue
     }
     rows.push({ name, side: "opt", class: "missing-id", note: "/opt 顶层无册认领" })

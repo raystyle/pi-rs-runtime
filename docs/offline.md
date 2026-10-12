@@ -5,7 +5,7 @@
 
 ## 机制分层
 
-### 1. 固化缓存:字节在构建期钉进 /opt,运行期不访问索引
+### 1. 固化缓存:字节在构建期写入 /opt,运行期不访问索引
 
 | 生态 | 固化位置 | 运行期如何被找到 |
 |---|---|---|
@@ -17,7 +17,7 @@
 | Gradle | `/opt/gradle-home` | 家目录软链 `~/.gradle`;缓存要可写(daemon/锁),piopt 组 + 默认 ACL 共享(见 §5) |
 | .NET | `/opt/nuget-packages` | NuGet.Config `fallbackPackageFolders`(NuGet 官方离线机制,root+ubuntu 各一份);不再导出 NUGET_PACKAGES(global 与 fallback 同路径会让登录 restore 写固化仓) |
 | PowerShell | `/opt/psmodules` | 软链进 `/usr/local/share/powershell/Modules`(pwsh 默认系统模块路径) |
-| Zig | `/opt/zig-cache`(hash 钉在 `/opt/zig-prewarm/build.zig.zon`) | 家目录软链 `~/.cache/zig`;可写共享(piopt 组 + 默认 ACL,见 §5);cargo-zigbuild 缓存同形 |
+| Zig | `/opt/zig-cache`(hash 锁定在 `/opt/zig-prewarm/build.zig.zon`) | 家目录软链 `~/.cache/zig`;可写共享(piopt 组 + 默认 ACL,见 §5);cargo-zigbuild 缓存同形 |
 | 扫描器库 | `/opt/trivy-db`、`/opt/nuclei-templates`、capa 规则 | wrapper 注入(见下) |
 | 数据 | SecLists、wordlists+rockyou、frida-server 八平台、PoC-in-GitHub 索引;2026-10-11 扩:exploitdb(47799 文件)、LOLBAS、gtfobins(.github.io 源仓 478 条)、webappanalyzer、hacktricks 文本面(1095 篇 18M) | 直接读盘 |
 
@@ -36,7 +36,7 @@ profile.d 只作登录 shell 的备份面。
 
 ### 4. 默认快失败:离线期拉新依赖立即报错,不挂起
 
-运行期配置把五生态钉成离线优先;构建脚本(source `lib/common.sh`)用 env 显式拿回在线面(env 优先级恒高于配置文件):
+运行期配置把五生态设成离线优先;构建脚本(source `lib/common.sh`)用 env 显式拿回在线面(env 优先级恒高于配置文件):
 
 | 生态 | 运行期配置(默认面) | 离线行为 | 在线覆盖(构建/手工) |
 |---|---|---|---|
@@ -51,7 +51,7 @@ js-lab 的包走 `require`(全局链)离线可用,但 `npm install` 同一包仍
 `/etc/profile.d/offline.sh` 的 `offline` 函数保留作显式开关(登录 shell);默认面已快失败,它不再是必需品。
 maven/gradle 没有干净的「配置离线+CLI 覆盖」对,不做默认离线:手工 `mvn -o` / `gradle --offline`;
 另注意 gradle wrapper(`./gradlew`)会按 distributionUrl 重新下载发行包,离线期用系统 `gradle` 命令。
-bun 不读 npmrc(bunfig 才是它的面)、corepack 的 pnpm/yarn 同理,这两个生态离线拉新件仍会按自身重试节奏走,量级小不钉默认。
+bun 不读 npmrc(bunfig 才是它的面)、corepack 的 pnpm/yarn 同理,这两个生态离线拉新件仍会按自身重试节奏走,量级小不锁定默认。
 
 ### 5. 可写共享缓存的权限模型
 

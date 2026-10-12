@@ -89,7 +89,7 @@ PD_TOOLS_DEFAULT=(
 )
 
 install_discovery() {
-    log "projectdiscovery 全家桶 (go install 钉版 pins.sh,经 $GOPROXY)"
+    log "projectdiscovery 全家桶 (go install 版本由 pins.sh 锁定,经 $GOPROXY)"
     . "$HOME/.cargo/env" 2>/dev/null || true
     export GOPATH=/opt/go PATH="$PATH:/usr/local/go/bin:/opt/go/bin"
     export GOPROXY GOSUMDB
@@ -105,8 +105,8 @@ install_discovery() {
             ln -sf "$gobin/$bin" "/usr/local/bin/$bin"
             echo "$bin 已装($gobin/$bin),跳过"; continue
         fi
-        local pv; pv="$(go_pin_ver "github.com/projectdiscovery/${t}")" || { echo "!! $bin 缺钉,跳过"; continue; }
-        echo "--- go install $t@${pv}(钉)"
+        local pv; pv="$(go_pin_ver "github.com/projectdiscovery/${t}")" || { echo "!! $bin 缺少锁定版本,跳过"; continue; }
+        echo "--- go install $t@${pv}(锁定版本)"
         go install "github.com/projectdiscovery/${t}@${pv}" || echo "!! $bin 编译失败(留待排查)"
         [ -e "$gobin/$bin" ] && ln -sf "$gobin/$bin" "/usr/local/bin/$bin"
     done
@@ -139,7 +139,7 @@ SECGO_TOOLS_DEFAULT=(
 )
 
 install_go-security() {
-    log "Go 安全 CLI (go install 钉版 pins.sh,经 $GOPROXY)"
+    log "Go 安全 CLI (go install 版本由 pins.sh 锁定,经 $GOPROXY)"
     export PATH="$PATH:/usr/local/go/bin:/root/go/bin"
     export GOPROXY GOSUMDB
     # shellcheck disable=SC2206
@@ -159,8 +159,8 @@ install_go-security() {
         # 幂等判据看文件不看 PATH:非登录 shell 的 PATH 不含 $gobin,have 会假阴,
         # 已装件会被反复 go install(回归实证:换 shell 视角即整组重编译)
         if [ -e "$gobin/$bin" ]; then echo "$bin 已装($gobin/$bin),跳过"; continue; fi
-        local sv; sv="$(go_pin_ver "${repo}/${path%/...}")" || { echo "!! $bin 缺钉,跳过"; continue; }
-        echo "--- go install $repo/$path@${sv}(钉)"
+        local sv; sv="$(go_pin_ver "${repo}/${path%/...}")" || { echo "!! $bin 缺少锁定版本,跳过"; continue; }
+        echo "--- go install $repo/$path@${sv}(锁定版本)"
         if go install "${repo}/${path}@${sv}"; then
             if [ "$produced" != "$bin" ] && [ -f "$gobin/$produced" ] && [ ! -e "$gobin/$bin" ]; then
                 mv "$gobin/$produced" "$gobin/$bin"   # v2/v3/v8 -> ffuf/gobuster/gitleaks
@@ -233,9 +233,9 @@ install_rust-security() {
 
 # ---- herdr(终端 workspace 管理器;tmux 之外的 agent 编排面) -----------------
 # 官方安装通道是 herdr.dev/install.sh(解析 latest.json 下 GitHub release);
-# 这里等价实现并钉版:装到 /usr/local/bin 全局可用,不走 ~/.local/bin
+# 这里等价实现并锁定版本:装到 /usr/local/bin 全局可用,不走 ~/.local/bin
 install_herdr() {
-    log "herdr $HERDR_VERSION (release 直下,无国内镜像;sha256 钉版)"
+    log "herdr $HERDR_VERSION (release 直下,无国内镜像;sha256 锁定版本)"
     local gh="${GITHUB_MIRROR}https://github.com"
     local harch; case "$(dpkg --print-architecture)" in
         amd64) harch=x86_64 ;;
@@ -244,7 +244,7 @@ install_herdr() {
     esac
     if ! have herdr; then
         curl -fSL "${gh}/herdrdev/herdr/releases/download/v${HERDR_VERSION}/herdr-linux-${harch}" -o /tmp/herdr
-        # sha256 只钉了 x86_64 资产;arm64 换版本时重算补钉
+        # sha256 只锁定了 x86_64 资产;arm64 换版本时重算补写锁定版本
         if [ "$harch" = x86_64 ] && [ -n "${HERDR_SHA256:-}" ]; then
             echo "${HERDR_SHA256}  /tmp/herdr" | sha256sum -c - || { echo "herdr 校验失败"; exit 1; }
         fi
@@ -262,7 +262,7 @@ install_ghidra() {
     local url="https://github.com/NationalSecurityAgency/ghidra/releases/download/Ghidra_${GHIDRA_VERSION}_build/${z}"
     if [ ! -d /opt/ghidra ]; then
         curl -fSL "$url" -o "/tmp/${z}"
-        # 官方发布页给出的 SHA-256(GHIDRA_SHA256 钉在 common.sh,换版本时同步换)
+        # 官方发布页给出的 SHA-256(GHIDRA_SHA256 锁定在 common.sh,换版本时同步换)
         if [ -n "${GHIDRA_SHA256:-}" ]; then
             echo "${GHIDRA_SHA256}  /tmp/${z}" | sha256sum -c - || { echo "ghidra zip 校验失败"; exit 1; }
         fi
@@ -270,7 +270,7 @@ install_ghidra() {
         unzip -q "/tmp/${z}" -d /opt/ghidra && rm "/tmp/${z}"
     fi
     local gdir; gdir="$(ls -d /opt/ghidra/ghidra_*/ | head -1)"
-    # 钉死 JDK 21:多版本共存时防止被默认 JDK(25)抢
+    # 固定 JDK 21:多版本共存时防止被默认 JDK(25)抢
     # ls 多 glob 有一个布局不存在即返回 2,pipefail 下赋值会失败退出,|| true 兜底
     local j21; j21="$(ls -d /opt/jdk/temurin-21* /usr/local/sdkman/candidates/java/21* 2>/dev/null | head -1 || true)"
     [ -n "$j21" ] || { echo "找不到 JDK 21,先跑 install-runtimes.sh sdkman"; exit 1; }
@@ -316,7 +316,7 @@ install_reverse() {
     ldconfig
     if ! rizin -qc 'Lc' /bin/ls 2>/dev/null | grep -qi ghidra; then
         rm -rf /tmp/rz-ghidra
-        # ghidra 是 rz-ghidra 的 git 子模块,其提交钉死了匹配的 ghidra ref;
+        # ghidra 是 rz-ghidra 的 git 子模块,其提交固定了匹配的 ghidra ref;
         # 自己按版本号克隆会 API 不匹配(core_ghidra.cpp 编译错),必须走子模块
         clone_pin rizinorg/rz-ghidra /tmp/rz-ghidra submodules
         export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
@@ -348,13 +348,13 @@ install_reverse() {
     VIRTUAL_ENV="$RE_VENV" uv pip install "capstone==$(pypi_pin capstone)" "keystone-engine==$(pypi_pin keystone-engine)" "unicorn==$(pypi_pin unicorn)" "lief==$(pypi_pin lief)" "yara-python==$(pypi_pin yara-python)"
     # qiling 跨架构模拟(REQ-0003 P1;依赖 gevent 等随装,离线以 venv 物化为准)
     VIRTUAL_ENV="$RE_VENV" uv pip install "qiling==$(pypi_pin qiling)" \
-        || echo "!! qiling 装失败(查钉与索引)"
+        || echo "!! qiling 装失败(查锁定版本与索引)"
     # angr 符号执行:独立 venv(grok prt-08:上游要求独立环境,禁 extra llm/unicorn/management;不混 wheelhouse)
     local AV=/opt/angr-venv
     if [ ! -x "$AV/bin/python" ] || ! "$AV/bin/python" -c "import angr" 2>/dev/null; then
         rm -rf "$AV"; uv venv "$AV"
         VIRTUAL_ENV="$AV" uv pip install "angr==$(pypi_pin angr)" \
-            || echo "!! angr 装失败(查钉与索引)"
+            || echo "!! angr 装失败(查锁定版本与索引)"
     fi
     "$AV/bin/python" -c "import angr; print('angr', angr.__version__)" 2>/dev/null || true
     "$RE_VENV/bin/python" -c 'import capstone,keystone,unicorn,lief,yara; print("re-venv ok")'
@@ -375,7 +375,7 @@ install_pivot() {
     # Go 栈
     have gost   || go_install_pin github.com/go-gost/gost/cmd/gost || echo "gost 失败"
     # frp:go.mod 带 replace(go install 拒装),源码 build 又缺 web/dist(embed 失败)
-    # → 直接下 GitHub Release 预编译(arm 机器改 FRP_ARCH);钉 FRP_VERSION(pins.sh)
+    # → 直接下 GitHub Release 预编译(arm 机器改 FRP_ARCH);锁定 FRP_VERSION(pins.sh)
     if ! have frps || ! have frpc; then
         local ftag farch="amd64"; [ "$(dpkg --print-architecture)" = arm64 ] && farch="arm64"
         ftag="${FRP_VERSION:-}"; [ -n "$ftag" ] || ftag="$(curl -fsSL "https://api.github.com/repos/fatedier/frp/releases/latest" | grep -o '"tag_name": *"[^"]*"' | cut -d'"' -f4)"
@@ -389,9 +389,9 @@ install_pivot() {
         have frps || echo "frp 失败"
     fi
     # Rust 栈
-    # wstunnel 不在 crates.io,cargo install --git 拉源码(钉 GIT_PIN 的 sha)
+    # wstunnel 不在 crates.io,cargo install --git 拉源码(锁定 GIT_PIN 的 sha)
     have wstunnel || cargo install --git "${GITHUB_MIRROR}https://github.com/erebe/wstunnel" --locked ${GIT_PIN[erebe/wstunnel]:+--rev "${GIT_PIN[erebe/wstunnel]}"} || echo "wstunnel 失败"
-    # rathole 钉 crates 版;老锁在新 rustc 编不过时退回 git 钉 sha
+    # rathole 锁定 crates 版;老锁在新 rustc 编不过时退回 git 锁定 sha
     have rathole || cargo_install_pin rathole \
         || cargo install --git "${GITHUB_MIRROR}https://github.com/rathole-org/rathole" ${GIT_PIN[rathole-org/rathole]:+--rev "${GIT_PIN[rathole-org/rathole]}"} || echo "rathole 失败"
     have bore     || cargo_install_pin bore-cli || echo "bore 失败"
@@ -408,9 +408,9 @@ install_pivot() {
 
 
 # ---- 安全分析面补齐(grok 业界调研;Kali/REMnux/FLARE 重叠缺口) ------------------
-# 分三步:apt 批(全 TUNA)/ re-venv pip 批(TUNA PyPI)/ GitHub 钉版批
+# 分三步:apt 批(全 TUNA)/ re-venv pip 批(TUNA PyPI)/ GitHub 版本锁定批
 install_analysis() {
-    log "P0 apt 批(20 包,TUNA):多架构调试/pwn/流量/分诊/AD/口令(nasm 走源码钉版,impacket 走 uv 上游,见下)"
+    log "P0 apt 批(20 包,TUNA):多架构调试/pwn/流量/分诊/AD/口令(nasm 走按锁定版本从源码构建,impacket 走 uv 上游,见下)"
     apt-get update -qq
     apt-get install -y --no-install-recommends \
         gdb-multiarch qemu-user-static \
@@ -428,8 +428,8 @@ install_analysis() {
         || VIRTUAL_ENV= uv tool install --index-url "https://pypi.tuna.tsinghua.edu.cn/simple" "impacket==$(pypi_pin impacket)" >/dev/null 2>&1 \
         || echo "impacket uv 安装失败(下轮补)"
 
-    # nasm:apt 版停在 2.16.01,官网源码钉版(nasm.us 无国内镜像,包小直连)
-    # 幂等 + 可升级:当前版本与钉版一致才跳过
+    # nasm:apt 版停在 2.16.01,官网按锁定版本从源码构建(nasm.us 无国内镜像,包小直连)
+    # 幂等 + 可升级:当前版本与锁定版本一致才跳过
     local nv; nv="${NASM_VERSION:-3.02}"
     if ! nasm -v 2>/dev/null | grep -q "version ${nv}$"; then
         local ntx="nasm-${nv}.tar.xz"
@@ -444,23 +444,23 @@ install_analysis() {
     . "$HOME/.local/bin/env" 2>/dev/null || true
     export PATH="$PATH:/usr/local/bin"
     [ -x "$RE_VENV/bin/python" ] || uv venv "$RE_VENV"
-    # netexec 在 tuna 索引里可能缺,退回 git 源(钉 GIT_PIN sha)
+    # netexec 在 tuna 索引里可能缺,退回 git 源(锁定 GIT_PIN sha)
     VIRTUAL_ENV="$RE_VENV" uv pip install "flare-floss==$(pypi_pin flare-floss)" "oletools==$(pypi_pin oletools)" \
         || VIRTUAL_ENV="$RE_VENV" uv pip install --no-cache "flare-floss==$(pypi_pin flare-floss)" "oletools==$(pypi_pin oletools)"
-    # netexec 不在任何 PyPI 索引(实证 pypi.org/aliyun/tuna 全 404/空),钉 git sha
-    VIRTUAL_ENV="$RE_VENV" uv pip install "git+${GITHUB_MIRROR}https://github.com/Pennyw0rth/NetExec@${GIT_PIN[Pennyw0rth/NetExec]:?pins.sh 缺 NetExec 钉}"
+    # netexec 不在任何 PyPI 索引(实证 pypi.org/aliyun/tuna 全 404/空),锁定 git sha
+    VIRTUAL_ENV="$RE_VENV" uv pip install "git+${GITHUB_MIRROR}https://github.com/Pennyw0rth/NetExec@${GIT_PIN[Pennyw0rth/NetExec]:?pins.sh 缺少 NetExec 锁定版本}"
     # venv 里的 CLI 进默认 PATH(评审 F6):pd/secgo 约定是 /usr/local/bin
     for b in floss olevba oleid netexec; do
         [ -e "$RE_VENV/bin/$b" ] && ln -sf "$RE_VENV/bin/$b" "/usr/local/bin/$b"
     done
 
-    log "P0 GitHub 批(钉版,无国内镜像):pwndbg/jadx/apktool/capa/SecLists/YARA规则/pdf工具"
+    log "P0 GitHub 批(锁定版本,无国内镜像):pwndbg/jadx/apktool/capa/SecLists/YARA规则/pdf工具"
     local gh="${GITHUB_MIRROR}https://github.com"
-    # pwndbg:tuna/PyPI 无包;uv tool 从 git 源装,钉 GIT_PIN 的 sha(上游 dev 分支会漂)
+    # pwndbg:tuna/PyPI 无包;uv tool 从 git 源装,锁定 GIT_PIN 的 sha(上游 dev 分支会漂)
     # UV_TOOL_BIN_DIR/UV_TOOL_DIR 指到 /opt:shim 与工具体对 ubuntu 可读(评审 F5)
     . "$HOME/.local/bin/env" 2>/dev/null || true
     export UV_TOOL_BIN_DIR=/usr/local/bin UV_TOOL_DIR=/opt/uv-tools
-    have pwndbg || uv tool install "git+${gh}/pwndbg/pwndbg@${GIT_PIN[pwndbg/pwndbg]:?pins.sh 缺 pwndbg 钉}" || echo "pwndbg 失败"
+    have pwndbg || uv tool install "git+${gh}/pwndbg/pwndbg@${GIT_PIN[pwndbg/pwndbg]:?pins.sh 缺少 pwndbg 锁定版本}" || echo "pwndbg 失败"
     # jadx:CLI zip
     if ! have jadx; then
         local jv; jv="${JADX_VERSION:-1.5.3}"
@@ -557,7 +557,7 @@ install_bof() {
     for tb in CS-Situational-Awareness-BOF CS-Remote-OPs-BOF; do
         clone_pin "trustedsec/$tb" "$bofref/$tb" || echo "$tb 克隆失败"
     done
-    # Coffee(hakaioffsec):Rust 现代 COFF loader,crate 名 coffee-ldr(钉版)
+    # Coffee(hakaioffsec):Rust 现代 COFF loader,crate 名 coffee-ldr(锁定版本)
     # 上游 lib.rs 用 #![feature(c_variadic/core_intrinsics)],stable 编不过,需 nightly
     if ! have coffee-ldr; then
         export RUSTUP_HOME=/opt/rustup CARGO_HOME=/opt/cargo
@@ -570,7 +570,7 @@ install_bof() {
         [ -e "$HOME/.cargo/bin/coffee-ldr" ] && ln -sf "$HOME/.cargo/bin/coffee-ldr" /usr/local/bin/coffee-ldr
     fi
     have coffee-ldr && echo "coffee-ldr 就绪" || echo "coffee-ldr 未装上(BOF 运行还有 bof-launcher 与 mingw/wine 路径)"
-    # bof-launcher(The-Z-Labs):Zig 写的 BOF 加载器;仓库钉 zig 0.15.2,
+    # bof-launcher(The-Z-Labs):Zig 写的 BOF 加载器;仓库锁定 zig 0.15.2,
     # 系统 zig 0.16 可能编不过,专用副本构建;源码随 inproc 归档
     if ! have bof-launcher; then
         local z152=/opt/zig-0.15.2
@@ -592,7 +592,7 @@ install_bof() {
     have bof-launcher && echo "bof-launcher 就绪"
     # entropia(entropykit/entropia):Windows PIC x86-64 shellcode/BOF 编译语言(.etpy),
     # 补 bof 组高级语言道(mingw 是 C 道);源码构建(release zip 是 Windows 预编,Linux 用不上),
-    # 钉 v0.1-experimental tag(单提交迁移仓,HEAD 即 tag)
+    # 锁定 v0.1-experimental tag(单提交迁移仓,HEAD 即 tag)
     if ! have entc; then
         export RUSTUP_HOME=/opt/rustup CARGO_HOME=/opt/cargo
         . /opt/cargo/env 2>/dev/null || true
@@ -663,7 +663,7 @@ install_nu() {
     local gh="${GITHUB_MIRROR}https://github.com"
     if ! have nu; then
         local ntag narc; case "$(dpkg --print-architecture)" in amd64) narc=x86_64;; arm64) narc=aarch64;; esac
-        # 钉版:pins.sh NU_VERSION(解析器取 tag;原生无 v 前缀)。空钉回退 git ls-remote 解析
+        # 锁定版本:pins.sh NU_VERSION(解析器取 tag;原生无 v 前缀)。未写锁定版本回退 git ls-remote 解析
         # (api.github.com 限流 403 实证不用;git 协议不受限流影响)
         ntag="${NU_VERSION#v}"
         if [ -z "$ntag" ]; then
@@ -699,7 +699,7 @@ install_nu() {
 #   payload-ref/analysis/      防御向(donut-decryptor),避免被当进攻模板抄
 #   tradecraft-ref/{ad,bof,opsec,privesc,skills}/  产物是上线后的操作员动作
 # 有编译产物的仓(COFFLoader/bof-launcher/atomic-bofs/RustHound-CE)由 bof/rust-security 组
-# 各自克隆构建,落点同轴
+# 各自克隆构建,同一归档根
 install_maldev() {
     log "maldev 模板参考库(只克隆;三根归档 c2dev-ref/payload-ref/tradecraft-ref)"
     local gh="${GITHUB_MIRROR}https://github.com"
@@ -844,7 +844,7 @@ POC_EOF
 
 # ---- 渗透测试运行时底线(智能体渗透测试运行时系统的底线件;claude 体检 P0 + grok 评审吸收) --
 # 内网客户端批 + hashcat + Responder + frida 全链 + 离线固化接线
-# 原则:全部 apt(tuna)或构建期钉版下载;离线期新装失败是显式报错,缓存必须进 /opt
+# 原则:全部 apt(tuna)或构建期锁定版本下载;离线期新装失败是显式报错,缓存必须进 /opt
 install_pentest() {
     log "pentest apt 批(36 包,阿里云):内网客户端/远程/爆破/取证/移动/无线/签名/VPN/快扫"
     apt-get update -qq
@@ -862,7 +862,7 @@ install_pentest() {
     # masscan 与 naabu 同理:原始套接字,给 ubuntu 用户免 sudo 跑
     have masscan && setcap cap_net_raw,cap_net_admin+eip "$(command -v masscan)" 2>/dev/null || true
     # sasquatch:binwalk 解非标准 SquashFS 的补丁版,源码构建
-    # 钉 sha b34aa5e 起上游重构:根目录 build.sh 已删,构建面是 squashfs-tools/Makefile
+    # 锁定 sha b34aa5e 起上游重构:根目录 build.sh 已删,构建面是 squashfs-tools/Makefile
     # 的 all: sasquatch 目标(产物即名 sasquatch;实证 2026-10-11,旧 ./build.sh 报 No such file)
     # Makefile 默认全压缩机,xz/lzo/lz4/zstd 四个 dev 头必须先装(实证缺一即 fatal error)
     if ! have sasquatch; then
@@ -878,7 +878,7 @@ install_pentest() {
     apt-get install -y --no-install-recommends outguess foremost || echo "!! outguess/foremost 装失败"
     # zsteg:PNG/BMP 最低位(gem;steghide 不覆盖)
     gem install zsteg -v "${GEM_PIN[zsteg]:?pins.sh 缺 zsteg}" --no-document || echo "!! zsteg 装失败"
-    # stegseek:steghide 暴破(钉 release deb+sha256;依赖 libmhash2/libmcrypt4/libjpeg62)
+    # stegseek:steghide 暴破(锁定 release deb+sha256;依赖 libmhash2/libmcrypt4/libjpeg62)
     local sv="${STEGSEEK_VERSION:?}" ssha="${STEGSEEK_SHA256:?}"
     if ! have stegseek; then
         apt-get install -y --no-install-recommends libmhash2 libmcrypt4 libjpeg62 zlib1g >/dev/null 2>&1 || true
@@ -904,7 +904,7 @@ install_pentest() {
     # commix:OS 命令注入(仓脚本,wrapper python3)
     clone_pin commixproject/commix /opt/commix || echo "commix 克隆失败"
     [ -f /opt/commix/commix.py ] && printf '#!/bin/sh\nexec python3 /opt/commix/commix.py "$@"\n' > /usr/local/bin/commix && chmod +x /usr/local/bin/commix
-    # SSTImap:SSTI 探测/利用(独立 venv:requirements 钉旧 requests,不进 re-venv)
+    # SSTImap:SSTI 探测/利用(独立 venv:requirements 锁定旧 requests,不进 re-venv)
     local SV=/opt/sstimap-venv
     if [ ! -x "$SV/bin/python" ] || [ ! -f /opt/commix/.sstimap-ok ]; then
         rm -rf "$SV"
@@ -934,7 +934,7 @@ install_pentest() {
     log "Responder(LLMNR/NBT-NS 毒化,内网测试起点)"
     local gh="${GITHUB_MIRROR}https://github.com"
     clone_pin lgandx/Responder /opt/Responder || echo "Responder 克隆失败"
-    # 依赖 aioquic(QUIC 毒化面):钉 sha 起启动硬查,系统 python3 缺它连 -h 都不出
+    # 依赖 aioquic(QUIC 毒化面):锁定 sha 起启动硬查,系统 python3 缺它连 -h 都不出
     # (回归实证 2026-10-11)。进 re-venv(与 jwt_tool/LinkFinder 同面);
     # wrapper 只在依赖实证可 import 后写(grok G2 口径)
     . "$HOME/.local/bin/env" 2>/dev/null || true
@@ -949,17 +949,17 @@ install_pentest() {
                 || echo "!! aioquic 装失败(默认源/tuna/pypi 三级兜底均败)"
         fi
     else
-        echo "!! aioquic 缺钉,先跑 resolve-pins.sh 补钉"
+        echo "!! aioquic 缺少锁定版本,先跑 resolve-pins.sh 补写锁定版本"
     fi
     if [ -f /opt/Responder/Responder.py ] && "$RE_VENV/bin/python" -c "import aioquic" 2>/dev/null; then
         # wrapper:Responder.py 按 cwd 读 Responder.conf/写 logs,先 cd 再 exec re-venv python
         printf '#!/bin/sh\ncd /opt/Responder\nexec %s/bin/python /opt/Responder/Responder.py "$@"\n' "$RE_VENV" > /usr/local/bin/responder \
             && chmod +x /usr/local/bin/responder && echo "responder 已链(/opt/Responder,re-venv python)"
     else
-        echo "!! responder 依赖未就位,wrapper 不写(查 aioquic 钉与 re-venv)"
+        echo "!! responder 依赖未就位,wrapper 不写(查 aioquic 锁定与 re-venv)"
     fi
 
-    # donut:PE/.NET/VBS/JS 转 shellcode;release 预编译钉版(banner 不带小版本,用 .version 标记幂等)
+    # donut:PE/.NET/VBS/JS 转 shellcode;release 预编译锁定版本(banner 不带小版本,用 .version 标记幂等)
     local dv; dv="${DONUT_VERSION:-1.1}"
     if [ "$(cat /opt/donut/.version 2>/dev/null)" != "$dv" ]; then
         local dtgz="donut_v${dv}.tar.gz"
@@ -971,7 +971,7 @@ install_pentest() {
     fi
     donut 2>&1 | head -1 || echo "donut 未装上(下轮补)"
 
-    # frida 全链钉版:pins.sh 的 FRIDA_TOOLS_VERSION 装客户端;frida 核心包(=FRIDA_VERSION,
+    # frida 全链路锁定版本:pins.sh 的 FRIDA_TOOLS_VERSION 装客户端;frida 核心包(=FRIDA_VERSION,
     # 与 server 资产 tag 同号)实证 --with 压不进工具 venv,须直装进 venv 再对齐
     . "$HOME/.local/bin/env" 2>/dev/null || true
     export UV_TOOL_BIN_DIR=/usr/local/bin UV_TOOL_DIR=/opt/uv-tools
@@ -979,8 +979,8 @@ install_pentest() {
     [ -d /opt/uv-tools/frida-tools ] && VIRTUAL_ENV=/opt/uv-tools/frida-tools uv pip install "frida==${FRIDA_VERSION:?pins.sh 缺 FRIDA_VERSION}" >/dev/null 2>&1 || true
     if have frida; then
         local fv; fv="${FRIDA_VERSION:-$(frida --version 2>/dev/null | tr -d ' ')}"
-        # 对齐校验:客户端核心版本必须等于钉版(server 资产按它下)
-        [ "$(frida --version 2>/dev/null | tr -d ' ')" = "$fv" ] || echo "!! frida 客户端与钉版不齐(期望 $fv)"
+        # 对齐校验:客户端核心版本必须等于锁定版本(server 资产按它下)
+        [ "$(frida --version 2>/dev/null | tr -d ' ')" = "$fv" ] || echo "!! frida 客户端与锁定版本不齐(期望 $fv)"
         # frida-server 与客户端同版本;GitHub Releases 直下(可用 GITHUB_MIRROR),无 tuna
         local d="/opt/frida-server/${fv}"
         install -d "$d"
@@ -1002,7 +1002,7 @@ install_pentest() {
     fi
 
     log "离线固化接线:nuclei 模板 / capa 规则 / 词表 / pwndbg gdbinit / 时区 locale"
-    # nuclei 模板:在线 -update-templates 落家目录且失败容忍,离线静默坏;改钉 /opt
+    # nuclei 模板:在线 -update-templates 落家目录且失败容忍,离线静默坏;改安装到 /opt
     clone_pin projectdiscovery/nuclei-templates /opt/nuclei-templates || echo "nuclei-templates 克隆失败"
     # 注意:set -e 下 a && b 链整体失败即退出,循环体必须 if 包裹
     for u in /root /home/ubuntu; do
@@ -1064,7 +1064,7 @@ EOF
     else
         echo "pwndbg gdbinit.py 未找到(analysis 组先跑)"
     fi
-    # 时区与 locale:时区钉上海;生成 zh_CN.UTF-8 但默认 LANG 保持 en_US(工具输出可解析性)
+    # 时区与 locale:时区设为上海;生成 zh_CN.UTF-8 但默认 LANG 保持 en_US(工具输出可解析性)
     ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
     echo "Asia/Shanghai" > /etc/timezone
     apt-get install -y --no-install-recommends locales || true
@@ -1084,7 +1084,7 @@ EOF
 
 
 # ---- 渗透测试工具增补(claude 体检 P1:AD 横向 / Web / 密码 / 移动 / 云) -------
-# 原则:能 uv tool 走 tuna 就走 uv tool;git 克隆钉 /opt;gem 走 ruby-china;Release 钉版
+# 原则:能 uv tool 走 tuna 就走 uv tool;git 克隆到 /opt;gem 走 ruby-china;锁定版本的 Release
 install_redteam() {
     log "AD 横向与 Web 工具(uv tool 走 tuna:tuna 有轮子即成功)"
     # enum4linux-ng 运行依赖:nmblookup/net(samba-common-bin)、smbclient、ldapsearch
@@ -1095,12 +1095,12 @@ install_redteam() {
     export GOPATH=/opt/go GOPROXY GOSUMDB
     # ghauri 不在任何 pypi(官方源/ tuna /阿里云均 404),只发 git 仓;r0oth3x49/ghauri
     if ! have ghauri; then
-        VIRTUAL_ENV= uv tool install "git+${GITHUB_MIRROR}https://github.com/r0oth3x49/ghauri@${GIT_PIN[r0oth3x49/ghauri]:?pins.sh 缺 ghauri 钉}" >/dev/null 2>&1 \
+        VIRTUAL_ENV= uv tool install "git+${GITHUB_MIRROR}https://github.com/r0oth3x49/ghauri@${GIT_PIN[r0oth3x49/ghauri]:?pins.sh 缺少 ghauri 锁定版本}" >/dev/null 2>&1 \
             && echo "ghauri 已装(git 源)" || echo "ghauri 失败(git 源;GitHub 限流窗口重试)"
     fi
     local t
     for t in kerbrute wafw00f arjun bloodhound-python Coercer mitm6 objection apkleaks; do
-        local tp; tp="$(echo "$t" | tr 'A-Z' 'a-z')"; local tv; tv="$(pypi_pin "$tp")" || { echo "$t 缺钉,跳过"; continue; }
+        local tp; tp="$(echo "$t" | tr 'A-Z' 'a-z')"; local tv; tv="$(pypi_pin "$tp")" || { echo "$t 缺少锁定版本,跳过"; continue; }
         if have "$t" 2>/dev/null || VIRTUAL_ENV= uv tool install "$t==$tv" >/dev/null 2>&1; then
             echo "$t 已装"
         elif [ "$t" = bloodhound-python ]; then
@@ -1118,7 +1118,7 @@ install_redteam() {
     # bloodhound-ce 在 tuna 镜像缺失(实证),显式回退官方索引
     # semgrep:SAST 代码审计(uv tool 隔离装,tuna 有轮子)
     for t in certipy-ad bloodyAD bofhound semgrep; do
-        local tp; tp="$(echo "$t" | tr 'A-Z' 'a-z')"; local tv; tv="$(pypi_pin "$tp")" || { echo "$t 缺钉,跳过"; continue; }
+        local tp; tp="$(echo "$t" | tr 'A-Z' 'a-z')"; local tv; tv="$(pypi_pin "$tp")" || { echo "$t 缺少锁定版本,跳过"; continue; }
         VIRTUAL_ENV= uv tool install "$t==$tv" >/dev/null 2>&1 \
             || VIRTUAL_ENV= uv tool install --index-url "https://pypi.tuna.tsinghua.edu.cn/simple" "$t==$tv" >/dev/null 2>&1 \
             || echo "$t 失败(留待排查)"
@@ -1153,7 +1153,7 @@ install_redteam() {
         [ -e "/opt/uv-tools/$t/bin/$t" ] && ln -sf "/opt/uv-tools/$t/bin/$t" "/usr/local/bin/$t" 2>/dev/null
     done
 
-    log "git 克隆批(钉 /opt,依赖进 re-venv 尽力)"
+    log "git 克隆批(安装到 /opt,依赖进 re-venv 尽力)"
     local gh="${GITHUB_MIRROR}https://github.com"
     local r
     for r in ticarpi/jwt_tool GerbenJavado/LinkFinder dirkjanm/krbrelayx cddmp/enum4linux-ng; do
@@ -1162,26 +1162,26 @@ install_redteam() {
     done
     # LinkFinder / enum4linux-ng / jwt_tool 的 python 依赖进 re-venv
     [ -x "$RE_VENV/bin/python" ] || uv venv "$RE_VENV"
-    # jwt_tool:顶层 import ratelimit 无保护;Cryptodome/termcolor/requests 缺失即 exit(1)(钉版)
-    # grok G2:$(pypi_pin) 写在参数里不触发 set -e;先裸赋值取钉(缺钉即停),再引用
+    # jwt_tool:顶层 import ratelimit 无保护;Cryptodome/termcolor/requests 缺失即 exit(1)(锁定版本)
+    # grok G2:$(pypi_pin) 写在参数里不触发 set -e;先读取锁定版本(缺少锁定版本即停),再引用
     local jw_rl jw_pc jw_tc jw_rq lf_jb
     jw_rl="$(pypi_pin ratelimit)"; jw_pc="$(pypi_pin pycryptodomex)"; jw_tc="$(pypi_pin termcolor)"; jw_rq="$(pypi_pin requests)"
-    VIRTUAL_ENV="$RE_VENV" uv pip install "ratelimit==$jw_rl" "pycryptodomex==$jw_pc" "termcolor==$jw_tc" "requests==$jw_rq" >/dev/null 2>&1 || echo "!! jwt_tool 依赖装失败(查钉与索引)"
-    # LinkFinder:顶层 import jsbeautifier(唯一第三方依赖,钉版;不走 -r requirements.txt 漂 HEAD)
+    VIRTUAL_ENV="$RE_VENV" uv pip install "ratelimit==$jw_rl" "pycryptodomex==$jw_pc" "termcolor==$jw_tc" "requests==$jw_rq" >/dev/null 2>&1 || echo "!! jwt_tool 依赖装失败(查锁定版本与索引)"
+    # LinkFinder:顶层 import jsbeautifier(唯一第三方依赖,锁定版本;不走 -r requirements.txt 漂 HEAD)
     lf_jb="$(pypi_pin jsbeautifier)"
     VIRTUAL_ENV="$RE_VENV" uv pip install "jsbeautifier==$lf_jb" >/dev/null 2>&1 || echo "!! LinkFinder 依赖装失败"
     [ -f /opt/enum4linux-ng/requirements.txt ] \
         && VIRTUAL_ENV="$RE_VENV" uv pip install -r /opt/enum4linux-ng/requirements.txt >/dev/null 2>&1 || true
     # 四件都是仓内脚本无 console script:wrapper 一律 exec re-venv python(依赖已进 re-venv)
-    # wrapper 只在依赖实证可 import 后写(grok G2:缺钉/装失败时「命令在 import 炸」比没有更坏)
+    # wrapper 只在依赖实证可 import 后写(grok G2:缺少锁定版本/装失败时「命令在 import 炸」比没有更坏)
     if [ -f /opt/jwt_tool/jwt_tool.py ] && [ -x "$RE_VENV/bin/python" ] \
         && "$RE_VENV/bin/python" -c "import ratelimit, Cryptodome, termcolor, requests" 2>/dev/null; then
         printf '#!/bin/sh\nexec %s/bin/python /opt/jwt_tool/jwt_tool.py "$@"\n' "$RE_VENV" > /usr/local/bin/jwt-tool \
             && chmod +x /usr/local/bin/jwt-tool
     else
-        echo "!! jwt_tool 依赖未就位,wrapper 不写(查钉版与 re-venv)"
+        echo "!! jwt_tool 依赖未就位,wrapper 不写(查锁定版本与 re-venv)"
     fi
-    # krbrelayx 依赖(impacket/ldap3/dnspython/pyasn1)一并进 re-venv(同 G2 先裸取钉)
+    # krbrelayx 依赖(impacket/ldap3/dnspython/pyasn1)一并进 re-venv(同 G2 先读取锁定版本)
     local kb_im kb_l3 kb_dn kb_pa
     kb_im="$(pypi_pin impacket)"; kb_l3="$(pypi_pin ldap3)"; kb_dn="$(pypi_pin dnspython)"; kb_pa="$(pypi_pin pyasn1)"
     VIRTUAL_ENV="$RE_VENV" uv pip install "impacket==$kb_im" "ldap3==$kb_l3" "dnspython==$kb_dn" "pyasn1==$kb_pa" >/dev/null 2>&1 || echo "!! krbrelayx 依赖装失败"
@@ -1234,10 +1234,10 @@ install_redteam() {
     fi
     have evil-winrm && evil-winrm --version 2>/dev/null || true
 
-    log "CyberChef(离线瑞士军刀,Release zip 钉 /opt)"
+    log "CyberChef(离线瑞士军刀,Release zip 安装到 /opt)"
     if [ ! -d /opt/cyberchef ]; then
         local gh2="${GITHUB_MIRROR}https://github.com"
-        # 钉版:pins.sh CYBERCHEF_VERSION(空钉回退 git ls-remote)
+        # 锁定版本:pins.sh CYBERCHEF_VERSION(未写锁定版本回退 git ls-remote)
         local ctag; ctag="${CYBERCHEF_VERSION:-}"
         if [ -z "$ctag" ]; then
             ctag="$(git ls-remote --tags "${gh2}/gchq/CyberChef" 2>/dev/null | grep -oE 'refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$' | sort -t. -k1,1n -k2,2n -k3,3n | tail -1 | sed 's|refs/tags/||' || true)"
@@ -1254,7 +1254,7 @@ install_redteam() {
     log "云与内网:kubectl(aliyun)/trivy+db 烘焙/awscli v2"
     # kubectl:阿里云 kubernetes-release 镜像
     if ! have kubectl; then
-        # 国内无 kubectl 二进制镜像(阿里云/ustc/华为实测均无 release 布局);直连官方 CDN 钉版
+        # 国内无 kubectl 二进制镜像(阿里云/ustc/华为实测均无 release 布局);直连官方 CDN 锁定版本
         local karch="amd64"; [ "$(dpkg --print-architecture)" = arm64 ] && karch="arm64"
         curl -fSL --retry 3 "https://dl.k8s.io/release/${KUBECTL_VERSION:?pins.sh 缺 KUBECTL_VERSION,跑 resolve-pins.sh}/bin/linux/${karch}/kubectl" -o /usr/local/bin/kubectl 2>/dev/null \
             && chmod +x /usr/local/bin/kubectl || echo "kubectl 失败(dl.k8s.io 直连不通,有网阶段重试)"
@@ -1308,8 +1308,8 @@ EOF
 # 安装器脚本经 GITHUB_MIRROR 拉,apt.metasploit.com 需直连,无国内镜像
 install_metasploit() {
     log "metasploit-framework (omnibus)"
-    # 软钉:apt.metasploit.com 仓只发最新线,MSF_VERSION 留空即最新(known-issues 留痕);
-    # 钉了则装指定版(仓里有历史版时生效)
+    # 软件源锁定:apt.metasploit.com 仓只发最新线,MSF_VERSION 留空即最新(known-issues 留痕);
+    # 锁定了则装指定版(仓里有历史版时生效)
     if have msfconsole; then msfconsole -v 2>/dev/null | head -1; echo "已安装,跳过"; return; fi
     local msi="https://raw.githubusercontent.com/rapid7/metasploit-omnibus/master/config/templates/metasploit-framework-wrappers/msfupdate.erb"
     curl -fSL --retry 3 "${GITHUB_MIRROR}${msi}" -o /tmp/msfinstall \
@@ -1321,21 +1321,21 @@ install_metasploit() {
 }
 
 
-# ---- data(数据信息资产:PoC/规则/指纹库;clone 钉 sha,构建日快照,离线直读)----
+# ---- data(数据信息资产:PoC/规则/指纹库;clone 锁定 sha,构建日快照,离线直读)----
 install_data() {
     log "数据资产(LOLBAS/webappanalyzer/exploit-db;GTFOBins 通道暂拒挂起)"
     local gh="${GITHUB_MIRROR}https://github.com"
     mkdir -p /opt/data-ref
     clone_pin LOLBAS-Project/LOLBAS /opt/data-ref/LOLBAS || echo "LOLBAS 克隆失败"
     clone_pin enthec/webappanalyzer /opt/data-ref/webappanalyzer || echo "webappanalyzer 克隆失败"
-    # exploit-db 走 GitLab 直连(grok prt-08 实证:GITHUB_MIRROR 不代理 GitLab,直连可达);同 clone_pin 语义的钉克隆
+    # exploit-db 走 GitLab 直连(grok prt-08 实证:GITHUB_MIRROR 不代理 GitLab,直连可达);同 clone_pin 语义的锁定克隆
     local ed_sha="${GIT_PIN[exploit-database/exploitdb]:-}"
     if [ -n "$ed_sha" ]; then
         if [ ! -d /opt/data-ref/exploitdb/.git ] || [ "$(git -C /opt/data-ref/exploitdb rev-parse HEAD 2>/dev/null)" != "$ed_sha" ]; then
             rm -rf /opt/data-ref/exploitdb
             git clone -q https://gitlab.com/exploit-database/exploitdb.git /opt/data-ref/exploitdb \
                 && git -C /opt/data-ref/exploitdb checkout -q "$ed_sha" \
-                || echo "exploit-db 克隆/钉失败(查 GitLab 直连)"
+                || echo "exploit-db 克隆/锁定失败(查 GitLab 直连)"
         fi
     else
         echo "!! exploit-db 缺 git 钵(exploit-database/exploitdb)"
@@ -1360,7 +1360,7 @@ install_data() {
             rm -rf /tmp/ht-snapshot
         fi
     else
-        echo "!! hacktricks 缺 git 钉"
+        echo "!! hacktricks 缺少 git 锁定版本"
     fi
     # searchsploit 入口(exploit-db 仓自带 files_exploits.csv;脚本入口用 Kali 版 perl?此面以仓直读+rctl 可搜为准)
     for d in LOLBAS webappanalyzer exploitdb; do
@@ -1370,7 +1370,7 @@ install_data() {
 
 # ---- cloud(云厂商 CLI:aliyun release 道与 tccli uv tool 道;云 API 枚举的使用期触网属边界)----
 install_cloud() {
-    log "云 CLI(aliyun + tccli;钉版 pins.sh)"
+    log "云 CLI(aliyun + tccli;版本由 pins.sh 锁定)"
     local gh="${GITHUB_MIRROR}https://github.com"
     local av="${ALIYUN_CLI_VERSION:?pins.sh 缺 ALIYUN_CLI_VERSION}"
     if ! have aliyun; then
@@ -1393,14 +1393,14 @@ install_cloud() {
     have tccli && tccli --version 2>&1 | head -1
 }
 
-# ---- agents(claude code + codex CLI:钉版 npm 全局;二进制在镜像,凭证走挂载不进 rootfs)----
+# ---- agents(claude code + codex CLI:锁定版本 npm 全局;二进制在镜像,凭证走挂载不进 rootfs)----
 install_agents() {
-    log "agent CLIs(claude code + codex;钉版 pins.sh 标量,经 npmmirror)"
+    log "agent CLIs(claude code + codex;版本由 pins.sh 锁定 标量,经 npmmirror)"
     local cv="${CLAUDE_CODE_VERSION:?pins.sh 缺 CLAUDE_CODE_VERSION}" xv="${CODEX_VERSION:?pins.sh 缺 CODEX_VERSION}"
     # 构建期拿回在线面(运行期 npm 默认离线);可选依赖(linux-x64 原生包)必须装,禁 --omit=optional
     NPM_CONFIG_OFFLINE=false NPM_CONFIG_FETCH_RETRIES=3 npm install -g \
         "@anthropic-ai/claude-code@${cv}" "@openai/codex@${xv}" \
-        || { echo "!! agent CLIs 装失败(查 npmmirror 可达与钉值)"; return 1; }
+        || { echo "!! agent CLIs 装失败(查 npmmirror 可达与锁定值)"; return 1; }
     ln -sfn /opt/node/bin/claude /usr/local/bin/claude
     ln -sfn /opt/node/bin/codex /usr/local/bin/codex
     # 镜像内只放策略不放密钥:组织级 managed settings(用户文件压不过它)
@@ -1413,9 +1413,9 @@ install_agents() {
     echo "或实例环境变量注 CLAUDE_CODE_OAUTH_TOKEN/CODEX_API_KEY;见 docs/items/tools-agents/"
 }
 
-# ---- acp(标准 agent 接入通道:ACP 适配器钉版 + 监督进程 acpsup,S-0002/REQ-0002)----
+# ---- acp(标准 agent 接入通道:ACP 适配器锁定版本 + 监督进程 acpsup,S-0002/REQ-0002)----
 install_acp() {
-    log "ACP 适配器与监督进程(claude-agent-acp + codex-acp 钉版;acpsup 编译)"
+    log "ACP 适配器与监督进程(claude-agent-acp + codex-acp 锁定版本;acpsup 编译)"
     local cav="${CLAUDE_ACP_VERSION:?pins.sh 缺 CLAUDE_ACP_VERSION}" xav="${CODEX_ACP_VERSION:?pins.sh 缺 CODEX_ACP_VERSION}"
     # 构建期在线面;索引三级兜底同 agents 批(npmmirror -> npmjs)
     NPM_CONFIG_OFFLINE=false NPM_CONFIG_FETCH_RETRIES=3 npm install -g \
@@ -1428,10 +1428,10 @@ install_acp() {
         || NPM_CONFIG_OFFLINE=false npm install -g --registry=https://registry.npmjs.org \
             "@agentclientprotocol/codex-acp@${xav}" \
         || echo "!! codex-acp 装失败"
-    # CODEX_PATH 由 acpsup 运行时注入(指镜像内钉版 codex,禁用适配器自带)
+    # CODEX_PATH 由 acpsup 运行时注入(指镜像内锁定版本 codex,禁用适配器自带)
     # 监督进程:bun 编译(rctl 同栈;bun 版本闸同 ctl 组口径)
     local bv; bv="$(bun --version 2>/dev/null || true)"
-    [ "$bv" = "${BUN_VERSION:?}" ] || { echo "!! bun ${bv:-缺} != 钉 ${BUN_VERSION};先跑 install-runtimes.sh bun"; return 1; }
+    [ "$bv" = "${BUN_VERSION:?}" ] || { echo "!! bun ${bv:-缺} != 锁定版本 ${BUN_VERSION};先跑 install-runtimes.sh bun"; return 1; }
     cd /root/scripts/acp
     bun build --compile --minify src/main.ts --outfile /usr/local/bin/acpsup
     cd /
@@ -1442,10 +1442,10 @@ install_acp() {
 # ---- rctl(核心 CLI:实例总控,agent 第一入口;仓内 TS + bun 编译)----
 install_ctl() {
     log "rctl(核心 CLI;bun 编译单文件)"
-    # bun 版本闸:发版频繁,编译期钉死(用户裁定 2026-10-11)
+    # bun 版本闸:发版频繁,编译期固定(用户裁定 2026-10-11)
     local bv; bv="$(bun --version 2>/dev/null || true)"
     if [ "$bv" != "${BUN_VERSION:?pins.sh 缺 BUN_VERSION}" ]; then
-        echo "!! bun ${bv:-缺} != 钉 ${BUN_VERSION};先跑 install-runtimes.sh bun 对钉" >&2
+        echo "!! bun ${bv:-缺} != 锁定版本 ${BUN_VERSION};先跑 install-runtimes.sh bun 对齐锁定版本" >&2
         return 1
     fi
     cd /root/scripts/ctl
@@ -1466,11 +1466,11 @@ install_ctl() {
 # ---- zg(zvec-grep:rctl 语义检索引擎;llama.cpp+ort 链,构建期在线面)----
 install_zg() {
     log "zg ${GIT_PIN[zvec-ai/zvec-grep]:0:7} 段(zvec-grep 语义引擎 + ${ZG_MODEL_REF:-} 烤库)"
-    local sha="${GIT_PIN[zvec-ai/zvec-grep]:?pins.sh 缺 zvec-ai/zvec-grep 钉,跑 scripts/resolve-pins.sh}"
+    local sha="${GIT_PIN[zvec-ai/zvec-grep]:?pins.sh 缺少 zvec-ai/zvec-grep 锁定版本,跑 scripts/resolve-pins.sh}"
     install -d /opt/zg-models
-    # 幂等:二进制在 + 构建钉标记==当前钉 → 早退
+    # 幂等:二进制在 + 构建锁定标记==当前锁定的版本 → 早退
     if command -v zg >/dev/null 2>&1 && [ "$(cat /var/lib/rctl/.zg-built-sha 2>/dev/null)" = "$sha" ]; then
-        echo "zg 已在钉上(幂等早退)"
+        echo "zg 已在锁定的提交上(幂等早退)"
     else
         clone_pin zvec-ai/zvec-grep /opt/zvec-grep-src || return 1
         # 上游 Cargo.lock 自洽;llama.cpp 要 cmake/gcc(镜像在);构建期在线面取 crates(offline.md 口径)
@@ -1491,7 +1491,7 @@ install_zg() {
         rm -rf "$T"
     fi
     echo "${ZG_MODEL_SHA256:?pins.sh 缺 ZG_MODEL_SHA256}  $mf" | sha256sum -c - \
-        || { echo "!! 模型 sha256 不符(漂移!重钉 ZG_MODEL_SHA256)"; return 1; }
+        || { echo "!! 模型 sha256 不符(漂移!重新锁定 ZG_MODEL_SHA256)"; return 1; }
     # 默认模型双家指名(root 家由 zg 写,ubuntu 家同形拷贝;查询侧还有 --model-cache 兜)
     zg --config model set "${ZG_MODEL_REF:?pins.sh 缺 ZG_MODEL_REF}" --default
     install -d -m755 -o 1000 -g 1000 /home/ubuntu/.zvec-grep
@@ -1502,8 +1502,8 @@ install_zg() {
 
 # ---- rea(morluto/rea:agent 逆向工具面,MCP server + CLI;原生 provider 对齐镜像内 Ghidra)----
 install_rea() {
-    log "rea-agents(钉版 npm 全局;Ghidra provider 指镜像 /opt/ghidra)"
-    local rv; rv="${NPM_PIN[rea-agents]:?pins.sh 缺 rea-agents 钉,跑 resolve-pins.sh}"
+    log "rea-agents(锁定版本 npm 全局;Ghidra provider 指镜像 /opt/ghidra)"
+    local rv; rv="${NPM_PIN[rea-agents]:?pins.sh 缺少 rea-agents 锁定版本,跑 resolve-pins.sh}"
     # npm 运行期默认离线(offline=true),构建期显式拿回在线面(offline.md §4 口径)
     local cur; cur="$(/opt/node/bin/rea --version 2>/dev/null || true)"
     if [ "$cur" != "$rv" ]; then
@@ -1512,8 +1512,8 @@ install_rea() {
     fi
     # wrapper 固化 GHIDRA_INSTALL_DIR + JAVA_HOME:非登录 shell(incus exec)不读 profile.d(血泪教训);
     # ghidra 版本目录动态取,升级 ghidra 组后重跑本组即刷新。
-    # JAVA_HOME 取 Ghidra 自己 launch.properties 钉的 override(temurin 21):rea 直 exec JAVA_HOME/bin/java,
-    # 不读该 override(grok prt-02 实证);不设则探 PATH 上的 java(镜像是 25,范围合法但偏离发行自钉)
+    # JAVA_HOME 取 Ghidra 自己 launch.properties 锁定的 override(temurin 21):rea 直 exec JAVA_HOME/bin/java,
+    # 不读该 override(grok prt-02 实证);不设则探 PATH 上的 java(镜像是 25,范围合法但偏离发行自锁定)
     local gdir; gdir="$(ls -d /opt/ghidra/ghidra_*_PUBLIC 2>/dev/null | sort -V | tail -1)"
     [ -n "$gdir" ] || { echo "!! /opt/ghidra 无 Ghidra 发行目录,先跑 ghidra 组"; return 1; }
     local jhome; jhome="$(sed -n 's|^JAVA_HOME_OVERRIDE=||p' "$gdir/support/launch.properties" 2>/dev/null | tail -1)"
@@ -1528,7 +1528,7 @@ install_rea() {
     echo "Ghidra provider 面自检:"; rea doctor 2>&1 | grep -A1 "name: ghidra$" | head -2 || true
 }
 
-# ---- clean-chrome(云端安装道:chrome.ohmygh.com 版本段路由+sha256 锚;钉 pins.sh) ----
+# ---- clean-chrome(云端安装道:chrome.ohmygh.com 版本段路由+sha256 锚;锁定 pins.sh) ----
 # 双视角落位裁定(ADR-0007):系统级单副本 /opt/clean-chrome/<ver>(/opt 可读,
 # root/ubuntu 同用;browse 合入后经 BROWSE_CHROME 指路或直接用它,不重复装)
 install_chrome() {

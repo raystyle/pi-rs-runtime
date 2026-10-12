@@ -4,8 +4,8 @@
 
 ## 版本
 
-- `mono-devel` 与 `mono-xbuild` 为 noble 源冻结,即软钉。见 [known-issues.md](../../known-issues.md)。
-- `nuget.exe` 未钉版。从 dist.nuget.org 的 latest 直下,无校验和。pins.sh 未收该钉位。
+- `mono-devel` 与 `mono-xbuild` 为 noble 源冻结,即软件源锁定。见 [known-issues.md](../../known-issues.md)。
+- `nuget.exe` 未锁定版本。从 dist.nuget.org 的 latest 直下,无校验和。pins.sh 未收该锁定项。
 
 ## 来源与安装
 

@@ -30,7 +30,7 @@
 - root 与 ubuntu 各有一份 `~/.config/go/env`。
 - 该文件写入 `GOPROXY=off`、`GOSUMDB=sum.golang.google.cn`、`GOPATH=/opt/go`、`GOMODCACHE=/opt/go/pkg/mod`。
 - 库预热工程在 `/opt/go-prewarm`,清单覆盖代理、协议、AD、PE。
-- `go mod tidy` 把钉版写入模块缓存。
+- `go mod tidy` 把锁定版本写入模块缓存。
 
 ## 离线行为
 

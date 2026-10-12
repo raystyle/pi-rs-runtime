@@ -31,7 +31,7 @@
 ## 离线行为
 
 - 未验证:断网拉新件。bun 不吃 npmrc 的离线双保险,离线拉新按自身重试节奏走。
-- 规定不钉默认离线,因为量级小。见 [offline.md](../../offline.md) 第 4 节。没有断网专项记录。
+- 规定不锁定默认离线,因为量级小。见 [offline.md](../../offline.md) 第 4 节。没有断网专项记录。
 - 判定:关闭 eth0 后执行 `mkdir -p /tmp/bt && cd /tmp/bt && bun add lodash`,观察失败节奏。
 
 ## 限制
@@ -39,8 +39,8 @@
 - 早退判据 `have bun` 写在 bunfig 写入之前。
 - bun 已经存在时,重跑本组不刷新 bunfig。
 - 该顺序与「配置写入放早退前」不一致。当前脚本仍是这个顺序。
-- 已钉 `BUN_VERSION`,但 `have bun` 早退不重装。
-- 升级步骤:运行 `scripts/resolve-pins.sh` 刷新钉值,然后 `npm uninstall -g bun`,再重跑本组。
+- 已锁定 `BUN_VERSION`,但 `have bun` 早退不重装。
+- 升级步骤:运行 `scripts/resolve-pins.sh` 刷新锁定值,然后 `npm uninstall -g bun`,再重跑本组。
 
 ## 参见
 

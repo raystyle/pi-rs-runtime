@@ -11,7 +11,7 @@
 ```text
 web 平台(另项目) --https/自有口令--> 实例内监督进程(ACP Client,非常驻 root)
                                       |--stdio 子进程: claude-agent-acp(Claude Agent SDK)
-                                      |--stdio 子进程: codex-acp(CODEX_PATH 指镜像内钉版 codex)
+                                      |--stdio 子进程: codex-acp(CODEX_PATH 指镜像内锁定版本 codex)
                                       +--后续: pi-rs 自实现 ACP Agent 侧
 右栏 VNC:不变(127.0.0.1:6080 + 宿主 proxy 引出,独立会话,与左栏只共享实例不共享 sessionId)
 ```
@@ -23,7 +23,7 @@ web 平台(另项目) --https/自有口令--> 实例内监督进程(ACP Client,�
 
 ## 三、落地要点:REQ-0002 面
 
-1. 适配器钉版进镜像:npm `@agentclientprotocol/claude-agent-acp`(2026-10-11 registry 0.89.1)、`@agentclientprotocol/codex-acp`(2.2.2);Codex 适配器设 `CODEX_PATH` 指镜像内 0.162.1(禁用适配器自带 codex);Claude 适配器经 Agent SDK,装前核对其构建是否即镜像 2.1.296
+1. 适配器锁定版本进镜像:npm `@agentclientprotocol/claude-agent-acp`(2026-10-11 registry 0.89.1)、`@agentclientprotocol/codex-acp`(2.2.2);Codex 适配器设 `CODEX_PATH` 指镜像内 0.162.1(禁用适配器自带 codex);Claude 适配器经 Agent SDK,装前核对其构建是否即镜像 2.1.296
 2. 监督进程:TypeScript + bun(rctl 同栈,零依赖面);常驻但可被宿主重启管理(信号策略下进程内自杀式重启走 supervisor 内部逻辑)
 3. 鉴权两分:agent 登录沿 prt-04(网关道/env/挂载);平台用户鉴权是监督进程自己的口(默认拒绝、权限卡必须呈现给左栏)
 4. 许可陷阱:禁把 request_permission 全自动 allow_always(等于把「谁能跑命令」交给任何连上的人)
@@ -31,7 +31,7 @@ web 平台(另项目) --https/自有口令--> 实例内监督进程(ACP Client,�
 
 ## 三点五、MCP 翻转方案的评估与否决:2026-10-11 prt-06
 
-用户问「除 ACP 外更稳的方案」,候选「实例当 MCP Server + 平台网关驱动 agent」经 grok prt-06 证伪:比错了对象。ACP 选定路径是 v1 stdio(唯一稳定传输),草案 HTTP 不在路径上;MCP 翻转把对话腿变成私有网关(S-0002 已否的自造 RPC),丢掉权限卡与对话事件流(左栏没有标准可画),Codex 钉版默认 MCP 修订停在 2025-06-18(不是接上现行就稳),且 agent 已在实例内,发现走 rctl 子进程不需要新执行口。MCP 判定为工具协议不升格实例 RPC;若将来另立工具面,条件清单(prt-06 件 5)按三态执行:只读 rctl_* 可采纳,rctl_env/index 需改(白名单/写面分离),terminal_exec 与 VNC 输入不建议(令牌即 shell/两栏焊死)。**裁定:维持 ACP v1+stdio 通道。**
+用户问「除 ACP 外更稳的方案」,候选「实例当 MCP Server + 平台网关驱动 agent」经 grok prt-06 证伪:比错了对象。ACP 选定路径是 v1 stdio(唯一稳定传输),草案 HTTP 不在路径上;MCP 翻转把对话腿变成私有网关(S-0002 已否的自造 RPC),丢掉权限卡与对话事件流(左栏没有标准可画),Codex 锁定版本默认 MCP 修订停在 2025-06-18(不是接上现行就稳),且 agent 已在实例内,发现走 rctl 子进程不需要新执行口。MCP 判定为工具协议不升格实例 RPC;若将来另立工具面,条件清单(prt-06 件 5)按三态执行:只读 rctl_* 可采纳,rctl_env/index 需改(白名单/写面分离),terminal_exec 与 VNC 输入不建议(令牌即 shell/两栏焊死)。**裁定:维持 ACP v1+stdio 通道。**
 
 ## 四、先例与信源摘
 

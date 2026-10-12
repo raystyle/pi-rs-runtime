@@ -10,7 +10,7 @@
 ## 来源与安装
 
 - 脚本:`install-tools.sh` 的 discovery 组循环。
-- 安装命令:`go install`,按该钉版。
+- 安装命令:`go install`,按该锁定版本。
 
 ## 文件
 

@@ -4,10 +4,10 @@
 
 ## 版本
 
-- `PYPI_PIN[duckdb]` = 1.5.6(解析日 2026-10-10)。安装命令是 `uv pip install -U duckdb==<钉>`。
+- `PYPI_PIN[duckdb]` = 1.5.6(解析日 2026-10-10)。安装命令是 `uv pip install -U duckdb==<版本>`。
 - `DUCKDB_VERSION` = v1.5.6(解析日 2026-10-10)。
 - 升级:运行 `scripts/resolve-pins.sh`,再重跑本组。
-- CLI 空钉时回退到 api.github.com 的 latest tag。
+- CLI 未写锁定版本时回退到 api.github.com 的 latest tag。
 - zip 无校验和。
 
 ## 来源与安装
@@ -38,12 +38,12 @@
 
 ## 限制
 
-- 空钉回退 api.github.com 取 latest 时,限流 403 会让 tag 取空。
+- 未写锁定版本回退 api.github.com 取 latest 时,限流 403 会让 tag 取空。
 - 脚本以 `|| true` 兜底。该次执行不安装 CLI。再次执行该组时安装。
-- 已经有钉之后,不走这条回退。
-- 钉版之前,镜像上可能只有 python 绑定,没有 CLI。
+- 已经有锁定版本之后,不走这条回退。
+- 锁定版本之前,镜像上可能只有 python 绑定,没有 CLI。
 - 幂等判据 `have duckdb` 只看 CLI。
-- python 绑定每次都以 `-U` 重跑。钉值精确,这一步无害。
+- python 绑定每次都以 `-U` 重跑。锁定值精确,这一步无害。
 
 ## 参见
 

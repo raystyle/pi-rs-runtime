@@ -17,4 +17,4 @@
 
 - 运行期拉新件亚秒报错,错误信息直白
 - 在线场景要拉新件需显式 env(文档给口径);maven/gradle 无干净覆盖对,不默认离线
-- npm `--prefix` 会连 prefix 级 npmrc 一起丢(npm 天性,留痕);bun/corepack 不吃 npmrc,不钉默认
+- npm `--prefix` 会连 prefix 级 npmrc 一起丢(npm 天性,留痕);bun/corepack 不吃 npmrc,不锁定默认

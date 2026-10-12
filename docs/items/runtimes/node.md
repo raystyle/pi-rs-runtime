@@ -6,7 +6,7 @@
 
 - `NODE_VERSION=24.21.0`(`lib/common.sh`;当前 Active LTS Krypton)。
 - tarball 经 npmmirror 的 `SHASUMS256.txt`,用 `sha256sum -c` 校验。
-- typescript、prettier、eslint、dotnetjs 均为 npm 全局安装,未钉版。pins.sh 无 npm 映射。
+- typescript、prettier、eslint、dotnetjs 均为 npm 全局安装,未锁定版本。pins.sh 无 npm 映射。
 - corepack 的 pnpm 与 yarn 随 node 自带。
 
 ## 来源与安装
@@ -47,7 +47,7 @@
 - 支持:js-lab 固化包。关闭 eth0 后,`node -e "require('node-forge')"` 可用。
 - libcache 组把包软链进 `<prefix>/lib/node`。`Module.globalPaths` 只认这条路径。机制见 [offline.md](../../offline.md) 第 1 节。
 - 同一包的 `npm install` 仍然 `ENOTCACHED`。两条消费路径语义不同。
-- corepack 的 pnpm 与 yarn 不读 npmrc。规定不给它们钉默认离线。见 [offline.md](../../offline.md) 第 4 节。
+- corepack 的 pnpm 与 yarn 不读 npmrc。规定不给它们写默认离线。见 [offline.md](../../offline.md) 第 4 节。
 
 ## 限制
 

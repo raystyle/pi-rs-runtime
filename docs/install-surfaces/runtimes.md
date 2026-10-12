@@ -4,7 +4,7 @@
 
 ## 组机制
 
-- node 直装 /opt/node 钉版 prefix(SHASUMS256 校验),npm/tsc 等链 /usr/local/bin;fnm 另管 18/20/22/24 历史版本,只设默认不改 /usr/local/bin;prefix 级 npmrc 写离线双保险(offline=true+fetch-retries=0,node 组与 fnm 组双写兜底)
+- node 直装 /opt/node 锁定版本 prefix(SHASUMS256 校验),npm/tsc 等链 /usr/local/bin;fnm 另管 18/20/22/24 历史版本,只设默认不改 /usr/local/bin;prefix 级 npmrc 写离线双保险(offline=true+fetch-retries=0,node 组与 fnm 组双写兜底)
 - uv 独立安装器;`/etc/uv/uv.toml` offline=true(运行期默认)+ `uv-online.toml`(构建期经 common.sh UV_CONFIG_FILE 指过去, UV_OFFLINE=0 无效)
 - python 基座 apt 随源 + /etc/pip.conf([global] 索引 + [install] no-index+wheelhouse);python2 源码编译 altinstall
 - dotnet 走 noble 自带源;NuGet.Config root/ubuntu 双写(华为镜像 + fallbackPackageFolders=/opt/nuget-packages),不再导出 NUGET_PACKAGES

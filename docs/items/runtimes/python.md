@@ -4,7 +4,7 @@
 
 ## 版本
 
-- python3、python3-pip、python3-venv、python3-dev 为 noble 源冻结,即 apt 软钉。见 [known-issues.md](../../known-issues.md)。
+- python3、python3-pip、python3-venv、python3-dev 为 noble 源冻结,即 apt 软件源锁定。见 [known-issues.md](../../known-issues.md)。
 - `PYPI_PIN[polars]` = 2.0.0(解析日 2026-10-10)。
 - `PYPI_PIN[pyarrow]` = 26.0.0(解析日 2026-10-10)。
 - `PYPI_PIN[chdb]` = 4.4.0(解析日 2026-10-10)。
@@ -13,7 +13,7 @@
 
 ## 来源与安装
 
-- Ubuntu noble 源,镜像是阿里云,由 `image-defs/ubuntu.yaml` 钉入。
+- Ubuntu noble 源,镜像是阿里云,由 `image-defs/ubuntu.yaml` 写入。
 - 安装命令:`apt-get install -y --no-install-recommends python3 python3-pip python3-venv python3-dev`。
 - 脚本:`scripts/install-runtimes.sh` 的 `install_python`。
 - 不碰系统 python3 的 site-packages。第三方包进 venv,或经 uv tool 安装。

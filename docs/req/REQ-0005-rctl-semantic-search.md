@@ -24,7 +24,7 @@ rctl search 需要语义搜索能力:词面子串之外,中文/英文自然语�
 - 2026-10-12 立单(draft);侦察:pi-rs vendored fork 调用面/模型目录/配置机制全读。
 - 2026-10-12 实现 + 四验收全过(implemented):
   - 引擎:容器内冷构建约 10 分钟(llama.cpp+ort 链,cmake/gcc 在);伴生共享库 libzvec_c_api.so 必须同装入 /usr/local/lib + ldconfig(缺它 zg 起不来)。上游 HEAD 钉 1bbdadd(pi-rs fork 的 doc-header/per-file-cap 修复不含,但本用途是一行微文档非源码切块,不受影响)。
-  - 模型:qwen3-embedding-0.6b Q8_0 GGUF 610M 落 /opt/zg-models,sha256 钉入 pins.sh 标量;下载走 zg 自下载器(标记文件自理)。
+  - 模型:qwen3-embedding-0.6b Q8_0 GGUF 610M 落 /opt/zg-models,sha256 写入 pins.sh 标量;下载走 zg 自下载器(标记文件自理)。
   - 索引:494 微文档全量索引一次性(构建期),产物 5.3M 落 /var/lib/rctl/semantic/.zvec-grep;增量重索引只补变化件;运行期查询约 1.3 秒/次。
   - 验收 1:断网(eth0 down)root 与 ubuntu 双视角 engine=zvec;「从windows域控导出凭据」top 命中 impacket/GetUserSPNs.py(纯语义,词面不含);「跨内网把流量转发出来」8 结果。
   - 验收 2:RCTL_ZG_PATH=0 → engine=lexical 行为不变;宿主 bun test 14/0(词面金标无回归)。

@@ -7,7 +7,7 @@
 R1 一个总 ctl 命令 `rctl` 进镜像成为核心 CLI,agent 进实例第一个入口;chrome/browse 未合入期不依赖其面
 R2 渐进提示:裸调用出面板(实例态、分类计数、下一步 CTA),exit 0 不交互
 R3 全资源可搜:能力问句(search,打能力表)、路径问句(where,打路径库)、册问句(docs,打册投影)三分离;exit 1 未命中
-R4 单件全息:show <id> 给 kind、落点、版本钉口径、组、离线行为、wrapper 关系、册链接(kubectl explain 语义)
+R4 单件全息:show <id> 给 kind、安装路径、版本锁定口径、组、离线行为、wrapper 关系、册链接(kubectl explain 语义)
 R5 能力路由:caps [<task>] 给任务到资源组合与可抄命令模板(navi 语义,默认打印不执行)
 R6 实例态:env 给离线态、端口面、PATH 面与五生态快失败面
 R7 agent 原生面:--llms 120 行手册、七件旗标、json 信封(类型化 CTA)、错误 stderr 单行 JSON、退出码 0/1/2

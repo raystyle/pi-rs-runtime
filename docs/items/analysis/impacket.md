@@ -13,11 +13,11 @@
 
 - 上游:[fortra/impacket](https://github.com/fortra/impacket)。安装面是 PyPI 包。
 - 脚本:`install-tools.sh` 的 `install_analysis`。
-- 命令:`uv tool install "impacket==<钉>"`。
+- 命令:`uv tool install "impacket==<版本>"`。
 - 导出 `UV_TOOL_BIN_DIR=/usr/local/bin`。
 - 导出 `UV_TOOL_DIR=/opt/uv-tools`。
 - 构建期 uv 配置是 `/etc/uv/uv-online.toml`,索引为阿里云。
-- 该命令失败时,改用 tuna 索引同一钉值:`--index-url https://pypi.tuna.tsinghua.edu.cn/simple`。
+- 该命令失败时,改用 tuna 索引同一锁定值:`--index-url https://pypi.tuna.tsinghua.edu.cn/simple`。
 - 不使用 noble apt 的冻结包。
 - 镜像里已有 `python3-impacket` 时,先执行 `apt-get remove -y`。
 - 无 `have` 早退。每次重跑都执行安装尝试。

@@ -8,7 +8,7 @@
 - 默认值写在 `install_analysis` 内,不在 common.sh。
 - 环境变量 `NASM_VERSION` 可覆盖。
 - 幂等判据:`nasm -v | grep -q "version 3.02$"`。
-- 当前版本与钉版一致才跳过。改 `NASM_VERSION` 会触发重装。
+- 当前版本与锁定版本一致才跳过。改 `NASM_VERSION` 会触发重装。
 - tarball 无校验和。
 - 从官网直接下载。无国内镜像。包小,直连。
 

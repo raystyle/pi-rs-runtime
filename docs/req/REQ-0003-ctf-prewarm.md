@@ -7,7 +7,7 @@
 R1 P0 落地:one_gadget(GEM_PIN 1.10.0;2.1.1 要 Ruby>=3.3 系统是 3.2.3,取 3.2 面最新)
 R2 P0 契约入册:pwn/ROPgadget 只用系统 /usr/bin/python3(apt 面),re-venv 没有 pwn 是设计;frida 绑定只在 uv tool 环境(与 server 17.23.3 对齐),不复制进 re-venv
 R3 P1:seccomp-tools 1.7.1(GEM_PIN)、qiling 1.4.6(PYPI_PIN 进 re-venv+wheelhouse)
-R4 P1 数据资产(clone_pin 钉 sha,kind=data):GTFOBins、LOLBAS、enthec/webappanalyzer(指纹库)
+R4 P1 数据资产(clone_pin 锁定 sha,kind=data):GTFOBins、LOLBAS、enthec/webappanalyzer(指纹库)
 R5 裁定项(待用户):exploit-db(GitLab 道,GITHUB_MIRROR 不代理,需直连或 Kali orig tar)、angr 10.0.3(单独 /opt/angr-venv+独立轮子切片,禁 extra)、HackTricks(约 1GiB)
 R6 不做清单(grok prt-08 不建议项全收):ropper/pwninit/libc-database 全量/NVD 全量/bin-sploits/cfr/dex2jar/sage/PyPI pwn 空包
 

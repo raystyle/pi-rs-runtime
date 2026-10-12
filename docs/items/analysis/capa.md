@@ -8,7 +8,7 @@
 - 上游没有 v9.5.0。最新标签是 v9.4.0。
 - 规则库键:`GIT_PIN[mandiant/capa-rules]`。
 - 当前值:805f9eaccfb6a4e1ddffc809d71d1e2b5ccc15e5(解析日 2026-10-10)。
-- clone_pin:HEAD 等于钉则跳过。
+- clone_pin:HEAD 等于锁定的提交则跳过。
 - zip 无校验和。
 - 升级:运行 `scripts/resolve-pins.sh`,再执行 analysis 组。
 

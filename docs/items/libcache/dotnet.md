@@ -4,15 +4,15 @@
 
 ## 版本
 
-- pins.sh 以 `NUGET_PIN[<包id>]` 钉版。
+- pins.sh 以 `NUGET_PIN[<包id>]` 锁定版本。
 - 16 个库包加 ilspycmd,共 17 个键。
 - 例:`NUGET_PIN[dnlib]` = 4.5.0。
 - 例:`NUGET_PIN[ilspycmd]` = 11.1.0.9782。
 - 解析日 2026-10-10。
-- `dotnet add package --version` 与 `dotnet tool install --version` 把钉值写进文件。
+- `dotnet add package --version` 与 `dotnet tool install --version` 把锁定值写进文件。
 - 库包写入 `/opt/dotnet-prewarm/*.csproj`。
 - ilspycmd 写入 /opt/dotnet-tools。
-- 缺钉即失败,不静默改用别的版本。
+- 缺少锁定版本即失败,不静默改用别的版本。
 - 升级:执行 `scripts/resolve-pins.sh`。
 - csproj 即锁文件,已入库 `scripts/lock/dotnet/`。
 - 有锁时拷入后直接 restore。
@@ -89,7 +89,7 @@
 
 ## rctl 面,机器行
 
-- rctl: ilspycmd kind=tool path=/usr/local/bin/ilspycmd env=逆向环境 note=.NET 反编译 CLI(NUGET_PIN 独立钉,落 /opt/dotnet-tools)
+- rctl: ilspycmd kind=tool path=/usr/local/bin/ilspycmd env=逆向环境 note=.NET 反编译 CLI(NUGET_PIN 单独锁定,装在 /opt/dotnet-tools)
 - rctl: dotnet-prewarm kind=cache path=/opt/dotnet-prewarm note=restore 预热工程(csproj 锁)
-- rctl: microsoft kind=cache path=/opt/microsoft note=dotnet sdk 落点树
+- rctl: microsoft kind=cache path=/opt/microsoft note=dotnet sdk 安装目录
 - rctl: nuget.exe kind=tool path=/opt/nuget.exe note=NuGet 命令行(独立件)

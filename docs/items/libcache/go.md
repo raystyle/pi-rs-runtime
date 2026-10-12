@@ -1,15 +1,15 @@
 # Go 库缓存:模块预热
 
-> 渗透/代理/协议/AD/PE 向 Go 库字节构建期钉进模块缓存,断网 `go build` 直编 ｜ 状态:缓存固化 ｜ 组:`install-libcache.sh go`
+> 渗透/代理/协议/AD/PE 向 Go 库字节构建期写入模块缓存,断网 `go build` 直编 ｜ 状态:缓存固化 ｜ 组:`install-libcache.sh go`
 
 ## 版本
 
 - 19 个库在构建日由 `GOFLAGS=-mod=mod go mod tidy` 解析。
 - 精确版本写回 `/opt/go-prewarm/go.mod` 与 `go.sum`。
-- 锁文件即钉版,已入库 `scripts/lock/go/`(go.mod 与 go.sum)。
+- 锁文件即锁定版本,已入库 `scripts/lock/go/`(go.mod 与 go.sum)。
 - 有锁时用 `GOFLAGS=-mod=mod go build` 消费。
 - 再生执行 `scripts/sync-locks.sh`。
-- pspy 与 go-winres 由 pins.sh 钉版。
+- pspy 与 go-winres 由 pins.sh 锁定版本。
 - `GO_PIN[github.com/dominicbreuker/pspy]` = v1.2.1。
 - `GO_PIN[github.com/tc-hib/go-winres]` = v0.3.3。
 - 这两个命令经 go_install_pin 安装。解析日 2026-10-10。
@@ -71,7 +71,7 @@
 
 ## rctl 面,机器行
 
-- rctl: pspy kind=tool path=/usr/local/bin/pspy env=工具环境 note=无 root 进程刺探(GO_PIN 独立钉,实装在 /opt/go/bin)
+- rctl: pspy kind=tool path=/usr/local/bin/pspy env=工具环境 note=无 root 进程刺探(GO_PIN 单独锁定,实装在 /opt/go/bin)
 
 ## 成员清单
 
@@ -85,4 +85,4 @@
 | 协议 | google/gopacket、miekg/dns、refraction-networking/utls |
 | AD/横向 | go-ldap/ldap/v3、hirochachacha/go-smb2、jcmturner/gokrb5/v8/client、masterzen/winrm |
 | PE/资源 | klauspost/compress/zstd、saferwall/pe |
-| 命令(go_install_pin 钉版) | pspy(dominicbreuker/pspy,GO_PIN v1.2.1)、go-winres(tc-hib/go-winres,GO_PIN v0.3.3) |
+| 命令(go_install_pin 锁定版本) | pspy(dominicbreuker/pspy,GO_PIN v1.2.1)、go-winres(tc-hib/go-winres,GO_PIN v0.3.3) |

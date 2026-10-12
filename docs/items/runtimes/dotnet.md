@@ -5,7 +5,7 @@
 ## 版本
 
 - `DOTNET_SDK=dotnet-sdk-10.0`(`lib/common.sh`)。
-- apt 包名钉大版本。小版本随 noble 源。
+- apt 包名锁定大版本。小版本随 noble 源。
 - 8.0 将于 2026-11 停止支持。
 
 ## 来源与安装

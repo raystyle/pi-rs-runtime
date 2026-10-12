@@ -4,8 +4,8 @@
 
 ## 版本
 
-- 软钉。MS 仓的 apt 包浮动即钉。
-- `powershell-lts` 随 packages.microsoft.com 仓。pins.sh 无钉位。见 [known-issues.md](../../known-issues.md)。
+- 软件源锁定。MS 仓的 apt 包浮动即锁定。
+- `powershell-lts` 随 packages.microsoft.com 仓。pins.sh 没有锁定项。见 [known-issues.md](../../known-issues.md)。
 - lts 包不可用时,`||` 退回安装 `powershell`。
 
 ## 来源与安装

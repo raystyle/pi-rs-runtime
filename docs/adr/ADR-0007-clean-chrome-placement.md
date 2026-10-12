@@ -13,5 +13,5 @@ clean-chrome 经 browse 的云端安装道落运行用户 state 目录(`~/.brows
 ## Consequences
 
 - 镜像只 +1.9 GB(双用户方案要 +3.8 GB)
-- ubuntu 可执行不可写;browse 合入后的版本升级路径是「新钉进 /opt/clean-chrome/<新版> + CURRENT 换指」
+- ubuntu 可执行不可写;browse 合入后的版本升级路径是「新写入 /opt/clean-chrome/<新版> + CURRENT 换指」
 - 若 browse 的托管 pin 语义与 CURRENT 冲突,以 browse 为准再迁

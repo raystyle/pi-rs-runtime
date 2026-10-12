@@ -5,7 +5,7 @@
 # 用法:
 #   bash scripts/sync-locks.sh             # 六组全量(go rust node java dotnet zig)
 #   bash scripts/sync-locks.sh go node     # 只同步指定组
-# python/pwsh 无独立锁文件(pins.sh 钉直接依赖),不在同步面。
+# python/pwsh 无独立锁文件(pins.sh 锁定直接依赖),不在同步面。
 # 镜像用 LOCK_IMAGE 覆盖(默认 pi-rs-runtime 线上版);incus 需 sudo 或在 incus 组。
 # 拉锁先落暂存再校验后入库:解析态失败的残缺文件不会覆盖仓库现存锁。
 # 跑完审 git diff scripts/lock/,再按 AGENTS.md 增量发布链重跑受影响组。

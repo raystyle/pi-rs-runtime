@@ -4,8 +4,8 @@
 
 ## 版本
 
-- 安装器本体未钉。pins.sh 未收钉位。从 `get.sdkman.io` 直下,随官方最新。
-- JDK 侧 temurin 小版本由 pins.sh 的 `TEMURIN_PIN_8/11/17/21/25` 钉。见 [temurin JDK 册](java-jdks.md)。
+- 安装器本体未锁定。pins.sh 未收锁定项。从 `get.sdkman.io` 直下,随官方最新。
+- JDK 侧 temurin 小版本由 pins.sh 的 `TEMURIN_PIN_8/11/17/21/25` 锁定。见 [temurin JDK 册](java-jdks.md)。
 - 装后用 sed 幂等改写 `etc/config` 的三个键。
 
 | 键 | 值 |

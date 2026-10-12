@@ -25,13 +25,13 @@
 |------|------|
 | [AGENTS.md](AGENTS.md) | 治理合同：命令、必须/禁止、先读清单、环境（agent 与人都先看它） |
 | [docs/README.md](docs/README.md) | 文档地图 |
-| [docs/items/](docs/items/README.md) | 逐件一册：每个安装/配置件的版本钉、落点、离线行为、问题（件级事实唯一真相，71 册） |
+| [docs/items/](docs/items/README.md) | 逐件一册：每个安装/配置件的版本、安装路径、离线行为、问题（件级事实唯一真相，71 册） |
 | [docs/install-surfaces/](docs/install-surfaces/) | 安装面组卡：四个分类脚本的组机制导览（逐件明细链 items） |
 | [docs/software-inventory.md](docs/software-inventory.md) | 计数对账与形态分布（册数/件数，不记逐件事实） |
 | [docs/adr/](docs/adr/README.md) | 不可逆规定（ADR,6 篇 accepted) |
 | [docs/diary/](docs/diary/) | 每轮构建/复核过程（按日一篇） |
 | [docs/offline.md](docs/offline.md) | 离线运行：固化缓存/wrapper/非登录 shell 兼容三层机制、五生态快失败、断网冒烟验证法 |
-| [docs/params.md](docs/params.md) | 参数表：构建脚本变量、镜像源覆盖、版本钉、路径与工具集 |
+| [docs/params.md](docs/params.md) | 参数表：构建脚本变量、镜像源覆盖、版本锁定、路径与工具集 |
 | [docs/known-issues.md](docs/known-issues.md) | 已知限制与未决项（真限制；规定类在 ADR) |
 | [PROGRESS.md](PROGRESS.md) | 任务进度与历史轨迹（跨会话工作记忆，接续工作前先读） |
 
@@ -91,7 +91,7 @@ incus delete rt-build
 
 发布别名固定为 `pi-rs-runtime`。发布后开实例：`incus launch pi-rs-runtime <名>`。
 
-验收建议（重跑 `install-all.sh` 后）：核对版本输出、镜像配置落点、`/opt/analytics` 与 `/opt/re-venv` 的 venv 隔离、以及 `/usr/local/bin` 链接对 `ubuntu` 用户可执行。
+验收建议（重跑 `install-all.sh` 后）：核对版本输出、镜像配置路径、`/opt/analytics` 与 `/opt/re-venv` 的 venv 隔离、以及 `/usr/local/bin` 链接对 `ubuntu` 用户可执行。
 
 ### 5. 开发实例挂载仓库
 

@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # 库缓存固化器:go / rust / python / node / java / powershell / dotnet / zig
 # 在 Ubuntu 24.04 容器(或宿主)内运行,幂等,可重复执行。
-# 目标:离线可用——构建期把库字节钉进 /opt 共享缓存(grok 八生态评审),
+# 目标:离线可用——构建期把库字节写入 /opt 共享缓存(grok 八生态评审),
 # 运行期不再访问索引;只锁清单不下字节,断网后等于没装。
-# 锁文件策略(phase B):传递闭包钉进仓库 scripts/lock/<生态>/,有锁则消费锁
+# 锁文件策略(phase B):传递闭包写入仓库 scripts/lock/<生态>/,有锁则消费锁
 # (go build 用 go.sum / cargo fetch --locked / npm ci / mvn 直消费解析后 pom /
-# dotnet restore 钉版 csproj / zig build --fetch 按 zon 补缓存);
+# dotnet restore 锁定版本 csproj / zig build --fetch 按 zon 补缓存);
 # 无锁或 LIBCACHE_RESOLVE=1 走构建日解析并打印「未锁,构建日解析」。
 # 锁再生:scripts/sync-locks.sh(起临时容器从线上镜像跑解析态,拉回锁文件)。
 # 用法:
@@ -139,7 +139,7 @@ install_python() {
     . "$HOME/.local/bin/env" 2>/dev/null || true
     [ -x "$RE_VENV/bin/python" ] || uv venv "$RE_VENV"
     local pkgs="pycryptodome cryptography gmpy2 sympy z3-solver construct pefile pyelftools dnfile pypykatz malduck volatility3 r2pipe httpx beautifulsoup4 lxml pyjwt dpkt xortool"
-    # 钉版(pins.sh):逐件拼 ==,缺钉即响不静默漂
+    # 锁定版本(pins.sh):逐件拼 ==,缺少锁定版本即响不静默漂
     local pinned=""; local pk
     for pk in $pkgs; do pinned="$pinned $pk==$(pypi_pin "$pk")"; done
     # shellcheck disable=SC2086
@@ -173,7 +173,7 @@ install_node() {
     export NPM_CONFIG_REGISTRY="$NPM_REGISTRY"
     local dir=/opt/js-lab
     install -d "$dir"
-    # 钉版:依赖清单即 NPM_PIN 键(与 resolve-pins.sh 的 NPM_PKGS 同步增减),缺钉即响
+    # 锁定版本:依赖清单即 NPM_PIN 键(与 resolve-pins.sh 的 NPM_PKGS 同步增减),缺少锁定版本即响
     local deps=(node-forge pkijs asn1js pvtsutils pvutils crypto-js jsonwebtoken
         @babel/parser @babel/traverse @babel/generator @babel/types
         webcrack cheerio fast-xml-parser ws express jszip sql.js
@@ -183,11 +183,11 @@ install_node() {
         local d i=0 n=${#deps[@]}
         for d in "${deps[@]}"; do
             i=$((i+1)); local comma=","; [ "$i" -eq "$n" ] && comma=""
-            printf '    "%s": "%s"%s\n' "$d" "${NPM_PIN[$d]:?pins.sh 缺 npm 钉 $d}" "$comma"
+            printf '    "%s": "%s"%s\n' "$d" "${NPM_PIN[$d]:?pins.sh 缺少 npm 锁定版本 $d}" "$comma"
         done
         printf '  }\n}\n'
     } > "$dir/package.json"
-    # 锁消费:package-lock.json 入库则 npm ci(锁与钉值不同步会硬失败——跑 sync-locks.sh 再生);
+    # 锁消费:package-lock.json 入库则 npm ci(锁与锁定值不同步会硬失败——跑 sync-locks.sh 再生);
     # 未锁走 npm install 构建日解析并留事实快照
     local ok=""
     if lock_avail node/package-lock.json; then
@@ -223,7 +223,7 @@ install_node() {
 
 # ---- Java:/opt/maven-prewarm dependency:go-offline 进 /opt/m2 ---------------
 # 锁消费:scripts/lock/java/pom.xml(resolve-ranges 写回的精确版)直接 go-offline;
-# 未锁才写 [0,) 区间构建日解析。study profile 隔离钉旧版(CVE 复现坐标),两路都跑
+# 未锁才写 [0,) 区间构建日解析。study profile 隔离锁定旧版(CVE 复现坐标),两路都跑
 install_java() {
     log "Java 库固化(grok 清单:BC/ASM/Jackson/Spring 等 + study 研究 profile)"
     # 非交互 shell 没有 JAVA_HOME,从 sdkman current 推(install-runtimes 已装)
@@ -265,7 +265,7 @@ install_java() {
     <dependency><groupId>cn.hutool</groupId><artifactId>hutool-all</artifactId><version>[0,)</version></dependency>
     <dependency><groupId>info.picocli</groupId><artifactId>picocli</artifactId><version>[0,)</version></dependency>
     <!-- org.jf:dexlib2 国内镜像(aliyun/华为)全无件(实证 404),google 已迁 GMaven
-         com.android.tools.smali(上方 repositories);smali/smali-baksmali 钉 3.0.10,
+         com.android.tools.smali(上方 repositories);smali/smali-baksmali 锁定 3.0.10,
          dexlib2 经传递依赖进 /opt/m2 -->
     <dependency><groupId>com.android.tools.smali</groupId><artifactId>smali</artifactId><version>3.0.10</version></dependency>
     <dependency><groupId>com.android.tools.smali</groupId><artifactId>smali-baksmali</artifactId><version>3.0.10</version></dependency>
@@ -284,7 +284,7 @@ install_java() {
   </profiles>
 </project>
 EOF
-        # 版本钉:写 [0,) 区间,构建日 versions:resolve-ranges 解析成精确版本写回 pom,
+        # 版本锁定:写 [0,) 区间,构建日 versions:resolve-ranges 解析成精确版本写回 pom,
         # 再 dependency:go-offline 把字节拉进 /opt/m2(study profile 一并解析)
         ( cd "$dir" && mvn -q -B versions:resolve-ranges 2>/dev/null \
             && mvn -q -B -DskipTests dependency:go-offline ) \
@@ -331,11 +331,11 @@ install_pwsh() {
     have pwsh || { echo "pwsh 未装,先跑 install-runtimes.sh pwsh"; return 0; }
     # 旧 PackageManagement(Save-Module)在 noble + pwsh 7.4 上段错误;走 inbox PSResourceGet
     install -d /opt/psmodules
-    # 钉版:PSGALLERY_PIN 逐件 -Version(gallery 抖动重跑可补)
+    # 锁定版本:PSGALLERY_PIN 逐件 -Version(gallery 抖动重跑可补)
     local pm pv
     for pm in Posh-SSH powershell-yaml ImportExcel PowerHTML Pester PSScriptAnalyzer Microsoft.PowerShell.SecretManagement Microsoft.PowerShell.SecretStore; do
         pv="${PSGALLERY_PIN[$pm]:-}"
-        [ -n "$pv" ] || { echo "!! pins.sh 缺 psgallery 钉: $pm"; continue; }
+        [ -n "$pv" ] || { echo "!! pins.sh 缺少 psgallery 锁定版本: $pm"; continue; }
         pwsh -NoProfile -Command "Save-PSResource -Name '$pm' -Version '$pv' -Path /opt/psmodules -TrustRepository -Quiet -ErrorAction SilentlyContinue" || true
     done
     cat > /etc/profile.d/psmodules.sh <<'EOF'
@@ -357,7 +357,7 @@ install_dotnet() {
     local dir=/opt/dotnet-prewarm
     rm -rf "$dir"
     if lock_avail 'dotnet/*.csproj'; then
-        # 锁消费:csproj 钉值已在库(dotnet add --version 写回),拷进直接 restore
+        # 锁消费:csproj 锁定值已在库(dotnet add --version 写回),拷进直接 restore
         install -d "$dir" && cp "$LOCKS"/dotnet/*.csproj "$dir/"
     else
         lock_miss 'dotnet/*.csproj'
@@ -372,7 +372,7 @@ install_dotnet() {
             if [ -n "$nv" ]; then
                 ( cd "$dir" && dotnet add package "$p" --version "$nv" 2>/dev/null ) || echo "dotnet add $p 失败"
             else
-                echo "!! pins.sh 缺 nuget 钉: $p(跑 resolve-pins.sh)"
+                echo "!! pins.sh 缺少 nuget 锁定版本: $p(跑 resolve-pins.sh)"
             fi
         done
     fi
@@ -384,7 +384,7 @@ install_dotnet() {
     done
     # ilspycmd 全局工具到 /opt/dotnet-tools
     install -d /opt/dotnet-tools
-    dotnet tool install --tool-path /opt/dotnet-tools ilspycmd --version "${NUGET_PIN[ilspycmd]:?pins.sh 缺 ilspycmd 钉}" 2>/dev/null || echo "ilspycmd 失败"
+    dotnet tool install --tool-path /opt/dotnet-tools ilspycmd --version "${NUGET_PIN[ilspycmd]:?pins.sh 缺少 ilspycmd 锁定版本}" 2>/dev/null || echo "ilspycmd 失败"
     ln -sf /opt/dotnet-tools/ilspycmd /usr/local/bin/ilspycmd 2>/dev/null || true
     ls /opt/nuget-packages 2>/dev/null | wc -l
     true
@@ -413,7 +413,7 @@ install_zig() {
         lock_miss zig/build.zig.zon
         # zig fetch --save 会把依赖写进 build.zig.zon 并填充全局缓存;hash 以 0.16 输出为准
         # 实证:ohmygh 代理不支持 git smart-http,git+ 全失败;改 tarball(archive/refs)才可过代理。
-        # 五库均钉主干 heads 的构建日快照(zlib 旧 tag 的 zon 字符串名被 0.16 拒);每库三次重试
+        # 五库均锁定主干 heads 的构建日快照(zlib 旧 tag 的 zon 字符串名被 0.16 拒);每库三次重试
         local spec try ok failed=""
         for spec in \
             "zlib=${GITHUB_MIRROR}https://github.com/allyourcodebase/zlib/archive/refs/heads/master.tar.gz" \

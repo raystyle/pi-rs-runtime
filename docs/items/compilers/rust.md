@@ -4,13 +4,13 @@
 
 ## 版本
 
-- rustup-init 与 stable toolchain 随源最新。pins.sh 未收这两项钉位,取构建日的版本。
+- rustup-init 与 stable toolchain 随源最新。pins.sh 未收这两项锁定项,取构建日的版本。
 - `CRATE_PIN[rust-script]` = 0.36.0(解析日 2026-10-10)。
 - `CRATE_PIN[cargo-zigbuild]` = 0.23.4(解析日 2026-10-10)。
 - `CRATE_PIN[cargo-audit]` = 0.22.2(解析日 2026-10-10)。
 - 这三件经 `cargo_install_pin` 安装,带 `--locked`。
 - 升级:运行 `scripts/resolve-pins.sh`,再重跑本组。
-- 预热的 29 个 crate 版本全是 `*`,不钉版。`cargo fetch` 取构建日最新。
+- 预热的 29 个 crate 版本全是 `*`,不锁定版本。`cargo fetch` 取构建日最新。
 
 ## 来源与安装
 
@@ -55,7 +55,7 @@
 - 该缓存属 piopt 组,并带默认 ACL,共享可写。权限模型见 [offline.md](../../offline.md) 第 5 节。
 - 29 个 crate 经 `cargo fetch` 进入 `/opt/cargo` 的 registry。点名包含 ureq、tokio、rustls、reqwest、tungstenite、regex、grep-*、tokio-socks。
 - `cj-*` 与 `cancel-this` 是仓内 vendor,不预热。
-- libcache rust 组另有 31 个加密与解析向 crate,`cargo add` 钉版后再 fetch。脚本是 `install-libcache.sh` 的 rust 组。
+- libcache rust 组另有 31 个加密与解析向 crate,`cargo add` 锁定版本后再 fetch。脚本是 `install-libcache.sh` 的 rust 组。
 
 ## 离线行为
 
@@ -94,9 +94,9 @@
 - rctl: rustc kind=compiler path=/usr/local/bin/rustc note=Rust 编译器本尊
 - rctl: cargo kind=compiler path=/usr/local/bin/cargo
 - rctl: rustup kind=compiler path=/usr/local/bin/rustup
-- rctl: rust-script kind=tool path=/usr/local/bin/rust-script note=单文件 Rust 脚本(CRATE_PIN 独立钉)
-- rctl: cargo-zigbuild kind=tool path=/usr/local/bin/cargo-zigbuild note=cargo 交叉编译 zig 后端(独立钉)
-- rctl: cargo-audit kind=tool path=/usr/local/bin/cargo-audit note=依赖审计(独立钉)
+- rctl: rust-script kind=tool path=/usr/local/bin/rust-script note=单文件 Rust 脚本(CRATE_PIN 单独锁定)
+- rctl: cargo-zigbuild kind=tool path=/usr/local/bin/cargo-zigbuild note=cargo 交叉编译 zig 后端(单独锁定)
+- rctl: cargo-audit kind=tool path=/usr/local/bin/cargo-audit note=依赖审计(单独锁定)
 - rctl: rust-lld kind=compiler path=/usr/local/bin/rust-lld
 - rctl: rustup kind=compiler path=/opt/rustup note=工具链管理本体(已并入 rust 册 rctl 面)
 - rctl: rustup-home kind=compiler path=/opt/rustup note=工具链本体树(/usr/local/bin/rustup 的家)

@@ -4,10 +4,10 @@
 
 ## 版本
 
-- 五库都钉主干 heads 的构建日快照 tarball:`archive/refs/heads/{master,main}.tar.gz`。
+- 五库都锁定主干 heads 的构建日快照 tarball:`archive/refs/heads/{master,main}.tar.gz`。
 - zon hash 以镜像内 zig 0.16 现场计算为准。
 - `zig fetch --save` 把依赖名与 hash 写进 `/opt/zig-prewarm/build.zig.zon`。
-- 不钉 tag。
+- 不锁定 tag。
 - zlib 旧 tag 的 zon 字符串名会被 0.16 拒绝。
 - 锁文件(zon hash)已入库 `scripts/lock/zig/build.zig.zon`。
 - 有锁时走 `zig build --fetch`,按 zon 补缓存。

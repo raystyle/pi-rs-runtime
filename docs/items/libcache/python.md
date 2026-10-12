@@ -4,11 +4,11 @@
 
 ## 版本
 
-- 19 个 PyPI 包逐件钉版,键为 `PYPI_PIN[<包>]`;缺钉即失败,不静默漂移。
-- 示例钉值:pycryptodome 3.24.0;volatility3 2.28.2;z3-solver 5.1.0.0(解析日 2026-10-10)。
-- RsaCtfTool 按 `GIT_PIN[RsaCtfTool/RsaCtfTool]` 钉提交。
-- wheelhouse 轮子按同一组钉值执行 `pip download`。
-- 升级:运行 `scripts/resolve-pins.sh` 换钉,在有网阶段重跑本组。本层无独立锁文件,钉在 pins.sh。
+- 19 个 PyPI 包逐件锁定版本,键为 `PYPI_PIN[<包>]`;缺少锁定版本即失败,不静默漂移。
+- 示例锁定值:pycryptodome 3.24.0;volatility3 2.28.2;z3-solver 5.1.0.0(解析日 2026-10-10)。
+- RsaCtfTool 按 `GIT_PIN[RsaCtfTool/RsaCtfTool]` 锁定提交。
+- wheelhouse 轮子按同一组锁定值执行 `pip download`。
+- 升级:运行 `scripts/resolve-pins.sh` 更换锁定版本,在有网阶段重跑本组。本层无独立锁文件,锁定在 pins.sh。
 
 ## 来源与安装
 
@@ -54,7 +54,7 @@
 
 ## rctl 面,机器行
 
-- rctl: vol kind=tool path=/usr/local/bin/vol env=工具环境 note=volatility3 CLI(PYPI_PIN 独立钉,re-venv 链出)
+- rctl: vol kind=tool path=/usr/local/bin/vol env=工具环境 note=volatility3 CLI(PYPI_PIN 单独锁定,re-venv 链出)
 - rctl: volshell kind=tool path=/usr/local/bin/volshell env=工具环境
 - rctl: netexec kind=tool path=/usr/local/bin/netexec env=工具环境 note=NetExec(原 CrackMapExec 续作,re-venv 链出)
 - rctl: floss kind=tool path=/usr/local/bin/floss env=逆向环境 note=FLARE 伪代码字符串提取(re-venv 链出)
@@ -70,4 +70,4 @@
 | 取证/恶意代码 | pypykatz、malduck、volatility3(CLI:vol、volshell) |
 | 调试/HTTP | r2pipe、httpx |
 | 杂项 | beautifulsoup4、lxml、pyjwt、dpkt、xortool |
-| RSA 题框架 | RsaCtfTool(钉 sha 克隆 /opt/RsaCtfTool,依赖锁进 re-venv) |
+| RSA 题框架 | RsaCtfTool(锁定 sha 克隆 /opt/RsaCtfTool,依赖锁进 re-venv) |

@@ -5,12 +5,12 @@
 ## 版本
 
 - 21 个 apt 包走 noble 随源,安装带 `--no-install-recommends`,版本随镜像源快照。
-- FASM 钉 `FASM_VERSION=1.73.32`(`install_c` 内默认值,环境变量可覆盖)。
+- FASM 锁定 `FASM_VERSION=1.73.32`(`install_c` 内默认值,环境变量可覆盖)。
 - FASM 官方 tarball 直下,无校验和。
 
 ## 来源与安装
 
-- apt 批走 Ubuntu noble 源。镜像是阿里云,由 `image-defs/ubuntu.yaml` 钉入。
+- apt 批走 Ubuntu noble 源。镜像是阿里云,由 `image-defs/ubuntu.yaml` 写入。
 - FASM 在 Ubuntu 源没有。
 - FASM 从 [flatassembler.net](https://flatassembler.net) 取 `fasm-${FASM_VERSION}.tgz`,直下解到 `/opt/fasm`。
 - 脚本:`scripts/install-compilers.sh` 的 `install_c`。
@@ -37,7 +37,7 @@
 
 - FASM 包内顶层是 `fasm/` 目录。
 - amd64 必须链 `fasm.x64`。包内 `fasm` 是 32 位。
-- nasm 不在本组。它归 `install-tools.sh` 的 `install_analysis`,源码钉版(脚本注释规定)。
+- nasm 不在本组。它归 `install-tools.sh` 的 `install_analysis`,按锁定版本从源码构建(脚本注释规定)。
 - apt 批天然幂等。
 - FASM 靠 `have fasm` 早退。
 - 组内无配置写入,不触「配置写入放早退前」。
@@ -58,7 +58,7 @@
 
 21 个 apt 包 + FASM。
 
-| 件 | 版本钉 | 用途 |
+| 件 | 版本 | 用途 |
 |---|---|---|
 | build-essential | noble 随源 | 元包,带入 gcc/g++/make/dpkg-dev |
 | clang、lldb | noble 随源 | LLVM 编译器与调试器 |

@@ -2,9 +2,9 @@
 
 本册只登记当前镜像与脚本的**真限制/未决项**;已规定项见 [adr/](adr/README.md)(尤其),离线机制边界见 [offline.md](offline.md),逐件问题见 [items/](items/README.md) 各册「问题与」节。返回 [README](../README.md)。
 
-## 未钉版本:例外清单,其余全部钉在 scripts/lib/pins.sh
+## 未锁定版本:例外清单,其余全部锁定在 scripts/lib/pins.sh
 
-以下因渠道特性不钉(软钉,按当前形态接受):clickhouse(官方安装脚本设计即最新稳定线)、awscli v2(无干净版本索引)、msf omnibus(apt.metasploit.com 只发最新线;pins.sh 里 MSF_VERSION 留空)、pwsh(MS 仓 apt 浮动)、php/mono/apt 系(noble/sury 源冻结即钉)、mono 的 nuget.exe(dist.nuget.org 只有 latest 链)、sdkman/choosenim/rustup 安装器本体、rustup stable/nightly 工具链、crystal-palace/tcg 官网 tgz、BOF-CATALOG raw 文件、pecl VLD。库缓存层六生态锁文件(go.mod/go.sum、Cargo.lock、package-lock.json、解析后 pom、build.zig.zon、dotnet csproj)已入库 `scripts/lock/`(2026-10-10 phase B,install-libcache.sh 消费,`scripts/sync-locks.sh` 再生);python/pwsh 无独立锁文件(pins.sh 钉直接依赖,传递闭包仍构建日解析)。`resolve-pins.sh` 解析失败的件会以空钉形态让消费点报错,不许静默漂。
+以下因渠道特性不锁定(软件源锁定,按当前形态接受):clickhouse(官方安装脚本设计即最新稳定线)、awscli v2(无干净版本索引)、msf omnibus(apt.metasploit.com 只发最新线;pins.sh 里 MSF_VERSION 留空)、pwsh(MS 仓 apt 浮动)、php/mono/apt 系(noble/sury 源冻结即锁定)、mono 的 nuget.exe(dist.nuget.org 只有 latest 链)、sdkman/choosenim/rustup 安装器本体、rustup stable/nightly 工具链、crystal-palace/tcg 官网 tgz、BOF-CATALOG raw 文件、pecl VLD。库缓存层六生态锁文件(go.mod/go.sum、Cargo.lock、package-lock.json、解析后 pom、build.zig.zon、dotnet csproj)已入库 `scripts/lock/`(2026-10-10 phase B,install-libcache.sh 消费,`scripts/sync-locks.sh` 再生);python/pwsh 无独立锁文件(pins.sh 锁定直接依赖,传递闭包仍在构建日解析)。`resolve-pins.sh` 解析失败的件会以未写锁定版本形态让消费点报错,不许静默漂。
 
 ## 无校验和件:路线已选,按当前形态接受
 

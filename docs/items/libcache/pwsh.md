@@ -4,14 +4,14 @@
 
 ## 版本
 
-- 模块未钉版。
+- 模块未锁定版本。
 - PSGallery 无国内镜像。
 - pins.sh 也没有模块映射。
 - 构建期直连,取当时的最新版。
 - Save-PSResource 含依赖解析。
 - 不产生锁文件。
 - `/opt/psmodules` 即镜像侧快照。
-- pwsh 本体是软钉:MS 仓 apt 浮动。
+- pwsh 本体是软件源锁定:MS 仓 apt 浮动。
 - 见 [known-issues.md](../../known-issues.md)。
 - 升级:重跑本组。
 

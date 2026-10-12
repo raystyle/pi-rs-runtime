@@ -5,8 +5,8 @@
 ## 版本
 
 - `PHP_VERSIONS="7.4 8.1 8.3"`(`scripts/lib/common.sh`,环境变量可覆盖)。
-- 小版本随 sury 源。apt 源冻结即钉,属软钉。见 [known-issues.md](../../known-issues.md)。
-- VLD 走 `pecl install vld-beta`,未钉版。pins.sh 未收该钉位。
+- 小版本随 sury 源。apt 源冻结即锁定,属软件源锁定。见 [known-issues.md](../../known-issues.md)。
+- VLD 走 `pecl install vld-beta`,未锁定版本。pins.sh 未收该锁定项。
 - 脚本提示:对齐公开数据集时,PHP 8.0 加 VLD 0.18.0 最稳。
 
 ## 来源与安装

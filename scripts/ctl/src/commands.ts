@@ -30,7 +30,7 @@ export const COMMANDS: Cmd[] = [
   {
     name: "show",
     args: "<id>",
-    desc: "单件全息:kind、落点、版本钉、组、离线行为、册链接(explain 语义)",
+    desc: "单件全息:kind、安装路径、版本锁定、组、离线行为、册链接(explain 语义)",
     examples: [{ cmd: "rctl show nuclei", desc: "nuclei 的全息记录" }],
   },
   {

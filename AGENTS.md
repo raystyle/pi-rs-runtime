@@ -23,15 +23,15 @@ incus exec pi-rs-runtime-20261010-2210 --user 1000 --group 1000 -- env HOME=/hom
 
 ## Must
 
-- **开工先查资源清单**:接手任何「待办/补缺/新增」前,先对关键词查三面——`grep <词> scripts/`(实现面)、`awk -F'\t' '$1~/<词>/' scripts/ctl/data/catalog.tsv`(已收录面)、`grep -rl <词> docs/items/`(册面);三面任一命中即先核对现状再决定做不做(2026-10-12 两回重复实现:待办规定会滞后于已实现)
+- **开工先查资源清单**:接手任何「待办/补缺/新增」前,先对关键词查三面:`grep <词> scripts/`(实现面)、`awk -F'\t' '$1~/<词>/' scripts/ctl/data/catalog.tsv`(已收录面)、`grep -rl <词> docs/items/`(册面);三面任一命中即先核对现状再决定做不做(2026-10-12 两回重复实现:待办规定会滞后于已实现)
 - 待办完成同步:条目完成时当场划掉或删,完成批必须带 PROGRESS 待办同步(防旧规定)
-- 脚本幂等 + 钉版 + 可升级;幂等判据存在早退的组,配置写入一律放早退之前
-- **钉版纪律**:安装脚本只消费 `scripts/lib/pins.sh`(go/crate/pypi/gem/nuget/npm/psgallery/git 八映射 + 标量);新增消费点必须先把清单加进 `scripts/resolve-pins.sh` 并跑它补钉;缺钉直接失败,禁止漂回 @latest/漂 HEAD;升级 = 跑 `scripts/resolve-pins.sh`(全量约 21s,并行 16)+ 审 diff;库缓存传递闭包锁在 `scripts/lock/`(六生态),升级传递闭包再加跑 `scripts/sync-locks.sh`(容器内再生+校验拉回);锁与钉失步时 npm ci/cargo --locked 会硬失败(设计意图)
+- 脚本幂等、版本锁定、可升级;幂等判据存在早退的组,配置写入一律放早退之前
+- **版本锁定规则**:安装脚本只消费 `scripts/lib/pins.sh`(go/crate/pypi/gem/nuget/npm/psgallery/git 八映射 + 标量);新增消费点必须先把清单加进 `scripts/resolve-pins.sh` 并跑它补写锁定版本;缺少锁定版本直接失败,禁止漂回 @latest/漂 HEAD;升级 = 跑 `scripts/resolve-pins.sh`(全量约 21s,并行 16)+ 审 diff;库缓存传递闭包锁在 `scripts/lock/`(六生态),升级传递闭包再加跑 `scripts/sync-locks.sh`(容器内再生+校验拉回);锁文件与锁定版本不一致时 npm ci/cargo --locked 会硬失败(设计意图)
 - 一切能力声明要容器(断网冒烟),不许「应该能跑」;验证要覆盖 root 与 ubuntu 双视角
 - 推送脚本进容器后必须 grep 验证内容落地;跑批中的脚本禁止换盘重推(bash 按字节偏移续读)
 - **一批一实例**:已有工作实例时禁止再 `incus launch`(每次都是整盘解包)。改动都进该实例;稳定后先问用户,点头才 `incus publish`(整盘 gzip,约 18–22 分钟)。不自行决定发或不发,也不为单笔改动再解包再打包
 - **版本名**:`pi-rs-runtime-YYYYMMDD-HHMM`(主机本地时间)。实例名取 launch 时刻,镜像版本别名取 publish 时刻,两者不是同一时间。浮动别名 `pi-rs-runtime` 只指向最新已发布镜像。禁止 `rt-*` 和 `-dev`
-- 文档单一真相:件级结构事实(版本钉/落点/离线态/kind/alias/任务词袋)只在 `scripts/ctl/data/resources.json`(资源契约单 JSON 维护);件级叙事(问题/来源长文/操作细节)在 `docs/items/<组>/<件>.md`;`catalog.tsv`/`caps.tsv` 是 JSON 的烤库投影(`scripts/gen-rctl-catalog.sh` 再生,勿手改);新增或改动资源只改 JSON 一处,投影与守卫自动跟,并在 items 索引对账册数
+- 文档单一真相:件级结构事实(版本锁定、安装路径、离线状态、kind、alias、任务词袋)只在 `scripts/ctl/data/resources.json`(资源契约单 JSON 维护);件级叙事(问题/来源长文/操作细节)在 `docs/items/<组>/<件>.md`;`catalog.tsv`/`caps.tsv` 是 JSON 的烤库投影(`scripts/gen-rctl-catalog.sh` 再生,勿手改);新增或改动资源只改 JSON 一处,投影与守卫自动跟,并在 items 索引对账册数
 - 不可逆规定立 ADR(docs/adr/),实现回填;每轮工作落 PROGRESS.md 当前状态,历史轮次归 docs/diary/
 
 ## Must not

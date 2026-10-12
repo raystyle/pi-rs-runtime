@@ -23,7 +23,7 @@
 - `versions:resolve-ranges` 把 `[0,)` 区间解析成精确版本,写回 pom。
 - 然后 `dependency:go-offline` 拉取字节。
 - 默认 profile 是 BC、ASM、Jackson、Spring、hutool 等当前安全版。
-- study profile 钉 fastjson、log4j-core、shiro 等 CVE 复现坐标。
+- study profile 锁定 fastjson、log4j-core、shiro 等 CVE 复现坐标。
 - smali 与 baksmali 3.0.10 经 GMaven。坐标见 [known-issues.md](../../known-issues.md)。
 
 ## 配置
@@ -41,7 +41,7 @@
 
 ## 限制
 
-- `localRepository` 钉在 `/opt/m2`。若留默认 `~/.m2`,root 与 ubuntu 各有一份,离线都用不上。
+- `localRepository` 锁定在 `/opt/m2`。若留默认 `~/.m2`,root 与 ubuntu 各有一份,离线都用不上。
 - settings.xml 写在安装目录,不写 `~/.m2/settings.xml`,这样非登录 shell(`incus exec`)也能读到。
 - `mirrorOf=central` 不拦截 pom 里显式声明的 GMaven 仓。smali 坐标靠这个仓。
 - 预热 pom 由 heredoc 写出。heredoc 里的 shell 注释会进入 pom,Maven 报 Non-parseable POM。

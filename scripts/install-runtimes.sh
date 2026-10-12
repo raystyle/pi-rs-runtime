@@ -83,7 +83,7 @@ install_fnm() {
     for v in $FNM_NODE_VERSIONS; do
         fnm install --node-dist-mirror "$NODE_MIRROR" "$v"
     done
-    # 只设 fnm 默认版本,不改 /usr/local/bin:系统 node 仍是 /opt/node(24.21.0 钉),
+    # 只设 fnm 默认版本,不改 /usr/local/bin:系统 node 仍是 /opt/node(24.21.0 锁定),
     # 全局 npmrc/bun/tsc 都依赖那个 prefix。项目要切版本:fnm use / fnm exec。
     local latest; latest="$(fnm ls | grep -o 'v[0-9.]*' | sort -uV | tail -1 | tr -d v)"
     fnm default "$latest" || true
@@ -148,7 +148,7 @@ install_duckdb() {
     if ! have duckdb; then
         local dt darch="amd64"; [ "$(dpkg --print-architecture)" = arm64 ] && darch="aarch64"
         dt="${DUCKDB_VERSION:-}"; [ -n "$dt" ] || dt="$(curl -fsSL "https://api.github.com/repos/duckdb/duckdb/releases/latest" | grep -o '"tag_name": *"[^"]*"' | cut -d'"' -f4)"
-        # api.github.com 限流 403 时整条链失败会 set -e 退出,|| true 兜底下轮补(有钉后不走这路)
+        # api.github.com 限流 403 时整条链失败会 set -e 退出,|| true 兜底下轮补(有锁定版本后不走这路)
         [ -n "$dt" ] && curl -fSL "https://github.com/duckdb/duckdb/releases/download/${dt}/duckdb_cli-linux-${darch}.zip" -o /tmp/duckdb.zip \
             && unzip -q -o /tmp/duckdb.zip -d /tmp && install -m755 /tmp/duckdb /usr/local/bin/duckdb && rm -f /tmp/duckdb.zip /tmp/duckdb || true
     fi
@@ -197,7 +197,7 @@ install_uv() {
     printf 'offline = true\n\n[[index]]\nurl = "%s"\ndefault = true\n' "$PIP_INDEX" > /etc/uv/uv.toml
     printf '[[index]]\nurl = "%s"\ndefault = true\n' "$PIP_INDEX" > /etc/uv/uv-online.toml
     if have uv; then uv --version; echo "已安装,跳过"; return; fi
-    # 用户裁定:不碰系统 python3,uv 用官方独立安装器(装到 ~/.local/bin),钉版走版本化 URL
+    # 用户裁定:不碰系统 python3,uv 用官方独立安装器(装到 ~/.local/bin),锁定版本走版本化 URL
     curl -LsSf "https://astral.sh/uv/${UV_VERSION:+${UV_VERSION}/}install.sh" | sh
     # 链接不许进 /root:root 家目录 0700,软链穿不过去,ubuntu 视角 exec 即 Permission denied
     # (2026-10-11 回归实证);uv 是独立静态件,直接拷成实体
@@ -286,7 +286,7 @@ EOF
         local listing tgz ver jdk_dir pin_var pin
         pin_var="TEMURIN_PIN_${major}"; pin="${!pin_var:-}"
         if [ -n "$pin" ]; then
-            # 钉版(resolve-pins.sh 解析日为准,升级跑解析器)
+            # 锁定版本(resolve-pins.sh 解析日为准,升级跑解析器)
             ver="$pin"; tgz="OpenJDK${major}U-jdk_${aarchi}_linux_hotspot_${ver}.tar.gz"
         else
             listing="$(curl -fsSL "${ADOPTIUM_MIRROR}/${major}/jdk/${aarchi}/linux/")"

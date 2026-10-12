@@ -5,10 +5,10 @@
 ## 版本
 
 - `GIT_PIN[microsoft/vcpkg]` = e456309491fd875487bf02b8a0dca76c1b1b00cc(解析日 2026-10-10)。
-- `clone_pin` 的幂等判据:HEAD 等于该钉则跳过。
+- `clone_pin` 的幂等判据:HEAD 等于该锁定提交则跳过。
 - 升级:运行 `scripts/resolve-pins.sh`,再重跑本组。
-- 12 个库的版本随 ports 树。同一钉 sha 把 ports 树钉住。
-- bootstrap 产出的 vcpkg 二进制随该钉。
+- 12 个库的版本随 ports 树。同一锁定 sha 把 ports 树锁定。
+- bootstrap 产出的 vcpkg 二进制随该锁定提交。
 - `VCPKG_PKGS` 默认集如下,环境变量可覆盖。
 
 | 库 |
@@ -58,8 +58,8 @@
 - 本体克隆与库资产下载都不经 `GITHUB_MIRROR`,直连 GitHub。这是脚本头注释里的规定。
 - 克隆失败时先检查 git 是否存在。install-all 的前置批会安装 git。脚本报错原文说明这一点。
 - boost 与 grpc 编译时长过高,规定不进默认清单(脚本注释)。
-- HEAD 等于钉则 `clone_pin` 跳过。
-- HEAD 漂离钉则 `rm -rf` 后重取钉版。
+- HEAD 等于锁定的提交则 `clone_pin` 跳过。
+- HEAD 偏离锁定提交则 `rm -rf` 后重取锁定版本。
 - bootstrap 每次重跑。已经引导过则快速通过。
 
 ## 参见

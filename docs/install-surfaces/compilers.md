@@ -1,6 +1,6 @@
 # 安装面清单 · 编译器:`install-compilers.sh`
 
-组卡只写机制;逐件事实(版本/来源/落点/离线/问题)在 [items/compilers/](../items/compilers/)。
+组卡只写机制;逐件事实(版本、来源、安装路径、离线、限制)在 [items/compilers/](../items/compilers/)。
 
 ## 组机制
 

@@ -12,12 +12,12 @@
 
 | 类 | 例 | 可搜键 |
 | --- | --- | --- |
-| tool | CLI 二进制、wrapper(.real 真身)、uv-tool/go-tool 落点 | 名称、真身路径、组、版本钉 |
+| tool | CLI 二进制、wrapper(.real 真身)、uv-tool/go-tool 安装路径 | 名称、真身路径、组、版本锁定 |
 | data | SecLists、rockyou、frida-server、trivy-db、nuclei 模板、PoC 索引 | 路径、条目数、语义 tag(册投影) |
 | cache | 五生态固化缓存、/opt/go/pkg/mod、wheelhouse | 生态、离线行为(锁消费路径) |
 | service | VNC/noVNC/CDP 端口、vnc-screen 形态 | 端口、回环绑定、起停面 |
 | capability | 「破解 hash」「逆向 ELF」「隧道出网」等任务到资源的路由 | 任务词、资源组合、CTA |
-| doc | items/ 册投影(版本钉/落点/离线行为/坑) | 册 id、组、七节字段 |
+| doc | items/ 册投影(版本锁定、安装路径、离线行为、限制) | 册 id、组、七节字段 |
 | boundary | 五生态快失败、apt lists 空、宿主信号策略 | 边界语义、绕行说明 |
 
 ## 三、命令面草案
@@ -29,7 +29,7 @@ rctl index [--refresh]  # 索引建/增量刷新(L2 路径库跳变式增量;L3 
 rctl search <q> [--kind tool|data|cache|service|capability|doc|boundary] [--limit N]
                          # 能力问句:打 L3 能力表(id/tag/一句话/册描述);exit 1 未命中,CTA 给放宽建议
 rctl where <path-q>     # 路径问句:打 L2 路径库(文件在哪,apt-file 语义)
-rctl show <id>          # 单资源全息(kubectl explain 语义):kind、落点、版本钉、组、离线行为、wrapper 关系、册链接
+rctl show <id>          # 单资源全息(kubectl explain 语义):kind、安装路径、版本锁定、组、离线行为、wrapper 关系、册链接
 rctl caps [<task>]      # 能力路由:无参列能力词典;带任务词给资源组合+命令示例+CTA
 rctl env                # 实例状态:离线态、eth0、PATH 面、五生态快失败、JDK/node 面、端口面
 rctl faces              # 服务面:端口监听与回环绑定、vnc 形态、CDP 态
@@ -45,10 +45,10 @@ rctl docs <册id|组>     # 册投影检索(投影不双写,真相仍在 docs/it
 | 层 | 面 | 建法 | 成本 | 新鲜度 |
 | --- | --- | --- | --- | --- |
 | L1 | PATH 与 wrapper 面 | 枚举 /usr/local/bin 与 PATH,解析软链与 .real 真身 | 亚秒 | 每次命令顺带重建 |
-| L2 | 资源路径库 | 构建期烤库:根限定名单(/opt 资源树、/usr/local/bin、wrapper),剪枝词表正文/db/wheelhouse/构建缓存;运行期新增走下次调用时的跳变式增量(未变目录不重读)。/usr/bin 持续不收:pathq-01 复核(2026-10-12)防爆炸对象是词表树而非该扁平目录(1877 文件零子目录,限深不触发),但不收的理由改为「apt 真身的落点是 L3 的 path 列职责,where 只答资源树」;L1 至今未实现,不把 PATH 倒进 where | 首次毫秒级查询 | 镜像发布时固化;增量按需 |
-| L3 | 语义层(能力记录) | 构建期生成:items/ 册投影 + caps 词典 + wrapper 接线表,随镜像走;记录字段固定为 id、namespace/tags、一句话、落点、离线可用、下一步命令 | 构建期一次 | 镜像发布时固化(实例开发态重跑生成命令即刷) |
+| L2 | 资源路径库 | 构建期烤库:根限定名单(/opt 资源树、/usr/local/bin、wrapper),剪枝词表正文/db/wheelhouse/构建缓存;运行期新增走下次调用时的跳变式增量(未变目录不重读)。/usr/bin 持续不收:pathq-01 复核(2026-10-12)防爆炸对象是词表树而非该扁平目录(1877 文件零子目录,限深不触发),但不收的理由改为「apt 真身的安装路径是 L3 的 path 列职责,where 只答资源树」;L1 至今未实现,不把 PATH 倒进 where | 首次毫秒级查询 | 镜像发布时固化;增量按需 |
+| L3 | 语义层(能力记录) | 构建期生成:items/ 册投影 + caps 词典 + wrapper 接线表,随镜像走;记录字段固定为 id、namespace/tags、一句话、安装路径、离线可用、下一步命令 | 构建期一次 | 镜像发布时固化(实例开发态重跑生成命令即刷) |
 
-- 索引落点 `/var/lib/rctl/`(jsonl 或烤库,root 可写、ubuntu 可读);**无常驻进程、无 inotify 整树监听**(prt-01 信号策略下守护不可管理;镜像态资源 publish 时冻结,运行期只增少数工作文件,新鲜度便宜的做法是索引跟镜像走)
+- 索引目录 `/var/lib/rctl/`(jsonl 或烤库,root 可写、ubuntu 可读);**无常驻进程、无 inotify 整树监听**(prt-01 信号策略下守护不可管理;镜像态资源 publish 时冻结,运行期只增少数工作文件,新鲜度便宜的做法是索引跟镜像走)
 - **三种问句三条命令,不混一个模糊框**(apt-file 与 brew search 故意分开的先例):能力问句(caps/search 打 L3 能力表)、路径问句(where 打 L2 路径库)、内容 grep(只对件级文档与短 wrapper 开,不对 SecLists/nuclei 模板正文/trivy-db/wheelhouse/五生态缓存建内容索引,那些用 tag 与目录语义进 L3)
 - 渐进提示:裸 rctl 与 search 未命中时的 CTA 面板即「渐进索引提示」呈现层:先给分类计数与热门词,agent 逐层下钻(llms 手册、search、show/caps)
 - token 经济:search 默认 top N 带 id 与一句话,详情走 show;--full-output 与 --token-limit 三件可选扩展

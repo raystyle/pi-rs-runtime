@@ -13,8 +13,8 @@
 - 有锁时直接 `dependency:go-offline` 消费。
 - 再生执行 `scripts/sync-locks.sh`。
 - `dependency:go-offline` 把字节拉进 /opt/m2。
-- smali 与 smali-baksmali 钉 3.0.10。
-- study profile 的 8 件全部钉精确旧版。
+- smali 与 smali-baksmali 锁定 3.0.10。
+- study profile 的 8 件全部锁定精确旧版。
 
 ## 来源与安装
 
@@ -27,7 +27,7 @@
 
 默认 profile 依赖(18 件):
 
-| 坐标 | 钉版 |
+| 坐标 | 版本 |
 |---|---|
 | org.bouncycastle:bcprov-jdk18on / bcpkix-jdk18on | `[0,)` 构建日解析 |
 | org.ow2.asm:asm / asm-commons / asm-util | 同上 |
@@ -40,9 +40,9 @@
 | com.squareup.okhttp3:okhttp | 同上 |
 | cn.hutool:hutool-all | 同上 |
 | info.picocli:picocli | 同上 |
-| com.android.tools.smali:smali / smali-baksmali(GMaven) | 3.0.10 钉版,dexlib2 经传递依赖带入 |
+| com.android.tools.smali:smali / smali-baksmali(GMaven) | 3.0.10 锁定版本,dexlib2 经传递依赖带入 |
 
-study profile(`-Pstudy`,activeByDefault=false,CVE 复现坐标,8 件精确钉):
+study profile(`-Pstudy`,activeByDefault=false,CVE 复现坐标,8 件精确锁定):
 
 | 坐标 | 版本 | 研究指向 |
 |---|---|---|
@@ -50,14 +50,14 @@ study profile(`-Pstudy`,activeByDefault=false,CVE 复现坐标,8 件精确钉):
 | org.apache.logging.log4j:log4j-core | 2.14.1 | Log4Shell(CVE-2021-44228,影响面 2.0-beta9~2.14.1) |
 | org.apache.shiro:shiro-core | 1.2.4 | Shiro-550 rememberMe 反序列化(CVE-2016-4437) |
 | commons-collections:commons-collections | 3.2.1 | 反序列化 gadget 链经典版 |
-| commons-io:commons-io / commons-codec:commons-codec | 2.20.0 / 1.20.0 | 配套对照钉版 [推断:] |
+| commons-io:commons-io / commons-codec:commons-codec | 2.20.0 / 1.20.0 | 配套对照锁定版本 [推断:] |
 
 ## 文件
 
 | 路径 | 内容 |
 | --- | --- |
 | /opt/m2 | maven 本地仓 |
-| /opt/maven-prewarm/pom.xml | 解析后的钉版工程 |
+| /opt/maven-prewarm/pom.xml | 解析后的锁定版本工程 |
 | /opt/smali-cli/pom.xml | mini-pom;copy-dependencies 落到 /opt/smali/lib;解析基本使用 /opt/m2 缓存 |
 | /opt/smali/lib | smali/baksmali thin jar,加 17 个传递依赖 jar |
 | /usr/local/bin/smali、/usr/local/bin/baksmali | sh wrapper,`java -cp "/opt/smali/lib/*"`,分别启动 `com.android.tools.smali.smali.Main` 与 `baksmali.Main` |
@@ -89,7 +89,7 @@ study profile(`-Pstudy`,activeByDefault=false,CVE 复现坐标,8 件精确钉):
 - 对这些镜像的请求返回 404。
 - smali 的坐标是 GMaven 的 `com.android.tools.smali`。
 - 不是 Maven Central 的 `com.google.smali`。
-- 钉 3.0.10 之后,dexlib2 经传递依赖回到 /opt/m2。
+- 锁定 3.0.10 之后,dexlib2 经传递依赖回到 /opt/m2。
 - 说明见 [known-issues.md](../../known-issues.md)。
 - 官方 fat jar 只能源码构建,且限于 JDK 11。
 - 因此使用 thin jar、依赖 jar 和 classpath wrapper。

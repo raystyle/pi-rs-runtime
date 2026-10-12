@@ -4,7 +4,7 @@
 
 ## 需求
 
-R1 适配器钉版进镜像:`@agentclientprotocol/claude-agent-acp` 与 `@agentclientprotocol/codex-acp`(npmmirror,索引三级兜底同 agents 批);codex 适配器 `CODEX_PATH` 指镜像内钉版 codex(禁用自带)
+R1 适配器锁定版本进镜像:`@agentclientprotocol/claude-agent-acp` 与 `@agentclientprotocol/codex-acp`(npmmirror,索引三级兜底同 agents 批);codex 适配器 `CODEX_PATH` 指镜像内锁定版本 codex(禁用自带)
 R2 监督进程 acpsup:TypeScript + bun 零依赖(rctl 同栈),实例内常驻,当 ACP Client 经 stdio 拉起/切换适配器子进程
 R3 ACP v1 面实现:initialize/session/new/session/prompt/session/cancel;session/update 与 request_permission 转发给平台;fs 回调在实例内真实现(绝对路径);terminal 族用 spawn 实现(信号策略下 kill 面记边界)
 R4 平台面(对 web):仅回环 HTTP + Bearer token(首启随机生成 0600 落 /var/lib/acpsup/,打印一次不进镜像);默认拒绝;权限卡必须呈现(超时拒),禁全 allow_always

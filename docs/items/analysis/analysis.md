@@ -1,20 +1,20 @@
 # 安全分析工具集(analysis 安装组)
 
-> apt 批、impacket 与 nasm 特例、re-venv 批、GitHub 钉版批 ｜ 状态:已装 ｜ 组:`install-tools.sh analysis`
+> apt 批、impacket 与 nasm 特例、re-venv 批、GitHub 版本锁定批 ｜ 状态:已装 ｜ 组:`install-tools.sh analysis`
 
 ## 版本
 
-- apt 20 包使用 noble 源的版本,不另写钉。源是阿里云镜像。
-- impacket 与 nasm 的钉值不在本册。见 [impacket.md](impacket.md) 与 [nasm.md](nasm.md)。
-- re-venv 批与 GitHub 批的逐件钉值不在本册。见各件册。
+- apt 20 包使用 noble 源的版本,不另写锁定版本。源是阿里云镜像。
+- impacket 与 nasm 的锁定值不在本册。见 [impacket.md](impacket.md) 与 [nasm.md](nasm.md)。
+- re-venv 批与 GitHub 批的逐件锁定值不在本册。见各件册。
 
 ## 来源与安装
 
 - 脚本:`install-tools.sh` 的 `install_analysis`。
-- apt 批、re-venv 批、GitHub 钉版批分三步执行。
+- apt 批、re-venv 批、GitHub 版本锁定批分三步执行。
 - impacket 与 nasm 在 apt 批之后、re-venv 批之前执行,不计入这三步。
 - impacket:先卸 apt 的 `python3-impacket`,再用 uv 装上游版。见 [impacket.md](impacket.md)。
-- nasm:按官网源码钉版编译。见 [nasm.md](nasm.md)。
+- nasm:按官网按锁定版本从源码构建编译。见 [nasm.md](nasm.md)。
 - GitHub 批经 `GITHUB_MIRROR`。默认 `proxy.ohmygh.com`。规定见 [params.md](../../params.md)。
 - apt 20 包是 Ubuntu 打包,版本随 noble 源。入口用包的常规命令名。
 - 脚本末尾的核对循环确认以下命令在 PATH:checksec、patchelf、ROPgadget、nmap、sqlmap、tshark、john、hashid。
@@ -28,7 +28,7 @@
 - uv tool 的 shim 在 `/usr/local/bin`。本体在 `/opt/uv-tools/<名>`。
 - re-venv 件的本体在 `/opt/re-venv/bin`。
 - floss、olevba、oleid、netexec 四个入口用 `ln -sf` 链到 `/usr/local/bin`。
-- GitHub 批钉在 `/opt/<名>` 的有:jadx、apktool、capa、capa-rules、yara-rules、SecLists。
+- GitHub 批锁定在 `/opt/<名>` 的有:jadx、apktool、capa、capa-rules、yara-rules、SecLists。
 - GitHub 批直接拷到 `/usr/local/bin` 的有:pdfid.py、pdf-parser.py。
 
 ## 配置

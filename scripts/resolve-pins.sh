@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# 版本钉升级器:从各生态索引/远端实解析当前最新,重写 lib/pins.sh。
-# 钉版纪律(用户裁定):安装脚本只消费 pins.sh;升级 = 跑本脚本 + 审 diff + 增量发布。
+# 版本锁定升级器:从各生态索引/远端实解析当前最新,重写 lib/pins.sh。
+# 版本锁定规则(用户裁定):安装脚本只消费 pins.sh;升级 = 跑本脚本 + 审 diff + 增量发布。
 # 用法:
 #   ./scripts/resolve-pins.sh          # 全量重解析并覆写 lib/pins.sh
 #   ./scripts/resolve-pins.sh --check  # 只打印会变的行,不写文件(审升级面)
@@ -143,7 +143,7 @@ temurin_latest() { # temurin_latest <major> → 目录里的版本串(如 25.0.4
 }
 # ---- 清单与生成 -------------------------------------------------------------
 # 清单与消费点对账:新增 go install/cargo install/uv tool/git clone 消费点时,
-# 必须同步这里的清单(否则该点缺钉直接失败)。
+# 必须同步这里的清单(否则该点缺少锁定版本直接失败)。
 
 GO_SPECS=(
     # cli/compilers/libcache
@@ -191,7 +191,7 @@ PYPI_PKGS=(
     malduck volatility3 r2pipe httpx beautifulsoup4 lxml pyjwt dpkt xortool
     # redteam 组 git 克隆批依赖:jwt_tool(ratelimit/pycryptodomex/termcolor/requests)与 LinkFinder(jsbeautifier)
     ratelimit pycryptodomex termcolor requests jsbeautifier
-    # pentest 组 Responder 依赖(aioquic:QUIC 毒化面,钉 sha 起启动硬查)
+    # pentest 组 Responder 依赖(aioquic:QUIC 毒化面,锁定 sha 起启动硬查)
     aioquic
     # 逆向模拟(qiling,REQ-0003 P1)
     qiling
@@ -232,7 +232,7 @@ GIT_REPOS=(
     exploit-database/exploitdb
     # re/p0/pentest/pivot 操作面
     rizinorg/rizin rizinorg/rz-ghidra rizinorg/sigdb DidierStevens/DidierStevensSuite
-    zvec-ai/zvec-grep   # rctl 语义检索引擎(zg;上游 HEAD 钉,CLI 面以安装自检把门)
+    zvec-ai/zvec-grep   # rctl 语义检索引擎(zg;上游 HEAD 锁定,CLI 面以安装自检把门)
     mandiant/capa-rules Yara-Rules/rules danielmiessler/SecLists lgandx/Responder
     projectdiscovery/nuclei-templates onekey-sec/sasquatch ticarpi/jwt_tool GerbenJavado/LinkFinder
     dirkjanm/krbrelayx cddmp/enum4linux-ng digiNinja/CeWL r0oth3x49/ghauri pwndbg/pwndbg
@@ -297,13 +297,13 @@ tccli_latest() { # pypi.org 直连回 HTML 挑战页、tuna JSON 镜像滞后(20
         || curl -fsSL -m 15 "https://pypi.org/pypi/tccli.json" 2>/dev/null | grep -o '"version": *"[^"]*"' | head -1 | cut -d'"' -f4 || true
 }
 codex_acp_latest() { npm_latest "@agentclientprotocol/codex-acp"; }
-# 无干净索引面:软钉留空,消费点回退最新并警告(known-issues 留痕)
+# 无干净索引面:软件源锁定留空,消费点回退最新并警告(known-issues 留痕)
 awscli_soft() { :; }
 msf_soft() { :; }
 
-# ---- 并行解析:每键一个后台任务,钉值落每键一个临时文件(全局 job 池,上限 RESOLVE_JOBS) ----
-# 各节内部并行;拼装阶段按固定顺序读落盘钉值,输出格式与确定性同串行版;
-# 失败警告(say 「!! xx 解析失败」)与空钉统计口径不变,只是改在拼装阶段按原节序发出。
+# ---- 并行解析:每键一个后台任务,锁定值落每键一个临时文件(全局 job 池,上限 RESOLVE_JOBS) ----
+# 各节内部并行;拼装阶段按固定顺序读落盘锁定值,输出格式与确定性同串行版;
+# 失败警告(say 「!! xx 解析失败」)与未写锁定版本统计口径不变,只是改在拼装阶段按原节序发出。
 RESOLVE_JOBS="${RESOLVE_JOBS:-16}"
 TMPD=""
 spawn_resolve() { # spawn_resolve <落盘文件名> <解析器> [参数...]
@@ -338,9 +338,9 @@ main() {
     done
     for mj in 8 11 17 21 25; do spawn_resolve "temurin.$mj" temurin_latest "$mj"; done
     wait
-    # 拼装:固定节序+数组原序,逐键读落盘钉值
+    # 拼装:固定节序+数组原序,逐键读落盘锁定值
     {
-        echo '# lib/pins.sh — 版本钉(由 scripts/resolve-pins.sh 生成,勿手改;升级跑解析器再审 diff)'
+        echo '# lib/pins.sh — 版本锁定(由 scripts/resolve-pins.sh 生成,勿手改;升级跑解析器再审 diff)'
         echo "PINS_DATE=\"$(date +%F)\""
         echo
         echo 'declare -A GO_PIN=('
@@ -400,13 +400,13 @@ main() {
             printf '    ["%s"]="%s"\n' "$ps" "$v"
         done
         echo ')'
-        echo '# 标量钉(空串 = 软钉:无干净索引面,消费点回退最新并警告)'
+        echo '# 标量锁定版本(空串 = 软件源锁定:无干净索引面,消费点回退最新并警告)'
         for i in "${!SCALARS[@]}"; do
             s="${SCALARS[$i]}"; name="${s%%:*}"
             v="$(read_pin "scalar.$i")"
             printf '%s="%s"\n' "$name" "$v"
         done
-        echo '# temurin 主版本钉(tuna Adoptium 目录解析;空 = 回退目录最新)'
+        echo '# temurin 主版本号(tuna Adoptium 目录解析;空 = 回退目录最新)'
         for mj in 8 11 17 21 25; do
             v="$(read_pin "temurin.$mj")"
             printf 'TEMURIN_PIN_%s="%s"\n' "$mj" "$v"
@@ -426,8 +426,8 @@ main() {
         local missing
         missing="$(grep -E '\]=""$|^[A-Z0-9_]+=""$' "$PINS" | grep -cE 'AWSCLI_VERSION|MSF_VERSION' -v || true)"
         local total; total="$(grep -cE '\]="[^"]+"$|^[A-Z0-9_]+="[^"]+"$' "$PINS" || true)"
-        say "pins.sh 已生成:非空钉 $total;空钉(除软钉) $missing"
-        [ "$missing" -eq 0 ] || { say "!! 有空钉,消费点会响;重跑解析器补齐"; exit 1; }
+        say "pins.sh 已生成:非未写锁定版本 $total;未写锁定版本(除软件源锁定) $missing"
+        [ "$missing" -eq 0 ] || { say "!! 有未写锁定版本,消费点会响;重跑解析器补齐"; exit 1; }
     fi
 }
 main "$@"

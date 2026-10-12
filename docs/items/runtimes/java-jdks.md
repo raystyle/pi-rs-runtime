@@ -4,10 +4,10 @@
 
 ## 版本
 
-- 主版本钉 `JAVA_VERSIONS="8 11 17 21 25"`(`lib/common.sh`)。25 为新 LTS。
-- 小版本由 pins.sh 的 `TEMURIN_PIN_8/11/17/21/25` 钉。
+- 主版本号 `JAVA_VERSIONS="8 11 17 21 25"`(`lib/common.sh`)。25 为新 LTS。
+- 小版本由 pins.sh 的 `TEMURIN_PIN_8/11/17/21/25` 锁定。
 - 当前值为 8u504b01、11.0.32.1_1、17.0.20.1_1、21.0.12.1_1、25.0.4.1_1(解析日 2026-10-10)。
-- 空钉回退到 tuna Adoptium 目录 listing,取最新。
+- 未写锁定版本回退到 tuna Adoptium 目录 listing,取最新。
 - 升级:运行 `scripts/resolve-pins.sh`,再重跑本组。
 
 ## 来源与安装
@@ -60,7 +60,7 @@
 
 | 主版本 | sdkman 坐标 | 小版本取法 | 默认 |
 |---|---|---|---|
-| 8 | `<ver>-tem` | TEMURIN_PIN_8(空钉回退目录取最新) | |
+| 8 | `<ver>-tem` | TEMURIN_PIN_8(未写锁定版本回退目录取最新) | |
 | 11 | `<ver>-tem` | 同上 | |
 | 17 | `<ver>-tem` | 同上 | |
 | 21 | `<ver>-tem` | 同上 | |

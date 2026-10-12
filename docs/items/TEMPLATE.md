@@ -4,7 +4,7 @@
 
 ## 版本
 
-<钉名> = <当前值>(解析日 YYYY-MM-DD)。升级:执行 `scripts/resolve-pins.sh`,审阅差异,再执行该组。
+<版本变量> = <当前值>(解析日 YYYY-MM-DD)。升级:执行 `scripts/resolve-pins.sh`,审阅差异,再执行该组。
 
 ## 来源与安装
 

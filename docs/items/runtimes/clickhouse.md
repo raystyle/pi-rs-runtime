@@ -4,8 +4,8 @@
 
 ## 版本
 
-- 软钉。官方安装脚本跟随最新稳定线。
-- pins.sh 无钉位。见 [known-issues.md](../../known-issues.md)。
+- 软件源锁定。官方安装脚本跟随最新稳定线。
+- pins.sh 没有锁定项。见 [known-issues.md](../../known-issues.md)。
 - 一次安装得到的版本是 26.10。
 
 ## 来源与安装

@@ -20,12 +20,12 @@
 
 - 本体目录 `/opt/zig`,程序 `/opt/zig/zig`。
 - `/usr/local/bin/zig` 软链指向该程序。
-- `/opt/zig-0.15.2` 是 bof 组为 bof-launcher 安装的专用副本。上游钉 0.15.2。系统 0.16 可能编不过该副本。它不属于本组。
+- `/opt/zig-0.15.2` 是 bof 组为 bof-launcher 安装的专用副本。上游锁定 0.15.2。系统 0.16 可能编不过该副本。它不属于本组。
 
 ## 配置
 
 - `/etc/profile.d/zig.sh` 导出 `ZIG_GLOBAL_CACHE_DIR=/opt/zig-cache`。这是登录 shell 的备份面。
-- 包缓存固化五库:zlib、zstd、sqlite3、mbedtls、libxml2。zon hash 钉在 `/opt/zig-prewarm/build.zig.zon`。
+- 包缓存固化五库:zlib、zstd、sqlite3、mbedtls、libxml2。zon hash 锁定在 `/opt/zig-prewarm/build.zig.zon`。
 - `~/.cache/zig` 软链到 `/opt/zig-cache`。属 piopt 组,带默认 ACL,共享可写。
 - 上述缓存归 libcache 组。机制见 [offline.md](../../offline.md) 与 [libcache zig-cache 册](../libcache/zig-cache.md)。
 - 权限模型见 [offline.md](../../offline.md) 第 5 节。

@@ -80,7 +80,7 @@ for rel in json.load(sys.stdin):
     export PATH=$PATH:/usr/local/go/bin
     # go env 由组首直写 root/ubuntu 两份(GOPROXY=off 默认面);本函数后续 go install
     # 走 common.sh export 的 GOPROXY(env 优先于 go env 文件),不受影响
-    # 黄金三件:调试器 dlv、语言服务器 gopls、静态检查 golangci-lint(钉版,缺钉即响)
+    # 黄金三件:调试器 dlv、语言服务器 gopls、静态检查 golangci-lint(锁定版本,缺少锁定版本即响)
     # 注意:go install 产物落在 $(go env GOPATH)/bin(持久化后为 /opt/go/bin),不在 /usr/local/go/bin
     export GOPATH=/opt/go
     local gobin; gobin="/opt/go/bin"
@@ -170,7 +170,7 @@ EOF
     done
     shared_writable_cache /opt/cargo-zigbuild-cache
     . /opt/cargo/env
-    # pi-rs 件执行链:rust-lld(llvm-tools)+ fmt/clippy + rust-script + cargo-zigbuild(钉版)
+    # pi-rs 件执行链:rust-lld(llvm-tools)+ fmt/clippy + rust-script + cargo-zigbuild(锁定版本)
     rustup component add llvm-tools rustfmt clippy rust-analyzer
     # 全平台交叉 target(grok 全平台矩阵):rust-std 必须构建期进 /opt/rustup,离线才链得上
     # 宿主那一档由 stable 默认自带;windows-gnu 链接用 mingw,apple-darwin 纯 Rust 链接用 zig 桩
@@ -301,14 +301,14 @@ EOF
 # ---- nim(OffensiveNim 等 maldev 模板的编译器;choosenim 官方安装器) ----------
 # choosenim 归 CHOOSENIM_DIR=/opt/nim;noble apt 的 nim 停 1.6.x 过旧不取
 install_nim() {
-    log "nim (choosenim 钉 ${NIM_VERSION:-stable},工具链归 /opt/nim)"
+    log "nim (choosenim 锁定 ${NIM_VERSION:-stable},工具链归 /opt/nim)"
     # 组首直写配置(不依赖 nim 二进制),跳出早退守卫,增量重跑也刷新(同 install_golang 组首直写)
     cat > /etc/profile.d/nim.sh <<'EOF'
 export PATH=$PATH:/opt/nim/bin
 EOF
     if ! have nim; then
         export CHOOSENIM_DIR=/opt/nim
-        local nimv="${NIM_VERSION#v}"; nimv="${nimv:-stable}"   # pins 存 v 前缀;空钉回退 stable
+        local nimv="${NIM_VERSION#v}"; nimv="${nimv:-stable}"   # pins 存 v 前缀;未写锁定版本回退 stable
         curl -fsSL https://nim-lang.org/choosenim/init.sh | sh -s -- -y "$nimv" \
             || echo "choosenim 失败(nim-lang.org 直连抖动,下轮补)"
     fi

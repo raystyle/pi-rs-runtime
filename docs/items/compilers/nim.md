@@ -4,9 +4,9 @@
 
 ## 版本
 
-- `NIM_VERSION=v2.2.12`(解析日 2026-10-10)。choosenim 按该钉安装工具链。
+- `NIM_VERSION=v2.2.12`(解析日 2026-10-10)。choosenim 按该锁定版本安装工具链。
 - 升级:运行 `scripts/resolve-pins.sh`,再重跑本组。
-- choosenim 本体经 init.sh 直下,未钉版。pins.sh 未收该钉位。空钉回退 stable 频道。
+- choosenim 本体经 init.sh 直下,未锁定版本。pins.sh 未收该锁定项。未写锁定版本回退 stable 频道。
 
 ## 来源与安装
 

@@ -1,4 +1,4 @@
-# lib/pins.sh — 版本钉(由 scripts/resolve-pins.sh 生成,勿手改;升级跑解析器再审 diff)
+# lib/pins.sh — 版本锁定(由 scripts/resolve-pins.sh 生成,勿手改;升级跑解析器再审 diff)
 PINS_DATE="2026-10-12"
 
 declare -A GO_PIN=(
@@ -287,7 +287,7 @@ declare -A PSGALLERY_PIN=(
     ["Microsoft.PowerShell.SecretManagement"]="1.1.2"
     ["Microsoft.PowerShell.SecretStore"]="1.0.6"
 )
-# 标量钉(空串 = 软钉:无干净索引面,消费点回退最新并警告)
+# 标量锁定版本(空串 = 软件源锁定:无干净索引面,消费点回退最新并警告)
 UV_VERSION="0.13.0"
 NU_VERSION="0.116.1"
 DUCKDB_VERSION="v1.5.6"
@@ -309,7 +309,7 @@ FRIDA_TOOLS_VERSION="14.11.0"
 AWSCLI_VERSION=""
 MSF_VERSION=""
 CHROME_VERSION="155.0.8059.39-gen8-r3"
-# temurin 主版本钉(tuna Adoptium 目录解析;空 = 回退目录最新)
+# temurin 主版本号(tuna Adoptium 目录解析;空 = 回退目录最新)
 TEMURIN_PIN_8="8u504b01"
 TEMURIN_PIN_11="11.0.32.1_1"
 TEMURIN_PIN_17="17.0.20.1_1"

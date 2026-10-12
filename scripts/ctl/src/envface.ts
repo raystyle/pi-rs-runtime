@@ -74,12 +74,12 @@ function ecoFastFail(): Record<string, string> {
   const go: Record<string, string> = {}
   go.goproxy = sh("go env GOPROXY") || "go(不在 PATH)"
   go.uv = existsSync("/etc/uv/uv.toml") && readFileSync("/etc/uv/uv.toml", "utf-8").includes("offline = true")
-    ? "offline=true(/etc/uv/uv.toml)" : "未钉"
+    ? "offline=true(/etc/uv/uv.toml)" : "未锁定"
   go.pip = existsSync("/etc/pip.conf") && readFileSync("/etc/pip.conf", "utf-8").includes("no-index = true")
-    ? "no-index(/etc/pip.conf)" : "未钉"
+    ? "no-index(/etc/pip.conf)" : "未锁定"
   go.npm = sh("npm config get offline") || "npm(不在 PATH)"
   go.cargo = existsSync("/opt/cargo/config.toml") && readFileSync("/opt/cargo/config.toml", "utf-8").includes("offline")
-    ? "offline(/opt/cargo/config.toml)" : "未钉"
+    ? "offline(/opt/cargo/config.toml)" : "未锁定"
   return go
 }
 
