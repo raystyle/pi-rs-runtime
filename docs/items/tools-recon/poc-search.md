@@ -1,14 +1,84 @@
 # poc-search
 
-> PoC-in-GitHub 本地索引查询 wrapper(只查索引信息,不拉任何 PoC 代码) ｜ 状态:已装 ｜ 组:`install-tools.sh reversecon`
+> PoC-in-GitHub 本地索引查询 wrapper。只查索引信息,不拉任何 PoC 代码 ｜ 状态:已装 ｜ 组:`install-tools.sh recon`
 
-- **版本**:wrapper 随脚本 heredoc 生成、无独立版本;parquet 索引是构建期快照(2026-10-09 轮灌出 25988 条,重建后条数随上游仓变动)
-- **来源与安装**:`scripts/install-tools.sh install_recon` 段 heredoc 写入 `/usr/local/bin/poc-search` + `chmod +x`;索引由 `clickhouse local` 把 PoC-in-GitHub `<年>/*.json`(每 CVE 一个多行美化 JSON)按 JSONAsObject 整读,每文件一行、单列 `json`,灌成单文件 parquet,构建条件:索引不在 + `have clickhouse` + 索引仓已克隆,失败提示 `poc-search --reindex` 重试
-- **文件**:`/usr/local/bin/poc-search`(wrapper 被包装的程序);`/opt/recon-ref/poc-index.parquet`(离线索引);数据仓 `/opt/recon-ref/PoC-in-GitHub`(见 [recon 组册](recon.md))
-- **配置与缓存**:无配置文件;环境变量 `POC_DIR`(默认 /opt/recon-ref/PoC-in-GitHub)、`POC_INDEX`(默认 /opt/recon-ref/poc-index.parquet)、`LIMIT`(默认 20)。四用法:`poc-search <CVE-ID>` 精确查(先 tr 大写化 + `CVE-<年4位>-<编号>` 格式校验,直取 `$POC_DIR/<年>/<CVE>.json`,不中找到 find 兜底,jq 美化打印);`poc-search -k <关键词>` 索引全文搜(`rg -il --glob '*.json'`,前 LIMIT 条,逐文件 `jq -c` 压缩打印、jq 失败 `head -c 400` 兜底);`poc-search --ch '<SQL>'` clickhouse local 查 parquet(`--multiquery`,视图名 `poc`、单列 `json`,取字段如 `JSONExtractString(json,'cve_id')`);`poc-search --reindex` 重建 parquet 索引并打印 count
-- **离线行为**:未验 [推断:]四用法全读本盘 JSON/parquet,wrapper 无任何网络调用;PoC-in-GitHub 索引在 [离线机制 §1](../../offline.md) 登记为固化数据「直接读盘」,但断网查询动作未单列。验证:`ip link set eth0 down` 后 `poc-search CVE-2024-38077` 退 0 且 `poc-search --ch 'SELECT count FROM poc'` 出条数
-## rctl 收录行
+## 版本
 
-- rctl: poc-search kind=tool path=/usr/local/bin/poc-search env=工具环境 note=PoC 查询 wrapper(已装入口,非参考克隆)
+- wrapper 由脚本 heredoc 生成,没有独立版本。
+- parquet 索引是构建期快照。
+- 一次构建灌入 25988 条。
+- 重建之后,条数随上游仓变动。
 
-- **限制**:空命中文案问题,rg 无命中退 1,`set -euo pipefail` 下管道赋值会静默杀死脚本,故先 `|| true` 收名单再判空,输出「索引无命中: <词>」退 1;索引无该 CVE 时文案「索引无 <CVE>(可在 https://github.com/nomi-sec/PoC-in-GitHub 核实)」退 1;无参打印用法退 0,未知选项打印用法退 1;索引仓 README 明示混有恶意样本,本 wrapper 只读索引不下载,下载执行是使用者自己的裁量(脚本注释规定; [known-issues](../../known-issues.md))
+## 来源与安装
+
+- 脚本:`scripts/install-tools.sh` 的 `install_recon`。
+- heredoc 写入 `/usr/local/bin/poc-search`,再 `chmod +x`。
+- 索引由 `clickhouse local` 读取 PoC-in-GitHub 的 `<年>/*.json`。
+- 每个 CVE 对应一个多行、经过美化的 JSON 文件。
+- 读取方式是 JSONAsObject,整文件读入。
+- 每个文件一行,只有一列 `json`。
+- 结果灌成单个 parquet 文件。
+- 构建条件是索引不存在,并且 `have clickhouse`,并且索引仓已经克隆。
+- 失败时提示执行 `poc-search --reindex` 重试。
+
+## 文件
+
+- `/usr/local/bin/poc-search` 是 wrapper,也是入口。
+- `/opt/recon-ref/poc-index.parquet` 是离线索引。
+- 数据仓是 `/opt/recon-ref/PoC-in-GitHub`。见 [recon.md](recon.md)。
+
+## 配置
+
+- 无配置文件。
+- `POC_DIR` 默认 `/opt/recon-ref/PoC-in-GitHub`。
+- `POC_INDEX` 默认 `/opt/recon-ref/poc-index.parquet`。
+- `LIMIT` 默认 20。
+- `poc-search <CVE-ID>` 做精确查询。
+- 精确查询先用 `tr` 把输入转成大写。
+- 格式必须是 `CVE-<年4位>-<编号>`。
+- 命中时直接读 `$POC_DIR/<年>/<CVE>.json`。
+- 该路径没有文件时,用 `find` 兜底。
+- 输出用 `jq` 美化打印。
+- `poc-search -k <关键词>` 对索引做全文搜索。
+- 搜索命令是 `rg -il --glob '*.json'`。
+- 只取前 `LIMIT` 条。
+- 每个文件用 `jq -c` 压缩打印。
+- `jq` 失败时,用 `head -c 400` 兜底。
+- `poc-search --ch '<SQL>'` 用 `clickhouse local` 查 parquet。
+- 该模式带 `--multiquery`。
+- 视图名是 `poc`,只有一列 `json`。
+- 取字段的例子是 `JSONExtractString(json,'cve_id')`。
+- `poc-search --reindex` 重建 parquet 索引,并打印 count。
+
+## 离线行为
+
+- 未验证。
+- 四种用法都只读本盘的 JSON 与 parquet。
+- wrapper 没有任何网络调用。
+- PoC-in-GitHub 索引在 [offline.md](../../offline.md) 登记为固化数据,直接读盘。
+- 断网查询这一动作没有单独列入该登记。
+- 关闭 eth0 后,`poc-search CVE-2024-38077` 退 0。
+- 同时 `poc-search --ch 'SELECT count FROM poc'` 打出条数。
+
+## 限制
+
+- `rg` 无命中时退 1。
+- 在 `set -euo pipefail` 下,把该结果赋给变量会结束脚本,并且没有单独的错误输出。
+- 因此先 `|| true` 收下名单,再判断是否为空。
+- 空命中时输出「索引无命中: <词>」,退 1。
+- 索引没有该 CVE 时,输出「索引无 <CVE>(可在 https://github.com/nomi-sec/PoC-in-GitHub 核实)」,退 1。
+- 无参数时打印用法,退 0。
+- 未知选项时打印用法,退 1。
+- 索引仓 README 写明混有恶意样本。
+- 本 wrapper 只读索引,不下载。
+- 下载并执行由使用者自行决定。见 [known-issues.md](../../known-issues.md)。
+
+## 参见
+
+- [recon.md](recon.md)
+- [offline.md](../../offline.md)
+- [known-issues.md](../../known-issues.md)
+
+## rctl 面,机器行
+
+@@POC_RCTL@@

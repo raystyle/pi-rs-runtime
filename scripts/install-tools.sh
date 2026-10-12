@@ -1298,6 +1298,22 @@ EOF
             && unzip -q -o /tmp/awscliv2.zip -d /tmp && /tmp/aws/install --update >/dev/null 2>&1 || /tmp/aws/install >/dev/null 2>&1 \
             && rm -rf /tmp/awscliv2.zip /tmp/aws || echo "awscli v2 失败(国内直连 awscli.amazonaws.com 不通时可跳过)"
     fi
+
+    # overthrone:AD 利用框架(Rust 单二进制,clone_pin 源码构建)
+    if ! have overthrone; then
+        clone_pin karmanya03/overthrone /tmp/ovt-src \
+            && ( cd /tmp/ovt-src \
+                 && CARGO_NET_OFFLINE=false RUSTUP_HOME=/opt/rustup CARGO_HOME=/opt/cargo \
+                    PATH="/opt/rustup/bin:/opt/cargo/bin:$PATH" \
+                    cargo build --release --locked 2>&1 | tail -1 ) \
+            && install -m755 /tmp/ovt-src/target/release/overthrone /usr/local/bin/overthrone \
+            && ln -sf /usr/local/bin/overthrone /usr/local/bin/ovt \
+            && rm -rf /tmp/ovt-src \
+            && overthrone --version 2>&1 | head -1 \
+            || echo "!! overthrone 构建失败(查 cargo 与网络)"
+    else
+        echo "overthrone 已在(幂等跳过)"
+    fi
     true
 }
 
