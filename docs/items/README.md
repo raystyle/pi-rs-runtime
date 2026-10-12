@@ -169,4 +169,17 @@
 | --- | --- |
 | [tools-recon/recon.md](tools-recon/recon.md) | recon 组册:侦察指纹参考,4 仓 |
 
-计数对账:七域合计 88 册(工具集 31,单件 57);按安装目录 analysis 9, compilers 6, libcache 8, runtimes 16, tools-acp 1, tools-agents 2, tools-astgrep 1, tools-bof 5, tools-c2 1, tools-chrome 1, tools-cli 1, tools-cloud 1, tools-ctl 2, tools-data 4, tools-discovery 2, tools-filesearch 1, tools-ghidra 1, tools-go-security 2, tools-herdr 1, tools-maldev 1, tools-metasploit 1, tools-nu 1, tools-pentest 5, tools-pivot 1, tools-projectzero 1, tools-rea 1, tools-recon 2, tools-redteam 6, tools-reverse 2, tools-rust-security 1, tools-vnc 1。
+## 计数对账
+
+七域合计 88 册:工具集 31,单件 57。按安装目录:
+
+| 目录 册 | 目录 册 | 目录 册 | 目录 册 |
+| --- | --- | --- | --- |
+| analysis 9 | compilers 6 | libcache 8 | runtimes 16 |
+| tools-acp 1 | tools-agents 2 | tools-astgrep 1 | tools-bof 5 |
+| tools-c2 1 | tools-chrome 1 | tools-cli 1 | tools-cloud 1 |
+| tools-ctl 2 | tools-data 4 | tools-discovery 2 | tools-filesearch 1 |
+| tools-ghidra 1 | tools-go-security 2 | tools-herdr 1 | tools-maldev 1 |
+| tools-metasploit 1 | tools-nu 1 | tools-pentest 5 | tools-pivot 1 |
+| tools-projectzero 1 | tools-rea 1 | tools-recon 2 | tools-redteam 6 |
+| tools-reverse 2 | tools-rust-security 1 | tools-vnc 1 |
