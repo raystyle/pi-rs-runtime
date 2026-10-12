@@ -1,70 +1,128 @@
 # 逐件索引:docs/items/
 
-每件一册,模板见 [TEMPLATE.md](TEMPLATE.md)。目录按脚本分组。件级事实(版本/来源/落点/离线行为/问题)的唯一真相在这里;`install-surfaces/` 只留组机制导览,`software-inventory.md` 只留计数对账。
+按七域列册。域是一级归档分类;安装组是安装执行单位,信息在各册题头与计数对账。
 
-粒度规则:有独立版本钉/wrapper/缓存/离线行为/问题的件单独成册;同质批量件(apt 批、pd/secgo CLI 集、参考克隆批)由组册承载批量机制与成员表,成员不单独立册。
+## 工具环境,46 册
 
-## compilers:install-compilers.sh,6 册
+| 册 | 标题 |
+| --- | --- |
+| [libcache/python.md](libcache/python.md) | Python 库缓存:re-venv 扩展 + wheelhouse |
+| [runtimes/dotnet.md](runtimes/dotnet.md) | .NET SDK:dotnet |
+| [runtimes/pwsh.md](runtimes/pwsh.md) | PowerShell:pwsh |
+| [tools-acp/acp.md](tools-acp/acp.md) | acp:ACP 通道 |
+| [tools-agents/claude-code.md](tools-agents/claude-code.md) | claude-code |
+| [tools-agents/codex.md](tools-agents/codex.md) | codex |
+| [tools-astgrep/astgrep.md](tools-astgrep/astgrep.md) | ast-grep:sg |
+| [tools-bof/bof-launcher.md](tools-bof/bof-launcher.md) | bof-launcher |
+| [tools-bof/bof.md](tools-bof/bof.md) | BOF 工具链:bof 组册 |
+| [tools-bof/coffee-ldr.md](tools-bof/coffee-ldr.md) | coffee-ldr |
+| [tools-bof/entropia.md](tools-bof/entropia.md) | entropia:entc |
+| [tools-bof/wine.md](tools-bof/wine.md) | wine:PE 验证路径 |
+| [tools-chrome/clean-chrome.md](tools-chrome/clean-chrome.md) | clean-chrome |
+| [tools-cli/cli.md](tools-cli/cli.md) | 基础命令行工具:cli 组 |
+| [tools-cloud/cloud.md](tools-cloud/cloud.md) | cloud:云厂商 CLI |
+| [tools-ctl/rctl.md](tools-ctl/rctl.md) | rctl |
+| [tools-ctl/zg.md](tools-ctl/zg.md) | zg |
+| [tools-data/capa-rules.md](tools-data/capa-rules.md) | capa-rules |
+| [tools-data/seclists.md](tools-data/seclists.md) | SecLists |
+| [tools-data/yara-rules.md](tools-data/yara-rules.md) | yara-rules |
+| [tools-fd/fd.md](tools-fd/fd.md) | fd + ripgrep |
+| [tools-herdr/herdr.md](tools-herdr/herdr.md) | herdr |
+| [tools-msf/msf.md](tools-msf/msf.md) | metasploit-framework:msf |
+| [tools-nu/nu.md](tools-nu/nu.md) | nu:nushell |
+| [tools-p0/impacket.md](tools-p0/impacket.md) | impacket |
+| [tools-p0/nasm.md](tools-p0/nasm.md) | nasm:含 ndisasm |
+| [tools-p0/p0.md](tools-p0/p0.md) | 安全分析工具集(p0 安装组) |
+| [tools-p0/pspy.md](tools-p0/pspy.md) | pspy |
+| [tools-p0/volatility3.md](tools-p0/volatility3.md) | volatility3 |
+| [tools-pd/pd.md](tools-pd/pd.md) | ProjectDiscovery 全家桶:pd 组 |
+| [tools-pentest/donut.md](tools-pentest/donut.md) | donut |
+| [tools-pentest/frida.md](tools-pentest/frida.md) | frida 全链 |
+| [tools-pentest/hashcat.md](tools-pentest/hashcat.md) | hashcat |
+| [tools-pentest/pentest.md](tools-pentest/pentest.md) | 渗透测试运行时底线:pentest 组册 |
+| [tools-pentest/responder.md](tools-pentest/responder.md) | Responder |
+| [tools-pivot/pivot.md](tools-pivot/pivot.md) | 代理与隧道工具集:pivot 组册 |
+| [tools-recon/poc-search.md](tools-recon/poc-search.md) | poc-search |
+| [tools-red/bloodhound-ce.md](tools-red/bloodhound-ce.md) | bloodhound-ce |
+| [tools-red/cyberchef.md](tools-red/cyberchef.md) | CyberChef |
+| [tools-red/enum4linux-ng.md](tools-red/enum4linux-ng.md) | enum4linux-ng |
+| [tools-red/evil-winrm.md](tools-red/evil-winrm.md) | evil-winrm |
+| [tools-red/red.md](tools-red/red.md) | red 组:渗透测试工具增补 |
+| [tools-secgo/secgo.md](tools-secgo/secgo.md) | Go 安全工具集:secgo 组 |
+| [tools-secgo/trufflehog.md](tools-secgo/trufflehog.md) | trufflehog |
+| [tools-secrust/secrust.md](tools-secrust/secrust.md) | Rust 安全工具集:secrust 组 |
+| [tools-vnc/vnc.md](tools-vnc/vnc.md) | vnc:桌面与 Web 面 |
 
-[c-toolchain](compilers/c-toolchain.md)(含 build-essential 21 包+FASM)· [golang](compilers/golang.md) · [rust](compilers/rust.md) · [zig](compilers/zig.md) · [nim](compilers/nim.md) · [vcpkg](compilers/vcpkg.md)
+## 运行时环境,12 册
 
-## runtimes:install-runtimes.sh,16 册
+| 册 | 标题 |
+| --- | --- |
+| [runtimes/bun.md](runtimes/bun.md) | Bun 运行时 |
+| [runtimes/fnm.md](runtimes/fnm.md) | fnm:Node 版本管理器 |
+| [runtimes/gradle.md](runtimes/gradle.md) | gradle |
+| [runtimes/java-jdks.md](runtimes/java-jdks.md) | temurin JDK 多版本:8/11/17/21/25 |
+| [runtimes/maven.md](runtimes/maven.md) | maven |
+| [runtimes/mono.md](runtimes/mono.md) | Mono |
+| [runtimes/node.md](runtimes/node.md) | Node.js 运行时 |
+| [runtimes/php.md](runtimes/php.md) | PHP:多版本 sury + VLD |
+| [runtimes/python.md](runtimes/python.md) | Python 3 运行时 |
+| [runtimes/python2.md](runtimes/python2.md) | Python 2 运行时 |
+| [runtimes/sdkman.md](runtimes/sdkman.md) | sdkman 本体 |
+| [runtimes/uv.md](runtimes/uv.md) | uv |
 
-[node](runtimes/node.md) · [fnm](runtimes/fnm.md) · [bun](runtimes/bun.md) · [uv](runtimes/uv.md) · [python](runtimes/python.md) · [python2](runtimes/python2.md) · [duckdb](runtimes/duckdb.md) · [clickhouse](runtimes/clickhouse.md) · [php](runtimes/php.md) · [mono](runtimes/mono.md) · [dotnet](runtimes/dotnet.md) · [pwsh](runtimes/pwsh.md) · [sdkman](runtimes/sdkman.md) · [java-jdks](runtimes/java-jdks.md) · [maven](runtimes/maven.md) · [gradle](runtimes/gradle.md)
+## 编程环境,12 册
 
-## libcache:install-libcache.sh,8 册
+| 册 | 标题 |
+| --- | --- |
+| [compilers/c-toolchain.md](compilers/c-toolchain.md) | C 工具链 |
+| [compilers/golang.md](compilers/golang.md) | Go 工具链 |
+| [compilers/nim.md](compilers/nim.md) | Nim 编译器 |
+| [compilers/rust.md](compilers/rust.md) | Rust 工具链 |
+| [compilers/vcpkg.md](compilers/vcpkg.md) | vcpkg |
+| [compilers/zig.md](compilers/zig.md) | Zig 编译器 |
+| [libcache/dotnet.md](libcache/dotnet.md) | .NET 库缓存:NuGet /opt/nuget-packages + ilspycmd |
+| [libcache/go.md](libcache/go.md) | Go 库缓存:模块预热 |
+| [libcache/node.md](libcache/node.md) | Node 库缓存:js-lab |
+| [libcache/pwsh.md](libcache/pwsh.md) | PowerShell 模块缓存:/opt/psmodules |
+| [libcache/rust.md](libcache/rust.md) | Rust 库缓存:crate 预热 |
+| [libcache/zig-cache.md](libcache/zig-cache.md) | Zig 库缓存:allyourcodebase 五库 /opt/zig-cache |
 
-[go](libcache/go.md) · [rust](libcache/rust.md) · [python](libcache/python.md) · [node](libcache/node.md) · [java](libcache/java.md) · [pwsh](libcache/pwsh.md) · [dotnet](libcache/dotnet.md) · [zig-cache](libcache/zig-cache.md)
+## 逆向环境,9 册
 
-## 归档域视图:七域定稿,目录=安装组,域=归档架子,两面并存
+| 册 | 标题 |
+| --- | --- |
+| [libcache/java.md](libcache/java.md) | Java 库缓存:maven /opt/m2 + smali/baksmali CLI |
+| [tools-ghidra/ghidra.md](tools-ghidra/ghidra.md) | Ghidra |
+| [tools-p0/apktool.md](tools-p0/apktool.md) | apktool |
+| [tools-p0/capa.md](tools-p0/capa.md) | capa |
+| [tools-p0/jadx.md](tools-p0/jadx.md) | jadx |
+| [tools-p0/pwndbg.md](tools-p0/pwndbg.md) | pwndbg |
+| [tools-re/angr.md](tools-re/angr.md) | angr |
+| [tools-re/re.md](tools-re/re.md) | 逆向分析稳定链:re 组册 |
+| [tools-rea/rea.md](tools-rea/rea.md) | rea:rea-agents |
 
-| 域 | 判据(这只 id 被拿来干什么) | 例 |
-|---|---|---|
-| 工具环境 | 对目标或实例本身下命令的入口,不属下列专域 | nmap、herdr、aliyun、rctl、agents、vnc、vol、poc-search |
-| 运行时环境 | 跑通用代码的宿主 | python、node、JVM、dotnet |
-| 编程环境 | 为写和编译而固化的工具链与库字节 | rustc、go 模块缓存、capstone 库 |
-| 逆向环境 | 拆、调、模拟、反编译二进制的入口 | ghidra、rizin、rea、jadx、frida、floss、ilspycmd |
-| 数据信息搜索 | 被查的语料:词表、模板、规则、PoC/漏洞索引 | SecLists、nuclei-templates、exploitdb、LOLBAS |
-| 数据分析 | 对表或列做计算的引擎与其专用 venv | duckdb、clickhouse、nu、analytics-venv |
-| 代码样板参考 | 只克隆供读和改,不作已安装入口 | c2/maldev/pz 参考克隆、ysoserial 源码 |
+## 数据信息搜索,3 册
 
-映射规则:`gen-rctl-catalog.sh` env_of(id 名单 + 组默认 + kind=data 到数据信息搜索/ref 到代码样板参考 + 机器行 env= 覆盖);活视图 `rctl --env <域>`、面板七域计数。kind 与域是两个面(clickhouse:kind=runtime,域=数据分析,非双归)。
+| 册 | 标题 |
+| --- | --- |
+| [tools-data/dataref.md](tools-data/dataref.md) | dataref:数据信息资产 |
+| [tools-pd/nuclei.md](tools-pd/nuclei.md) | nuclei |
+| [tools-red/trivy.md](tools-red/trivy.md) | trivy |
 
-## tools:install-tools.sh,57 册
+## 数据分析,2 册
 
-| 组 | 册 |
-|---|---|
-| fd | [fd](tools-fd/fd.md) |
-| astgrep | [astgrep](tools-astgrep/astgrep.md) |
-| cli | [cli](tools-cli/cli.md)(组册 15 件) |
-| herdr | [herdr](tools-herdr/herdr.md) |
-| ghidra | [ghidra](tools-ghidra/ghidra.md) |
-| rea | [rea](tools-rea/rea.md)(morluto/rea,MCP+CLI,Ghidra 无头 provider) |
-| re | [re](tools-re/re.md)(组册:系统库 22 项+rizin/rz-ghidra/sigdb+re-venv) · [angr](tools-re/angr.md)(符号执行,独立 venv) |
-| p0 独立登记 | [pspy](tools-p0/pspy.md)(无 root 进程刺探) · [volatility3](tools-p0/volatility3.md)(内存取证) |
-| data 独立登记 | [seclists](tools-data/seclists.md) · [capa-rules](tools-data/capa-rules.md) · [yara-rules](tools-data/yara-rules.md)(语料独立登记) |
-| pd | [pd](tools-pd/pd.md)(组册 20 CLI)· [nuclei](tools-pd/nuclei.md) |
-| secgo | [secgo](tools-secgo/secgo.md)(组册 18 CLI)· [trufflehog](tools-secgo/trufflehog.md) |
-| secrust | [secrust](tools-secrust/secrust.md)(组册 3 件) |
-| pivot | [pivot](tools-pivot/pivot.md)(组册 6 件) |
-| p0 | [p0](tools-p0/p0.md)(组册 apt 20 包) · [nasm](tools-p0/nasm.md) · [impacket](tools-p0/impacket.md) · [apktool](tools-p0/apktool.md) · [capa](tools-p0/capa.md) · [pwndbg](tools-p0/pwndbg.md) · [jadx](tools-p0/jadx.md) |
-| c2 | [c2](tools-c2/c2.md)(组册 7 仓参考) |
-| bof | [bof](tools-bof/bof.md)(组册) · [wine](tools-bof/wine.md) · [bof-launcher](tools-bof/bof-launcher.md) · [entropia](tools-bof/entropia.md)(BOF/shellcode 编译语言) · [coffee-ldr](tools-bof/coffee-ldr.md) |
-| pz | [pz](tools-pz/pz.md)(组册 4 仓) |
-| maldev | [maldev](tools-maldev/maldev.md)(组册 41 仓+2 官网 tgz) |
-| recon | [recon](tools-recon/recon.md)(组册 4 仓) · [poc-search](tools-recon/poc-search.md) |
-| nu | [nu](tools-nu/nu.md) |
-| pentest | [pentest](tools-pentest/pentest.md)(组册 36 apt 包+接线) · [hashcat](tools-pentest/hashcat.md) · [responder](tools-pentest/responder.md) · [donut](tools-pentest/donut.md) · [frida](tools-pentest/frida.md) |
-| red | [red](tools-red/red.md)(组册 24 件) · [bloodhound-ce](tools-red/bloodhound-ce.md) · [enum4linux-ng](tools-red/enum4linux-ng.md) · [evil-winrm](tools-red/evil-winrm.md) · [cyberchef](tools-red/cyberchef.md) · [trivy](tools-red/trivy.md) |
-| msf | [msf](tools-msf/msf.md) |
-| vnc | [vnc](tools-vnc/vnc.md)(XFCE+TigerVNC+noVNC 桌面与 Web 面) |
-| ctl | [rctl](tools-ctl/rctl.md)(核心 CLI:实例总控,渐进索引与全资源可搜) · [zg](tools-ctl/zg.md)(语义检索引擎,rctl 向量腿) |
-| agents | [claude-code](tools-agents/claude-code.md) · [codex](tools-agents/codex.md)(agent CLIs,凭证经挂载不进镜像) |
-| cloud | [cloud](tools-cloud/cloud.md)(云 CLI:aliyun+tccli,凭证使用期注入) |
-| data | [dataref](tools-data/dataref.md)(数据信息资产:LOLBAS/webappanalyzer/exploit-db 快照) |
-| acp | [acp](tools-acp/acp.md)(ACP v1+stdio 通道:适配器+监督进程 acpsup |
-| chrome | [clean-chrome](tools-chrome/clean-chrome.md)(定制 Chromium 155,云端道+sha256 锚) |
+| 册 | 标题 |
+| --- | --- |
+| [runtimes/clickhouse.md](runtimes/clickhouse.md) | ClickHouse |
+| [runtimes/duckdb.md](runtimes/duckdb.md) | DuckDB |
 
-计数对账:compilers 6 / runtimes 16 / libcache 8 / tools 58 = 88 册(2026-10-12 增 zg);组册承载的批量件数见各组册成员表(组册成员数 = 脚本实装件数)。
+## 代码样板参考,4 册
 
-返回 [docs 文档地图](../README.md)。
+| 册 | 标题 |
+| --- | --- |
+| [tools-c2/c2.md](tools-c2/c2.md) | C2 框架参考克隆:c2 组册 |
+| [tools-maldev/maldev.md](tools-maldev/maldev.md) | maldev 组册:恶意开发模板参考库,41 仓 + 官网 tgz 两件 |
+| [tools-pz/pz.md](tools-pz/pz.md) | Project Zero 工具参考:pz 组册 |
+| [tools-recon/recon.md](tools-recon/recon.md) | recon 组册:侦察指纹参考,4 仓 |
+
+计数对账:七域合计 88 册;按安装组 compilers 6 / runtimes 16 / libcache 8 / tools 58 = 88 册(批量件数见各组册成员表)。
