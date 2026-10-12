@@ -2,14 +2,77 @@
 
 > 17 件 Go 安全 CLI(fuzz/爆破/爬虫/密钥扫描/隧道/云与 AD 采集)+ trufflehog(release) ｜ 状态:已装 ｜ 组:`install-tools.sh go-security`
 
-- **版本钉**:pins.sh 钉版(解析日 2026-10-10):17 件逐件取 `GO_PIN[<模块>]`(`go_pin_ver`,缺钉即响跳过;旧 `SECGO_VERSION` 变量已弃用,lib/common.sh 仅保留防空引用);trufflehog 走 release 钉标量 `TRUFFLEHOG_VERSION`(当前钉值 v3.99.2),单册 [trufflehog.md](trufflehog.md);`have` 早退意味着「钉版首次装到的那份」,升级跑 scripts/resolve-pins.sh 换钉后删二进制重跑
-- **来源与安装**:各件上游仓即成员表模块路径(ffuf/OJ/hahwul/owasp-amass/jpillora/zricethezav/tomnomnom/lc/jaeles-project/sensepost/bloodhoundad/praetorian-inc);安装面 `scripts/install-tools.sh` `install_go-security`;经 `GOPROXY=goproxy.cn,direct` + `GOSUMDB=sum.golang.google.cn`(common.sh export);清单可用 `SECGO_TOOLS` 环境变量整表替换(规格格式 `<path>@<repo 前缀>`)
-- **落点**(批量机制):本组不显式设 GOPATH,golang 组写的 root go env 文件(`GOPATH=/opt/go`)使 `go env GOBIN` 实效为 `/opt/go/bin`(go 1.27 ),产物落 /opt/go/bin 并逐件 `ln -sf` 到 `/usr/local/bin`;带版本目录的模块产物名是版本号(`ffuf/v2` 产物是 `v2`),脚本 `mv $gobin/<产物> $gobin/<工具>` 改名回工具名再链。2026-10-11 回归修:gobin 兜底从 `$HOME/go/bin` 改按 `go env GOPATH`/bin 算(GOPATH=/opt/go 时旧算法是错位路径,链接悬空),幂等判据与链接条件从 PATH 的 `have` 改看 `$gobin/<bin>` 文件(非登录 shell PATH 不含 /opt/go/bin,have 假阴会致漏链或重编译),组尾加链接兜底(修复 amass/azurehound 两件装而未链)
-- **配置与缓存**(批量机制):无组级配置;go 模块缓存共用 `/opt/go/pkg/mod`(见 [offline.md](../../offline.md) §1)
-- **离线行为**:过,版本面/帮助面断网可用(纯 Go 静态二进制;渗透工具面断网冒烟规定见 [offline.md](../../offline.md) §验证)。验证:`ip link set eth0 down` 后 `gitleaks version` 退 0。未验[推断]:gitleaks 扫本地仓、chisel 内网两端互连断网可用(纯本地/内网流量);验证:断网后 `gitleaks git /opt/c2dev-ref/sliver` 能跑完出输出。边界:历史库/云 API/被动源类动作(waybackurls、gau、azurehound、云枚举、trufflehog verify)断网失败属设计,同 [offline.md](../../offline.md) §边界规定
-- **限制**:gospider/httprobe/assetfinder/waybackurls 曾被建议移除,保留();gowitness 截图依赖无头 Chrome,镜像暂无([known-issues](../../known-issues.md),定制 Chrome 待合入);trufflehog 的三只问题(replace 拒装/sort -V/零命中退 1)见 [trufflehog.md](trufflehog.md);本组曾登记「单独重跑装新件可能编译成功但未链出」(PATH 只加 /usr/local/go/bin 与 /root/go/bin),2026-10-11 回归根治:gobin 按 GOPATH 算 + 幂等与链接看文件不看 PATH + 组尾链接兜底(见上节落点),该问题销账
+## 版本
 
-## 成员表 18 件
+- 解析日 2026-10-10。
+- 17 件逐件取 `GO_PIN[<模块>]`。
+- 取值函数是 `go_pin_ver`。
+- 缺少锁定版本时,`go_pin_ver` 向 stderr 打印错误并返回 1,循环跳过该件。
+- 不允许回退到 `@latest`。
+- 旧变量 `SECGO_VERSION` 已不再使用。`lib/common.sh` 仍保留它,避免空引用。
+- trufflehog 使用 release 标量 `TRUFFLEHOG_VERSION`,当前值 v3.99.2。见 [trufflehog.md](trufflehog.md)。
+- `have` 命中只表示锁定版本第一次安装到的那份文件还在。
+- 升级:执行 `scripts/resolve-pins.sh` 更换锁定版本,删除二进制,再执行本组。
+
+## 来源与安装
+
+- 各件上游就是成员清单里的模块路径。
+- 组织包括 ffuf、OJ、hahwul、owasp-amass、jpillora、zricethezav、tomnomnom、lc、jaeles-project、sensepost、bloodhoundad、praetorian-inc。
+- 脚本:`scripts/install-tools.sh` 的 `install_go-security`。
+- 经 `GOPROXY=goproxy.cn,direct` 与 `GOSUMDB=sum.golang.google.cn`。这两项由 common.sh 导出。
+- 环境变量 `SECGO_TOOLS` 可以整表替换清单。
+- 替换格式是 `<path>@<repo 前缀>`。
+
+## 文件
+
+- 本组不设置 `GOPATH`。
+- golang 组写入的 root go env 文件含 `GOPATH=/opt/go`。
+- 脚本先读 `go env GOBIN`。为空时改用 `go env GOPATH` 加上 `/bin`。
+- Go 1.27 下,这个实效目录是 `/opt/go/bin`。
+- 产物落在 `/opt/go/bin`,再逐件 `ln -sf` 到 `/usr/local/bin`。
+- 带版本目录的模块,产物名是版本号。例如 `ffuf/v2` 的产物名是 `v2`。
+- 脚本执行 `mv $gobin/<产物> $gobin/<工具>`,改回工具名后再链接。
+- `gobin` 按 `go env GOPATH`/bin 计算,不用 `$HOME/go/bin`。
+- `GOPATH=/opt/go` 时,`$HOME/go/bin` 是错的路径,链接会悬空。
+- 幂等判据看 `$gobin/<bin>` 文件,不看 PATH 上的 `have`。
+- 非登录 shell 的 PATH 不含 `/opt/go/bin`。用 `have` 会得到假阴性,造成漏链或重复编译。
+- 组尾再补一次链接:本体在 `$gobin` 而 `/usr/local/bin` 没有链时补上。
+- amass 与 azurehound 属于会漏链的两件,由这次兜底补上。
+
+## 配置
+
+- 无组级配置。
+- go 模块缓存共用 `/opt/go/pkg/mod`。见 [offline.md](../../offline.md)。
+
+## 离线行为
+
+- 支持版本面与帮助面。这些是纯 Go 静态二进制。
+- 渗透工具面的断网规定见 [offline.md](../../offline.md)。
+- 关闭 eth0 后,`gitleaks version` 退 0。
+- 未验证:gitleaks 扫描本地仓,以及 chisel 在内网两端互连。两者都只走本地或内网流量。
+- 判定:断网后 `gitleaks git /opt/c2dev-ref/sliver` 能跑完并给出输出。
+- 历史库、云 API、被动源在断网时失败,这是设计边界。包括 waybackurls、gau、azurehound、云枚举,以及 trufflehog 的 verify。见 [offline.md](../../offline.md)。
+
+## 限制
+
+- gospider、httprobe、assetfinder、waybackurls 仍由本组安装。
+- gowitness 截图依赖无头 Chrome。镜像里目前没有。见 [known-issues.md](../../known-issues.md)。
+- 定制 Chrome 待合入。
+- trufflehog 的 replace 拒装、`sort -V`、零命中退 1 见 [trufflehog.md](trufflehog.md)。
+- 单独重跑时,链接看 `$gobin/<bin>` 是否存在,不看 PATH。
+- 组尾对已有本体补 `/usr/local/bin` 软链。
+- 因此「编译成功但未链出」不再是本组的边界。
+
+## 参见
+
+- [trufflehog.md](trufflehog.md)
+- [offline.md](../../offline.md)
+- [known-issues.md](../../known-issues.md)
+- [golang.md](../compilers/golang.md)
+
+## 成员清单
+
+- 表头里的 `@$SECGO_VERSION` 是旧变量名。现行锁定是 `GO_PIN`。
 
 | 命令 | go install 模块(@$SECGO_VERSION) | 用途 |
 |---|---|---|
