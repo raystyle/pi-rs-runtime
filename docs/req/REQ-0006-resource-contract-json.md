@@ -1,4 +1,4 @@
-# REQ-0006 资源契约清单:单 JSON 数据模型
+# REQ-0006 资源契约清单:单 JSON 数据模型(状态:implemented,2026-10-12 迁移批)
 
 ## 需求
 
@@ -26,6 +26,14 @@
 5. 新增资源只改 JSON 一处,投影与守卫自动跟(演示一例)。
 
 ## trace
+
+- 2026-10-12 迁移批落地(implemented),验收逐条:
+  1. `scripts/ctl/data/resources.json` 落地:resources 495 件(catalog 494 全量迁移 + 演示件 zg-model 构建期资产入模)+ caps 24 条(ids 拆数组);gen 内建结构校验(version/kind 枚举含 model/字段类型/id 唯一/caps.ids 必在 resources),malformed 拒绝非零退。
+  2. `gen-rctl-catalog.sh` 翻转为 JSON→投影:catalog.tsv/caps.tsv 再生,--check 零漂移;册机器行双向对账守卫 236 行(册有行必在 JSON);JSON.book 链接落盘守卫。投影序改码点排序(旧 locale sort 有再现性隐患,顺带消除)。
+  3. audit 双向容器实测:ok=361 / alias=1 / exempt=2 / missing-id=0 / missing-path=0 / stale=0;闭集族守卫 220 项零漂移。
+  4. 迁移无损对账:旧 494 → 新 495(仅新增演示件),集合级 diff 仅 28 行截断修复(旧蒸馏 bytewise substr 曾截断多字节字符 29 处——grep 判 binary 的元凶,迁移时逐处修为合法 UTF-8,acp 行按册权威补全文);rctl 金标回归 bun test 14/0。
+  5. 演示:zg-model 只改 resources.json 一处 → 投影+audit+容器 show 全自动跟(kind 枚举扩 model,commands.ts 旗标面同步)。
+  - 架构落位:AGENTS.md 文档单一真相改写(结构事实在 JSON、叙事在册、tsv 是投影勿手改);rctl 消费面不动(仍读投影烤库,零代码变更)。
 
 - 2026-10-12 立单(draft);pathq-01(空 path 定性)与 edb-01(exploitdb 副本)研究在办,回执吸收后字段面定稿。
 - 2026-10-12 两笺吸收,字段面定稿:

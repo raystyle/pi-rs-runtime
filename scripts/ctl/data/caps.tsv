@@ -1,5 +1,4 @@
-# rctl caps 能力词典:task	ids(须在 catalog)	example(可抄命令,断网可跑)	note
-# 种子版;ids 漂移由 drift.test.ts 守卫;task 是中英同义词袋(空格分隔,子串参与 search 命中)
+# rctl caps 能力词典投影(源 resources.json;task 是中英同义词袋,空格分隔)
 破解hash 哈希 hash cracking	hashcat,john	hashcat -m 1000 hash.txt /usr/share/wordlists/rockyou.txt	rockyou 走 rctl where rockyou;规则面 hashcat --example-hashes
 子域枚举 subdomain 子域	subfinder,dnsx,shuffledns,amass,assetfinder	subfinder -d example.com	被动源断网失败属边界
 端口扫描 port scan	naabu,masscan,nmap	naabu -host 127.0.0.1 -top-ports 100	naabu/masscan 有 setcap 免 sudo
