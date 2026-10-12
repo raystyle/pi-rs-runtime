@@ -1,14 +1,73 @@
 # impacket
 
-> Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等) ｜ 状态:已装 ｜ 组:`install-tools.sh p0`
+> Windows 网络协议工具库与示例脚本,协议含 SMB、Kerberos、MSRPC ｜ 状态:已装 ｜ 组:`install-tools.sh p0`
 
-- **版本钉**:pins.sh 钉版(`PYPI_PIN[impacket]`,当前钉值 0.13.1,解析日 2026-10-10),`uv tool install "impacket==<钉>"` 失败退 tuna 索引同钉;升级跑 scripts/resolve-pins.sh 换钉后重跑组(在线面机制见 [offline.md](../../offline.md) §4)。无 `have` 早退,每次重跑都执行安装尝试(输出被吞)
-- **来源与安装**:[fortra/impacket](https://github.com/fortra/impacket) PyPI 包;`uv tool install impacket`(导出 `UV_TOOL_BIN_DIR=/usr/local/bin UV_TOOL_DIR=/opt/uv-tools`),失败退 tuna 索引 `--index-url https://pypi.tuna.tsinghua.edu.cn/simple`;构建期 uv 在线面是 /etc/uv/uv-online.toml(阿里云索引)。不用 noble apt 冻结版(发行版冻结,红队实操要上游脚本):老镜像里有 python3-impacket 则先 `apt-get remove -y` 增量迁移卸掉()
-- **落点**:本体 venv /opt/uv-tools/impacket;整套 *.py 入口 shim(secretsdump.py 等)由 uv 落 /usr/local/bin。另:/opt/re-venv 里也装了一份 impacket 作库(red 组 krbrelayx 依赖批带入)
-- **配置与缓存**:无自身配置;/etc/uv/uv.toml 运行期 `offline=true` 只约束 uv 包管理动作,不影响已装入口运行
-- **离线行为**:已验(2026-10-12,eth0 down 断网,root 视角)`secretsdump.py`/`describeTicket.py`/`Get-GPPPassword.py`/`wmipersist.py` `-h` 全退 0,入口本地可起;对目标的动作需到目标的网络,断外网但内网可达仍可用,eth0 全断只剩本地处理
-## rctl 面,机器行:catalog 投影声明,audit 豁免依据
+## 版本
 
+- pins.sh 键:`PYPI_PIN[impacket]`。
+- 当前值:0.13.1(解析日 2026-10-10)。
+- 升级:运行 `scripts/resolve-pins.sh`,再重跑本组。
+- 在线索引的切换见 [offline.md](../../offline.md) 第 4 节。
+
+## 来源与安装
+
+- 上游:[fortra/impacket](https://github.com/fortra/impacket)。安装面是 PyPI 包。
+- 脚本:`install-tools.sh` 的 `install_p0`。
+- 命令:`uv tool install "impacket==<钉>"`。
+- 导出 `UV_TOOL_BIN_DIR=/usr/local/bin`。
+- 导出 `UV_TOOL_DIR=/opt/uv-tools`。
+- 构建期 uv 配置是 `/etc/uv/uv-online.toml`,索引为阿里云。
+- 该命令失败时,改用 tuna 索引同一钉值:`--index-url https://pypi.tuna.tsinghua.edu.cn/simple`。
+- 不使用 noble apt 的冻结包。
+- 镜像里已有 `python3-impacket` 时,先执行 `apt-get remove -y`。
+- 无 `have` 早退。每次重跑都执行安装尝试。
+- 该安装尝试的输出不保留。
+
+## 文件
+
+| 路径 | 内容 |
+| --- | --- |
+| /opt/uv-tools/impacket | uv tool 的 venv |
+| /usr/local/bin/*.py | uv 写出的示例脚本 shim,含 secretsdump.py |
+| /opt/re-venv | 另一份 impacket,作库。red 组为 krbrelayx 装入 |
+
+## 配置
+
+- 无工具自身的配置文件。
+- `/etc/uv/uv.toml` 在运行期设 `offline=true`。
+- 该设置只约束 uv 的包管理动作。
+- 已安装的入口不受该设置影响。
+
+## 离线行为
+
+- 支持本地启动入口。
+- 关闭 eth0 后,`secretsdump.py -h` 退出码 0。
+- 关闭 eth0 后,`describeTicket.py -h` 退出码 0。
+- 关闭 eth0 后,`Get-GPPPassword.py -h` 退出码 0。
+- 关闭 eth0 后,`wmipersist.py -h` 退出码 0。
+- 对目标主机的动作需要到目标的网络。
+- 外网断开且内网可达时,对目标的动作仍可用。
+- eth0 关闭后,只剩本地处理。
+
+## 限制
+
+- red 组白名单会把同名 `*.py` 入口链到 bloodhound-ce venv 里的 dirkjanm impacket 叉。
+- bloodhound-ce 在白名单循环中殿后,同名入口以它为准。
+- 该规则写在脚本注释,并写在 [software-inventory.md](../../software-inventory.md)。
+- PATH 上直接调用时,执行的是该叉。
+- 要 fortra 上游原版时,调用 `/opt/uv-tools/impacket/bin/` 下的入口。
+- 覆盖发生在 `install_red` 的链接循环。
+- 无 `have` 早退。重跑是否跳过,取决于 uv 自己的行为。
+- 未验证:uv 对已安装的 tool 是否报告 already installed。
+- 重跑日志出现「impacket uv 安装失败」时,先核对该入口是否仍在。
+
+## 参见
+
+- [p0.md](p0.md)
+- [offline.md](../../offline.md)
+- [software-inventory.md](../../software-inventory.md)
+
+## rctl 面,机器行
 - rctl: secretsdump.py kind=tool path=/usr/local/bin/secretsdump.py
 - rctl: GetNPUsers.py kind=tool path=/usr/local/bin/GetNPUsers.py
 - rctl: GetUserSPNs.py kind=tool path=/usr/local/bin/GetUserSPNs.py
@@ -79,5 +138,3 @@
 - rctl: tstool.py kind=tool path=/usr/local/bin/tstool.py
 - rctl: wmipersist.py kind=tool path=/usr/local/bin/wmipersist.py
 - rctl: wmiquery.py kind=tool path=/usr/local/bin/wmiquery.py
-
-- **限制**:uv 隔离面与白名单外链规则:secretsdump.py 等同名 *.py 入口会被 red 组白名单链接覆盖到 bloodhound-ce venv 内的 dirkjanm impacket 叉(bloodhound-ce 殿后保持其优先,脚本注释与 [software-inventory](../../software-inventory.md) 规定),PATH 直调实际执行的是叉版,要 upstream 原版需显式调 /opt/uv-tools/impacket/bin/ 下入口 (install_red 链接循环);无 `have` 早退,重跑幂等性依赖 uv 自身行为,未单独 [假设:uv 对已装 tool 可能报 already installed,重跑日志若见「impacket uv 安装失败」先核实在位状态];组册见 [p0.md](p0.md)

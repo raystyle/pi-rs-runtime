@@ -1,14 +1,64 @@
 # capa
 
-> 恶意软件能力识别(静态特征 到 能力/ATT&CK 映射) ｜ 状态:已装(wrapper 接规则) ｜ 组:`install-tools.sh p0` 装本体与规则、`install-tools.sh pentest` 接线
+> 恶意软件能力识别,静态特征映射到能力与 ATT&CK ｜ 状态:已装 ｜ 组:`install-tools.sh p0` 装本体与规则,`install-tools.sh pentest` 接线
 
-- **版本钉**:`CAPA_VERSION=9.4.0`(脚本默认,env 可覆盖;脚本「v9.5.0 上游不存在,latest=v9.4.0(已核)」);规则库 pins.sh `GIT_PIN[mandiant/capa-rules]` 钉 sha(805f9eaccfb6a4e1ddffc809d71d1e2b5ccc15e5,clone_pin 幂等:HEAD==钉即跳过;解析日 2026-10-10),升级跑 scripts/resolve-pins.sh
-- **来源与安装**:[mandiant/capa](https://github.com/mandiant/capa) releases 到 `capa-v9.4.0-linux.zip` 经 GITHUB_MIRROR 直下解到 `/opt/capa`,无校验和;规则库 [mandiant/capa-rules](https://github.com/mandiant/capa-rules) `--depth 1` 克隆到 `/opt/capa-rules`(单独克隆便于更新)
-- **落点**:zip 解开在 `/opt/capa`;p0 组初装时 `find /opt/capa -name capa` 软链到 `/usr/local/bin/capa`,pentest 组离线固化段把被包装的程序挪为 `/usr/local/bin/capa.real`、删链写 wrapper:`exec /usr/local/bin/capa.real -r /opt/capa-rules "$@"`
-- **配置与缓存**:规则库 `/opt/capa-rules`(构建日快照,刷新需回有网环境重跑 p0 组);不指定 `-r` 时 capa 会自下载规则到 `~/.local/share/capa`,离线报晦涩错(脚本),wrapper 钉死 `-r` 后该路径不再触及
-- **离线行为**:未验 [推断:规则与二进制全本地,wrapper 注入 `-r` 后不触网];逐件断网冒烟未单列登记(wrapper 层机制见 [offline.md](../../offline.md))。验证:`ip link set eth0 down` 后 `capa /bin/true` 正常跑完,不因规则缺失报下载错
-## rctl 面,机器行:catalog 投影声明,audit 豁免依据
+## 版本
+
+- `CAPA_VERSION=9.4.0`。脚本带该默认值。环境变量可覆盖。
+- 上游没有 v9.5.0。最新标签是 v9.4.0。
+- 规则库键:`GIT_PIN[mandiant/capa-rules]`。
+- 当前值:805f9eaccfb6a4e1ddffc809d71d1e2b5ccc15e5(解析日 2026-10-10)。
+- clone_pin:HEAD 等于钉则跳过。
+- zip 无校验和。
+- 升级:运行 `scripts/resolve-pins.sh`,再执行 p0 组。
+
+## 来源与安装
+
+- 上游:[mandiant/capa](https://github.com/mandiant/capa)。
+- 规则库:[mandiant/capa-rules](https://github.com/mandiant/capa-rules)。
+- 本体与规则由 `install-tools.sh` 的 p0 组安装。
+- wrapper 由 pentest 组写入。
+- 经 `GITHUB_MIRROR` 下载 `capa-v9.4.0-linux.zip`,解到 `/opt/capa`。
+- 规则库以 `--depth 1` 克隆到 `/opt/capa-rules`。单独克隆,便于更新。
+
+## 文件
+
+| 路径 | 内容 |
+| --- | --- |
+| /opt/capa | zip 解开后的程序 |
+| /usr/local/bin/capa | p0 初装时 `find /opt/capa -name capa` 的软链。pentest 组改为 wrapper |
+| /usr/local/bin/capa.real | pentest 组把被包装的程序挪到此路径 |
+
+- wrapper 内容:`exec /usr/local/bin/capa.real -r /opt/capa-rules "$@"`。
+
+## 配置
+
+- 规则库路径:`/opt/capa-rules`。内容是构建日快照。
+- 刷新规则:在有网环境重跑 p0 组。
+- 不指定 `-r` 时,capa 把规则下载到 `~/.local/share/capa`。
+- 该下载在离线时失败,错误信息不说明原因。
+- wrapper 固定传入 `-r` 之后,不再使用 `~/.local/share/capa`。
+
+## 离线行为
+
+- 未验证。
+- 规则与二进制都在本地路径。wrapper 传入 `-r` 后不访问网络。
+- wrapper 层的机制见 [offline.md](../../offline.md)。
+- 关闭 eth0 后,`capa /bin/true` 跑完,且不因缺少规则而尝试下载,为判定命令。
+
+## 限制
+
+- 对软链执行 `printf` 重定向会改写 `/opt/capa` 里的程序。
+- 该写法还会递归 exec。
+- 写 wrapper 之前,先 `mv` 被包装的程序为 `capa.real`,再删除软链。
+- 行为修正写在 wrapper 文件,不写 alias。
+- alias 在非交互 shell 不生效。`incus exec` 属于非交互 shell。
+
+## 参见
+
+- [p0.md](p0.md)
+- [offline.md](../../offline.md)
+
+## rctl 面,机器行
 
 - rctl: capa-rules kind=data path=/opt/capa-rules note=能力规则(缺它 capa 自下载)
-
-- **限制**:wrapper 写法,直接 `printf >` 软链会穿透改写 /opt/capa 里的被包装的程序(fresh 递归 exec),必须先 `mv` 被包装的程序为 `capa.real` 文件、删链再写 wrapper(脚本);行为修正落 wrapper 文件而非 alias,alias 在非交互 shell(incus exec)不生效()
