@@ -19,7 +19,12 @@ root, bl_path, mode = sys.argv[1:4]
 ENUM = {"已装","参考克隆","缓存固化","已烘焙","未装"}
 BAD = ["血泪教训","血泪坑","坑与留痕","坑","留痕","实证","顺手","顺带","炸出","收口","落字",
        "口径","下轮","钓后人","真身","摆设","来龙去脉","假绿","半静默","教训",
-       "用户裁定","grok","prt-","工位","评审","拆册","拆独立","裁定","REQ-0","ADR-0","S-0000","早期","本轮","晚批","tools-p0","install_p0","p0 组"]
+       "用户裁定","grok","prt-","工位","评审","拆册","拆独立","裁定",
+       "REQ-0","ADR-0","S-0000","早期","本轮","晚批",
+       "tools-p0","install_p0","p0 组",
+       "tools-pd","tools-pz","tools-secgo","tools-secrust","tools-red(?!team)","tools-msf","tools-fd",
+       "install_pd","install_pz","install_secgo","install_secrust","install_red(?!team)","install_msf","install_fd",
+       "pd 组","pz 组","secgo 组","secrust 组","re 组","red 组","msf 组","fd 组"]
 OLD_TAGS = ["坑与留痕","血泪教训","血泪坑"]
 
 doc = json.load(open(os.path.join(root, "scripts/ctl/data/resources.json"), encoding="utf-8"))
@@ -36,7 +41,7 @@ caps_bad = 0
 for c in doc["caps"]:
     if any(b in c.get("note","")+c.get("example","") for b in BAD): caps_bad += 1
 
-product = ["README.md","AGENTS.md","docs/offline.md","docs/params.md","docs/known-issues.md"]
+product = ["README.md","AGENTS.md","docs/offline.md","docs/params.md","docs/known-issues.md","docs/software-inventory.md"]
 for dp, _d, fs in os.walk(os.path.join(root, "docs", "install-surfaces")):
     product += [os.path.relpath(os.path.join(dp, f), root) for f in fs if f.endswith(".md")]
 for dp, _d, fs in os.walk(os.path.join(root, "docs", "items")):
@@ -47,7 +52,7 @@ for rel in sorted(set(product)):
     p = os.path.join(root, rel)
     if not os.path.isfile(p): continue
     for line in open(p, encoding="utf-8"):
-        if any(b in line for b in BAD): md_bad += 1
+        if any((b in line) if "(?!" not in b else re.search(b, line) for b in BAD): md_bad += 1
         if any(t in line for t in OLD_TAGS): md_old += 1
 
 cur = {"field_overlength": field_over, "field_banned": field_bad,

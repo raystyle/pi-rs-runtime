@@ -16,13 +16,13 @@
 
 | 组 | 册 |
 |---|---|
-| fd / astgrep / cli / herdr | [fd](../items/tools-fd/fd.md) · [astgrep](../items/tools-astgrep/astgrep.md) · [cli(15 件)](../items/tools-cli/cli.md) · [herdr](../items/tools-herdr/herdr.md) |
-| ghidra / re | [ghidra](../items/tools-ghidra/ghidra.md) · [re(逆向稳定链)](../items/tools-re/re.md) |
-| pd / secgo / secrust | [pd(20 CLI)](../items/tools-pd/pd.md) · [nuclei](../items/tools-pd/nuclei.md) · [secgo(18 CLI)](../items/tools-secgo/secgo.md) · [trufflehog](../items/tools-secgo/trufflehog.md) · [secrust(3 件)](../items/tools-secrust/secrust.md) |
+| fd / astgrep / cli / herdr | [fd](../items/tools-filesearch/filesearch.md) · [astgrep](../items/tools-astgrep/astgrep.md) · [cli(15 件)](../items/tools-cli/cli.md) · [herdr](../items/tools-herdr/herdr.md) |
+| ghidra / re | [ghidra](../items/tools-ghidra/ghidra.md) · [re(逆向稳定链)](../items/tools-reverse/reverse.md) |
+| pd / secgo / secrust | [pd(20 CLI)](../items/tools-discovery/discovery.md) · [nuclei](../items/tools-discovery/nuclei.md) · [secgo(18 CLI)](../items/tools-go-security/go-security.md) · [trufflehog](../items/tools-go-security/trufflehog.md) · [secrust(3 件)](../items/tools-rust-security/rust-security.md) |
 | pivot / analysis | [pivot(6 件)](../items/tools-pivot/pivot.md) · [p0(apt 20 包)](../items/analysis/analysis.md) · [nasm](../items/analysis/nasm.md) · [impacket](../items/analysis/impacket.md) · [apktool](../items/analysis/apktool.md) · [capa](../items/analysis/capa.md) · [pwndbg](../items/analysis/pwndbg.md) · [jadx](../items/analysis/jadx.md) |
-| c2 / bof / pz | [c2(7 仓参考)](../items/tools-c2/c2.md) · [bof](../items/tools-bof/bof.md) · [wine](../items/tools-bof/wine.md) · [bof-launcher](../items/tools-bof/bof-launcher.md) · [coffee-ldr](../items/tools-bof/coffee-ldr.md) · [pz(4 仓)](../items/tools-pz/pz.md) |
+| c2 / bof / pz | [c2(7 仓参考)](../items/tools-c2/c2.md) · [bof](../items/tools-bof/bof.md) · [wine](../items/tools-bof/wine.md) · [bof-launcher](../items/tools-bof/bof-launcher.md) · [coffee-ldr](../items/tools-bof/coffee-ldr.md) · [pz(4 仓)](../items/tools-projectzero/projectzero.md) |
 | maldev / recon / nu | [maldev(41 仓+官网 tgz)](../items/tools-maldev/maldev.md) · [recon(4 仓)](../items/tools-recon/recon.md) · [poc-search](../items/tools-recon/poc-search.md) · [nu](../items/tools-nu/nu.md) |
-| pentest / red / msf / vnc | [pentest(36 apt+接线)](../items/tools-pentest/pentest.md) · [hashcat](../items/tools-pentest/hashcat.md) · [responder](../items/tools-pentest/responder.md) · [donut](../items/tools-pentest/donut.md) · [frida](../items/tools-pentest/frida.md) · [red(24 件)](../items/tools-red/red.md) · [bloodhound-ce](../items/tools-red/bloodhound-ce.md) · [enum4linux-ng](../items/tools-red/enum4linux-ng.md) · [evil-winrm](../items/tools-red/evil-winrm.md) · [cyberchef](../items/tools-red/cyberchef.md) · [trivy](../items/tools-red/trivy.md) · [msf](../items/tools-msf/msf.md) · [vnc(桌面+noVNC Web 面)](../items/tools-vnc/vnc.md) |
+| pentest / redteam / metasploit / vnc | [pentest(36 apt+接线)](../items/tools-pentest/pentest.md) · [hashcat](../items/tools-pentest/hashcat.md) · [responder](../items/tools-pentest/responder.md) · [donut](../items/tools-pentest/donut.md) · [frida](../items/tools-pentest/frida.md) · [red(24 件)](../items/tools-redteam/redteam.md) · [bloodhound-ce](../items/tools-redteam/bloodhound-ce.md) · [enum4linux-ng](../items/tools-redteam/enum4linux-ng.md) · [evil-winrm](../items/tools-redteam/evil-winrm.md) · [cyberchef](../items/tools-redteam/cyberchef.md) · [trivy](../items/tools-redteam/trivy.md) · [msf](../items/tools-metasploit/metasploit.md) · [vnc(桌面+noVNC Web 面)](../items/tools-vnc/vnc.md) |
 
 返回 [安装面清单](index.md)。
 
@@ -36,4 +36,4 @@
 | `acp` | ACP 适配器钉版+acpsup 监督进程(bun 编译);selftest 协议级自证 |
 | `ctl` | rctl 核心 CLI(bun 编译,bun 版本闸;烤库 /var/lib/rctl+index) |
 
-`pentest` 组同批扩:CFT pwn gems(one_gadget Ruby3.2 面 1.10.0/seccomp-tools)、 九件(zsteg gem/stegseek deb sha256 钉/outguess/foremost apt/phpggc wrapper php8.3/git-dumper/apkid uv-tool/commix wrapper/SSTImap 独立 venv);`re` 组扩:qiling 进 re-venv、angr 独立 /opt/angr-venv(禁 extra)。
+`pentest` 组同批扩:CFT pwn gems(one_gadget Ruby3.2 面 1.10.0/seccomp-tools)、 九件(zsteg gem/stegseek deb sha256 钉/outguess/foremost apt/phpggc wrapper php8.3/git-dumper/apkid uv-tool/commix wrapper/SSTImap 独立 venv);`reverse` 组扩:qiling 进 re-venv、angr 独立 /opt/angr-venv(禁 extra)。

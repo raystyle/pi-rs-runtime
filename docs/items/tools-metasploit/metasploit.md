@@ -1,6 +1,6 @@
 # metasploit-framework:msf
 
-> 渗透测试框架整套(msfconsole 等)｜ 状态:已装 ｜ 组:`install-tools.sh msf`
+> 渗透测试框架整套(msfconsole 等)｜ 状态:已装 ｜ 组:`install-tools.sh metasploit`
 
 - **版本钉**:omnibus 随源(nightly 安装器);容器实测 Framework 6.5.3(2026-10-09 全做批);安装器与 deb 均无校验和、[known-issues](../../known-issues.md))
 - **来源与安装**:[rapid7/metasploit-framework](https://github.com/rapid7/metasploit-framework) [官方安装器](https://docs.metasploit.com/docs/using-metasploit/getting-started/nightly-installers.html) `msfupdate.erb`(raw.githubusercontent.com 经 `GITHUB_MIRROR` 拉)到 加 apt.metasploit.com 仓后 apt 装 deb;noble 源无包,apt.metasploit.com 需直连无国内镜像(2026-10-09 路线规定进镜像)

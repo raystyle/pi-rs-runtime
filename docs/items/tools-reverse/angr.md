@@ -1,6 +1,6 @@
 # angr
 
-> Python 符号执行与二进制分析框架(platform-independent)｜ 状态:已装 ｜ 组:`install-tools.sh re`
+> Python 符号执行与二进制分析框架(platform-independent)｜ 状态:已装 ｜ 组:`install-tools.sh reverse`
 
 - **版本钉**:pins.sh `PYPI_PIN[angr]`(当前 10.0.3,2026-10-11 解析);升级跑 resolve-pins.sh 审 diff 重跑本组
 - **来源与安装**:PyPI `uv pip install angr==<钉>` 进**独立 venv** `/opt/angr-venv`(;禁 extra `llm`(拖 mcp)/`unicorn`/angr-management GUI;与 re-venv 分离防 z3/capstone 双版本纠缠)

@@ -55,7 +55,7 @@ check_family frida docs/items/tools-pentest/frida.md "${FRIDA_LIST[@]}"
 
 RE_LIST=(rizin)
 for f in /usr/local/bin/rz-*; do [ -e "$f" ] && RE_LIST+=("$(basename "$f")"); done
-check_family re docs/items/tools-re/re.md "${RE_LIST[@]}"
+check_family re docs/items/tools-reverse/reverse.md "${RE_LIST[@]}"
 
 NIM_LIST=()
 for f in /opt/nim/toolchains/*/bin/*; do [ -e "$f" ] && NIM_LIST+=("$(basename "$f")"); done

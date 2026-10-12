@@ -1,9 +1,9 @@
-# Project Zero 工具参考:pz 组册
+# Project Zero 工具参考:projectzero 组册
 
-> Windows 沙箱攻击面分析 / .NET 后渗透源码参考(NtObjectManager/NtApiDotNet 系) ｜ 状态:参考克隆 ｜ 组:`install-tools.sh pz`
+> Windows 沙箱攻击面分析 / .NET 后渗透源码参考(NtObjectManager/NtApiDotNet 系) ｜ 状态:参考克隆 ｜ 组:`install-tools.sh projectzero`
 
 - **版本钉**:四仓全部 pins.sh `GIT_PIN` 钉 sha(clone_pin,幂等:HEAD==钉即跳过;解析日 2026-10-10),升级跑 scripts/resolve-pins.sh;oleviewdotnet 带 submodules 浅克隆(NtApiDotNet 是嵌套子模块,浅克隆会拉丢,clone_pin 第三参 submodules);统一经 GITHUB_MIRROR(规定见 [params.md](../../params.md))
-- **来源与安装**:`scripts/install-tools.sh install_pz` 段。成员表:
+- **来源与安装**:`scripts/install-tools.sh install_projectzero` 段。成员表:
 
 | 仓 | 版本 | 来源 | 落点 |
 |---|---|---|---|

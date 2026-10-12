@@ -1,6 +1,6 @@
 # poc-search
 
-> PoC-in-GitHub 本地索引查询 wrapper(只查索引信息,不拉任何 PoC 代码) ｜ 状态:已装 ｜ 组:`install-tools.sh recon`
+> PoC-in-GitHub 本地索引查询 wrapper(只查索引信息,不拉任何 PoC 代码) ｜ 状态:已装 ｜ 组:`install-tools.sh reversecon`
 
 - **版本钉**:wrapper 随脚本 heredoc 生成、无独立版本;parquet 索引是构建期快照(2026-10-09 轮灌出 25988 条,重建后条数随上游仓变动)
 - **来源与安装**:`scripts/install-tools.sh install_recon` 段 heredoc 写入 `/usr/local/bin/poc-search` + `chmod +x`;索引由 `clickhouse local` 把 PoC-in-GitHub `<年>/*.json`(每 CVE 一个多行美化 JSON)按 JSONAsObject 整读,每文件一行、单列 `json`,灌成单文件 parquet,构建条件:索引不在 + `have clickhouse` + 索引仓已克隆,失败提示 `poc-search --reindex` 重试

@@ -189,7 +189,7 @@ PYPI_PKGS=(
     polars pyarrow chdb duckdb ldap3 dnspython pyasn1
     pycryptodome cryptography gmpy2 sympy z3-solver construct pefile pyelftools dnfile pypykatz
     malduck volatility3 r2pipe httpx beautifulsoup4 lxml pyjwt dpkt xortool
-    # red 组 git 克隆批依赖:jwt_tool(ratelimit/pycryptodomex/termcolor/requests)与 LinkFinder(jsbeautifier)
+    # redteam 组 git 克隆批依赖:jwt_tool(ratelimit/pycryptodomex/termcolor/requests)与 LinkFinder(jsbeautifier)
     ratelimit pycryptodomex termcolor requests jsbeautifier
     # pentest 组 Responder 依赖(aioquic:QUIC 毒化面,钉 sha 起启动硬查)
     aioquic

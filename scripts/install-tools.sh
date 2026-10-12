@@ -3,19 +3,19 @@
 # 在 Ubuntu 24.04 容器(或宿主)内运行,幂等,可重复执行。
 # 用法:
 #   ./install-tools.sh            # 装全部
-#   ./install-tools.sh pd cli  # 只装指定项(可多个)
+#   ./install-tools.sh discovery cli  # 只装指定项(可多个)
 # 镜像源与版本经环境变量覆盖,见 lib/common.sh
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
 . "$HERE/lib/common.sh"
 
-install_fd() {
+install_filesearch() {
     log "fd + ripgrep (apt,tuna)"
     apt-get update -qq
     apt-get install -y --no-install-recommends fd-find ripgrep
     ln -sf /usr/bin/fdfind /usr/local/bin/fd
-    fd --version && rg --version
+    filesearch --version && rg --version
 }
 
 install_astgrep() {
@@ -88,7 +88,7 @@ PD_TOOLS_DEFAULT=(
     cvemap/cmd/cvemap
 )
 
-install_pd() {
+install_discovery() {
     log "projectdiscovery 全家桶 (go install 钉版 pins.sh,经 $GOPROXY)"
     . "$HOME/.cargo/env" 2>/dev/null || true
     export GOPATH=/opt/go PATH="$PATH:/usr/local/go/bin:/opt/go/bin"
@@ -138,7 +138,7 @@ SECGO_TOOLS_DEFAULT=(
     aurelian@github.com/praetorian-inc
 )
 
-install_secgo() {
+install_go-security() {
     log "Go 安全 CLI (go install 钉版 pins.sh,经 $GOPROXY)"
     export PATH="$PATH:/usr/local/go/bin:/root/go/bin"
     export GOPROXY GOSUMDB
@@ -199,7 +199,7 @@ install_secgo() {
     true   # 循环尾可能是 command -v 失败,吞掉以防 set -e 中断后续组
 }
 
-install_secrust() {
+install_rust-security() {
     log "rustscan / feroxbuster / RustHound-CE (cargo,经 tuna crates)"
     export RUSTUP_HOME=/opt/rustup CARGO_HOME=/opt/cargo
     . /opt/cargo/env 2>/dev/null || true
@@ -289,7 +289,7 @@ install_ghidra() {
 
 # ---- 逆向稳定链:系统库 + rizin/rz-ghidra/sigdb + Python RE venv ------------
 # 不装 apt 的 radare2,不装 knife/rsleigh/Ghidrust;Keystone/Unicorn 走 venv 不走 apt
-install_re() {
+install_reverse() {
     log "逆向链系统库 (apt,tuna)"
     # libzip-dev 必须给:缺了 meson 会去 libzip.org 拉子项目,国内必失败
     apt-get update -qq
@@ -628,7 +628,7 @@ install_bof() {
 # ---- Project Zero 沙箱攻击面分析工具(Windows 参考系) ----------------------
 # NtObjectManager/NtApiDotNet 系:运行时强依赖 Windows(p/invoke ntdll),
 # Linux 容器里主要价值是源码参考(syscall/结构文档级);尽力 dotnet 编译
-install_pz() {
+install_projectzero() {
     log "Project Zero sandbox-attacksurface-analysis-tools"
     local gh="${GITHUB_MIRROR}https://github.com"
     if [ ! -d /opt/pz-sandbox-tools/.git ]; then
@@ -698,7 +698,7 @@ install_nu() {
 #   payload-ref/curricula/     教材架,其下按语言分叶
 #   payload-ref/analysis/      防御向(donut-decryptor),避免被当进攻模板抄
 #   tradecraft-ref/{ad,bof,opsec,privesc,skills}/  产物是上线后的操作员动作
-# 有编译产物的仓(COFFLoader/bof-launcher/atomic-bofs/RustHound-CE)由 bof/secrust 组
+# 有编译产物的仓(COFFLoader/bof-launcher/atomic-bofs/RustHound-CE)由 bof/rust-security 组
 # 各自克隆构建,落点同轴
 install_maldev() {
     log "maldev 模板参考库(只克隆;三根归档 c2dev-ref/payload-ref/tradecraft-ref)"
@@ -1085,7 +1085,7 @@ EOF
 
 # ---- 渗透测试工具增补(claude 体检 P1:AD 横向 / Web / 密码 / 移动 / 云) -------
 # 原则:能 uv tool 走 tuna 就走 uv tool;git 克隆钉 /opt;gem 走 ruby-china;Release 钉版
-install_red() {
+install_redteam() {
     log "AD 横向与 Web 工具(uv tool 走 tuna:tuna 有轮子即成功)"
     # enum4linux-ng 运行依赖:nmblookup/net(samba-common-bin)、smbclient、ldapsearch
     apt-get update -qq && apt-get install -y --no-install-recommends samba-common-bin smbclient ldap-utils || true
@@ -1128,7 +1128,7 @@ install_red() {
     # uv tool 已把各工具入口链进 /usr/local/bin(UV_TOOL_BIN_DIR);这里只补 venv 里依赖叉的 *.py 脚本
     # (bloodhound-ce/bofhound 内的 impacket 叉:secretsdump.py/GetADUsers.py 等;bloodhound-ce 殿后保持其优先)
     # 不许全目录链:依赖带的同名 CLI(httpx/idna/normalizer/pygmentize/cffi-gen-src 等,实证散在
-    # certipy-ad/bofhound/bloodhound-ce 三个 venv)会盖掉 pd 组 Go httpx 与其他系统件(grok 评审 F1 深挖)
+    # certipy-ad/bofhound/bloodhound-ce 三个 venv)会盖掉 discovery 组 Go httpx 与其他系统件(grok 评审 F1 深挖)
     for t in certipy-ad bloodyad bofhound bloodhound-ce; do
         for c in "/opt/uv-tools/$t/bin"/*.py; do
             [ -f "$c" ] && ln -sf "$c" "/usr/local/bin/$(basename "$c")" 2>/dev/null
@@ -1137,7 +1137,7 @@ install_red() {
     # bloodhound-python 无 console entrypoint,入口是 re-venv wrapper;曾被 bofhound 依赖链盖掉,无条件重写
     printf '#!/bin/sh\nexec %s/bin/python -m bloodhound "$@"\n' "$RE_VENV" > /usr/local/bin/bloodhound-python
     chmod +x /usr/local/bin/bloodhound-python
-    # 旧批残留清理:非入口依赖 CLI 指向任一 uv-tools venv 的一律删;httpx 还回 pd 的 Go 产物
+    # 旧批残留清理:非入口依赖 CLI 指向任一 uv-tools venv 的一律删;httpx 还回 discovery 的 Go 产物
     local depjunk="httpx uvicorn dotenv glom idna jsonschema markdown-it mcp normalizer pwiz pygmentize cffi-gen-src opentelemetry-bootstrap opentelemetry-instrument chardetect futurize pasteurize gql-cli cmark activate-global-python-argcomplete register-python-argcomplete python-argcomplete-check-easy-install-script"
     # shellcheck disable=SC2086
     for c in $depjunk; do
@@ -1302,11 +1302,11 @@ EOF
 }
 
 
-# ---- 渗透测试框架(msf):metasploit omnibus 官方安装器 ------------------------
+# ---- 渗透测试框架(metasploit):metasploit omnibus 官方安装器 ------------------------
 # 路线裁定(2026-10-09 全做批):进镜像。noble 源无包,omnibus 安装器加 apt.metasploit.com
 # 仓装 metasploit-framework(/opt/metasploit-framework,msfconsole 链 /usr/local/bin);
 # 安装器脚本经 GITHUB_MIRROR 拉,apt.metasploit.com 需直连,无国内镜像
-install_msf() {
+install_metasploit() {
     log "metasploit-framework (omnibus)"
     # 软钉:apt.metasploit.com 仓只发最新线,MSF_VERSION 留空即最新(known-issues 留痕);
     # 钉了则装指定版(仓里有历史版时生效)
@@ -1581,5 +1581,5 @@ install_vnc() {
 }
 
 # chrome 组不在默认全量:上游修 bug 期用户裁定先不装(2026-10-10);要装显式跑 install-tools.sh chrome
-TOOLS_ALL=(fd astgrep cli herdr ghidra rea re pd secgo secrust pivot analysis c2 bof pz maldev recon nu cloud data pentest red msf vnc agents acp ctl)
+TOOLS_ALL=(filesearch astgrep cli herdr ghidra rea reverse discovery go-security rust-security pivot analysis c2 bof projectzero maldev recon nu cloud data pentest redteam metasploit vnc agents acp ctl)
 run_category TOOLS_ALL "$@"

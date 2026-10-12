@@ -1,15 +1,15 @@
 # pspy
 
-> 无 root 权限监听 Linux 进程与 cron ｜ 状态:已装 ｜ 组:`install-tools.sh pd`
+> 无 root 权限监听 Linux 进程与 cron ｜ 状态:已装 ｜ 组:`install-tools.sh discovery`
 
 ## 版本
 
 - pins.sh 键:`GO_PIN[github.com/DominicBreuker/pspy]`。
-- 升级:运行 `scripts/resolve-pins.sh`,再执行 pd 组。
+- 升级:运行 `scripts/resolve-pins.sh`,再执行 discovery 组。
 
 ## 来源与安装
 
-- 脚本:`install-tools.sh` 的 pd 组循环。
+- 脚本:`install-tools.sh` 的 discovery 组循环。
 - 安装命令:`go install`,按该钉版。
 
 ## 文件

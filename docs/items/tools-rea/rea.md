@@ -1,6 +1,6 @@
 # rea:rea-agents
 
-> agent 逆向工具面(morluto/rea:MCP server + CLI,Ghidra 无头 provider,封装 analyzeHeadless)｜ 状态:已装 ｜ 组:`install-tools.sh rea`
+> agent 逆向工具面(morluto/rea:MCP server + CLI,Ghidra 无头 provider,封装 analyzeHeadless)｜ 状态:已装 ｜ 组:`install-tools.sh reversea`
 
 - **版本钉**:pins.sh `NPM_PIN[rea-agents]`(当前 6.3.0);升级跑 `scripts/resolve-pins.sh` 审 diff 后重跑本组(组内按版本比对幂等跳装)
 - **来源与安装**:npm 全局 `rea-agents@<钉>` 装进系统 node 的全局面 `/opt/node/lib/node_modules`(npmmirror 镜像);构建期 `NPM_CONFIG_OFFLINE=false` 显式拿回在线面(运行期 npm 默认离线见 [offline.md](../../offline.md) §4);Node 要 22.19+/24.11+(镜像默认 node 24.21 满足);装面 `scripts/install-tools.sh install_rea`

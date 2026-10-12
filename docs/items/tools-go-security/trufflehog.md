@@ -1,9 +1,9 @@
 # trufflehog
 
-> git 历史与云密钥扫描器(与 gitleaks 互补,带 verify 校验) ｜ 状态:已装 ｜ 组:`install-tools.sh secgo`
+> git 历史与云密钥扫描器(与 gitleaks 互补,带 verify 校验) ｜ 状态:已装 ｜ 组:`install-tools.sh go-security`
 
-- **版本钉**:pins.sh 钉版(标量 `TRUFFLEHOG_VERSION`=v3.99.2;解析日 2026-10-10),升级跑 scripts/resolve-pins.sh;空钉回退 release tag 经 `git ls-remote --tags`(GITHUB_MIRROR 前置)+ 只取 `refs/tags/vX.Y.Z` 纯版本 + `sort -V | tail -1` 取最新;无校验和([known-issues](../../known-issues.md) 登记);`have` 早退,升级=跑解析器刷新钉值后删 `/usr/local/bin/trufflehog` 再重跑 secgo 组
-- **来源与安装**:[trufflesecurity/trufflehog](https://github.com/trufflesecurity/trufflehog) releases 预编译 tarball(`trufflehog_<ver>_linux_<arch>.tar.gz`,arch 只认 amd64/arm64);安装面 `scripts/install-tools.sh` `install_secgo` 尾部(不走 go install,原因见问题(1))
+- **版本钉**:pins.sh 钉版(标量 `TRUFFLEHOG_VERSION`=v3.99.2;解析日 2026-10-10),升级跑 scripts/resolve-pins.sh;空钉回退 release tag 经 `git ls-remote --tags`(GITHUB_MIRROR 前置)+ 只取 `refs/tags/vX.Y.Z` 纯版本 + `sort -V | tail -1` 取最新;无校验和([known-issues](../../known-issues.md) 登记);`have` 早退,升级=跑解析器刷新钉值后删 `/usr/local/bin/trufflehog` 再重跑 go-security 组
+- **来源与安装**:[trufflesecurity/trufflehog](https://github.com/trufflesecurity/trufflehog) releases 预编译 tarball(`trufflehog_<ver>_linux_<arch>.tar.gz`,arch 只认 amd64/arm64);安装面 `scripts/install-tools.sh` `install_go-security` 尾部(不走 go install,原因见问题(1))
 - **落点**:`/usr/local/bin/trufflehog`(`install -m755` 直装,非软链);/tmp 临时档用完即删
 - **配置与缓存**:无
 - **离线行为**:过, 本地 `filesystem`/`git` 扫描断网可跑,纯本地读盘;离线轮冒烟 3.99 扫空目录退 1(见问题(4))。验证:`ip link set eth0 down` 后 `mkdir -p /tmp/th-empty && trufflehog filesystem /tmp/th-empty` 完成扫描(零命中退 1 属正常,看输出别看退出码)。过, 边界:verify(回连源头验密钥有效性)与云 API 枚举断网失败属设计([offline.md](../../offline.md) §边界规定)

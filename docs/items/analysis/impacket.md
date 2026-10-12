@@ -29,7 +29,7 @@
 | --- | --- |
 | /opt/uv-tools/impacket | uv tool 的 venv |
 | /usr/local/bin/*.py | uv 写出的示例脚本 shim,含 secretsdump.py |
-| /opt/re-venv | 另一份 impacket,作库。red 组为 krbrelayx 装入 |
+| /opt/re-venv | 另一份 impacket,作库。redteam 组为 krbrelayx 装入 |
 
 ## 配置
 
@@ -51,12 +51,12 @@
 
 ## 限制
 
-- red 组白名单会把同名 `*.py` 入口链到 bloodhound-ce venv 里的 dirkjanm impacket 叉。
+- redteam 组白名单会把同名 `*.py` 入口链到 bloodhound-ce venv 里的 dirkjanm impacket 叉。
 - bloodhound-ce 在白名单循环中殿后,同名入口以它为准。
 - 该规则写在脚本注释,并写在 [software-inventory.md](../../software-inventory.md)。
 - PATH 上直接调用时,执行的是该叉。
 - 要 fortra 上游原版时,调用 `/opt/uv-tools/impacket/bin/` 下的入口。
-- 覆盖发生在 `install_red` 的链接循环。
+- 覆盖发生在 `install_redteam` 的链接循环。
 - 无 `have` 早退。重跑是否跳过,取决于 uv 自己的行为。
 - 未验证:uv 对已安装的 tool 是否报告 already installed。
 - 重跑日志出现「impacket uv 安装失败」时,先核对该入口是否仍在。

@@ -1,15 +1,15 @@
 # volatility3
 
-> 内存取证框架,CLI 为 vol 与 volshell ｜ 状态:已装 ｜ 组:`install-tools.sh re`
+> 内存取证框架,CLI 为 vol 与 volshell ｜ 状态:已装 ｜ 组:`install-tools.sh reverse`
 
 ## 版本
 
 - pins.sh 键:`PYPI_PIN[volatility3]`。
-- 升级:运行 `scripts/resolve-pins.sh`,再执行 re 组。
+- 升级:运行 `scripts/resolve-pins.sh`,再执行 reverse 组。
 
 ## 来源与安装
 
-- 脚本:`install-tools.sh` 的 re 组。
+- 脚本:`install-tools.sh` 的 reverse 组。
 - `uv pip` 安装进 re-venv。
 - vol 与 volshell 链到 `/usr/local/bin`。
 - 轮子在 wheelhouse,供重装。

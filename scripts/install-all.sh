@@ -14,7 +14,7 @@ apt-get update -qq
 apt-get install -y --no-install-recommends \
     ca-certificates curl wget gpg unzip zip xz-utils file git acl
 
-# cloud 镜像的后台自动升级会与构建抢 dpkg 锁(fresh 验证实证:fd 组被 unattended-upgrades
+# cloud 镜像的后台自动升级会与构建抢 dpkg 锁(fresh 验证实证:filesearch 组被 unattended-upgrades
 # 卡死);构建容器不需要自动升级,停掉计时器(不卸载,保留工具)
 systemctl disable --now unattended-upgrades.service apt-daily.timer apt-daily-upgrade.timer >/dev/null 2>&1 || true
 
