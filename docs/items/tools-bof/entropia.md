@@ -1,13 +1,134 @@
 # entropia:entc
 
-> Windows PIC x86-64 shellcode / BOF 编译语言(.etpy),bof 组高级语言道(mingw 是 C 道)｜ 状态:已装 ｜ 组:`install-tools.sh bof`
+> Windows PIC x86-64 shellcode / BOF 编译语言(.etpy)。bof 组的高级语言道,mingw 是 C 道 ｜ 状态:已装 ｜ 组:`install-tools.sh bof`
 
-- **版本**:源码 pins.sh `GIT_PIN[entropykit/entropia]`=05acaba2a1a5fbde8cec3318319d053265ddb7ca(= v0.1-experimental tag,2026-10-11 解析;仓是单提交迁移面,HEAD 即 tag),clone_pin 幂等;升级跑 scripts/resolve-pins.sh 审 diff 重跑本组
-- **来源与安装**:`scripts/install-tools.sh install_bof` 段:clone_pin 到 `/opt/entropia`,`cargo build --release --locked -p entropykit -p entc-win32gen`(经 tuna crates;rustc 1.99 过上游 MSRV 1.75;不裸 `--workspace`,那会把 Windows 跑面也编出来)到 `install -m755` 装 `entc`;release zip(entropia-bin-v0.1-experimental.zip,1.84MB,清单是四个 .exe+vsix+stdlib)是 Windows 预编,Linux 面不用;辅件 entc-win32gen 尽力装,entc-debug/bof-runner/bof-loader 是 Windows 跑面(非 Windows 的 load/run 直接返回错误)不装
-- **文件**:`/usr/local/bin/entc`(+ `/usr/local/bin/entc-win32gen`);源码与构建树 `/opt/entropia`(stdlib/win32 头 + examples 20 例 .etpy 随仓);输出目标恒 Windows x86-64(`.bin` shellcode / `.x64.o` BOF)
-- **配置与缓存**:无配置;编译只读仓内 stdlib(win32 头自 `stdlib/win32/*.h`,`use_c` 直引 Windows SDK 头),零外部数据面;**entc 根包零第三方依赖**(锁内 29 包全属辅件,;win32gen 运行要 `--winmd` 自备 `Windows.Win32.winmd`(microsoft/win32metadata releases 的 nupkg `ref/netstandard2.0/` 内,仓与 zip 均不含),故**离线不能再生头**,日常编译用仓内 stdlib 即够,再生仅头升级时在线做
-- **离线行为**:过,`entc --version` 与示例编译(bof_pslist.etpy 出真 COFF `.x64.o`)断网;编译是本地计算零网络(源码无网络面,;win32gen 的构建与再生两头都触网(构建期 `CARGO_NET_OFFLINE=false` 是给辅件开的在线面,不是给编译器的)
-- **限制**:experimental 单提交迁移仓(2026-06-23),锁定 tag 不追 HEAD,维护者 issue #1 挂着未修的 resolver 崩溃(unsafe branch relaxation 发过期短跳偏移,2026-06-28 评论,晚于锁定的提交且此后 main 无新码),语言还缺嵌套结构/`--avoid=` 坏字节规避,是 C 道旁边的**实验编译道不是 C 道升级**;PR #2 测试合并在 GitHub 记录但不在锁定的树里(迁移压史);README 两处与清单/Cargo 书不符(「一次 cargo 出三 exe」「每 tag 带 PDF」,zip 无 PDF),集成以清单与 Cargo 书为准,混合 workspace 根裸 `cargo build` 只建根包正是同一(总台实例复跑+ AC 双证);社区先例稀薄:star 297 全是公告转发(SEKTOR7/5mukx/PT dbugs 等),动手文字仅两篇(brmk 上手, `--opsec=all` 后 `__imp_*` 符号消失改走 PEB;CN-SEC 审查),无外部缺陷帖,star 不当生产采用;typecheck 空 branch(非 void 裸 `ret;` 不报)在锁定的源码对上;产物跑面契约:非 opsec 产物符号形状 `__imp_LIB$Func`(CS 动态函数解析形),实例内唯一候选加载器是 wine COFFLoader64(先试**不带** `--opsec=all` 的对象;opsec 产物 hashed imports 走 PEB,不要假定 COFFLoader 能跑),bof-launcher 的 Linux 面是 ELF 例不接此产物,coffee-ldr 未装上;实例内止于编译面(真 COFF/118 字节 shellcode),运行面留目标机/wine 后试,FL/AC 级)
+## 版本
+
+- `GIT_PIN[entropykit/entropia]` = 05acaba2a1a5fbde8cec3318319d053265ddb7ca。
+- 该提交等于 tag `v0.1-experimental`。
+- 解析日 2026-10-11。
+- 仓库是单提交迁移面。HEAD 就是这个 tag。
+- `clone_pin` 在 HEAD 等于锁定提交时跳过。
+- 上游实验标记的日期是 2026-06-23。
+- issue #1 的评论日期是 2026-06-28。
+- 升级:执行 `scripts/resolve-pins.sh`,审阅差异,再执行本组。
+
+## 来源与安装
+
+- 脚本:`scripts/install-tools.sh` 的 `install_bof`。
+- `clone_pin` 到 `/opt/entropia`。
+- 构建命令是 `cargo build --release --locked -p entropykit -p entc-win32gen`。
+- crate 来自 tuna。
+- 当前 rustc 是 1.99。
+- 上游 MSRV 是 1.75。
+- 1.99 满足该 MSRV。
+- 不使用裸 `--workspace`。那会把 Windows 跑面也编出来。
+- 然后 `install -m755` 安装 `entc`。
+- release zip 的文件名是 `entropia-bin-v0.1-experimental.zip`。
+- zip 大小是 1.84MB。
+- 清单是四个 `.exe`、vsix 和 stdlib。
+- 这是 Windows 预编译包。Linux 面不使用它。
+- 辅件 `entc-win32gen` 尽力安装。
+- `entc-debug`、`bof-runner`、`bof-loader` 是 Windows 跑面。
+- 非 Windows 上的 load 与 run 直接返回错误。
+- 这三个程序不安装。
+
+## 文件
+
+- `/usr/local/bin/entc`。
+- `/usr/local/bin/entc-win32gen`。
+- 源码与构建树在 `/opt/entropia`。
+- 仓内带 `stdlib/win32` 头。
+- 仓内带 20 个 `.etpy` 示例。
+- 输出目标始终是 Windows x86-64。
+- `.bin` 是 shellcode。
+- `.x64.o` 是 BOF。
+
+## 配置
+
+- 无配置文件。
+- 编译只读仓内 stdlib。
+- win32 头来自 `stdlib/win32/*.h`。
+- `use_c` 直接引用 Windows SDK 头。
+- 没有外部数据面。
+- `entc` 根包没有第三方依赖。
+- 锁文件里的 29 个包都属于辅件。
+- `entc-win32gen` 运行时需要 `--winmd`。
+- `Windows.Win32.winmd` 由使用侧自备。
+- 该文件在 microsoft/win32metadata 的 releases 里。
+- 位置是 nupkg 内的 `ref/netstandard2.0/`。
+- 仓库与 zip 都不包含这个 winmd。
+- 因此离线不能重新生成头文件。
+- 日常编译使用仓内 stdlib。
+- 重新生成只在升级头文件时进行,并且需要网络。
+
+## 离线行为
+
+- 支持 `entc --version`。
+- 支持编译示例 `bof_pslist.etpy`,产出 COFF `.x64.o`。
+- 编译是本地计算。
+- 源码没有网络调用。
+- `entc-win32gen` 的构建会访问网络。
+- `entc-win32gen` 的头文件再生会访问网络。
+- 构建期 `CARGO_NET_OFFLINE=false` 是给辅件打开的在线面。
+- 这个变量不是给编译器的。
+- 关闭 eth0 后,`entc --version` 退 0。
+- 在 `/opt/entropia` 执行 `entc compile examples/bof_pslist.etpy --type=bof`,得到 `.x64.o`。
+
+## 限制
+
+- 锁定 tag,不跟随 HEAD。
+- issue #1 仍未修复。
+- 现象是 resolver 崩溃。
+- 原因是 unsafe branch relaxation 发出过期的短跳转偏移。
+- 该评论晚于锁定提交。
+- 此后 main 没有新代码。
+- 语言还没有嵌套结构。
+- 语言还没有 `--avoid=` 这种坏字节规避。
+- 这是 C 道旁边的实验编译道。
+- 它不是 C 道的升级。
+- PR #2 的测试合并留在 GitHub 记录里。
+- 锁定的树里没有这次合并。
+- 迁移时历史被压平。
+- README 写一次 cargo 产出三个 exe。
+- README 写每个 tag 带一份 PDF。
+- zip 里没有 PDF。
+- 集成以清单和 Cargo 为准。
+- 在混合 workspace 的根目录执行不带包选择的 `cargo build`,只构建根包。
+- 这与 README 和 Cargo 的差异是同一件事。
+- star 数是 297。
+- 这些 star 都是公告转发。
+- 转发来源包括 SEKTOR7、5mukx、PT dbugs。
+- 动手记录只有两篇。
+- 一篇是 brmk 的上手记录。
+- `--opsec=all` 之后,`__imp_*` 符号消失。
+- 解析改为经过 PEB。
+- 另一篇是 CN-SEC 的审查。
+- 没有外部缺陷帖。
+- star 数不是生产采用的信号。
+- typecheck 对空 branch 不报错。
+- 非 void 函数里的裸 `ret;` 不报错。
+- 这与锁定的源码一致。
+- 非 opsec 产物的符号形状是 `__imp_LIB$Func`。
+- 这是 CS 动态函数解析的形式。
+- 实例内唯一的候选加载器是 wine 上的 COFFLoader64。
+- 先试不带 `--opsec=all` 的对象。
+- opsec 产物使用 hashed imports,经过 PEB。
+- 不能假定 COFFLoader 能运行这些产物。
+- bof-launcher 的 Linux 面是 ELF 示例。
+- 它不接受本产物。
+- coffee-ldr 没有装上。见 [coffee-ldr.md](coffee-ldr.md)。
+- 实例内的验证停在编译。
+- 编译结果是真 COFF,或 118 字节的 shellcode。
+- 运行留在目标机,或之后用 wine 再试。
+
+## 参见
+
+- [bof.md](bof.md)
+- [bof-launcher.md](bof-launcher.md)
+- [coffee-ldr.md](coffee-ldr.md)
+- [wine.md](wine.md)
+- [offline.md](../../offline.md)
 
 ## rctl 收录行
 

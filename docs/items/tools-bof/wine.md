@@ -53,6 +53,6 @@
 - [params.md](../../params.md)
 - [known-issues.md](../../known-issues.md)
 
-## rctl 面,机器行
+## rctl 收录行
 
-@@WINE_RCTL@@
+- rctl: wine64 kind=tool path=/usr/local/bin/wine64 note=wine 主入口

@@ -65,6 +65,6 @@
 - [offline.md](../../offline.md)
 - [known-issues.md](../../known-issues.md)
 
-## rctl 面,机器行
+## rctl 收录行
 
-@@BOFL_RCTL@@
+- rctl: zig-0.15.2 kind=cache path=/opt/zig-0.15.2 note=bof-launcher 专用 zig 版本副本(versioned-copy)

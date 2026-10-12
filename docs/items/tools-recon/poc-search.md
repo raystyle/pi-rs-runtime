@@ -79,6 +79,6 @@
 - [offline.md](../../offline.md)
 - [known-issues.md](../../known-issues.md)
 
-## rctl 面,机器行
+## rctl 收录行
 
-@@POC_RCTL@@
+- rctl: poc-search kind=tool path=/usr/local/bin/poc-search env=工具环境 note=PoC 查询 wrapper(已装入口,非参考克隆)

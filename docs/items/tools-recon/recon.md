@@ -50,4 +50,9 @@
 
 ## 成员清单
 
-@@RECON_TABLE@@
+| 仓 | 用途 | 路径 |
+|---|---|---|
+| [runZeroInc/mac-tracker](https://github.com/runZeroInc/mac-tracker) | MAC 地址厂商指纹库 | /opt/recon-ref/mac-tracker |
+| [rapid7/recog](https://github.com/rapid7/recog) | 服务/产品指纹规则库 | /opt/recon-ref/recog |
+| [hickory-dns/hickory-dns](https://github.com/hickory-dns/hickory-dns) | DNS 协议栈源码参考 | /opt/recon-ref/hickory-dns |
+| [nomi-sec/PoC-in-GitHub](https://github.com/nomi-sec/PoC-in-GitHub) | CVE PoC 索引仓(README 含恶意样本警示;只克隆索引,不递归) | /opt/recon-ref/PoC-in-GitHub |

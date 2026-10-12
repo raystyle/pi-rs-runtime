@@ -74,4 +74,15 @@
 
 ## 成员清单
 
-@@BOF_TABLE@@
+| 件 | 版本 | 来源 | 路径 |
+|---|---|---|---|
+| mingw-w64 | noble 随源 | Ubuntu noble 源(tuna) | /usr/bin/x86_64-w64-mingw32-gcc(交叉编译器) |
+| wine | noble 随源( 9.0) | 见 [wine.md](wine.md) | /usr/bin/wine + /usr/local/bin/wine64 |
+| COFFLoader | GIT_PIN 锁定 sha | [trustedsec/COFFLoader](https://github.com/trustedsec/COFFLoader) | /opt/payload-ref/loaders/inproc/COFFLoader(`make bof` 交叉编出 COFFLoader64.exe) |
+| atomic-bofs | GIT_PIN 锁定 sha | [rasta-mouse/atomic-bofs](https://github.com/rasta-mouse/atomic-bofs) | /opt/tradecraft-ref/bof/atomic-bofs |
+| CS-Situational-Awareness-BOF | GIT_PIN 锁定 sha | [trustedsec/CS-Situational-Awareness-BOF](https://github.com/trustedsec/CS-Situational-Awareness-BOF) | /opt/tradecraft-ref/bof/CS-Situational-Awareness-BOF |
+| CS-Remote-OPs-BOF | GIT_PIN 锁定 sha | [trustedsec/CS-Remote-OPs-BOF](https://github.com/trustedsec/CS-Remote-OPs-BOF) | /opt/tradecraft-ref/bof/CS-Remote-OPs-BOF |
+| coffee-ldr | cargo nightly + CRATE_PIN 0.2.2 | 见 [coffee-ldr.md](coffee-ldr.md) | 未装上(构建失败留档) |
+| bof-launcher | GIT_PIN 锁定 sha | 见 [bof-launcher.md](bof-launcher.md) | /usr/local/bin/bof-launcher + 源码 inproc 轴 |
+| entropia(entc) | GIT_PIN 锁定 sha(v0.1-experimental) | 见 [entropia.md](entropia.md) | /usr/local/bin/entc + 源码 /opt/entropia(高级语言道,2026-10-11 加) |
+| BOF-CATALOG.md | main raw(未锁定) | [chryzsh/awesome-bof](https://github.com/chryzsh/awesome-bof) | /opt/tradecraft-ref/bof/BOF-CATALOG.md |
