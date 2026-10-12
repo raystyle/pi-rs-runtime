@@ -101,7 +101,7 @@
 | [tools-re/re.md](tools-re/re.md) | 逆向分析稳定链:re 组册 |
 | [tools-rea/rea.md](tools-rea/rea.md) | rea:rea-agents |
 
-## 数据信息搜索,3 册
+## 信息搜索,3 册
 
 | 册 | 标题 |
 | --- | --- |

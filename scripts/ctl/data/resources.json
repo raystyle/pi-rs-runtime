@@ -740,7 +740,7 @@
    "offline": "过,本地直读;缺它 capa 自下载规则到家目录(晦涩错,数据册验收句命中)",
    "book": "docs/items/tools-p0/capa.md",
    "alias": "",
-   "env": "数据信息搜索"
+   "env": "信息搜索"
   },
   {
    "id": "capstone",
@@ -1559,7 +1559,7 @@
    "offline": "",
    "book": "docs/items/tools-data/dataref.md",
    "alias": "",
-   "env": "数据信息搜索"
+   "env": "信息搜索"
   },
   {
    "id": "fasm",
@@ -1923,7 +1923,7 @@
    "offline": "",
    "book": "docs/items/tools-pentest/frida.md",
    "alias": "",
-   "env": "数据信息搜索"
+   "env": "信息搜索"
   },
   {
    "id": "frida-strace",
@@ -2391,7 +2391,7 @@
    "offline": "",
    "book": "docs/items/tools-data/dataref.md",
    "alias": "",
-   "env": "数据信息搜索"
+   "env": "信息搜索"
   },
   {
    "id": "hacktricks",
@@ -2404,7 +2404,7 @@
    "offline": "",
    "book": "docs/items/tools-data/dataref.md",
    "alias": "",
-   "env": "数据信息搜索"
+   "env": "信息搜索"
   },
   {
    "id": "hashcat",
@@ -2976,7 +2976,7 @@
    "offline": "",
    "book": "docs/items/tools-data/dataref.md",
    "alias": "",
-   "env": "数据信息搜索"
+   "env": "信息搜索"
   },
   {
    "id": "lookupsid.py",
@@ -3730,7 +3730,7 @@
    "offline": "",
    "book": "docs/items/tools-pd/nuclei.md",
    "alias": "",
-   "env": "数据信息搜索"
+   "env": "信息搜索"
   },
   {
    "id": "nuget.exe",
@@ -5160,7 +5160,7 @@
    "offline": "",
    "book": "docs/items/tools-pentest/pentest.md",
    "alias": "",
-   "env": "数据信息搜索"
+   "env": "信息搜索"
   },
   {
    "id": "secretsdump.py",
@@ -5784,7 +5784,7 @@
    "offline": "",
    "book": "docs/items/tools-red/trivy.md",
    "alias": "",
-   "env": "数据信息搜索"
+   "env": "信息搜索"
   },
   {
    "id": "trufflehog",
@@ -6070,7 +6070,7 @@
    "offline": "",
    "book": "docs/items/tools-data/dataref.md",
    "alias": "",
-   "env": "数据信息搜索"
+   "env": "信息搜索"
   },
   {
    "id": "whois",
@@ -6239,7 +6239,7 @@
    "offline": "支持。本地直读",
    "book": "docs/items/tools-re/re.md",
    "alias": "",
-   "env": "数据信息搜索"
+   "env": "信息搜索"
   },
   {
    "id": "yq",

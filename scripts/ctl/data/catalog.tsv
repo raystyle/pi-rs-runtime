@@ -25,7 +25,7 @@ GetUserSPNs.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Ker
 ICSharpCode.Decompiler	cache	`install-libcache.sh dotnet`(前置 `install-runtimes.sh dotnet`,dotnet-sdk-10.0)	缓存固化	反编译引擎(ilspycmd 上游)				docs/items/libcache/dotnet.md		编程环境
 Iced	cache	`install-libcache.sh dotnet`(前置 `install-runtimes.sh dotnet`,dotnet-sdk-10.0)	缓存固化	x86 汇编/反汇编				docs/items/libcache/dotnet.md		编程环境
 ImportExcel	cache	`install-libcache.sh pwsh`(前置 `install-runtimes.sh pwsh`)	缓存固化	Excel 读写(无需 Office)				docs/items/libcache/pwsh.md		编程环境
-LOLBAS	data	`install-tools.sh data`	已烘焙	Windows 滥用基线库		/opt/data-ref/LOLBAS		docs/items/tools-data/dataref.md		数据信息搜索
+LOLBAS	data	`install-tools.sh data`	已烘焙	Windows 滥用基线库		/opt/data-ref/LOLBAS		docs/items/tools-data/dataref.md		信息搜索
 LinkFinder	ref	`install-tools.sh red`	已烘焙	LinkFinder 仓(wrapper 见 linkfinder)		/opt/LinkFinder		docs/items/tools-red/red.md		工具环境
 Microsoft.Data.Sqlite	cache	`install-libcache.sh dotnet`(前置 `install-runtimes.sh dotnet`,dotnet-sdk-10.0)	缓存固化	SQLite ADO.NET				docs/items/libcache/dotnet.md		编程环境
 Microsoft.NETFramework.ReferenceAssemblies	cache	`install-libcache.sh dotnet`(前置 `install-runtimes.sh dotnet`,dotnet-sdk-10.0)	缓存固化	无 Windows 参照机也能编 .NET Framework 目标				docs/items/libcache/dotnet.md		编程环境
@@ -39,7 +39,7 @@ PowerHTML	cache	`install-libcache.sh pwsh`(前置 `install-runtimes.sh pwsh`)	�
 RsaCtfTool	ref	`install-tools.sh red`	已烘焙	RsaCtfTool 仓		/opt/RsaCtfTool		docs/items/tools-red/red.md		工具环境
 SILENTTRINITY	ref	`install-tools.sh c2`	参考克隆	/opt/c2dev-ref/SILENTTRINITY		/opt/c2dev-ref/SILENTTRINITY		docs/items/tools-c2/c2.md		代码样板参考
 SSTImap-src	ref	`install-tools.sh pentest`	已烘焙	SSTImap 仓源		/opt/SSTImap		docs/items/tools-pentest/pentest.md		工具环境
-SecLists	data	`install-tools.sh pentest`	已烘焙	词表库(缺它多只工具空跑)		/opt/SecLists		docs/items/tools-pentest/pentest.md		数据信息搜索
+SecLists	data	`install-tools.sh pentest`	已烘焙	词表库(缺它多只工具空跑)		/opt/SecLists		docs/items/tools-pentest/pentest.md		信息搜索
 SharpZipLib	cache	`install-libcache.sh dotnet`(前置 `install-runtimes.sh dotnet`,dotnet-sdk-10.0)	缓存固化	压缩归档				docs/items/libcache/dotnet.md		编程环境
 System.DirectoryServices.Protocols	cache	`install-libcache.sh dotnet`(前置 `install-runtimes.sh dotnet`,dotnet-sdk-10.0)	缓存固化	LDAP/AD				docs/items/libcache/dotnet.md		编程环境
 aarch64-linux-gnu-g++-13	compiler	`install-compilers.sh c`	已烘焙	aarch64 交叉编译链(支持静态链接)		/usr/bin/aarch64-linux-gnu-g++-13		docs/items/compilers/c-toolchain.md		编程环境
@@ -94,7 +94,7 @@ c-toolchain	compiler	`install-compilers.sh c`	已装	C/C++ 编译、调试与逆
 c2	ref	`install-tools.sh c2`	参考克隆	C2 框架源码参考,只克隆不安装不运行	钉版见册;解析日 2026-10-10	/opt/c2dev-ref/	支持。断网冒烟「参考库在位」覆盖	docs/items/tools-c2/c2.md		代码样板参考
 cabextract	tool	`install-tools.sh pentest`	已装	Microsoft CAB 解包				docs/items/tools-pentest/pentest.md		工具环境
 capa	tool	`install-tools.sh p0` 装本体与规则、`install-tools.sh pentest` 接线	已装	恶意软件能力识别(静态特征 到 能力/ATT&CK 映射)	CAPA_VERSION=9.4.0	/opt/capa	未验证。规则与二进制全本地,wrapper 注入 `-r` 后不触网]	docs/items/tools-p0/capa.md		逆向环境
-capa-rules	data	`install-tools.sh p0` 装本体与规则、`install-tools.sh pentest` 接线	已烘焙	capa 能力识别规则库(缺它 capa 会自下载规则)	pins.sh `GIT_PIN[mandiant/capa-rules]` 钉 sha;与 capa 二进制不同钉(规则库独立演进)	/opt/capa-rules	过,本地直读;缺它 capa 自下载规则到家目录(晦涩错,数据册验收句命中)	docs/items/tools-p0/capa.md		数据信息搜索
+capa-rules	data	`install-tools.sh p0` 装本体与规则、`install-tools.sh pentest` 接线	已烘焙	capa 能力识别规则库(缺它 capa 会自下载规则)	pins.sh `GIT_PIN[mandiant/capa-rules]` 钉 sha;与 capa 二进制不同钉(规则库独立演进)	/opt/capa-rules	过,本地直读;缺它 capa 自下载规则到家目录(晦涩错,数据册验收句命中)	docs/items/tools-p0/capa.md		信息搜索
 capstone	tool	`install-tools.sh re`	已装	反汇编				docs/items/tools-re/re.md		逆向环境
 capstone-tool	tool	`install-tools.sh re`	已装	capstone CLI				docs/items/tools-re/re.md		逆向环境
 cargo	compiler	`install-compilers.sh rust`	已烘焙	Rust 工具链:rustup + stable + 十向交叉 target 与配套组件		/usr/local/bin/cargo		docs/items/compilers/rust.md		编程环境
@@ -145,7 +145,7 @@ esentutl.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerber
 eslint	runtime	`install-tools.sh cli`	已烘焙	npm 全局件		/usr/local/bin/eslint		docs/items/tools-cli/cli.md		工具环境
 evil-winrm	tool	`install-tools.sh red`	已烘焙	gem 主入口(gems.ruby-china)	钉版见册;解析日 2026-10-10	/usr/local/bin/evil-winrm	未验证。纯 Ruby 本地运行,无自更新机制,断网可起 help 面	docs/items/tools-red/evil-winrm.md		工具环境
 exchanger.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/exchanger.py		docs/items/tools-p0/impacket.md		工具环境
-exploitdb	data	`install-tools.sh data`	已烘焙	Exploit-DB 快照(PoC 全文+csv 索引)		/opt/data-ref/exploitdb		docs/items/tools-data/dataref.md		数据信息搜索
+exploitdb	data	`install-tools.sh data`	已烘焙	Exploit-DB 快照(PoC 全文+csv 索引)		/opt/data-ref/exploitdb		docs/items/tools-data/dataref.md		信息搜索
 fasm	compiler	`install-compilers.sh c`	已烘焙	FASM 汇编器本体		/opt/fasm		docs/items/compilers/c-toolchain.md		编程环境
 fd	tool	`install-tools.sh fd`	已装	文件查找(fd)与内容搜索(rg)双件,fd 组同批装	noble 随源(apt 包 `fd-find`、`ripgrep`,版本随 Ubuntu 源冻结,不另钉)	/usr/bin/fdfind	未验证。纯本地文件系统工具,无网络面	docs/items/tools-fd/fd.md		工具环境
 feroxbuster	tool	`install-tools.sh secrust`	已装	强制目录/内容发现				docs/items/tools-secrust/secrust.md		工具环境
@@ -172,7 +172,7 @@ frida-ps	tool	`install-tools.sh pentest`	已烘焙	动态插桩:frida-tools 客�
 frida-pull	tool	`install-tools.sh pentest`	已烘焙	动态插桩:frida-tools 客户端 + 八平台 frida-server(版本严格对齐)		/usr/local/bin/frida-pull		docs/items/tools-pentest/frida.md		工具环境
 frida-push	tool	`install-tools.sh pentest`	已烘焙	动态插桩:frida-tools 客户端 + 八平台 frida-server(版本严格对齐)		/usr/local/bin/frida-push		docs/items/tools-pentest/frida.md		工具环境
 frida-rm	tool	`install-tools.sh pentest`	已烘焙	动态插桩:frida-tools 客户端 + 八平台 frida-server(版本严格对齐)		/usr/local/bin/frida-rm		docs/items/tools-pentest/frida.md		工具环境
-frida-server	data	`install-tools.sh pentest`	已烘焙	八平台 server 分发包(待拷走的注入数据,非入口)		/opt/frida-server		docs/items/tools-pentest/frida.md		数据信息搜索
+frida-server	data	`install-tools.sh pentest`	已烘焙	八平台 server 分发包(待拷走的注入数据,非入口)		/opt/frida-server		docs/items/tools-pentest/frida.md		信息搜索
 frida-strace	tool	`install-tools.sh pentest`	已烘焙	动态插桩:frida-tools 客户端 + 八平台 frida-server(版本严格对齐)		/usr/local/bin/frida-strace		docs/items/tools-pentest/frida.md		工具环境
 frida-trace	tool	`install-tools.sh pentest`	已烘焙	动态插桩:frida-tools 客户端 + 八平台 frida-server(版本严格对齐)		/usr/local/bin/frida-trace		docs/items/tools-pentest/frida.md		工具环境
 frpc	tool	`install-tools.sh pivot`	已装	frp 客户端,FRP_VERSION 钉版 release 直装				docs/items/tools-pivot/pivot.md		工具环境
@@ -202,8 +202,8 @@ gospider	tool	`install-tools.sh secgo`	已装	Web 爬虫				docs/items/tools-sec
 gost	tool	`install-tools.sh pivot`	已装	go_install_pin 钉 GO_PIN 伪版本,产物 /opt/go/bin/gost 链出				docs/items/tools-pivot/pivot.md		工具环境
 gowitness	tool	`install-tools.sh secgo`	已装	网页截图(需 Chrome)				docs/items/tools-secgo/secgo.md		工具环境
 gradle	runtime	`install-runtimes.sh sdkman` 内直装	已装	JVM 构建链(共享可写家目录 /opt/gradle-home)	`GRADLE_VERSION=8.14.3`(lib/common.sh)	/opt/gradle/gradle-	未验证。不做默认离线配置,手工 `gradle --offline`	docs/items/runtimes/gradle.md		运行时环境
-gtfobins	data	`install-tools.sh data`	已烘焙	Unix 二进制滥用基线(478 条,走 .github.io 源仓道)		/opt/data-ref/gtfobins		docs/items/tools-data/dataref.md		数据信息搜索
-hacktricks	data	`install-tools.sh data`	已烘焙	HackTricks 文本语料,1095 篇 md 约 18M(不含 .git 与配图)		/opt/data-ref/hacktricks		docs/items/tools-data/dataref.md		数据信息搜索
+gtfobins	data	`install-tools.sh data`	已烘焙	Unix 二进制滥用基线(478 条,走 .github.io 源仓道)		/opt/data-ref/gtfobins		docs/items/tools-data/dataref.md		信息搜索
+hacktricks	data	`install-tools.sh data`	已烘焙	HackTricks 文本语料,1095 篇 md 约 18M(不含 .git 与配图)		/opt/data-ref/hacktricks		docs/items/tools-data/dataref.md		信息搜索
 hashcat	tool	`install-tools.sh pentest`	已装	哈希破解(CPU 走 pocl,详 [hashcat](hashcat.md))	noble 随源无钉(清单记录 6.2.6),随 [pentest 组册](pentest.md) apt 批	/usr/bin/hashcat	未验证。纯本地计算,运行不触网	docs/items/tools-pentest/pentest.md		工具环境
 hashid	tool	`install-tools.sh p0`	已装	哈希类型识别		/usr/bin/hashid		docs/items/tools-p0/p0.md		工具环境
 hcxtools	tool	`install-tools.sh pentest`	已装	hcxpcapngtool 等 WiFi 抓包转换				docs/items/tools-pentest/pentest.md		工具环境
@@ -295,7 +295,7 @@ ntfs-read.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerbe
 ntlmrelayx.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/ntlmrelayx.py		docs/items/tools-p0/impacket.md		工具环境
 nu	tool	`install-tools.sh nu`	已装	结构化 Shell(数据按表流动的 shell 与脚本语言)	latest 道	/usr/local/bin/nu	未验 [推断:]预编译单文件,运行不触网;断网冒烟未单列 nu。验证:`ip link set eth0 down` 后 `nu --version` 退 0	docs/items/tools-nu/nu.md		数据分析
 nuclei	tool	`install-tools.sh pd`	已装	模板化漏洞扫描,单册 [nuclei.md](nuclei.md)	钉版见册;解析日 2026-10-10	/usr/local/bin/nuclei.real	支持。断网不卡更新检查、模板从 /opt 盘直读	docs/items/tools-pd/pd.md		工具环境
-nuclei-templates	data	`install-tools.sh pd`(本体)+ `install-tools.sh pentest`(离线接线)	已烘焙	模板库(缺它 nuclei 空跑/自下载;GIT_PIN 独立钉)		/opt/nuclei-templates		docs/items/tools-pd/nuclei.md		数据信息搜索
+nuclei-templates	data	`install-tools.sh pd`(本体)+ `install-tools.sh pentest`(离线接线)	已烘焙	模板库(缺它 nuclei 空跑/自下载;GIT_PIN 独立钉)		/opt/nuclei-templates		docs/items/tools-pd/nuclei.md		信息搜索
 nuget.exe	tool	`install-libcache.sh dotnet`(前置 `install-runtimes.sh dotnet`,dotnet-sdk-10.0)	已烘焙	NuGet 命令行(独立件)		/opt/nuget.exe		docs/items/libcache/dotnet.md		编程环境
 objection	tool	`install-tools.sh red`	已装	PyPI;启动查一次 PyPI 版本,断网 DNS 快失败不阻塞([offline.md](../../offline.md) 边界)				docs/items/tools-red/red.md		工具环境
 ocl-icd-libopencl1	tool	`install-tools.sh pentest`	已装	OpenCL ICD 加载器				docs/items/tools-pentest/pentest.md		工具环境
@@ -443,7 +443,7 @@ ticketer.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerber
 tlsx	tool	`install-tools.sh pd`	已装	TLS 配置分析				docs/items/tools-pd/pd.md		工具环境
 tmux	tool	`install-tools.sh cli`	已装	`/usr/bin`		/usr/bin/tmux		docs/items/tools-cli/cli.md		工具环境
 trivy	tool	`install-tools.sh red`	已装	容器与文件系统漏洞扫描器,db 为构建日快照	TRIVY_VERSION=v0.75.0;解析日 2026-10-10	/usr/bin/trivy	支持。断网扫描(`trivy fs --scanners vuln /etc/hostname`)	docs/items/tools-red/red.md		工具环境
-trivy-db	data	`install-tools.sh red`	已烘焙	漏洞库快照(缺它 trivy 离线 FATAL;构建日快照)		/opt/trivy-db		docs/items/tools-red/trivy.md		数据信息搜索
+trivy-db	data	`install-tools.sh red`	已烘焙	漏洞库快照(缺它 trivy 离线 FATAL;构建日快照)		/opt/trivy-db		docs/items/tools-red/trivy.md		信息搜索
 trufflehog	tool	`install-tools.sh secgo`	已装	git 历史与云密钥扫描,单册 [trufflehog.md](trufflehog.md)	TRUFFLEHOG_VERSION=v3.99.2;解析日 2026-10-10	/usr/local/bin/trufflehog	支持。本地 `filesystem`/`git` 扫描断网可跑,纯本地读盘	docs/items/tools-secgo/secgo.md		工具环境
 tsc	runtime	`install-runtimes.sh node`	已烘焙	typescript 编译器(npm 全局件)		/usr/local/bin/tsc		docs/items/runtimes/node.md		运行时环境
 tshark	tool	`install-tools.sh p0`	已装	Wireshark 命令行抓包与协议解析		/usr/bin/tshark		docs/items/tools-p0/p0.md		工具环境
@@ -465,7 +465,7 @@ volatility3	tool	`install-tools.sh re`(re-venv 链出)	已装	内存取证框架
 volshell	tool	`install-libcache.sh python`	已烘焙	逆向/CTF 向 19 个 PyPI 包装进 /opt/re-venv、轮子下载进 /opt/wheelhouse,断网 pip 免索引重装		/usr/local/bin/volshell		docs/items/libcache/python.md		工具环境
 wafw00f	tool	`install-tools.sh red`	已装	PyPI				docs/items/tools-red/red.md		工具环境
 waybackurls	tool	`install-tools.sh secgo`	已装	Wayback 历史 URL				docs/items/tools-secgo/secgo.md		工具环境
-webappanalyzer	data	`install-tools.sh data`	已烘焙	Web 指纹库		/opt/data-ref/webappanalyzer		docs/items/tools-data/dataref.md		数据信息搜索
+webappanalyzer	data	`install-tools.sh data`	已烘焙	Web 指纹库		/opt/data-ref/webappanalyzer		docs/items/tools-data/dataref.md		信息搜索
 whois	tool	`install-tools.sh pentest`	已装	域名/ASN 注册信息查询				docs/items/tools-pentest/pentest.md		工具环境
 windows-logical-eop-workshop	ref	`install-tools.sh pz`	参考克隆	/opt/windows-logical-eop-workshop(EOP 教材)		/opt/windows-logical-eop-workshop		docs/items/tools-pz/pz.md		代码样板参考
 wine	tool	`install-tools.sh bof`	已装	在 Linux 下跑交叉编译出的 Windows PE(如 COFFLoader64.exe)的兼容层	钉版见册;解析日 2026-10-09	/usr/bin/wine	未验证。wine 跑原生 Windows PE 是纯本地动作不依赖网络(未单独断网)	docs/items/tools-bof/wine.md		工具环境
@@ -478,7 +478,7 @@ wstunnel	tool	`install-tools.sh pivot`	已装	Rust WebSocket 隧道 wstunnel,GIT
 xxd	tool	`install-tools.sh p0`	已装	十六进制转储与回写		/usr/bin/xxd		docs/items/tools-p0/p0.md		工具环境
 yara	tool	`install-tools.sh re`	已装	样本特征规则扫描				docs/items/tools-re/re.md		逆向环境
 yara-python	tool	`install-tools.sh re`	已装	规则扫描				docs/items/tools-re/re.md		逆向环境
-yara-rules	data	`install-tools.sh re`	已烘焙	yara 规则集	pins.sh `GIT_PIN[Yara-Rules/rules]` 钉 sha(clone_pin)	/opt/yara-rules	支持。本地直读	docs/items/tools-re/re.md		数据信息搜索
+yara-rules	data	`install-tools.sh re`	已烘焙	yara 规则集	pins.sh `GIT_PIN[Yara-Rules/rules]` 钉 sha(clone_pin)	/opt/yara-rules	支持。本地直读	docs/items/tools-re/re.md		信息搜索
 yq	tool	`install-tools.sh cli`	已装	`/opt/go/bin` 链 `/usr/local/bin`		/opt/go/bin/yq		docs/items/tools-cli/cli.md		工具环境
 zbar-tools	tool	`install-tools.sh pentest`	已装	zbarimg 条码/二维码识别				docs/items/tools-pentest/pentest.md		工具环境
 zg	tool	`install-tools.sh ctl`	已烘焙	语义检索引擎,rctl search 向量腿	钉版见册	/usr/local/bin/zg	已验(2026-10-12,eth0 down)语义查询 fts+vector 命中且秒级(模型与索引构建期在盘,查询纯本地零网络);冷索引为构建期一次性动作	docs/items/tools-ctl/zg.md		工具环境
