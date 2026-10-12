@@ -1453,10 +1453,51 @@ install_ctl() {
     install -d /var/lib/rctl
     install -m644 data/catalog.tsv data/caps.tsv /var/lib/rctl/
     cd /
+    # 语义引擎先行(zg 缺席时 rctl 自动回退词面,但完整面要它)
+    install_zg
     # 路径库首建(限根名单+剪枝,见 src/paths.ts)
     rctl index
+    # 语义索引预热:一次查询触发镜像+全量索引(构建期一次,运行期查询秒级)
+    rctl search 语义预热 --limit 1 >/dev/null 2>&1 || true
     echo "rctl 自检:"; rctl --llms | head -3
     command -v rctl >/dev/null && echo "rctl 装好(/usr/local/bin/rctl)"
+}
+
+# ---- zg(zvec-grep:rctl 语义检索引擎;llama.cpp+ort 链,构建期在线面)----
+install_zg() {
+    log "zg ${GIT_PIN[zvec-ai/zvec-grep]:0:7} 段(zvec-grep 语义引擎 + ${ZG_MODEL_REF:-} 烤库)"
+    local sha="${GIT_PIN[zvec-ai/zvec-grep]:?pins.sh 缺 zvec-ai/zvec-grep 钉,跑 scripts/resolve-pins.sh}"
+    install -d /opt/zg-models
+    # 幂等:二进制在 + 构建钉标记==当前钉 → 早退
+    if command -v zg >/dev/null 2>&1 && [ "$(cat /var/lib/rctl/.zg-built-sha 2>/dev/null)" = "$sha" ]; then
+        echo "zg 已在钉上(幂等早退)"
+    else
+        clone_pin zvec-ai/zvec-grep /opt/zvec-grep-src || return 1
+        # 上游 Cargo.lock 自洽;llama.cpp 要 cmake/gcc(镜像在);构建期在线面取 crates(offline.md 口径)
+        ( cd /opt/zvec-grep-src/rust && CARGO_NET_OFFLINE=false cargo build --release -p zg ) \
+            || { echo "!! zg 构建失败(llama.cpp+ort 链,查 cmake/gcc 与网络)"; return 1; }
+        install -m755 /opt/zvec-grep-src/rust/target/release/zg /usr/local/bin/zg
+        install -m644 /opt/zvec-grep-src/rust/target/release/libzvec_c_api.so /usr/local/lib/
+        ldconfig
+        printf '%s' "$sha" > /var/lib/rctl/.zg-built-sha
+    fi
+    # 模型烤库:zg 自下载器拉(标记文件自理),sha256 锚;已缓存则只校验
+    local mf=/opt/zg-models/hf_Qwen_Qwen3-Embedding-0.6B-Q8_0.gguf
+    if [ ! -f "$mf" ]; then
+        local T; T="$(mktemp -d /tmp/zg-modelprobe-XXXXXX)"
+        printf 'id: probe\ndesc: 语义模型烤库探针\n' > "$T/a.txt"
+        ( cd "$T" && zg --index --mode direct --model-cache /opt/zg-models ) \
+            || { echo "!! 模型下载或探针索引失败(构建期在线面)"; return 1; }
+        rm -rf "$T"
+    fi
+    echo "${ZG_MODEL_SHA256:?pins.sh 缺 ZG_MODEL_SHA256}  $mf" | sha256sum -c - \
+        || { echo "!! 模型 sha256 不符(漂移!重钉 ZG_MODEL_SHA256)"; return 1; }
+    # 默认模型双家指名(root 家由 zg 写,ubuntu 家同形拷贝;查询侧还有 --model-cache 兜)
+    zg --config model set "${ZG_MODEL_REF:?pins.sh 缺 ZG_MODEL_REF}" --default
+    install -d -m755 -o 1000 -g 1000 /home/ubuntu/.zvec-grep
+    printf '{\n  "defaults": {\n    "embedding": "%s"\n  },\n  "version": 1\n}\n' "$ZG_MODEL_REF" > /home/ubuntu/.zvec-grep/config.json
+    chown 1000:1000 /home/ubuntu/.zvec-grep/config.json
+    zg --help >/dev/null 2>&1 && echo "zg 装好(/usr/local/bin/zg;模型 $(du -sh /opt/zg-models 2>/dev/null | cut -f1))"
 }
 
 # ---- rea(morluto/rea:agent 逆向工具面,MCP server + CLI;原生 provider 对齐镜像内 Ghidra)----

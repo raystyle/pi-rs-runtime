@@ -2,6 +2,7 @@
 import { join, dirname } from "node:path"
 import { existsSync, readFileSync } from "node:fs"
 import { fileURLToPath } from "node:url"
+import { resolveZg, semanticSearch } from "./semantic.ts"
 
 export interface Rec {
   id: string; kind: string; group: string; status: string
@@ -16,7 +17,7 @@ export interface Cap {
   task: string; ids: string; example: string; note: string
 }
 
-function dataDir(): string {
+export function dataDir(): string {
   const env = process.env.RCTL_HOME
   if (env && existsSync(join(env, "catalog.tsv"))) return env
   const dev = join(dirname(dirname(fileURLToPath(import.meta.url))), "data")
@@ -91,14 +92,36 @@ export function withTaskHints(recs: Rec[], capList: Cap[]): Rec[] {
 }
 
 export function search(q: string, kind: string | undefined, limit: number, env?: string): Rec[] {
+  return searchWithEngine(q, kind, limit, env).hits
+}
+
+/** 语义腿优先(zg 在则接管排序,kind/env 过滤在排序后),失败或无 zg 回退词面;engine 供输出面标注 */
+export function searchWithEngine(
+  q: string,
+  kind: string | undefined,
+  limit: number,
+  env?: string,
+): { hits: Rec[]; engine: "zvec" | "lexical" } {
   const all = withTaskHints(catalog(), caps())
+  const zgPath = resolveZg()
+  if (zgPath) {
+    const sem = semanticSearch(q, all, dataDir(), limit, zgPath)
+    if (sem) {
+      const hits = sem.filter((r) => (!kind || r.kind === kind) && (!env || r.env === env)).slice(0, limit)
+      if (hits.length > 0) return { hits, engine: "zvec" }
+      // 语义命中被 kind/env 过滤光时仍回退词面,保过滤语义与词面一致
+    }
+  }
   const pool = all.filter((r) => (!kind || r.kind === kind) && (!env || r.env === env))
-  return pool
-    .map((r) => ({ r, s: score(r, q) }))
-    .filter((x) => x.s > 0)
-    .sort((a, b) => b.s - a.s)
-    .slice(0, limit)
-    .map((x) => x.r)
+  return {
+    hits: pool
+      .map((r) => ({ r, s: score(r, q) }))
+      .filter((x) => x.s > 0)
+      .sort((a, b) => b.s - a.s)
+      .slice(0, limit)
+      .map((x) => x.r),
+    engine: "lexical",
+  }
 }
 
 export function show(id: string): Rec | undefined {

@@ -25,6 +25,7 @@ export interface EmitOpts {
   full?: boolean
   command: string
   durationMs: number
+  note?: string
 }
 
 function applyFilter(data: unknown, keys: string[] | undefined): unknown {
@@ -119,6 +120,7 @@ export function emitOk(data: unknown, o: EmitOpts, cta: CtaItem[]): void {
       meta: {
         command: o.command,
         duration_ms: o.durationMs,
+        ...(o.note ? { note: o.note } : {}),
         cta: { description: cta.length > 1 ? "Suggested commands:" : "Suggested command:", commands: cta },
       },
     }
@@ -127,7 +129,8 @@ export function emitOk(data: unknown, o: EmitOpts, cta: CtaItem[]): void {
   }
   if (o.format === "yaml") { process.stdout.write(toYaml(filtered)); return }
   if (o.format === "md") { process.stdout.write(toMd(filtered)); return }
-  // toon:人机统一,数据行 + CTA 尾
+  // toon:人机统一,数据行 + 注记 + CTA 尾
+  if (o.note) console.log(o.note)
   const body = humanData(filtered)
   if (body) console.log(body)
   if (cta.length) {

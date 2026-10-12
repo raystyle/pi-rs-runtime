@@ -227,6 +227,7 @@ GIT_REPOS=(
     exploit-database/exploitdb
     # re/p0/pentest/pivot 操作面
     rizinorg/rizin rizinorg/rz-ghidra rizinorg/sigdb DidierStevens/DidierStevensSuite
+    zvec-ai/zvec-grep   # rctl 语义检索引擎(zg;上游 HEAD 钉,CLI 面以安装自检把门)
     mandiant/capa-rules Yara-Rules/rules danielmiessler/SecLists lgandx/Responder
     projectdiscovery/nuclei-templates onekey-sec/sasquatch ticarpi/jwt_tool GerbenJavado/LinkFinder
     dirkjanm/krbrelayx cddmp/enum4linux-ng digiNinja/CeWL r0oth3x49/ghauri pwndbg/pwndbg

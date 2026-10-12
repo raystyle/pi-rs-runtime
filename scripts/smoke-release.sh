@@ -74,7 +74,7 @@ dig whois socat nc telnet ftp snmpwalk proxychains4 ldapsearch smbclient mysql p
 ghauri kerbrute wafw00f arjun bloodhound-python mitm6 objection apkleaks certipy bloodyAD bofhound semgrep coercer enum4linux-ng krbrelayx jwt-tool linkfinder evil-winrm feroxbuster trivy \
 ghidraRun analyzeHeadless msfconsole frida \
 nu vncserver Xvfb x11vnc websockify startxfce4 \
-rctl acpsup rea phpggc commix sstimap"
+rctl acpsup rea phpggc commix sstimap zg"
 miss=0
 for t in $SWEEP; do
     command -v "$t" >/dev/null 2>&1 || { miss=$((miss+1)); printf '  FAIL 缺 %s\n' "$t"; }

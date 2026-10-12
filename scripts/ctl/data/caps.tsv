@@ -19,7 +19,7 @@ impacket 家族 smb windows 协议	impacket,secretsdump.py,psexec.py,wmiexec.py,
 BOF利用链 bof	COFFLoader,bof-launcher,bof	bof-launcher --help	mingw/wine 面同组;coffee-ldr 上游编不过属 known-issues
 实例总控 rctl自述	rctl	rctl --llms	本工具;env 子命令看实例态
 票据操作 kerberos ticket 票据	ticketer.py,ticketConverter.py,getST.py,getTGT.py	ticketer.py -h	金票银票与票据转换;impacket 家族成员
-口令密码爆破 password brute 口令 密码	hydra,kerbrute,john,hashcat	hydra -h	在线离线两道;cewl 二进制在但册面未落行(docs 缺口另收)
+口令密码爆破 password brute 口令 密码	hydra,kerbrute,john,hashcat,CeWL	hydra -h	在线离线两道;CeWL 先造字典(catalog id 大小写敏感,勿写小写)
 反序列化利用 deserialization 反序列化	phpggc	phpggc -l	PHP gadget 链;wrapper 钉 php8.3
 词表字典 wordlist 字典	SecLists	rctl where SecLists	目录爆破/口令面共用;kind=data
 网页截图 screenshot 截图	gowitness	gowitness --version	需 Chrome,断网对内网目标可用

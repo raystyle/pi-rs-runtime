@@ -58,13 +58,13 @@
 | red | [red](tools-red/red.md)(组册 24 件) · [bloodhound-ce](tools-red/bloodhound-ce.md) · [enum4linux-ng](tools-red/enum4linux-ng.md) · [evil-winrm](tools-red/evil-winrm.md) · [cyberchef](tools-red/cyberchef.md) · [trivy](tools-red/trivy.md) |
 | msf | [msf](tools-msf/msf.md) |
 | vnc | [vnc](tools-vnc/vnc.md)(XFCE+TigerVNC+noVNC 桌面与 Web 面) |
-| ctl | [rctl](tools-ctl/rctl.md)(核心 CLI:实例总控,渐进索引与全资源可搜) |
+| ctl | [rctl](tools-ctl/rctl.md)(核心 CLI:实例总控,渐进索引与全资源可搜) · [zg](tools-ctl/zg.md)(语义检索引擎,rctl 向量腿) |
 | agents | [claude-code](tools-agents/claude-code.md) · [codex](tools-agents/codex.md)(agent CLIs,凭证经挂载不进镜像) |
 | cloud | [cloud](tools-cloud/cloud.md)(云 CLI:aliyun+tccli,凭证使用期注入) |
 | data | [dataref](tools-data/dataref.md)(数据信息资产:LOLBAS/webappanalyzer/exploit-db 快照) |
 | acp | [acp](tools-acp/acp.md)(ACP v1+stdio 通道:适配器+监督进程 acpsup,REQ-0002) |
 | chrome | [clean-chrome](tools-chrome/clean-chrome.md)(定制 Chromium 155,云端道+sha256 锚) |
 
-计数对账:compilers 6 / runtimes 16 / libcache 8 / tools 57 = 87 册(2026-10-11 复点+entropia);组册承载的批量件数见各组册成员表(组册成员数 = 脚本实装件数)。
+计数对账:compilers 6 / runtimes 16 / libcache 8 / tools 58 = 88 册(2026-10-12 增 zg);组册承载的批量件数见各组册成员表(组册成员数 = 脚本实装件数)。
 
 返回 [docs 文档地图](../README.md)。

@@ -2,7 +2,7 @@
 // 裸调用 = 渐进提示面板 exit 0;退出码 0/1/2;错误 stderr 单行 JSON(结构化时)
 import { COMMANDS, RCTL_VERSION, renderLlms, renderHelp, schemaFor } from "./commands.ts"
 import { emitOk, die, type CtaItem } from "./envelope.ts"
-import { catalog, caps, search, show, withTaskHints } from "./catalog.ts"
+import { catalog, caps, search, searchWithEngine, show, withTaskHints } from "./catalog.ts"
 import { where, buildLib, loadLib } from "./paths.ts"
 import { envFace } from "./envface.ts"
 import { agentsFace } from "./agents.ts"
@@ -58,8 +58,8 @@ const t0 = Date.now()
 const cmd = positional[0]
 const rest = positional.slice(1)
 
-function done(data: unknown, cta: CtaItem[], command: string): void {
-  emitOk(data, { format: o.format, filter: o.filter, full: o.full, command, durationMs: Date.now() - t0 }, cta)
+function done(data: unknown, cta: CtaItem[], command: string, note?: string): void {
+  emitOk(data, { format: o.format, filter: o.filter, full: o.full, command, durationMs: Date.now() - t0, note }, cta)
   process.exit(0)
 }
 function nohit(what: string, cta: CtaItem[]): void {
@@ -141,14 +141,14 @@ switch (cmd) {
   case "search": {
     const q = rest.join(" ")
     if (!q) die("usage", "search 需要查询词", structured, 2, [{ command: "rctl search hash", description: "示例" }])
-    const hits = search(q, o.kind, o.limit, (o as any).env)
+    const { hits, engine } = searchWithEngine(q, o.kind, o.limit, (o as any).env)
     if (hits.length === 0) nohit(`search ${q}`, [
       { command: `rctl search ${q.split(/\s+/)[0]}`, description: "放宽到单词" },
       { command: "rctl caps", description: "改走能力词典" },
     ])
     done(hits.map((r) => ({ id: r.id, kind: r.kind, status: r.status, desc: r.desc.slice(0, 80), group: r.group })), [
       { command: `rctl show ${hits[0].id}`, description: "下钻第一名" },
-    ], "search")
+    ], "search", `engine=${engine}`)
     break
   }
   case "where": {
