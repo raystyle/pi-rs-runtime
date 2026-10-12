@@ -6,6 +6,7 @@
 
 ```bash
 bash -n scripts/*.sh scripts/lib/*.sh          # 脚本语法检查(改后必跑)
+bash scripts/check-doc-style.sh                # 产品文档文风守卫:禁词/字段长度,基线棘轮只许降(规范=docs/doc-spec.md;迁移收尾跑 --update 降基线)
 # 名字 = pi-rs-runtime-YYYYMMDD-HHMM,主机本地时间。实例用 launch 时刻,镜像版本用 publish 时刻,两个时间不同。
 # 禁止 rt-* 、禁止 -dev。当前工作实例: pi-rs-runtime-20261010-2210。有它就不要再 launch。
 incus file push scripts pi-rs-runtime-20261010-2210/root/ -r
