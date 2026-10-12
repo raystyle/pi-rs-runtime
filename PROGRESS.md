@@ -11,7 +11,7 @@
 - 线上镜像:**`5e947cfcd98e`**(18.7 GB);历史发布链见 [docs/diary/2026-10-10-offline-rounds.md](docs/diary/2026-10-10-offline-rounds.md) 尾部
 - 2026-10-11 agent 平台轮(十批+entropia 晚批,全程细节归 [docs/diary/2026-10-11-agent-platform-rounds.md](docs/diary/2026-10-11-agent-platform-rounds.md)):回归五缺口修复+宿主信号策略发现;rea/rctl(REQ-0001)/agents/acp(REQ-0002)/清点分类归档(七域+audit 清零)/物化预热(REQ-0003)/工作流补缺(REQ-0004,交叉链+stego+web 泄漏);grok 十一笺联席;catalog 447 件、87 册、四 REQ implemented;实例开发态未打包(用户裁定)
 - 2026-10-12 acp-01(grok 调研,断言 5/5 过):pi-rs 自实现 ACP Agent 侧可行,ACP prompt 轮与 AgentSession.prompt 到 agent_settled 同构;MVP=rs-agent 内新 mode(--mode acp 加 acp-entry.ts,stdio JSON-RPC,直接调 AgentSession,与私有 JSONL rpc mode 并存不桥接,chord 不承担帧);S-0002 五节补三句落地;pi-rs 实现单待派(九件清单在轮次档 acp-01-research.md 第 4 节)
-- 2026-10-12 余账推进轮:impacket 闭集族全表收口(+46 机器行,catalog 447 到 493 件,shim 全在位,断网 -h 抽验 4/4,册离线行为转已验);冒烟收编 scripts/smoke-release.sh(双视角断网全绿 root 77/0、ubuntu 65/0;收编首版 sed 吞 set-u/VIEW/cd 三行 bug 自查已修;uv 探针 requests 改假包名防缓存假阴;grok 评审 smoke-01 在办,过审后提交)
+- 2026-10-12 余账推进轮:impacket 闭集族全表收口(+46 机器行,catalog 447 到 493 件,shim 全在位,断网 -h 抽验 4/4,册离线行为转已验);冒烟收编 scripts/smoke-release.sh 完成过评审落地(smoke-01 四假过全修+视角双守卫+跑板重写,真双视角断网全绿 root 81/0、ubuntu 68/0,负控 root 进程跑 ubuntu 视角退 2;坑:herdr 抄成 herder 转录错、apt lists 两态语义、choosenim current 是文件)
 - 方向档:完整系统容器进 web 平台(左 chat 可切 agent,右持久浏览器 VNC,平台在另项目);自建 agent API 网关;实例 RPC=ACP v1+stdio(S-0002);rctl=给 agent 用的 CLI;自家 agent 定名 pi-rs(agents 面留位)
 
 ## 近三轮:细节在 diary
@@ -35,5 +35,5 @@
 2. ~~脚本级疑点~~(2026-10-10 两批 swarm 全清):bun/zig/nim 早退后配置写入已挪前(golang 组 profile.d 同坑顺手修);jwt_tool/LinkFinder wrapper 实证活 bug(系统 python3 无依赖必炸)已改 re-venv python + 依赖钉版;golang 早退跳过补装残留已由早退判据补三件套存在性根治(删 dlv 残留态实证重跑补装过);rust 组 rustup-init 守卫加执行探针(shim 空转不再卡死)。
 3. ~~库缓存层的 repo 侧钉版(phase B)~~(2026-10-10 完成):六生态锁文件入库 `scripts/lock/`(go.mod+go.sum、Cargo.toml+Cargo.lock(31 crate 清单重建 generate-lockfile 收割)、package-lock.json、resolve-ranges 写回后 pom.xml、dotnet-prewarm.csproj、build.zig.zon);install-libcache.sh 有锁消费锁(go build 用 go.sum / cargo fetch --locked / npm ci / mvn 直消费解析后 pom / dotnet restore / zig build --fetch),无锁或 LIBCACHE_RESOLVE=1 走构建日解析并打印「未锁」;新 `scripts/sync-locks.sh` 起临时容器从线上镜像解析态再生拉回(rt-locksync,用完自删);python/pwsh 无独立锁文件(pins.sh 钉直接依赖)不在同步面。容器实证(rt-lh):六组锁消费路径全过(go build 锁 19+19 模块、npm ci 255 包/161 落点、cargo fetch --locked、restore 9 段、zig 10 包)
 4. 已知遗留(不阻塞,细节见 docs/known-issues.md):webcrack 传递依赖 isolated-vm 被拦;frida windows-x86 server 多数版本未发布;coffee-ldr nightly 编译失败(上游);trivy db 为构建日快照;nuclei headless 无 Chrome 不可用;**宿主层信号投递策略**(容器内 kill 族全 EPERM,宿主侧问题,进程管理类动作受限)。
-5. 冒烟脚本入库化:本轮回归冒烟是即席脚本(宿主 /tmp/prt-smoke-regression.sh,双视角+五生态快失败+构建面+工具扫+参考库+chrome 下架面),建议收编进 scripts/ 做发布门禁可复跑面(先过评审)。
+5. ~~冒烟脚本入库化~~(2026-10-12 完成,smoke-01 评审过):`scripts/smoke-release.sh` 落地为发布门禁面,grok 评审四假过全修(TOOLS_ALL 词边界/profile 逐路径/vnc 分支败态/skip 不计分)+ 视角双守卫 + 跑板五步法;断网真双视角 root 81/0、ubuntu 68/0,负控退 2;AGENTS.md Commands 收跑法行
 

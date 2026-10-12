@@ -11,6 +11,9 @@ bash -n scripts/*.sh scripts/lib/*.sh          # 脚本语法检查(改后必跑
 incus file push scripts pi-rs-runtime-20261010-2210/root/ -r
 incus exec pi-rs-runtime-20261010-2210 -- bash /root/scripts/install-tools.sh <组>
 incus exec pi-rs-runtime-20261010-2210 -- bash -c 'ip link set eth0 down'   # 断网冒烟
+# 发布门禁冒烟,双视角断网,完整跑法与视角守卫见 scripts/smoke-release.sh 头注释:
+incus exec pi-rs-runtime-20261010-2210 -- bash /root/scripts/smoke-release.sh root
+incus exec pi-rs-runtime-20261010-2210 --user 1000 --group 1000 -- env HOME=/home/ubuntu LOCKDIR=/home/ubuntu/scripts/lock VNCSCRIPT=/home/ubuntu/scripts/vnc-screen.sh bash /home/ubuntu/scripts/smoke-release.sh ubuntu
 # 没有存活实例时才 launch,会解包约 3.5 分钟:
  # incus launch pi-rs-runtime "pi-rs-runtime-$(date +%Y%m%d-%H%M)"
 # 这批稳定后先问用户。点头才打包;新镜像别名用打包时刻,浮动别名 pi-rs-runtime 再指向它:
