@@ -1597,7 +1597,7 @@
    "path": "/usr/bin/fdfind",
    "offline": "未验证。纯本地文件系统工具,无网络面",
    "book": "docs/items/tools-filesearch/filesearch.md",
-   "alias": "",
+   "alias": "fd",
    "env": "工具环境"
   },
   {
@@ -6435,6 +6435,19 @@
    "book": "docs/items/tools-ctl/zg.md",
    "alias": "",
    "env": "工具环境"
+  },
+  {
+   "id": "maven-prewarm",
+   "kind": "cache",
+   "group": "`install-libcache.sh java`",
+   "status": "缓存固化",
+   "desc": "maven 预热工程与解析缓存(构建期物化)",
+   "pin": "",
+   "path": "/opt/maven-prewarm",
+   "offline": "",
+   "book": "docs/items/runtimes/maven.md",
+   "alias": "",
+   "env": "编程环境"
   }
  ],
  "caps": [

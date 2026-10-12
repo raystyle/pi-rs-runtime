@@ -152,7 +152,7 @@ fasm	compiler	`install-compilers.sh c`	已烘焙	FASM 汇编器本体		/opt/fasm
 feroxbuster	tool	`install-tools.sh rust-security`	已装	强制目录/内容发现				docs/items/tools-rust-security/rust-security.md		工具环境
 ffuf	tool	`install-tools.sh go-security`	已装	Web fuzz(产物名 v2,改名)				docs/items/tools-go-security/go-security.md		工具环境
 file	tool	`install-tools.sh reverse`	已装	文件类型识别				docs/items/tools-reverse/reverse.md		逆向环境
-filesearch	tool	`install-tools.sh filesearch`	已装	文件查找(fd)与内容搜索(ripgrep)双件,同批安装	noble 随源(apt 包 `fd-find`、`ripgrep`,版本随 Ubuntu 源冻结,不单独锁定)	/usr/bin/fdfind	未验证。纯本地文件系统工具,无网络面	docs/items/tools-filesearch/filesearch.md		工具环境
+filesearch	tool	`install-tools.sh filesearch`	已装	文件查找(fd)与内容搜索(ripgrep)双件,同批安装	noble 随源(apt 包 `fd-find`、`ripgrep`,版本随 Ubuntu 源冻结,不单独锁定)	/usr/bin/fdfind	未验证。纯本地文件系统工具,无网络面	docs/items/tools-filesearch/filesearch.md	fd	工具环境
 filetime.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/filetime.py		docs/items/analysis/impacket.md		工具环境
 findDelegation.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/findDelegation.py		docs/items/analysis/impacket.md		工具环境
 floss	tool	`install-libcache.sh python`	已烘焙	FLARE 伪代码字符串提取(re-venv 链出)		/usr/local/bin/floss		docs/items/libcache/python.md		逆向环境
@@ -252,6 +252,7 @@ maldev	ref	`install-tools.sh maldev`	参考克隆	载荷开发与操作技法参
 mapcidr	tool	`install-tools.sh discovery`	已装	CIDR 切分/聚合				docs/items/tools-discovery/discovery.md		工具环境
 masscan	tool	`install-tools.sh pentest`	已装	大规模端口快扫(setcap 免 sudo,见安装路径)				docs/items/tools-pentest/pentest.md		工具环境
 maven	runtime	`install-runtimes.sh sdkman` 内直装 + `install-libcache.sh java`(依赖固化)	已装	Java 构建与依赖管理(本地仓 /opt/m2 双用户共享)	`MAVEN_VERSION=3.9.16`(lib/common.sh)	/opt/maven	未验证。不做默认离线配置	docs/items/runtimes/maven.md		运行时环境
+maven-prewarm	cache	`install-libcache.sh java`	缓存固化	maven 预热工程与解析缓存(构建期物化)		/opt/maven-prewarm		docs/items/runtimes/maven.md		编程环境
 mbedtls	cache	`install-libcache.sh zig`(前置 `install-compilers.sh zig`,0.16.0)	缓存固化	main				docs/items/libcache/zig-cache.md		编程环境
 merlin	ref	`install-tools.sh c2`	参考克隆	/opt/c2dev-ref/merlin		/opt/c2dev-ref/merlin		docs/items/tools-c2/c2.md		代码样板参考
 meson	tool	`install-tools.sh reverse`	已装	rizin/sigdb 构建系统				docs/items/tools-reverse/reverse.md		逆向环境

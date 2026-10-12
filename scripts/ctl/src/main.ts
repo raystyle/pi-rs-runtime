@@ -2,7 +2,8 @@
 // 裸调用 = 渐进提示面板 exit 0;退出码 0/1/2;错误 stderr 单行 JSON(结构化时)
 import { COMMANDS, RCTL_VERSION, renderLlms, renderHelp, schemaFor } from "./commands.ts"
 import { emitOk, die, type CtaItem } from "./envelope.ts"
-import { catalog, caps, search, searchWithEngine, show, withTaskHints } from "./catalog.ts"
+import { catalog, caps, search, searchWithEngine, show, withTaskHints, dataDir } from "./catalog.ts"
+import { prewarmSemantic } from "./semantic.ts"
 import { where, buildLib, loadLib } from "./paths.ts"
 import { envFace } from "./envface.ts"
 import { agentsFace } from "./agents.ts"
@@ -246,8 +247,11 @@ switch (cmd) {
   }
   case "index": {
     const lib = buildLib()
-    done({ generated_at: lib.generated_at, count: lib.count, lib: loadLib !== undefined ? "paths.json" : "" }, [
+    // 语义索引预热:长超时全量建,catalog 批量变更后必跑一次(查询期只有增量短预算)
+    const sem = prewarmSemantic(withTaskHints(catalog(), caps()), dataDir())
+    done({ generated_at: lib.generated_at, count: lib.count, lib: "paths.json", semantic: sem }, [
       { command: "rctl where rockyou", description: "试路径问句" },
+      { command: "rctl search 隧道", description: "试语义问句" },
     ], "index")
     break
   }

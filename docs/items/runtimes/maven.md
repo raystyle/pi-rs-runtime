@@ -56,3 +56,7 @@
 ## rctl 面,机器行
 
 - rctl: mvn kind=runtime path=/usr/local/bin/mvn note=maven 入口名
+
+## rctl 面,机器行
+
+- rctl: maven-prewarm kind=cache path=/opt/maven-prewarm note=maven 预热工程(构建期解析缓存)

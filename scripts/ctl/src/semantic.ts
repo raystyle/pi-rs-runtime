@@ -60,9 +60,20 @@ export function zgHitsToRecs(output: string, byName: Map<string, Rec>): Rec[] {
 }
 
 /**
- * 语义检索:成功返回排序结果;undefined = 引擎不可用/失败,调用方回退词面。
- * 索引失败不致命(留着旧索引查,pi-rs 同款仲裁序);查询失败才回退。
+ * 语义索引预热(构建期/显式 `rctl index` 面):长超时全量建索引。
+ * 查询期的 semanticSearch 只留 180 秒增量预算;catalog 批量变更后必须跑一次本函数,
+ * 否则查询期索引被杀、语义腿静默回退词面(2026-10-12 回归实证)。
  */
+export function prewarmSemantic(recs: Rec[], dataDir: string, zgPath?: string): { ok: boolean; detail: string } {
+  const zg = zgPath ?? resolveZg()
+  if (!zg) return { ok: false, detail: "zg 不在(语义腿不可用,回退词面)" }
+  const dir = join(dataDir, "semantic")
+  const need = ensureMirror(recs, dir)
+  if (!need) return { ok: true, detail: "镜像未变,索引在位" }
+  const r = spawnSync(zg, ["--index", "--mode", "direct", "--model-cache", MODEL_CACHE], { cwd: dir, timeout: 3_600_000 })
+  if (r.status !== 0) return { ok: false, detail: `索引退出码 ${r.status ?? "null"}` }
+  return { ok: true, detail: "全量索引完成" }
+}
 export function semanticSearch(
   q: string,
   recs: Rec[],
