@@ -6,7 +6,7 @@
 
 - Go 工具批(pd/secgo):`go install` 进 GOPATH=/opt/go/bin 再链 /usr/local/bin;`@latest` + `have` 早退 = 「首次装到的那份」,升级要删了重跑;v2/v3/v8 模块路径产物改名回原名(ffuf/gobuster/gitleaks)
 - uv tool 批(red):UV_TOOL_DIR=/opt/uv-tools,venv 外链到 /usr/local/bin 必须白名单化(ADR-0003)
-- Release 钉版批:tag 经 `git ls-remote` 取(api.github.com 限流 403 实证),资产名校验架构映射;无校验和的件在 known-issues 留痕
+- Release 钉版批:tag 经 `git ls-remote` 取(api.github.com 限流 403 ),资产名校验架构映射;无校验和的件在 known-issues 
 - git 克隆批:`--depth 1` 钉 /opt,升级靠重跑;参考克隆只归档不安装(ADR-0002)
 - apt 批:阿里云源(image-defs/ubuntu.yaml 钉入),整批一条命令,成员表在组册
 - wrapper 层:/usr/local/bin 压过 PATH 后段,承载运行期行为修正(trivy/nuclei/capa/responder/bloodhound-python 等;ADR-0004,alias 在非交互 shell 不生效)

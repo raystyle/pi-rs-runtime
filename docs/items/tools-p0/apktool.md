@@ -7,4 +7,4 @@
 - **落点**:jar 本体 `/opt/apktool/apktool.jar`;入口 `/usr/local/bin/apktool` 是 printf 写出的 wrapper:`#!/bin/sh` + `exec java -jar /opt/apktool/apktool.jar "$@"`(chmod +x)
 - **配置与缓存**:无(脚本不写配置;`java` 依赖由 `install-runtimes.sh sdkman` 组提供,`/usr/local/bin/java` 链 sdkman current 的 temurin)
 - **离线行为**:未验 [推断:jar 与 wrapper 全本地,运行不触网];逐件断网冒烟未单列登记。验证:`ip link set eth0 down` 后 `apktool --version` 退 0
-- **坑与留痕**:无
+- **限制**:无

@@ -2,8 +2,8 @@
 
 > git/jq/yq/shellcheck/gh/just/tmux/rclone/aria2/fzf/bat/htop/ncdu/moreutils/vim 一批 ｜ 状态:已装 ｜ 组:`install-tools.sh cli`
 
-- **版本钉**:apt 批 noble 源冻结即钉(13 包,软钉留痕 [known-issues](../../known-issues.md));yq/gh pins.sh 钉版(`GO_PIN[github.com/mikefarah/yq/v4]`=v4.54.1、`GO_PIN[github.com/cli/cli/v2/cmd/gh]`=v2.102.0,go_install_pin;解析日 2026-10-10),升级跑 scripts/resolve-pins.sh(`have && skip` 早退,需删产物重跑);just 优先 apt 随批,`have just` 不成立时 cargo_install_pin 兜底(`CRATE_PIN[just]`=1.58.0,`--locked`)
-- **来源与安装**:脚本面 `install_cli`(`scripts/install-tools.sh`):apt 批带 `|| true`(批内单包失败不中断后续 go/cargo 段,复跑幂等补齐);yq `go_install_pin github.com/mikefarah/yq/v4`(GO_PIN 钉 v4.54.1;[mikefarah/yq](https://github.com/mikefarah/yq)),gh `go_install_pin github.com/cli/cli/v2/cmd/gh`(GO_PIN 钉 v2.102.0;[cli/cli](https://github.com/cli/cli);官方 apt 源国内无镜像,源码编译,GOPROXY=goproxy.cn);apt 镜像钉阿里云,源口径见 [docs/params.md](../../params.md)
+- **版本钉**:apt 批 noble 源冻结即钉(13 包,软钉 [known-issues](../../known-issues.md));yq/gh pins.sh 钉版(`GO_PIN[github.com/mikefarah/yq/v4]`=v4.54.1、`GO_PIN[github.com/cli/cli/v2/cmd/gh]`=v2.102.0,go_install_pin;解析日 2026-10-10),升级跑 scripts/resolve-pins.sh(`have && skip` 早退,需删产物重跑);just 优先 apt 随批,`have just` 不成立时 cargo_install_pin 兜底(`CRATE_PIN[just]`=1.58.0,`--locked`)
+- **来源与安装**:脚本面 `install_cli`(`scripts/install-tools.sh`):apt 批带 `|| true`(批内单包失败不中断后续 go/cargo 段,复跑幂等补齐);yq `go_install_pin github.com/mikefarah/yq/v4`(GO_PIN 钉 v4.54.1;[mikefarah/yq](https://github.com/mikefarah/yq)),gh `go_install_pin github.com/cli/cli/v2/cmd/gh`(GO_PIN 钉 v2.102.0;[cli/cli](https://github.com/cli/cli);官方 apt 源国内无镜像,源码编译,GOPROXY=goproxy.cn);apt 镜像钉阿里云,源规定见 [docs/params.md](../../params.md)
 - **落点与配置(批量机制)**:apt 批落 `/usr/bin`(noble 的 bat 包二进制名是 `batcat`,链 `/usr/local/bin/bat` 回通用名);go 段显式 `export GOPATH=/opt/go`,产物落 `/opt/go/bin` 再链 `/usr/local/bin/{yq,gh}`;just 兜底与 astgrep 同式(export `RUSTUP_HOME=/opt/rustup CARGO_HOME=/opt/cargo` + PATH),产物 `/opt/cargo/bin/just` 链 `/usr/local/bin/just`。脚本不写任何配置文件,无缓存固化。
 
 | 成员 | 入口 | 来源 | 落点 |
@@ -24,7 +24,7 @@
 | yq | `yq` | `go_install_pin …/yq/v4`(GO_PIN v4.54.1,goproxy.cn) | `/opt/go/bin` 链 `/usr/local/bin` |
 | gh | `gh` | `go_install_pin …/cli/v2/cmd/gh`(GO_PIN v2.102.0,goproxy.cn) | `/opt/go/bin` 链 `/usr/local/bin` |
 
-- **离线行为**:未验 [推断:]本地件(jq/yq/shellcheck/just/tmux/fzf/bat/htop/ncdu/moreutils/vim、git 本地操作)不触网;联网面(rclone/aria2c 下载、gh API、git remote)断网失败属设计边界,见 [docs/offline.md](../../offline.md) 边界节;断网冒烟 78/0 覆盖工具面但逐件名单未留档,本组未单独实证。验证:`ip link set eth0 down` 后 `yq --version >/dev/null && just --version >/dev/null && gh --version >/dev/null` 退 0
+- **离线行为**:未验 [推断:]本地件(jq/yq/shellcheck/just/tmux/fzf/bat/htop/ncdu/moreutils/vim、git 本地操作)不触网;联网面(rclone/aria2c 下载、gh API、git remote)断网失败属设计边界,见 [docs/offline.md](../../offline.md) 边界节;断网冒烟 78/0 覆盖工具面但逐件名单未留档,本组未单独。验证:`ip link set eth0 down` 后 `yq --version >/dev/null && just --version >/dev/null && gh --version >/dev/null` 退 0
 ## rctl 面,机器行:catalog 投影声明,audit 豁免依据
 
 - rctl: eslint kind=runtime path=/usr/local/bin/eslint note=npm 全局件
@@ -33,4 +33,4 @@
 - rctl: tsserver kind=runtime path=/usr/local/bin/tsserver note=typescript LSP 服务面
 - rctl: ruff kind=runtime path=/usr/local/bin/ruff env=编程环境 note=Python linter(uv-tool)
 
-- **坑与留痕**:**go 产物必须 `GOPATH=/opt/go`**,不设则 `go install` 落 `/root/go`(0700),ubuntu 不可执行(脚本注释实证;旧镜像曾未设 GOPATH 且只链 yq,gh 对 ubuntu 不可执行,留痕 [known-issues](../../known-issues.md),现脚本 yq/gh 都设都链);**just 兜底必须显式指 /opt/cargo**(与 [astgrep](../tools-astgrep/astgrep.md) 同式 export RUSTUP_HOME/CARGO_HOME + PATH),否则 cargo 产物落 `/root/.cargo`(0700),ubuntu 同样不可执行;离线期 yq/gh/just 的 go/cargo 重装会撞快失败默认,属预期([ADR-0004](../../adr/ADR-0004-offline-first-fail-fast.md))
+- **限制**:**go 产物必须 `GOPATH=/opt/go`**,不设则 `go install` 落 `/root/go`(0700),ubuntu 不可执行(脚本注释;旧镜像曾未设 GOPATH 且只链 yq,gh 对 ubuntu 不可执行, [known-issues](../../known-issues.md),现脚本 yq/gh 都设都链);**just 兜底必须显式指 /opt/cargo**(与 [astgrep](../tools-astgrep/astgrep.md) 同式 export RUSTUP_HOME/CARGO_HOME + PATH),否则 cargo 产物落 `/root/.cargo`(0700),ubuntu 同样不可执行;离线期 yq/gh/just 的 go/cargo 重装会撞快失败默认,属预期([ADR-0004](../../adr/ADR-0004-offline-first-fail-fast.md))

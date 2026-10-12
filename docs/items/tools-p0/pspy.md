@@ -7,6 +7,6 @@
 - **落点**:`/opt/go/bin/pspy` 链 `/usr/local/bin/pspy`
 - **配置与缓存**:单二进制零配置
 - **离线行为**:过,纯本地(枚举 /proc 与 inotify)
-- **坑与留痕**:privesc 信息收集面
+- **限制**:privesc 信息收集面
 
 - rctl: pspy kind=tool path=/usr/local/bin/pspy env=工具环境 note=无 root 进程刺探

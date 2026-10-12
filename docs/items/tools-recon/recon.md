@@ -3,7 +3,7 @@
 > MAC/服务指纹库与 DNS 协议栈、CVE PoC 索引参考,只克隆归档 ｜ 状态:参考克隆 ｜ 组:`install-tools.sh recon`
 
 - **版本钉**:4 仓全部 pins.sh `GIT_PIN` 钉 sha(clone_pin,幂等:HEAD==钉即跳过;解析日 2026-10-10),升级跑 scripts/resolve-pins.sh
-- **来源与安装**:GitHub 经 `GITHUB_MIRROR` 循环克隆(`scripts/install-tools.sh install_recon`),幂等判据 `.git` 目录在否,每仓失败重试一次、仍败 echo 「下轮补」;同段还生成 poc-search wrapper 与 parquet 离线索引,见 [poc-search 册](poc-search.md)
+- **来源与安装**:GitHub 经 `GITHUB_MIRROR` 循环克隆(`scripts/install-tools.sh install_recon`),幂等判据 `.git` 目录在否,每仓失败重试一次、仍败 echo 本次不安装,再次执行该组时安装;同段还生成 poc-search wrapper 与 parquet 离线索引,见 [poc-search 册](poc-search.md)
 - **落点**:`/opt/recon-ref/<仓>`,4 仓对账表:
 
 | 仓 | 用途 | 落点 |
@@ -15,4 +15,4 @@
 
 - **配置与缓存**:无(只克隆不写配置;`poc-index.parquet` 是构建期固化数据,机制见 [poc-search 册](poc-search.md))
 - **离线行为**:过, 断网在位核验,断网冒烟覆盖「参考库在位」面([离线机制 §验证](../../offline.md),2026-10-10 轮 78/0);指纹库纯读盘不触网。验证:`ip link set eth0 down` 后 `ls /opt/recon-ref` 四仓齐
-- **坑与留痕**:PoC-in-GitHub 索引仓 README 明示混有恶意样本,本组只克隆索引供查询,下载执行是使用者自己的裁量(留痕 [known-issues](../../known-issues.md));`/opt/recon-ref` 是三轴归档的侦察轴,裁定见 [ADR-0002](../../adr/ADR-0002-reference-clone-three-axis.md)
+- **限制**:PoC-in-GitHub 索引仓 README 明示混有恶意样本,本组只克隆索引供查询,下载执行是使用者自己的裁量( [known-issues](../../known-issues.md));`/opt/recon-ref` 是三轴归档的侦察轴,裁定见 [ADR-0002](../../adr/ADR-0002-reference-clone-three-axis.md)

@@ -7,4 +7,4 @@
 - **落点**:`/usr/local/bin/enum4linux-ng` wrapper:`exec /opt/re-venv/bin/python /opt/enum4linux-ng/enum4linux-ng.py "$@"`(仓内脚本无 console script,wrapper 必须指 re-venv 的 python,依赖在 re-venv,系统 python3 没装)
 - **配置与缓存**:无
 - **离线行为**:过, 断网冒烟渗透工具面过(78/0,2026-10-10 离线轮;本件 wrapper 是该轮修复件之一,wrapper 层机制见 [offline.md](../../offline.md) §2)。验证:`ip link set eth0 down` 后 `enum4linux-ng -h` 退 0(枚举动作本身需目标可达)
-- **坑与留痕**:运行依赖 `nmblookup`/`net`(samba-common-bin)、`smbclient`、`ldapsearch`(ldap-utils),`install_red` 组头 `apt-get install -y --no-install-recommends` 补齐,缺了枚举中段才报错;克隆仓名曾写错(cddmp/enum4linux-ng,2026-10-08 fresh 验证修)
+- **限制**:运行依赖 `nmblookup`/`net`(samba-common-bin)、`smbclient`、`ldapsearch`(ldap-utils),`install_red` 组头 `apt-get install -y --no-install-recommends` 补齐,缺了枚举中段才报错;克隆仓名曾写错(cddmp/enum4linux-ng,2026-10-08 fresh 验证修)

@@ -12,5 +12,5 @@
 
 - rctl: claude kind=tool path=/usr/local/bin/claude note=claude-code CLI 入口名
 
-- **坑与留痕**:容器无浏览器,/login 回调到不了,用 token 注入或挂已登录目录;DISABLE_AUTOUPDATER 只停后台检查,managed settings 的 DISABLE_UPDATES 连手动一起停(grok prt-04 实查文档);多账户一目录一登录(CLAUDE_CONFIG_DIR 切)
+- **限制**:容器无浏览器,/login 回调到不了,用 token 注入或挂已登录目录;DISABLE_AUTOUPDATER 只停后台检查,managed settings 的 DISABLE_UPDATES 连手动一起停;多账户一目录一登录(CLAUDE_CONFIG_DIR 切)
 

@@ -7,11 +7,11 @@
 - 宿主需为已初始化的 Incus（`sudo incus admin init --auto` 即可）,`build-base-image.sh` 以 sudo 调用 `distrobuilder` 与 `incus`。
 - `distrobuilder` 需从源码编译：Ubuntu 官方源无此包，官方只发布 Snap。需要 Go(Ubuntu 24.04 自带 `golang-go` 满足）与 `debootstrap rsync gpg squashfs-tools git make build-essential libwin-hivex-perl wimtools genisoimage`:
 
-  ```bash
-  git clone https://github.com/lxc/distrobuilder
-  cd distrobuilder && make
-  sudo install -m 755 "$HOME/go/bin/distrobuilder" /usr/local/bin/distrobuilder
-  ```
+ ```bash
+ git clone https://github.com/lxc/distrobuilder
+ cd distrobuilder && make
+ sudo install -m 755 "$HOME/go/bin/distrobuilder" /usr/local/bin/distrobuilder
+ ```
 
 - 容器内安装脚本（`scripts/install-*.sh`）以 root 在 Ubuntu 24.04 容器内运行，bash,`set -euo pipefail`，幂等可重跑。
 - 网络：默认走清华 tuna 源与各生态国内镜像；Ghidra、vcpkg、rizin、zig 等从 GitHub 或官方直下，国内直连可能失败，可设 `GITHUB_MIRROR` 前置代理。
@@ -25,11 +25,11 @@
 |------|------|
 | [AGENTS.md](AGENTS.md) | 治理合同：命令、必须/禁止、先读清单、环境（agent 与人都先看它） |
 | [docs/README.md](docs/README.md) | 文档地图 |
-| [docs/items/](docs/items/README.md) | 逐件一册：每个安装/配置件的版本钉、落点、离线行为、坑（件级事实唯一真相，71 册） |
+| [docs/items/](docs/items/README.md) | 逐件一册：每个安装/配置件的版本钉、落点、离线行为、问题（件级事实唯一真相，71 册） |
 | [docs/install-surfaces/](docs/install-surfaces/) | 安装面组卡：四个分类脚本的组机制导览（逐件明细链 items） |
 | [docs/software-inventory.md](docs/software-inventory.md) | 计数对账与形态分布（册数/件数，不记逐件事实） |
 | [docs/adr/](docs/adr/README.md) | 不可逆裁定（ADR,6 篇 accepted) |
-| [docs/diary/](docs/diary/) | 每轮构建/评审过程留痕（按日一篇） |
+| [docs/diary/](docs/diary/) | 每轮构建/复核过程（按日一篇） |
 | [docs/offline.md](docs/offline.md) | 离线运行：固化缓存/wrapper/非登录 shell 兼容三层机制、五生态快失败、断网冒烟验证法 |
 | [docs/params.md](docs/params.md) | 参数表：构建脚本变量、镜像源覆盖、版本钉、路径与工具集 |
 | [docs/known-issues.md](docs/known-issues.md) | 已知限制与未决项（真限制；裁定类在 ADR) |
@@ -56,7 +56,7 @@
 ```bash
 cd image-defs
 sudo distrobuilder build-incus ubuntu.yaml \
-  -o image.release=noble -o image.architecture=amd64 -o image.variant=cloud
+ -o image.release=noble -o image.architecture=amd64 -o image.variant=cloud
 sudo incus image import incus.tar.xz rootfs.squashfs --alias ubuntu-24.04-base
 ```
 
@@ -106,7 +106,7 @@ incus delete rt-build
 ```bash
 incus launch pi-box-dev pi-dev
 incus config device add pi-dev src disk \
-  source=/path/to/repo path=/home/ubuntu/workspace shift=true
+ source=/path/to/repo path=/home/ubuntu/workspace shift=true
 incus exec pi-dev -- sudo -u ubuntu -i bash -lc 'cd /home/ubuntu/workspace && pi'
 ```
 
@@ -120,8 +120,8 @@ incus exec pi-dev -- sudo -u ubuntu -i bash -lc 'cd /home/ubuntu/workspace && pi
 # 轻量面,挂单个 GUI 程序:Xvfb :99 + x11vnc 5900
 vnc-screen setup && VNC_PASS='<口令>' vnc-screen start
 # 桌面面,XFCE + TigerVNC + noVNC:浏览器经宿主回环 6080 进
-VNC_PASS='<口令>' vnc-screen desktop   # 桌面栈已烘焙进镜像
-# clean-chrome 冒烟面,起 :99 屏 + CDP 9222,实证到 Browser 版本号
+VNC_PASS='<口令>' vnc-screen desktop # 桌面栈已烘焙进镜像
+# clean-chrome 冒烟面,起 :99 屏 + CDP 9222,到 Browser 版本号
 vnc-screen chrome
 ```
 
@@ -129,13 +129,13 @@ vnc-screen chrome
 
 ```bash
 sudo incus config device add <实例> vnc proxy \
-  listen=tcp:127.0.0.1:5900 connect=tcp:127.0.0.1:5900
+ listen=tcp:127.0.0.1:5900 connect=tcp:127.0.0.1:5900
 sudo incus config device add <实例> novnc proxy \
-  listen=tcp:127.0.0.1:6080 connect=tcp:127.0.0.1:6080
+ listen=tcp:127.0.0.1:6080 connect=tcp:127.0.0.1:6080
 # 浏览器开 http://127.0.0.1:6080/vnc.html
 ```
 
-事实：轻量面 Xvfb 起 `:99`（1280x800x24）、x11vnc 只绑 `127.0.0.1:5900`；桌面面 TigerVNC :1(5901)+noVNC/websockify 只绑 `127.0.0.1:6080`;`start`/`desktop` 内置 `status` 校验；clean-chrome 155 在镜像内（`clean-chrome`/`chrome`/`chromium` 三链，恒 `--no-sandbox`),CDP 冒烟实证到 `Chrome/155.0.8059.39`；无 `VNC_PASS` 时生成随机口令并打印一次。件级细节见 [docs/items/tools-vnc/vnc.md](docs/items/tools-vnc/vnc.md) 与 [docs/items/tools-chrome/clean-chrome.md](docs/items/tools-chrome/clean-chrome.md)。
+事实：轻量面 Xvfb 起 `:99`（1280x800x24）、x11vnc 只绑 `127.0.0.1:5900`；桌面面 TigerVNC :1(5901)+noVNC/websockify 只绑 `127.0.0.1:6080`;`start`/`desktop` 内置 `status` 校验；clean-chrome 155 在镜像内（`clean-chrome`/`chrome`/`chromium` 三链，恒 `--no-sandbox`),CDP 冒烟到 `Chrome/155.0.8059.39`；无 `VNC_PASS` 时生成随机口令并打印一次。件级细节见 [docs/items/tools-vnc/vnc.md](docs/items/tools-vnc/vnc.md) 与 [docs/items/tools-chrome/clean-chrome.md](docs/items/tools-chrome/clean-chrome.md)。
 
 ## 已知限制与未决项
 

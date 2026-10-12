@@ -15,9 +15,9 @@
 | 25 | `<ver>-tem` | 同上 | 过,(循环最后一个) |
 
 - **配置与缓存**(批量机制):`JAVA_HOME` 由 `/etc/profile.d/sdkman.sh` 兜底为 `candidates/java/current`(见 [sdkman](sdkman.md));JDK 本体无库缓存,Java 依赖固化在 `/opt/m2`,属 [maven](maven.md) 册(install-libcache.sh java 组)
-- **离线行为**:过, 本地编译/运行不触网;断网冒烟 78/0 含 `mvn -o` 离线构建(走默认 JDK,口径见 [offline.md](../../offline.md) §验证)。验证:`ip link set eth0 down` 后 `java -version && javac -version` 退 0
+- **离线行为**:过, 本地编译/运行不触网;断网冒烟 78/0 含 `mvn -o` 离线构建(走默认 JDK,规定见 [offline.md](../../offline.md) §验证)。验证:`ip link set eth0 down` 后 `java -version && javac -version` 退 0
 ## rctl 面,机器行:catalog 投影声明,audit 豁免依据
 
 - rctl: javac kind=runtime path=/usr/local/bin/javac note=JDK 编译器入口
 
-- **坑与留痕**:幂等判据双查,`/opt/jdk/temurin-<ver>` 目录存在跳过下载、`sdk list java` 已见 `<ver>-tem` 跳过注册;tuna 上架新小版本时重跑会并存多小版本(目录名含小版本),旧目录不自动清;目录 listing 取不到件时该主版本跳过不中断(`continue`),下轮补
+- **限制**:幂等判据双查,`/opt/jdk/temurin-<ver>` 目录存在跳过下载、`sdk list java` 已见 `<ver>-tem` 跳过注册;tuna 上架新小版本时重跑会并存多小版本(目录名含小版本),旧目录不自动清;目录 listing 取不到件时该主版本跳过不中断(`continue`),本次不安装,再次执行该组时安装

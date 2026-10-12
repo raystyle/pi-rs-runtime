@@ -12,8 +12,8 @@
 
 libcache 八生态(go rust python node java pwsh dotnet zig)的组机制直接见 [items/libcache/](../items/README.md#libcacheinstall-libcachesh8-册) 各册(缓存固化不产生安装面命令骨架之外的件)。
 
-## 口径说明
+## 规定说明
 
 - 组卡写「这批怎么装」:幂等判据、批量循环、容错与兜底;「每件是什么/在哪/断网如何」一律在 items 册。
-- 版本钉变量集中在 `scripts/lib/common.sh`(参数表 [params.md](../params.md));镜像源口径同册。
+- 版本钉变量集中在 `scripts/lib/common.sh`(参数表 [params.md](../params.md));镜像源规定同册。
 - 改脚本行为时:先改脚本,再同步对应 items 册,组卡只在机制变化时动。

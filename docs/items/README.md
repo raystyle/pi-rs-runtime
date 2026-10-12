@@ -1,8 +1,8 @@
 # 逐件索引:docs/items/
 
-每件一册,模板见 [TEMPLATE.md](TEMPLATE.md)。目录按脚本分组。件级事实(版本/来源/落点/离线行为/坑)的唯一真相在这里;`install-surfaces/` 只留组机制导览,`software-inventory.md` 只留计数对账。
+每件一册,模板见 [TEMPLATE.md](TEMPLATE.md)。目录按脚本分组。件级事实(版本/来源/落点/离线行为/问题)的唯一真相在这里;`install-surfaces/` 只留组机制导览,`software-inventory.md` 只留计数对账。
 
-粒度规则:有独立版本钉/wrapper/缓存/离线行为/坑的件单独成册;同质批量件(apt 批、pd/secgo CLI 集、参考克隆批)由组册承载批量机制与成员表,成员不单独立册。
+粒度规则:有独立版本钉/wrapper/缓存/离线行为/问题的件单独成册;同质批量件(apt 批、pd/secgo CLI 集、参考克隆批)由组册承载批量机制与成员表,成员不单独立册。
 
 ## compilers:install-compilers.sh,6 册
 
@@ -16,7 +16,7 @@
 
 [go](libcache/go.md) · [rust](libcache/rust.md) · [python](libcache/python.md) · [node](libcache/node.md) · [java](libcache/java.md) · [pwsh](libcache/pwsh.md) · [dotnet](libcache/dotnet.md) · [zig-cache](libcache/zig-cache.md)
 
-## 归档域视图:七域定稿,grok prt-09;目录=安装组,域=归档架子,两面并存
+## 归档域视图:七域定稿,目录=安装组,域=归档架子,两面并存
 
 | 域 | 判据(这只 id 被拿来干什么) | 例 |
 |---|---|---|

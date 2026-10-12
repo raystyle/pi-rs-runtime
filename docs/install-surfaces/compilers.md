@@ -1,10 +1,10 @@
 # 安装面清单 · 编译器:`install-compilers.sh`
 
-组卡只写机制;逐件事实(版本/来源/落点/离线/坑)在 [items/compilers/](../items/compilers/)。
+组卡只写机制;逐件事实(版本/来源/落点/离线/问题)在 [items/compilers/](../items/compilers/)。
 
 ## 组机制
 
-- 逐组函数 `install_<组>`,幂等判据多为 `have <命令>` 或版本比对;**配置写入一律在早退判据之前**(复发坑,AGENTS.md Must)
+- 逐组函数 `install_<组>`,幂等判据多为 `have <命令>` 或版本比对;**配置写入一律在早退判据之前**(复发问题,AGENTS.md Must)
 - Go tarball 带 sha256 实时校验(golang.google.cn/dl JSON);rustup 走 rsproxy;nightly toolchain 由 bof 组按需装(coffee-ldr 用),不在 rust 组
 - zig 发行包无国内镜像,直下无验签(known-issues);nim 走 choosenim init.sh;vcpkg `--depth 1` 克隆 + bootstrap
 - 家目录兼容链:`~/.cargo`到/opt/cargo、`~/.rustup`到/opt/rustup、`~/.cache/cargo-zigbuild`到/opt/cargo-zigbuild-cache(piopt 共享可写,ADR-0005)
@@ -18,4 +18,4 @@
 
 ## 2026-10-11 新增组:cross,REQ-0004
 
-四套 g++-13 交叉链(aarch64/armhf/mipsel/mips-linux-gnu,不装 crossbuild 元包)+ i386(libc6-dev-i386 头道)。坑(实证入册):gcc-multilib 与 cross 包打包声明互斥;noble 交叉命令带 -13 代号无裸名;aarch64 -static 静态编译实证过。
+四套 g++-13 交叉链(aarch64/armhf/mipsel/mips-linux-gnu,不装 crossbuild 元包)+ i386(libc6-dev-i386 头道)。问题(入册):gcc-multilib 与 cross 包打包声明互斥;noble 交叉命令带 -13 代号无裸名;aarch64 -static 静态编译过。

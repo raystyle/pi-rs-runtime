@@ -12,4 +12,4 @@
 - rctl: nasm kind=tool path=/usr/local/bin/nasm
 - rctl: ndisasm kind=tool path=/usr/local/bin/ndisasm note=反汇编面
 
-- **坑与留痕**:[known-issues](../../known-issues.md) 口径「nasm 另有 sha256 校验」与脚本不符,当前安装段无校验步骤,以脚本为准(直下不校验),留痕待改文档或补校验;组册见 [p0.md](p0.md)
+- **限制**:[known-issues](../../known-issues.md) 规定「nasm 另有 sha256 校验」与脚本不符,当前安装段无校验步骤,以脚本为准(直下不校验),待改文档或补校验;组册见 [p0.md](p0.md)

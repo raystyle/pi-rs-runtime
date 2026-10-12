@@ -6,7 +6,7 @@
 - **来源与安装**:GitHub clone_pin 到 `/opt/yara-rules`
 - **落点**:`/opt/yara-rules`
 - **配置与缓存**:yara CLI(p0 组)直读;扫描器面按文件分类子目录取
-- **离线行为**:过,本地直读;规则是语料不是查询引擎(prt-09 分界)
-- **坑与留痕**:部分规则有外部依赖模块,离线面按需挑用
+- **离线行为**:过,本地直读;规则是语料不是查询引擎
+- **限制**:部分规则有外部依赖模块,离线面按需挑用
 
 - rctl: yara-rules kind=data path=/opt/yara-rules note=YARA 规则集(语料)

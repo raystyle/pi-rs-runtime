@@ -7,6 +7,6 @@
 - **落点**:`/opt/SecLists`;`/usr/share/wordlists` 软链
 - **配置与缓存**:纯数据直读;目录语义即分类(Passwords/Discovery/Web-Shells 等)
 - **离线行为**:过,本地直读;缺它多只工具空跑或自下载(数据册验收句);新鲜度=构建日快照
-- **坑与留痕**:顶层目录名即语义(rctl where 可搜);pentest 册接线段链到此,不双写
+- **限制**:顶层目录名即语义(rctl where 可搜);pentest 册接线段链到此,不双写
 
 - rctl: SecLists kind=data path=/opt/SecLists note=词表合集(rockyou 派生在 /usr/share/wordlists)

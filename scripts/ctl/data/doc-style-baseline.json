@@ -1,7 +1,7 @@
 {
- "field_overlength": 158,
- "field_banned": 48,
+ "field_overlength": 0,
+ "field_banned": 0,
  "caps_banned": 0,
- "md_banned_lines": 274,
- "md_old_tags": 94
+ "md_banned_lines": 0,
+ "md_old_tags": 0
 }
