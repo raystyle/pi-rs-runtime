@@ -1,6 +1,6 @@
 # rctl catalog(生成物勿手改;源 scripts/ctl/data/resources.json,再跑 scripts/gen-rctl-catalog.sh)
 2to3	runtime	`install-runtimes.sh python` + `install-libcache.sh python`(wheelhouse 固化)	已烘焙	系统 python3 基座(保持干净) + /etc/pip.conf 离线面 + /opt/analytics 分析 venv + ruff		/usr/local/bin/2to3		docs/items/runtimes/python.md		运行时环境
-7zip	tool	`install-tools.sh p0`	已装	多格式压缩解压		/usr/bin/7zz		docs/items/tools-p0/p0.md		工具环境
+7zip	tool	`install-tools.sh analysis`	已装	多格式压缩解压		/usr/bin/7zz		docs/items/analysis/analysis.md		工具环境
 AdaptixC2	ref	`install-tools.sh c2`	参考克隆	/opt/c2dev-ref/AdaptixC2		/opt/c2dev-ref/AdaptixC2		docs/items/tools-c2/c2.md		代码样板参考
 BOF-CATALOG.md	tool	`install-tools.sh bof`	已装	/opt/tradecraft-ref/bof/BOF-CATALOG.md		/opt/tradecraft-ref/bof/BOF-CATALOG.md		docs/items/tools-bof/bof.md		工具环境
 BouncyCastle.Cryptography	cache	`install-libcache.sh dotnet`(前置 `install-runtimes.sh dotnet`,dotnet-sdk-10.0)	缓存固化	密码学				docs/items/libcache/dotnet.md		编程环境
@@ -8,20 +8,20 @@ COFFLoader	tool	`install-tools.sh bof`	已装	/opt/payload-ref/loaders/inproc/CO
 CS-Remote-OPs-BOF	tool	`install-tools.sh bof`	已装	/opt/tradecraft-ref/bof/CS-Remote-OPs-BOF		/opt/tradecraft-ref/bof/CS-Remote-OPs-BOF		docs/items/tools-bof/bof.md		工具环境
 CS-Situational-Awareness-BOF	tool	`install-tools.sh bof`	已装	/opt/tradecraft-ref/bof/CS-Situational-Awareness-BOF		/opt/tradecraft-ref/bof/CS-Situational-Awareness-BOF		docs/items/tools-bof/bof.md		工具环境
 CeWL	ref	`install-tools.sh red`	已烘焙	CeWL 仓(wrapper 见 cewl)		/opt/CeWL		docs/items/tools-red/red.md		工具环境
-CheckLDAPStatus.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/CheckLDAPStatus.py		docs/items/tools-p0/impacket.md		工具环境
+CheckLDAPStatus.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/CheckLDAPStatus.py		docs/items/analysis/impacket.md		工具环境
 Coercer	tool	`install-tools.sh red`	已装	PyPI				docs/items/tools-red/red.md		工具环境
 Covenant	ref	`install-tools.sh c2`	参考克隆	/opt/c2dev-ref/Covenant		/opt/c2dev-ref/Covenant		docs/items/tools-c2/c2.md		代码样板参考
 CyberChef	tool	`install-tools.sh red`	已装	GCHQ CyberChef 本地网页数据分析面				docs/items/tools-red/red.md		工具环境
 DotNetToJScript	ref	`install-tools.sh pz`	参考克隆	/opt/DotNetToJScript		/opt/DotNetToJScript		docs/items/tools-pz/pz.md		代码样板参考
-DumpNTLMInfo.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/DumpNTLMInfo.py		docs/items/tools-p0/impacket.md		工具环境
+DumpNTLMInfo.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/DumpNTLMInfo.py		docs/items/analysis/impacket.md		工具环境
 Empire	ref	`install-tools.sh c2`	参考克隆	/opt/c2dev-ref/Empire		/opt/c2dev-ref/Empire		docs/items/tools-c2/c2.md		代码样板参考
 FASM	compiler	`install-compilers.sh c`	已装	flat 汇编器,Ubuntu 源无包,官方 tarball 直下				docs/items/compilers/c-toolchain.md		编程环境
-Get-GPPPassword.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/Get-GPPPassword.py		docs/items/tools-p0/impacket.md		工具环境
-GetADComputers.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/GetADComputers.py		docs/items/tools-p0/impacket.md		工具环境
-GetADUsers.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/GetADUsers.py		docs/items/tools-p0/impacket.md		工具环境
-GetLAPSPassword.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/GetLAPSPassword.py		docs/items/tools-p0/impacket.md		工具环境
-GetNPUsers.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/GetNPUsers.py		docs/items/tools-p0/impacket.md		工具环境
-GetUserSPNs.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/GetUserSPNs.py		docs/items/tools-p0/impacket.md		工具环境
+Get-GPPPassword.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/Get-GPPPassword.py		docs/items/analysis/impacket.md		工具环境
+GetADComputers.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/GetADComputers.py		docs/items/analysis/impacket.md		工具环境
+GetADUsers.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/GetADUsers.py		docs/items/analysis/impacket.md		工具环境
+GetLAPSPassword.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/GetLAPSPassword.py		docs/items/analysis/impacket.md		工具环境
+GetNPUsers.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/GetNPUsers.py		docs/items/analysis/impacket.md		工具环境
+GetUserSPNs.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/GetUserSPNs.py		docs/items/analysis/impacket.md		工具环境
 ICSharpCode.Decompiler	cache	`install-libcache.sh dotnet`(前置 `install-runtimes.sh dotnet`,dotnet-sdk-10.0)	缓存固化	反编译引擎(ilspycmd 上游)				docs/items/libcache/dotnet.md		编程环境
 Iced	cache	`install-libcache.sh dotnet`(前置 `install-runtimes.sh dotnet`,dotnet-sdk-10.0)	缓存固化	x86 汇编/反汇编				docs/items/libcache/dotnet.md		编程环境
 ImportExcel	cache	`install-libcache.sh pwsh`(前置 `install-runtimes.sh pwsh`)	缓存固化	Excel 读写(无需 Office)				docs/items/libcache/pwsh.md		编程环境
@@ -45,19 +45,20 @@ System.DirectoryServices.Protocols	cache	`install-libcache.sh dotnet`(前置 `in
 aarch64-linux-gnu-g++-13	compiler	`install-compilers.sh c`	已烘焙	aarch64 交叉编译链(支持静态链接)		/usr/bin/aarch64-linux-gnu-g++-13		docs/items/compilers/c-toolchain.md		编程环境
 acp	tool	`install-tools.sh acp`	已装	实例标准 agent 接入通道:ACP v1 + stdio 适配器与监督进程 acpsup	CLAUDE_ACP_VERSION=0.89.1;CODEX_ACP_VERSION=2.2.2;解析日 2026-10-11	/opt/node/lib/node_modules/	支持。断网 selftest(initialize protocolVersion=1 + session/new 真 id,eth0 down 下同过)	docs/items/tools-acp/acp.md		工具环境
 acpsup	service	`install-tools.sh acp`	已烘焙	ACP 监督进程(平台面 127.0.0.1:7663)		/usr/local/bin/acpsup		docs/items/tools-acp/acp.md		工具环境
-addcomputer.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/addcomputer.py		docs/items/tools-p0/impacket.md		工具环境
+addcomputer.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/addcomputer.py		docs/items/analysis/impacket.md		工具环境
 aircrack-ng	tool	`install-tools.sh pentest`	已装	WiFi 口令破解套件(清单记录 1.7)				docs/items/tools-pentest/pentest.md		工具环境
 aliyun	tool	`install-tools.sh cloud`	已烘焙	阿里云 CLI		/usr/local/bin/aliyun		docs/items/tools-cloud/cloud.md		工具环境
 amass	tool	`install-tools.sh secgo`	已装	攻击面测绘与子域枚举(`/...` 多包,产物名 amass)				docs/items/tools-secgo/secgo.md		工具环境
+analysis	tool	`install-tools.sh analysis`	已装	安全分析工具集:apt 20 包 + impacket/nasm + re-venv 批 + GitHub 钉版批	钉版见册	/usr/bin	未验证。apt 20 包均为本地分析件,无运行期外网依赖	docs/items/analysis/analysis.md		工具环境
 analytics-venv	runtime	`install-runtimes.sh python` + `install-libcache.sh python`(wheelhouse 固化)	已烘焙	数据分析 venv(polars/pyarrow/chdb 物化)		/opt/analytics		docs/items/runtimes/python.md		数据分析
 analyzeHeadless	tool	`install-tools.sh ghidra`	已烘焙	无头分析入口		/usr/local/bin/analyzeHeadless		docs/items/tools-ghidra/ghidra.md		逆向环境
 android-tools-adb	tool	`install-tools.sh pentest`	已装	adb 安卓调试桥				docs/items/tools-pentest/pentest.md		工具环境
 android-tools-fastboot	tool	`install-tools.sh pentest`	已装	fastboot 刷机/引导				docs/items/tools-pentest/pentest.md		工具环境
 angr	tool	`install-tools.sh re`	已装	Python 符号执行与二进制分析框架(platform-independent)	钉版见册;解析日 2026-10-11	/opt/angr-venv	支持。断网 `import angr`	docs/items/tools-re/angr.md		逆向环境
 angr-venv	runtime	`install-tools.sh re`	已烘焙	angr 独立 venv(符号执行;python -c import angr 消费)		/opt/angr-venv		docs/items/tools-re/angr.md		逆向环境
-apkid	tool	`install-tools.sh p0`	已烘焙	APK 加壳/编译器识别(uv tool 3.1.0,yara-python-dex 独立)		/usr/local/bin/apkid		docs/items/tools-p0/p0.md		工具环境
+apkid	tool	`install-tools.sh analysis`	已烘焙	APK 加壳/编译器识别(uv tool 3.1.0,yara-python-dex 独立)		/usr/local/bin/apkid		docs/items/analysis/analysis.md		工具环境
 apkleaks	tool	`install-tools.sh red`	已装	PyPI				docs/items/tools-red/red.md		工具环境
-apktool	tool	`install-tools.sh p0`	已装	APK 反编译与重打包	`APKTOOL_VERSION=2.12.0`(脚本默认,env 可覆盖);GitHub release 钉版直下,无校验和	/opt/apktool/apktool.jar	未验证。jar 与 wrapper 全本地,运行不触网]	docs/items/tools-p0/apktool.md		逆向环境
+apktool	tool	`install-tools.sh analysis`	已装	APK 反编译与重打包	`APKTOOL_VERSION=2.12.0`(脚本默认,env 可覆盖);GitHub release 钉版直下,无校验和	/opt/apktool/apktool.jar	未验证。jar 与 wrapper 全本地,运行不触网]	docs/items/analysis/apktool.md		逆向环境
 aria2	tool	`install-tools.sh cli`	已装	`/usr/bin`		/usr/bin/aria2c		docs/items/tools-cli/cli.md		工具环境
 arjun	tool	`install-tools.sh red`	已装	PyPI				docs/items/tools-red/red.md		工具环境
 arm-linux-gnueabihf-g++-13	compiler	`install-compilers.sh c`	已烘焙	armhf 交叉链		/usr/bin/arm-linux-gnueabihf-g++-13		docs/items/compilers/c-toolchain.md		编程环境
@@ -65,15 +66,15 @@ asnmap	tool	`install-tools.sh pd`	已装	ASN 与 CIDR 互查映射				docs/items
 assetfinder	tool	`install-tools.sh secgo`	已装	子域与相关域发现				docs/items/tools-secgo/secgo.md		工具环境
 ast-grep	tool	`install-tools.sh astgrep`	已烘焙	入口名(带连字符)		/usr/local/bin/ast-grep		docs/items/tools-astgrep/astgrep.md		工具环境
 astgrep	tool	`install-tools.sh astgrep`	已装	结构化代码搜索与改写 CLI(入口 `ast-grep` 与 `sg`)	CRATE_PIN[ast-grep]=0.50.0;解析日 2026-10-10	/opt/cargo/bin/ast-grep	未验证。扫描/改写本地代码不触网	docs/items/tools-astgrep/astgrep.md		工具环境
-atexec.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/atexec.py		docs/items/tools-p0/impacket.md		工具环境
+atexec.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/atexec.py		docs/items/analysis/impacket.md		工具环境
 atlas	compiler	`install-compilers.sh nim`	已烘焙	Nim 包克隆器(工具链副件)		/usr/local/bin/atlas		docs/items/compilers/nim.md		编程环境
 atomic-bofs	tool	`install-tools.sh bof`	已装	/opt/tradecraft-ref/bof/atomic-bofs		/opt/tradecraft-ref/bof/atomic-bofs		docs/items/tools-bof/bof.md		工具环境
-attrib.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/attrib.py		docs/items/tools-p0/impacket.md		工具环境
+attrib.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/attrib.py		docs/items/analysis/impacket.md		工具环境
 aurelian	tool	`install-tools.sh secgo`	已装	云环境侦察				docs/items/tools-secgo/secgo.md		工具环境
 aws	tool	`install-tools.sh nu`	已烘焙	AWS CLI v2(awscli 官方 zip 装,无钉属 known-issues 软钉面)		/usr/local/bin/aws		docs/items/tools-nu/nu.md		工具环境
 aws_completer	tool	`install-tools.sh nu`	已烘焙	aws CLI 补全副件		/usr/local/bin/aws_completer		docs/items/tools-nu/nu.md		工具环境
 azurehound	tool	`install-tools.sh secgo`	已装	Azure 采集(BloodHound;产物名 v2,改名)				docs/items/tools-secgo/secgo.md		工具环境
-badsuccessor.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/badsuccessor.py		docs/items/tools-p0/impacket.md		工具环境
+badsuccessor.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/badsuccessor.py		docs/items/analysis/impacket.md		工具环境
 baksmali	tool	`install-libcache.sh java`(前置 `install-runtimes.sh sdkman` 的 maven 与 JDK)	已烘焙	smali/baksmali dex 汇编与反汇编 CLI,依赖固化 /opt/m2		/usr/local/bin/baksmali		docs/items/libcache/java.md		逆向环境
 bat	tool	`install-tools.sh cli`	已装	`/usr/bin/batcat` + `/usr/local/bin/bat` 软链		/usr/bin/batcat		docs/items/tools-cli/cli.md		工具环境
 binutils	tool	`install-tools.sh re`	已装	ELF 静态分析				docs/items/tools-re/re.md		逆向环境
@@ -93,8 +94,8 @@ bunx	runtime	`install-runtimes.sh bun`	已烘焙	bun/bunx 一体化 JS 运行时
 c-toolchain	compiler	`install-compilers.sh c`	已装	C/C++ 编译、调试与逆向行为分析全家桶(21 个 apt 包)+ FASM 汇编器	FASM_VERSION=1.73.32	/usr/bin	支持。断网冒烟覆盖编译器版本面	docs/items/compilers/c-toolchain.md		编程环境
 c2	ref	`install-tools.sh c2`	参考克隆	C2 框架源码参考,只克隆不安装不运行	钉版见册;解析日 2026-10-10	/opt/c2dev-ref/	支持。断网冒烟「参考库在位」覆盖	docs/items/tools-c2/c2.md		代码样板参考
 cabextract	tool	`install-tools.sh pentest`	已装	Microsoft CAB 解包				docs/items/tools-pentest/pentest.md		工具环境
-capa	tool	`install-tools.sh p0` 装本体与规则、`install-tools.sh pentest` 接线	已装	恶意软件能力识别(静态特征 到 能力/ATT&CK 映射)	CAPA_VERSION=9.4.0	/opt/capa	未验证。规则与二进制全本地,wrapper 注入 `-r` 后不触网]	docs/items/tools-p0/capa.md		逆向环境
-capa-rules	data	`install-tools.sh p0` 装本体与规则、`install-tools.sh pentest` 接线	已烘焙	capa 能力识别规则库(缺它 capa 会自下载规则)	pins.sh `GIT_PIN[mandiant/capa-rules]` 钉 sha;与 capa 二进制不同钉(规则库独立演进)	/opt/capa-rules	过,本地直读;缺它 capa 自下载规则到家目录(晦涩错,数据册验收句命中)	docs/items/tools-p0/capa.md		信息搜索
+capa	tool	`install-tools.sh p0` 装本体与规则、`install-tools.sh pentest` 接线	已装	恶意软件能力识别(静态特征 到 能力/ATT&CK 映射)	CAPA_VERSION=9.4.0	/opt/capa	未验证。规则与二进制全本地,wrapper 注入 `-r` 后不触网]	docs/items/analysis/capa.md		逆向环境
+capa-rules	data	`install-tools.sh p0` 装本体与规则、`install-tools.sh pentest` 接线	已烘焙	capa 能力识别规则库(缺它 capa 会自下载规则)	pins.sh `GIT_PIN[mandiant/capa-rules]` 钉 sha;与 capa 二进制不同钉(规则库独立演进)	/opt/capa-rules	过,本地直读;缺它 capa 自下载规则到家目录(晦涩错,数据册验收句命中)	docs/items/analysis/capa.md		信息搜索
 capstone	tool	`install-tools.sh re`	已装	反汇编				docs/items/tools-re/re.md		逆向环境
 capstone-tool	tool	`install-tools.sh re`	已装	capstone CLI				docs/items/tools-re/re.md		逆向环境
 cargo	compiler	`install-compilers.sh rust`	已烘焙	Rust 工具链:rustup + stable + 十向交叉 target 与配套组件		/usr/local/bin/cargo		docs/items/compilers/rust.md		编程环境
@@ -103,10 +104,10 @@ cargo-zigbuild	tool	`install-compilers.sh rust`	已烘焙	cargo 交叉编译 zig
 cargo-zigbuild-cache	cache	`install-libcache.sh rust`	已烘焙	cargo-zigbuild 缓存树(共享 ACL)		/opt/cargo-zigbuild-cache		docs/items/libcache/rust.md		编程环境
 ccache	compiler	`install-compilers.sh c`	已装	编译缓存				docs/items/compilers/c-toolchain.md		编程环境
 certipy-ad	tool	`install-tools.sh red`	已装	[ly4k/Certipy](https://github.com/ly4k/Certipy),PyPI 经 tuna;ADCS 审计				docs/items/tools-red/red.md		工具环境
-changepasswd.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/changepasswd.py		docs/items/tools-p0/impacket.md		工具环境
+changepasswd.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/changepasswd.py		docs/items/analysis/impacket.md		工具环境
 chaos	tool	`install-tools.sh pd`	已装	Chaos DNS 数据集客户端(二进制名 chaos)				docs/items/tools-pd/pd.md		工具环境
-checkMSSQLStatus.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/checkMSSQLStatus.py		docs/items/tools-p0/impacket.md		工具环境
-checksec	tool	`install-tools.sh p0`	已装	二进制保护属性检查(NX/PIE/Canary/RELRO)		/usr/bin/checksec		docs/items/tools-p0/p0.md		工具环境
+checkMSSQLStatus.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/checkMSSQLStatus.py		docs/items/analysis/impacket.md		工具环境
+checksec	tool	`install-tools.sh analysis`	已装	二进制保护属性检查(NX/PIE/Canary/RELRO)		/usr/bin/checksec		docs/items/analysis/analysis.md		工具环境
 chisel	tool	`install-tools.sh secgo`	已装	HTTP/WebSocket 隧道				docs/items/tools-secgo/secgo.md		工具环境
 claude	tool	`install-tools.sh agents`	已烘焙	claude-code CLI 入口名		/usr/local/bin/claude		docs/items/tools-agents/claude-code.md		工具环境
 claude-code	tool	`install-tools.sh agents`	已装	Anthropic Claude Code CLI(agent 挂载面之一)	latest 道;解析日 2026-10-11	/opt/node/bin/claude	未验证。边界型,`--version`/`doctor` 不开会话	docs/items/tools-agents/claude-code.md		工具环境
@@ -122,37 +123,37 @@ commix	tool	`install-tools.sh pentest`	已烘焙	OS 命令注入(仓 4.2.dev,pyt
 commix-src	ref	`install-tools.sh pentest`	已烘焙	commix 仓源		/opt/commix		docs/items/tools-pentest/pentest.md		工具环境
 cvemap	tool	`install-tools.sh pd`	已装	CVE 数据库导航				docs/items/tools-pd/pd.md		工具环境
 cyberchef	tool	`install-tools.sh red`	已装	离线加解密/编码瑞士军刀(纯静态站点)	CYBERCHEF_VERSION=v11.5.0;解析日 2026-10-10	/opt/cyberchef	未验证。纯静态站点,设计即离线工具(脚本称「离线瑞士军刀」),本地起服即用,未跑断网	docs/items/tools-red/cyberchef.md		工具环境
-dacledit.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/dacledit.py		docs/items/tools-p0/impacket.md		工具环境
+dacledit.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/dacledit.py		docs/items/analysis/impacket.md		工具环境
 dalfox	tool	`install-tools.sh secgo`	已装	XSS 参数分析与扫描(产物名 v2,改名)				docs/items/tools-secgo/secgo.md		工具环境
 dataref	tool	`install-tools.sh data`	已装	PoC/规则/指纹库的克隆面(kind=data,构建日快照,离线直读)	软钉:发行版源冻结;解析日 2026-10-11	/opt/data-ref/LOLBAS	支持。本地直读零网络	docs/items/tools-data/dataref.md		工具环境
-dcomexec.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/dcomexec.py		docs/items/tools-p0/impacket.md		工具环境
+dcomexec.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/dcomexec.py		docs/items/analysis/impacket.md		工具环境
 default-mysql-client	tool	`install-tools.sh pentest`	已装	mysql/mariadb 客户端				docs/items/tools-pentest/pentest.md		工具环境
-describeTicket.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/describeTicket.py		docs/items/tools-p0/impacket.md		工具环境
+describeTicket.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/describeTicket.py		docs/items/analysis/impacket.md		工具环境
 dnlib	cache	`install-libcache.sh dotnet`(前置 `install-runtimes.sh dotnet`,dotnet-sdk-10.0)	缓存固化	.NET 程序集读写				docs/items/libcache/dotnet.md		编程环境
 dnsutils	tool	`install-tools.sh pentest`	已装	dig/nslookup,DNS 查询				docs/items/tools-pentest/pentest.md		工具环境
 dnsx	tool	`install-tools.sh pd`	已装	DNS 探测/解析工具包				docs/items/tools-pd/pd.md		工具环境
 donut	tool	`install-tools.sh pentest`	已装	PE/.NET/VBS/JS 转位置无关 shellcode(含 libdonut 库与头文件)	1.1(`DONUT_VERSION`,env 可覆盖),GitHub release 预编译 tar.gz,无校验和	/opt/donut/	未验证。本地格式转换器,运行不触网	docs/items/tools-pentest/donut.md		工具环境
 dotnet	cache	`install-libcache.sh dotnet`(前置 `install-runtimes.sh dotnet`,dotnet-sdk-10.0)	缓存固化	.NET SDK 与 16 库包/8 RID runtime 固化,ilspycmd 反编译 CLI	NUGET_PIN[dnlib]=4.5.0;NUGET_PIN[ilspycmd]=11.1.0.9782;解析日 2026-10-10	/opt/nuget-packages	支持。断网 `dotnet restore` 在断网冒烟批覆盖,fallback folder 直取固化件不触网	docs/items/libcache/dotnet.md		编程环境
 dotnet-prewarm	cache	`install-libcache.sh dotnet`(前置 `install-runtimes.sh dotnet`,dotnet-sdk-10.0)	已烘焙	restore 预热工程(csproj 锁)		/opt/dotnet-prewarm		docs/items/libcache/dotnet.md		编程环境
-dpapi.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/dpapi.py		docs/items/tools-p0/impacket.md		工具环境
-dpapidump.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/dpapidump.py		docs/items/tools-p0/impacket.md		工具环境
+dpapi.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/dpapi.py		docs/items/analysis/impacket.md		工具环境
+dpapidump.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/dpapidump.py		docs/items/analysis/impacket.md		工具环境
 duckdb	runtime	`install-runtimes.sh duckdb`	已装	本地列存分析引擎:python 绑定进分析 venv,CLI 单文件直查 parquet/csv	PYPI_PIN[duckdb]=1.5.6;DUCKDB_VERSION=v1.5.6;解析日 2026-10-10	/usr/local/bin/duckdb	未验证。本地引擎不触网,CLI 直查文件与 venv import 均纯本地	docs/items/runtimes/duckdb.md		数据分析
 elfutils	tool	`install-tools.sh re`	已装	ELF 后端工具				docs/items/tools-re/re.md		逆向环境
 entc-win32gen	tool	`install-tools.sh bof`	已烘焙	win32 头再生辅件(entropia 同仓构建,--winmd 再生 stdlib/win32)		/opt/entropia		docs/items/tools-bof/entropia.md		工具环境
 entropia	tool	`install-tools.sh bof`	已烘焙	Windows PIC shellcode/BOF 编译语言(entc,v0.1-experimental 源码构建;mingw 之外的高级语言道)	GIT_PIN[entropykit/entropia]=05acaba2a1a5…;解析日 2026-10-11	/opt/entropia	支持。`entc --version` 与示例编译(bof_pslist.etpy 出真 COFF `.x64.o`)断网	docs/items/tools-bof/entropia.md	entc	工具环境
 enum4linux-ng	ref	`install-tools.sh red`	已烘焙	enum4linux-ng 仓(wrapper 同名)	钉版见册;解析日 2026-10-10	/opt/enum4linux-ng	支持。断网冒烟渗透工具面过	docs/items/tools-red/red.md		工具环境
-esentutl.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/esentutl.py		docs/items/tools-p0/impacket.md		工具环境
+esentutl.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/esentutl.py		docs/items/analysis/impacket.md		工具环境
 eslint	runtime	`install-tools.sh cli`	已烘焙	npm 全局件		/usr/local/bin/eslint		docs/items/tools-cli/cli.md		工具环境
 evil-winrm	tool	`install-tools.sh red`	已烘焙	gem 主入口(gems.ruby-china)	钉版见册;解析日 2026-10-10	/usr/local/bin/evil-winrm	未验证。纯 Ruby 本地运行,无自更新机制,断网可起 help 面	docs/items/tools-red/evil-winrm.md		工具环境
-exchanger.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/exchanger.py		docs/items/tools-p0/impacket.md		工具环境
+exchanger.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/exchanger.py		docs/items/analysis/impacket.md		工具环境
 exploitdb	data	`install-tools.sh data`	已烘焙	Exploit-DB 快照(PoC 全文+csv 索引)		/opt/data-ref/exploitdb		docs/items/tools-data/dataref.md		信息搜索
 fasm	compiler	`install-compilers.sh c`	已烘焙	FASM 汇编器本体		/opt/fasm		docs/items/compilers/c-toolchain.md		编程环境
 fd	tool	`install-tools.sh fd`	已装	文件查找(fd)与内容搜索(rg)双件,fd 组同批装	noble 随源(apt 包 `fd-find`、`ripgrep`,版本随 Ubuntu 源冻结,不另钉)	/usr/bin/fdfind	未验证。纯本地文件系统工具,无网络面	docs/items/tools-fd/fd.md		工具环境
 feroxbuster	tool	`install-tools.sh secrust`	已装	强制目录/内容发现				docs/items/tools-secrust/secrust.md		工具环境
 ffuf	tool	`install-tools.sh secgo`	已装	Web fuzz(产物名 v2,改名)				docs/items/tools-secgo/secgo.md		工具环境
 file	tool	`install-tools.sh re`	已装	文件类型识别				docs/items/tools-re/re.md		逆向环境
-filetime.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/filetime.py		docs/items/tools-p0/impacket.md		工具环境
-findDelegation.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/findDelegation.py		docs/items/tools-p0/impacket.md		工具环境
+filetime.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/filetime.py		docs/items/analysis/impacket.md		工具环境
+findDelegation.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/findDelegation.py		docs/items/analysis/impacket.md		工具环境
 floss	tool	`install-libcache.sh python`	已烘焙	FLARE 伪代码字符串提取(re-venv 链出)		/usr/local/bin/floss		docs/items/libcache/python.md		逆向环境
 fnm	runtime	`install-runtimes.sh fnm`	已装	fnm 多版本 node 管理器,预装 18/20/22/24 四条线	CRATE_PIN[fnm]=1.39.0;解析日 2026-10-10	/opt/cargo/bin/fnm	未验证。fnm 各版本的 `npm install` 离线快失败 prefix npmrc 与 /opt/node 逐键同形,机制见 node 册,无 fnm 版本专属断网记录]	docs/items/runtimes/fnm.md		运行时环境
 foremost	tool	`install-tools.sh pentest`	已烘焙	无菜单签名雕刻(apt 1.5.7)		/usr/bin/foremost		docs/items/tools-pentest/pentest.md		工具环境
@@ -182,11 +183,11 @@ fzf	tool	`install-tools.sh cli`	已装	`/usr/bin`		/usr/bin/fzf		docs/items/tool
 gau	tool	`install-tools.sh secgo`	已装	已知 URL 聚合				docs/items/tools-secgo/secgo.md		工具环境
 gcc	tool	`install-tools.sh re`	已装	C 编译				docs/items/tools-re/re.md		逆向环境
 gdb	compiler	`install-compilers.sh c`	已装	GNU 调试器				docs/items/compilers/c-toolchain.md		编程环境
-gdb-multiarch	tool	`install-tools.sh p0`	已装	多架构程序调试		/usr/bin/gdb		docs/items/tools-p0/p0.md		工具环境
-getArch.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/getArch.py		docs/items/tools-p0/impacket.md		工具环境
-getPac.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/getPac.py		docs/items/tools-p0/impacket.md		工具环境
-getST.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/getST.py		docs/items/tools-p0/impacket.md		工具环境
-getTGT.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/getTGT.py		docs/items/tools-p0/impacket.md		工具环境
+gdb-multiarch	tool	`install-tools.sh analysis`	已装	多架构程序调试		/usr/bin/gdb		docs/items/analysis/analysis.md		工具环境
+getArch.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/getArch.py		docs/items/analysis/impacket.md		工具环境
+getPac.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/getPac.py		docs/items/analysis/impacket.md		工具环境
+getST.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/getST.py		docs/items/analysis/impacket.md		工具环境
+getTGT.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/getTGT.py		docs/items/analysis/impacket.md		工具环境
 gh	tool	`install-tools.sh cli`	已装	`/opt/go/bin` 链 `/usr/local/bin`		/opt/go/bin/gh		docs/items/tools-cli/cli.md		工具环境
 ghauri	tool	`install-tools.sh red`	已装	[r0oth3x49/ghauri](https://github.com/r0oth3x49/ghauri),不在任何 PyPI				docs/items/tools-red/red.md		工具环境
 ghidra	tool	`install-tools.sh ghidra`	已装	NSA 开源软件逆向套件(GUI + analyzeHeadless 无头反编译/静态分析)	GHIDRA_VERSION=12.1.3	/opt/ghidra/ghidra_12.1.3_PUBLIC/	未验证。GUI 与 analyzeHeadless 均为本地 JVM 进程不触网,未进断网冒烟清单	docs/items/tools-ghidra/ghidra.md		逆向环境
@@ -197,7 +198,7 @@ gitleaks	tool	`install-tools.sh secgo`	已装	git 仓密钥扫描(产物名 v8,�
 go	cache	`install-libcache.sh go`	缓存固化	渗透/代理/协议/AD/PE 向 Go 库字节构建期钉进模块缓存,断网 `go build` 直编	钉版见册	/opt/go/pkg/mod	支持。断网构建:`ip link set eth0 down` 后 `cd /opt/go-prewarm && go build .` 退 0	docs/items/libcache/go.md		编程环境
 gobuster	tool	`install-tools.sh secgo`	已装	目录/DNS/vhost 爆破(产物名 v3,改名)				docs/items/tools-secgo/secgo.md		工具环境
 golang	compiler	`install-compilers.sh golang` + `install-libcache.sh go`	已装	Go 编译器与黄金三件(dlv/gopls/golangci-lint)+ 库预热	GOLANG_VERSION=1.27.1	/usr/local/go	支持。断网 `cd /opt/go-prewarm && go build .`	docs/items/compilers/golang.md		编程环境
-goldenPac.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/goldenPac.py		docs/items/tools-p0/impacket.md		工具环境
+goldenPac.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/goldenPac.py		docs/items/analysis/impacket.md		工具环境
 gospider	tool	`install-tools.sh secgo`	已装	Web 爬虫				docs/items/tools-secgo/secgo.md		工具环境
 gost	tool	`install-tools.sh pivot`	已装	go_install_pin 钉 GO_PIN 伪版本,产物 /opt/go/bin/gost 链出				docs/items/tools-pivot/pivot.md		工具环境
 gowitness	tool	`install-tools.sh secgo`	已装	网页截图(需 Chrome)				docs/items/tools-secgo/secgo.md		工具环境
@@ -205,7 +206,7 @@ gradle	runtime	`install-runtimes.sh sdkman` 内直装	已装	JVM 构建链(共�
 gtfobins	data	`install-tools.sh data`	已烘焙	Unix 二进制滥用基线(478 条,走 .github.io 源仓道)		/opt/data-ref/gtfobins		docs/items/tools-data/dataref.md		信息搜索
 hacktricks	data	`install-tools.sh data`	已烘焙	HackTricks 文本语料,1095 篇 md 约 18M(不含 .git 与配图)		/opt/data-ref/hacktricks		docs/items/tools-data/dataref.md		信息搜索
 hashcat	tool	`install-tools.sh pentest`	已装	哈希破解(CPU 走 pocl,详 [hashcat](hashcat.md))	noble 随源无钉(清单记录 6.2.6),随 [pentest 组册](pentest.md) apt 批	/usr/bin/hashcat	未验证。纯本地计算,运行不触网	docs/items/tools-pentest/pentest.md		工具环境
-hashid	tool	`install-tools.sh p0`	已装	哈希类型识别		/usr/bin/hashid		docs/items/tools-p0/p0.md		工具环境
+hashid	tool	`install-tools.sh analysis`	已装	哈希类型识别		/usr/bin/hashid		docs/items/analysis/analysis.md		工具环境
 hcxtools	tool	`install-tools.sh pentest`	已装	hcxpcapngtool 等 WiFi 抓包转换				docs/items/tools-pentest/pentest.md		工具环境
 herdr	tool	`install-tools.sh herdr`	已装	终端 workspace 管理器(tmux 之外的 agent 编排面)	HERDR_VERSION=0.9.3	/usr/local/bin/herdr	未验证。本体是本地终端编排器,起窗格不触网	docs/items/tools-herdr/herdr.md		工具环境
 htop	tool	`install-tools.sh cli`	已装	`/usr/bin`		/usr/bin/htop		docs/items/tools-cli/cli.md		工具环境
@@ -215,36 +216,36 @@ httpx	tool	`install-tools.sh pd`	已装	HTTP 探活与指纹				docs/items/tools
 hydra	tool	`install-tools.sh pentest`	已装	在线口令爆破(清单记录 9.5)				docs/items/tools-pentest/pentest.md		工具环境
 idle	runtime	`install-runtimes.sh python` + `install-libcache.sh python`(wheelhouse 固化)	已烘焙	系统 python3 基座(保持干净) + /etc/pip.conf 离线面 + /opt/analytics 分析 venv + ruff		/usr/local/bin/idle		docs/items/runtimes/python.md		运行时环境
 ilspycmd	tool	`install-libcache.sh dotnet`(前置 `install-runtimes.sh dotnet`,dotnet-sdk-10.0)	已烘焙	.NET 反编译 CLI(NUGET_PIN 独立钉,落 /opt/dotnet-tools)		/usr/local/bin/ilspycmd		docs/items/libcache/dotnet.md		逆向环境
-impacket	tool	`install-tools.sh p0`	已装	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)	钉版见册;解析日 2026-10-10	/opt/uv-tools/impacket	支持。`secretsdump.py`/`describeTicket.py`/`Get-GPPPassword.py`/`wmipersist.py` `-h` 全退 0	docs/items/tools-p0/impacket.md		工具环境
+impacket	tool	`install-tools.sh analysis`	已装	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)	钉版见册;解析日 2026-10-10	/opt/uv-tools/impacket	支持。`secretsdump.py`/`describeTicket.py`/`Get-GPPPassword.py`/`wmipersist.py` `-h` 全退 0	docs/items/analysis/impacket.md		工具环境
 interactsh-client	tool	`install-tools.sh pd`	已装	OOB 外带交互客户端				docs/items/tools-pd/pd.md		工具环境
-jadx	tool	`install-tools.sh p0`	已装	Java/Android 反编译(DEX/APK 到 Java)	`JADX_VERSION=1.5.3`(脚本默认,env 可覆盖);GitHub release 钉版直下,无校验和	/opt/jadx	未验 [推断:CLI 与 lib 全本地,反编译不触网];逐件断网冒烟未单列登记。验证:`ip link set eth0 down` 后 `jadx --version` 退 0	docs/items/tools-p0/jadx.md		逆向环境
+jadx	tool	`install-tools.sh analysis`	已装	Java/Android 反编译(DEX/APK 到 Java)	`JADX_VERSION=1.5.3`(脚本默认,env 可覆盖);GitHub release 钉版直下,无校验和	/opt/jadx	未验 [推断:CLI 与 lib 全本地,反编译不触网];逐件断网冒烟未单列登记。验证:`ip link set eth0 down` 后 `jadx --version` 退 0	docs/items/analysis/jadx.md		逆向环境
 java	cache	`install-libcache.sh java`(前置 `install-runtimes.sh sdkman` 的 maven 与 JDK)	缓存固化	smali/baksmali dex 汇编与反汇编 CLI,依赖固化 /opt/m2	钉版见册	/opt/m2	支持。断网 `mvn -o` 在断网冒烟批覆盖	docs/items/libcache/java.md		编程环境
 java-jdks	runtime	`install-runtimes.sh sdkman`	已装	Adoptium temurin 多主版本并存,sdkman 本地路径注册	钉版见册	/opt/jdk/temurin-	支持。本地编译/运行不触网	docs/items/runtimes/java-jdks.md		运行时环境
 javac	runtime	`install-runtimes.sh sdkman`	已烘焙	JDK 编译器入口		/usr/local/bin/javac		docs/items/runtimes/java-jdks.md		运行时环境
-john	tool	`install-tools.sh p0`	已装	John the Ripper 口令破解		/usr/bin/john		docs/items/tools-p0/p0.md		工具环境
+john	tool	`install-tools.sh analysis`	已装	John the Ripper 口令破解		/usr/bin/john		docs/items/analysis/analysis.md		工具环境
 jq	tool	`install-tools.sh cli`	已装	`/usr/bin`		/usr/bin/jq		docs/items/tools-cli/cli.md		工具环境
 just	tool	`install-tools.sh cli`	已装	`/usr/bin`(兜底时 `/opt/cargo/bin` 链 `/usr/local/bin`)		/usr/bin/just		docs/items/tools-cli/cli.md		工具环境
 jwt-tool	tool	`install-tools.sh red`	已烘焙	wrapper(re-venv)		/usr/local/bin/jwt-tool		docs/items/tools-red/red.md		工具环境
 jwt_tool	ref	`install-tools.sh red`	已烘焙	JWT 工具仓(wrapper 见 jwt-tool)		/opt/jwt_tool		docs/items/tools-red/red.md		工具环境
-karmaSMB.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/karmaSMB.py		docs/items/tools-p0/impacket.md		工具环境
+karmaSMB.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/karmaSMB.py		docs/items/analysis/impacket.md		工具环境
 katana	tool	`install-tools.sh pd`	已装	Web 爬虫				docs/items/tools-pd/pd.md		工具环境
 kerbrute	tool	`install-tools.sh red`	已装	PyPI				docs/items/tools-red/red.md		工具环境
-keylistattack.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/keylistattack.py		docs/items/tools-p0/impacket.md		工具环境
+keylistattack.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/keylistattack.py		docs/items/analysis/impacket.md		工具环境
 keystone-engine	tool	`install-tools.sh re`	已装	汇编				docs/items/tools-re/re.md		逆向环境
-kintercept.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/kintercept.py		docs/items/tools-p0/impacket.md		工具环境
+kintercept.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/kintercept.py		docs/items/analysis/impacket.md		工具环境
 krbrelayx	ref	`install-tools.sh red`	已烘焙	krbrelayx 仓(wrapper 同名)		/opt/krbrelayx		docs/items/tools-red/red.md		工具环境
 kubectl	tool	`install-tools.sh red`	已装	dl.k8s.io 直连(国内无二进制镜像,实测阿里云/ustc/华为均无 release 布局)				docs/items/tools-red/red.md		工具环境
 ldap-utils	tool	`install-tools.sh pentest`	已装	ldapsearch 等 LDAP 客户端				docs/items/tools-pentest/pentest.md		工具环境
 libcapstone-dev	tool	`install-tools.sh re`	已装	反汇编开发面				docs/items/tools-re/re.md		逆向环境
-libimage-exiftool-perl	tool	`install-tools.sh p0`	已装	文件元数据读取		/usr/bin/exiftool		docs/items/tools-p0/p0.md		工具环境
+libimage-exiftool-perl	tool	`install-tools.sh analysis`	已装	文件元数据读取		/usr/bin/exiftool		docs/items/analysis/analysis.md		工具环境
 libpugixml-dev	tool	`install-tools.sh re`	已装	rz-ghidra `USE_SYSTEM_PUGIXML=ON` 用系统包				docs/items/tools-re/re.md		逆向环境
 libxml2	cache	`install-libcache.sh zig`(前置 `install-compilers.sh zig`,0.16.0)	缓存固化	master				docs/items/libcache/zig-cache.md		编程环境
 libyara-dev	tool	`install-tools.sh re`	已装	yara 开发面				docs/items/tools-re/re.md		逆向环境
 libzip-dev	tool	`install-tools.sh re`	已装	rizin 构建依赖(缺了 meson 去 libzip.org 拉子项目,必给)				docs/items/tools-re/re.md		逆向环境
 lief	tool	`install-tools.sh re`	已装	解析改写 PE/ELF/Mach-O				docs/items/tools-re/re.md		逆向环境
 linkfinder	tool	`install-tools.sh red`	已烘焙	wrapper(re-venv)		/usr/local/bin/linkfinder		docs/items/tools-red/red.md		工具环境
-lookupsid.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/lookupsid.py		docs/items/tools-p0/impacket.md		工具环境
-machine_role.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/machine_role.py		docs/items/tools-p0/impacket.md		工具环境
+lookupsid.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/lookupsid.py		docs/items/analysis/impacket.md		工具环境
+machine_role.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/machine_role.py		docs/items/analysis/impacket.md		工具环境
 maldev	ref	`install-tools.sh maldev`	参考克隆	载荷开发与操作技法参考仓,只克隆不编译不运行,按工件角色轴归档	latest 道;解析日 2026-10-10	/opt/payload-ref	支持。断网在位核验,断网冒烟覆盖「参考库在位」面	docs/items/tools-maldev/maldev.md		代码样板参考
 mapcidr	tool	`install-tools.sh pd`	已装	CIDR 切分/聚合				docs/items/tools-pd/pd.md		工具环境
 masscan	tool	`install-tools.sh pentest`	已装	大规模端口快扫(setcap 免 sudo,见落点)				docs/items/tools-pentest/pentest.md		工具环境
@@ -253,30 +254,30 @@ mbedtls	cache	`install-libcache.sh zig`(前置 `install-compilers.sh zig`,0.16.0
 merlin	ref	`install-tools.sh c2`	参考克隆	/opt/c2dev-ref/merlin		/opt/c2dev-ref/merlin		docs/items/tools-c2/c2.md		代码样板参考
 meson	tool	`install-tools.sh re`	已装	rizin/sigdb 构建系统				docs/items/tools-re/re.md		逆向环境
 microsoft	cache	`install-libcache.sh dotnet`(前置 `install-runtimes.sh dotnet`,dotnet-sdk-10.0)	已烘焙	dotnet sdk 落点树		/opt/microsoft		docs/items/libcache/dotnet.md		编程环境
-mimikatz.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/mimikatz.py		docs/items/tools-p0/impacket.md		工具环境
+mimikatz.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/mimikatz.py		docs/items/analysis/impacket.md		工具环境
 mingw-w64	tool	`install-tools.sh bof`	已装	/usr/bin/x86_64-w64-mingw32-gcc(交叉编译器)		/usr/bin/x86_64-w64-mingw32-gcc		docs/items/tools-bof/bof.md		工具环境
 mips-linux-gnu-g++-13	compiler	`install-compilers.sh c`	已烘焙	mips 大端交叉链		/usr/bin/mips-linux-gnu-g++-13		docs/items/compilers/c-toolchain.md		编程环境
 mipsel-linux-gnu-g++-13	compiler	`install-compilers.sh c`	已烘焙	mips 小端交叉链(IoT/路由)		/usr/bin/mipsel-linux-gnu-g++-13		docs/items/compilers/c-toolchain.md		编程环境
 mitm6	tool	`install-tools.sh red`	已装	PyPI				docs/items/tools-red/red.md		工具环境
-mitmproxy	tool	`install-tools.sh p0`	已装	HTTP/HTTPS 中间人代理				docs/items/tools-p0/p0.md		工具环境
+mitmproxy	tool	`install-tools.sh analysis`	已装	HTTP/HTTPS 中间人代理				docs/items/analysis/analysis.md		工具环境
 mono	runtime	`install-runtimes.sh mono`	已烘焙	运行时本尊(xbuild 同域;nuget.exe 行归 libcache/dotnet 册)	软钉:发行版源冻结	/usr/bin/mono	未验证。部分已验`mono /opt/nuget.exe help` 本地跑通退 0(NuGet 7.9.0.83,usage 面出)	docs/items/runtimes/mono.md		运行时环境
 moreutils	tool	`install-tools.sh cli`	已装	`/usr/bin`				docs/items/tools-cli/cli.md		工具环境
-mqtt_check.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/mqtt_check.py		docs/items/tools-p0/impacket.md		工具环境
+mqtt_check.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/mqtt_check.py		docs/items/analysis/impacket.md		工具环境
 msf	tool	`install-tools.sh msf`	已装	渗透测试框架整套(msfconsole 等)	未钉(见册)	/opt/metasploit-framework	未验证。框架与模块全在本地,无强制联网	docs/items/tools-msf/msf.md		工具环境
-mssqlclient.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/mssqlclient.py		docs/items/tools-p0/impacket.md		工具环境
-mssqlinstance.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/mssqlinstance.py		docs/items/tools-p0/impacket.md		工具环境
+mssqlclient.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/mssqlclient.py		docs/items/analysis/impacket.md		工具环境
+mssqlinstance.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/mssqlinstance.py		docs/items/analysis/impacket.md		工具环境
 musl-tools	compiler	`install-compilers.sh c`	已装	musl 静态链接(`musl-gcc`)				docs/items/compilers/c-toolchain.md		编程环境
 mvn	runtime	`install-runtimes.sh sdkman` 内直装 + `install-libcache.sh java`(依赖固化)	已烘焙	maven 入口名		/usr/local/bin/mvn		docs/items/runtimes/maven.md		运行时环境
 mythic	ref	`install-tools.sh c2`	参考克隆	/opt/c2dev-ref/mythic		/opt/c2dev-ref/mythic		docs/items/tools-c2/c2.md		代码样板参考
 naabu	tool	`install-tools.sh pd`	已装	端口扫描(SYN;libpcap + setcap)				docs/items/tools-pd/pd.md		工具环境
-nasm	tool	`install-tools.sh p0`	已烘焙	x86/x64 汇编器与反汇编器	钉版见册	/usr/local/bin/nasm	未验证。纯本地汇编器,运行期无网络依赖	docs/items/tools-p0/nasm.md		工具环境
+nasm	tool	`install-tools.sh analysis`	已烘焙	x86/x64 汇编器与反汇编器	钉版见册	/usr/local/bin/nasm	未验证。纯本地汇编器,运行期无网络依赖	docs/items/analysis/nasm.md		工具环境
 ncdu	tool	`install-tools.sh cli`	已装	`/usr/bin`		/usr/bin/ncdu		docs/items/tools-cli/cli.md		工具环境
-ndisasm	tool	`install-tools.sh p0`	已烘焙	反汇编面		/usr/local/bin/ndisasm		docs/items/tools-p0/nasm.md		工具环境
+ndisasm	tool	`install-tools.sh analysis`	已烘焙	反汇编面		/usr/local/bin/ndisasm		docs/items/analysis/nasm.md		工具环境
 nerva	tool	`install-tools.sh secgo`	已装	服务指纹识别				docs/items/tools-secgo/secgo.md		工具环境
-net.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/net.py		docs/items/tools-p0/impacket.md		工具环境
+net.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/net.py		docs/items/analysis/impacket.md		工具环境
 netcat-openbsd	tool	`install-tools.sh pentest`	已装	nc 网络瑞士刀				docs/items/tools-pentest/pentest.md		工具环境
 netexec	tool	`install-libcache.sh python`	已烘焙	NetExec(原 CrackMapExec 续作,re-venv 链出)		/usr/local/bin/netexec		docs/items/libcache/python.md		工具环境
-netview.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/netview.py		docs/items/tools-p0/impacket.md		工具环境
+netview.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/netview.py		docs/items/analysis/impacket.md		工具环境
 nim	compiler	`install-compilers.sh nim`	已装	OffensiveNim 等 maldev 模板的编译器(choosenim 官方安装器)	NIM_VERSION=v2.2.12;解析日 2026-10-10	/opt/nim	支持。断网 `nim --version`	docs/items/compilers/nim.md		编程环境
 nim-gdb	compiler	`install-compilers.sh nim`	已烘焙	OffensiveNim 等 maldev 模板的编译器(choosenim 官方安装器)		/usr/local/bin/nim-gdb		docs/items/compilers/nim.md		编程环境
 nim_dbg	compiler	`install-compilers.sh nim`	已烘焙	OffensiveNim 等 maldev 模板的编译器(choosenim 官方安装器)		/usr/local/bin/nim_dbg		docs/items/compilers/nim.md		编程环境
@@ -285,14 +286,14 @@ nimgrep	compiler	`install-compilers.sh nim`	已烘焙	OffensiveNim 等 maldev �
 nimpretty	compiler	`install-compilers.sh nim`	已烘焙	OffensiveNim 等 maldev 模板的编译器(choosenim 官方安装器)		/usr/local/bin/nimpretty		docs/items/compilers/nim.md		编程环境
 nimsuggest	compiler	`install-compilers.sh nim`	已烘焙	OffensiveNim 等 maldev 模板的编译器(choosenim 官方安装器)		/usr/local/bin/nimsuggest		docs/items/compilers/nim.md		编程环境
 ninja-build	tool	`install-tools.sh re`	已装	meson 后端				docs/items/tools-re/re.md		逆向环境
-nmap	tool	`install-tools.sh p0`	已装	端口扫描与服务识别		/usr/bin/nmap		docs/items/tools-p0/p0.md		工具环境
+nmap	tool	`install-tools.sh analysis`	已装	端口扫描与服务识别		/usr/bin/nmap		docs/items/analysis/analysis.md		工具环境
 node	cache	`install-libcache.sh node`	缓存固化	加密/PKI/反混淆/解析向 24 个纯 JS/wasm 包固化进 /opt/js-lab,断网裸 `require` 直用	钉版见册	/opt/js-lab/node_modules	支持。断网 `require` :`ip link set eth0 down` 后 `node -e "require('node-forge')"` 退 0	docs/items/libcache/node.md		编程环境
 nokogiri	tool	`install-tools.sh red`	已烘焙	RubyGems 副件 shim(CeWL 依赖显式装,1.19.4 带原生件)		/usr/local/bin/nokogiri		docs/items/tools-red/red.md		工具环境
 notify	tool	`install-tools.sh pd`	已装	扫描结果通知推送				docs/items/tools-pd/pd.md		工具环境
 npm	runtime	`install-runtimes.sh node`	已烘焙	node 包管理器(face)		/usr/local/bin/npm		docs/items/runtimes/node.md		运行时环境
 npx	runtime	`install-runtimes.sh node`	已烘焙	Node.js LTS 基座 + npm 全局件(tsc/prettier/eslint/dotnetjs)与 corepack(pnpm/yarn)		/usr/local/bin/npx		docs/items/runtimes/node.md		运行时环境
-ntfs-read.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/ntfs-read.py		docs/items/tools-p0/impacket.md		工具环境
-ntlmrelayx.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/ntlmrelayx.py		docs/items/tools-p0/impacket.md		工具环境
+ntfs-read.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/ntfs-read.py		docs/items/analysis/impacket.md		工具环境
+ntlmrelayx.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/ntlmrelayx.py		docs/items/analysis/impacket.md		工具环境
 nu	tool	`install-tools.sh nu`	已装	结构化 Shell(数据按表流动的 shell 与脚本语言)	latest 道	/usr/local/bin/nu	未验 [推断:]预编译单文件,运行不触网;断网冒烟未单列 nu。验证:`ip link set eth0 down` 后 `nu --version` 退 0	docs/items/tools-nu/nu.md		数据分析
 nuclei	tool	`install-tools.sh pd`	已装	模板化漏洞扫描,单册 [nuclei.md](nuclei.md)	钉版见册;解析日 2026-10-10	/usr/local/bin/nuclei.real	支持。断网不卡更新检查、模板从 /opt 盘直读	docs/items/tools-pd/pd.md		工具环境
 nuclei-templates	data	`install-tools.sh pd`(本体)+ `install-tools.sh pentest`(离线接线)	已烘焙	模板库(缺它 nuclei 空跑/自下载;GIT_PIN 独立钉)		/opt/nuclei-templates		docs/items/tools-pd/nuclei.md		信息搜索
@@ -304,9 +305,8 @@ one_gadget	tool	`install-tools.sh pentest`	已烘焙	libc one-gadget 查找(gem 
 openvpn	tool	`install-tools.sh pentest`	已装	OpenVPN 客户端				docs/items/tools-pentest/pentest.md		工具环境
 osslsigncode	tool	`install-tools.sh pentest`	已装	PE Authenticode 签名/验签(清单记录 2.8-2)				docs/items/tools-pentest/pentest.md		工具环境
 outguess	tool	`install-tools.sh pentest`	已烘焙	outguess 算法隐写(apt)		/usr/bin/outguess		docs/items/tools-pentest/pentest.md		工具环境
-owneredit.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/owneredit.py		docs/items/tools-p0/impacket.md		工具环境
-p0	tool	`install-tools.sh p0`	已装	安全分析工具集:apt 20 包 + impacket/nasm + re-venv 批 + GitHub 钉版批	钉版见册	/usr/bin	未验证。apt 20 包均为本地分析件,无运行期外网依赖	docs/items/tools-p0/p0.md		工具环境
-patchelf	tool	`install-tools.sh p0`	已装	改写 ELF 解释器与 RPATH		/usr/bin/patchelf		docs/items/tools-p0/p0.md		工具环境
+owneredit.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/owneredit.py		docs/items/analysis/impacket.md		工具环境
+patchelf	tool	`install-tools.sh analysis`	已装	改写 ELF 解释器与 RPATH		/usr/bin/patchelf		docs/items/analysis/analysis.md		工具环境
 pd	tool	`install-tools.sh pd`	已装	攻击面测绘与侦察 20 件 Go CLI 集(子域/DNS/端口/HTTP/模板扫描/爬虫/云资产)	钉版见册;解析日 2026-10-10	/opt/go	支持。版本面/帮助面断网可用	docs/items/tools-pd/pd.md		工具环境
 pdf-parser.py	tool	`install-tools.sh pentest`	已烘焙	DSS PDF 解析		/usr/local/bin/pdf-parser.py		docs/items/tools-pentest/pentest.md		工具环境
 pdfid.py	tool	`install-tools.sh pentest`	已烘焙	DSS PDF 概览		/usr/local/bin/pdfid.py		docs/items/tools-pentest/pentest.md		工具环境
@@ -315,8 +315,8 @@ pentest	tool	`install-tools.sh pentest`	已装	内网客户端/远程/爆破/取
 php	runtime	`install-runtimes.sh php`	已装	webshell 逆向运行时:7.4 复现老样本、8.x 对照现代样本,VLD dump opcode	软钉:发行版源冻结	/usr/bin/php7.4	未验证。CLI 解释器纯本地,`php<v> -d vld.active=1 <样本>` dump opcode 不触网	docs/items/runtimes/php.md		运行时环境
 phpggc	tool	`install-tools.sh pentest`	已烘焙	PHP 反序列化 gadget 链生成(wrapper php8.3)		/usr/local/bin/phpggc		docs/items/tools-pentest/pentest.md		工具环境
 phpggc-src	ref	`install-tools.sh pentest`	已烘焙	phpggc 仓源		/opt/phpggc		docs/items/tools-pentest/pentest.md		工具环境
-ping.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/ping.py		docs/items/tools-p0/impacket.md		工具环境
-ping6.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/ping6.py		docs/items/tools-p0/impacket.md		工具环境
+ping.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/ping.py		docs/items/analysis/impacket.md		工具环境
+ping6.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/ping6.py		docs/items/analysis/impacket.md		工具环境
 pivot	tool	`install-tools.sh pivot`	已装	内网代理跳板与隧道:gost/frps/frpc/wstunnel/rathole/bore	GO_PIN[github.com/go-gost/gost/cmd/gost]=v0.0.0-20261…;解析日 2026-10-10	/opt/go/bin	未验证。: server 端起 listener、client 连内网目标均不依赖外网,断外网(内网可达)下可用,eth0 全断退化为 loopback 对连	docs/items/tools-pivot/pivot.md		工具环境
 pkg-config	tool	`install-tools.sh re`	已装	依赖探测				docs/items/tools-re/re.md		逆向环境
 poc-search	tool	`install-tools.sh recon`	已烘焙	PoC 查询 wrapper(已装入口,非参考克隆)	钉版见册	/usr/local/bin/poc-search	未验证。四用法全读本盘 JSON/parquet,wrapper 无任何网络调用	docs/items/tools-recon/poc-search.md		工具环境
@@ -327,10 +327,10 @@ powershell-yaml	cache	`install-libcache.sh pwsh`(前置 `install-runtimes.sh pws
 prettier	runtime	`install-tools.sh cli`	已烘焙	npm 全局件		/usr/local/bin/prettier		docs/items/tools-cli/cli.md		工具环境
 proxify	tool	`install-tools.sh pd`	已装	抓包代理				docs/items/tools-pd/pd.md		工具环境
 proxychains4	tool	`install-tools.sh pentest`	已装	任意 TCP 程序裹代理链				docs/items/tools-pentest/pentest.md		工具环境
-psexec.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/psexec.py		docs/items/tools-p0/impacket.md		工具环境
+psexec.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/psexec.py		docs/items/analysis/impacket.md		工具环境
 pspy	tool	`install-libcache.sh go`	已烘焙	无 root 进程刺探(GO_PIN 独立钉,实装在 /opt/go/bin)	钉版见册	/usr/local/bin/pspy	过,纯本地(枚举 /proc 与 inotify)	docs/items/libcache/go.md		工具环境
-pwndbg	tool	`install-tools.sh p0` 装本体、`install-tools.sh pentest` 接线	已装	GDB 调试增强插件(pwn/逆向)	GIT_PIN[pwndbg/pwndbg]=3c627ae656b0…;解析日 2026-10-10	/usr/local/bin/pwndbg	未验证。插件 python 与 gdbinit 全本地,gdb 加载不触网]	docs/items/tools-p0/pwndbg.md		逆向环境
-pwndbg-lldb	tool	`install-tools.sh p0` 装本体、`install-tools.sh pentest` 接线	已烘焙	pwndbg 的 lldb 面		/usr/local/bin/pwndbg-lldb		docs/items/tools-p0/pwndbg.md		工具环境
+pwndbg	tool	`install-tools.sh p0` 装本体、`install-tools.sh pentest` 接线	已装	GDB 调试增强插件(pwn/逆向)	GIT_PIN[pwndbg/pwndbg]=3c627ae656b0…;解析日 2026-10-10	/usr/local/bin/pwndbg	未验证。插件 python 与 gdbinit 全本地,gdb 加载不触网]	docs/items/analysis/pwndbg.md		逆向环境
+pwndbg-lldb	tool	`install-tools.sh p0` 装本体、`install-tools.sh pentest` 接线	已烘焙	pwndbg 的 lldb 面		/usr/local/bin/pwndbg-lldb		docs/items/analysis/pwndbg.md		工具环境
 pwsh	cache	`install-libcache.sh pwsh`(前置 `install-runtimes.sh pwsh`)	缓存固化	Save-PSResource 固化 8 个 PSGallery 模块(含传递依赖),全 shell 可 Import-Module	软钉:发行版源冻结	/opt/psmodules/	未验证。模块字节已在本地,Import-Module 不访问网络	docs/items/libcache/pwsh.md		编程环境
 pydoc	runtime	`install-runtimes.sh python` + `install-libcache.sh python`(wheelhouse 固化)	已烘焙	系统 python3 基座(保持干净) + /etc/pip.conf 离线面 + /opt/analytics 分析 venv + ruff		/usr/local/bin/pydoc		docs/items/runtimes/python.md		运行时环境
 pysemgrep	tool	`install-tools.sh red`	已烘焙	AD 横向/Web/密码/移动/云批量工具面(uv tool + git 克隆 + gem + Release 钉版四批)		/usr/local/bin/pysemgrep		docs/items/tools-red/red.md		工具环境
@@ -340,34 +340,34 @@ python2.7	runtime	`install-runtimes.sh python2`	已烘焙	python2 入口		/usr/l
 python2.7-config	runtime	`install-runtimes.sh python2`	已烘焙	源码编译的 CPython 2.7:跑老样本、2.x 语法的逆向/exploit 脚本		/usr/local/bin/python2.7-config		docs/items/runtimes/python2.md		运行时环境
 python3	tool	`install-tools.sh re`	已装	运行时				docs/items/tools-re/re.md		逆向环境
 python3-pip	tool	`install-tools.sh re`	已装	系统 pip(逆向件不进系统 python3,只作底座)				docs/items/tools-re/re.md		逆向环境
-python3-pwntools	tool	`install-tools.sh p0`	已装	CTF/pwn 漏洞利用开发框架				docs/items/tools-p0/p0.md		工具环境
-python3-ropgadget	tool	`install-tools.sh p0`	已装	ROP gadget 搜索		/usr/bin/ROPgadget		docs/items/tools-p0/p0.md		工具环境
-python3-scapy	tool	`install-tools.sh p0`	已装	数据包构造与嗅探库				docs/items/tools-p0/p0.md		工具环境
+python3-pwntools	tool	`install-tools.sh analysis`	已装	CTF/pwn 漏洞利用开发框架				docs/items/analysis/analysis.md		工具环境
+python3-ropgadget	tool	`install-tools.sh analysis`	已装	ROP gadget 搜索		/usr/bin/ROPgadget		docs/items/analysis/analysis.md		工具环境
+python3-scapy	tool	`install-tools.sh analysis`	已装	数据包构造与嗅探库				docs/items/analysis/analysis.md		工具环境
 python3-venv	tool	`install-tools.sh re`	已装	venv 底座				docs/items/tools-re/re.md		逆向环境
 pz	ref	`install-tools.sh pz`	参考克隆	Windows 沙箱攻击面分析 / .NET 后渗透源码参考(NtObjectManager/NtApiDotNet 系)	钉版见册;解析日 2026-10-10	/opt	支持。断网冒烟「参考库在位」覆盖	docs/items/tools-pz/pz.md		代码样板参考
-qemu-user-static	tool	`install-tools.sh p0`	已装	用户态异架构 ELF 模拟执行				docs/items/tools-p0/p0.md		工具环境
+qemu-user-static	tool	`install-tools.sh analysis`	已装	用户态异架构 ELF 模拟执行				docs/items/analysis/analysis.md		工具环境
 qpdf	tool	`install-tools.sh pentest`	已装	PDF 结构变换/解密				docs/items/tools-pentest/pentest.md		工具环境
 qsreplace	tool	`install-tools.sh secgo`	已装	URL 查询参数值批量替换				docs/items/tools-secgo/secgo.md		工具环境
 racc	tool	`install-tools.sh red`	已烘焙	ruby gem 副件(解析器生成)		/usr/local/bin/racc		docs/items/tools-red/red.md		工具环境
-raiseChild.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/raiseChild.py		docs/items/tools-p0/impacket.md		工具环境
+raiseChild.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/raiseChild.py		docs/items/analysis/impacket.md		工具环境
 rathole	tool	`install-tools.sh pivot`	已装	Rust 隧道 rathole,CRATE_PIN/GIT_PIN 双道钉版				docs/items/tools-pivot/pivot.md		工具环境
-rbcd.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/rbcd.py		docs/items/tools-p0/impacket.md		工具环境
+rbcd.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/rbcd.py		docs/items/analysis/impacket.md		工具环境
 rclone	tool	`install-tools.sh cli`	已装	`/usr/bin`		/usr/bin/rclone		docs/items/tools-cli/cli.md		工具环境
 rctl	tool	`install-tools.sh ctl`	已装	pi runtime 实例总 ctl:agent 第一入口,渐进索引与全资源可搜(search/where/caps/show/env)	钉版见册	/usr/local/bin/rctl	支持。全命令零网络	docs/items/tools-ctl/rctl.md		工具环境
-rdp_check.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/rdp_check.py		docs/items/tools-p0/impacket.md		工具环境
+rdp_check.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/rdp_check.py		docs/items/analysis/impacket.md		工具环境
 re	tool	`install-tools.sh re`	已装	逆向工程稳定链:系统库 22 项 + rizin/rz-ghidra/sigdb 源码编译 + `/opt/re-venv` 五库	软钉:发行版源冻结		未验证。部分已验`rizin -qc 'Lc' /bin/ls | grep -i ghidra` 退 0(rz-ghidra 反编译面加载,rizin 0.10.0)与	docs/items/tools-re/re.md		逆向环境
 rea	tool	`install-tools.sh rea`	已装	agent 逆向工具面(morluto/rea:MCP server + CLI,Ghidra 无头 provider,封装 analyzeHeadless)	NPM_PIN[rea-agents]=6.3.0	/opt/node/bin/rea	支持。断网全链路:eth0 down 后 `rea doctor` Ghidra provider healthy(20 项 ok)+ 带符号 ELF `rea	docs/items/tools-rea/rea.md		逆向环境
 rea-agents	tool	`install-tools.sh rea`	已烘焙	rea 常驻面入口		/usr/local/bin/rea-agents		docs/items/tools-rea/rea.md		逆向环境
 recon	ref	`install-tools.sh recon`	参考克隆	MAC/服务指纹库与 DNS 协议栈、CVE PoC 索引参考,只克隆归档	钉版见册;解析日 2026-10-10	/opt/recon-ref/	支持。断网在位核验,断网冒烟覆盖「参考库在位」面	docs/items/tools-recon/recon.md		代码样板参考
 red	tool	`install-tools.sh red`	已装	AD 横向/Web/密码/移动/云批量工具面(uv tool + git 克隆 + gem + Release 钉版四批)	GIT_PIN[r0oth3x49/ghauri]=sha;解析日 2026-10-10		未验证。wrapper 层六件(enum4linux-ng、krbrelayx、bloodhound-python、cewl、jwt-tool、linkfinder)过	docs/items/tools-red/red.md		工具环境
 redis-tools	tool	`install-tools.sh pentest`	已装	redis-cli				docs/items/tools-pentest/pentest.md		工具环境
-reg.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/reg.py		docs/items/tools-p0/impacket.md		工具环境
-registry-read.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/registry-read.py		docs/items/tools-p0/impacket.md		工具环境
-regsecrets.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/regsecrets.py		docs/items/tools-p0/impacket.md		工具环境
+reg.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/reg.py		docs/items/analysis/impacket.md		工具环境
+registry-read.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/registry-read.py		docs/items/analysis/impacket.md		工具环境
+regsecrets.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/regsecrets.py		docs/items/analysis/impacket.md		工具环境
 responder	tool	`install-tools.sh pentest`	已装	LLMNR/NBT-NS 毒化(内网横向测试起点)	钉版见册;解析日 2026-10-10	/opt/Responder/	支持。毒化监听只需二层广播域,不依赖外网	docs/items/tools-pentest/responder.md		工具环境
 rizin	tool	`install-tools.sh re`	已烘焙	rizin 本尊,rz-ghidra 反编译面经它出(pdg)		/usr/local/bin/rizin		docs/items/tools-re/re.md		逆向环境
-rpcdump.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/rpcdump.py		docs/items/tools-p0/impacket.md		工具环境
-rpcmap.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/rpcmap.py		docs/items/tools-p0/impacket.md		工具环境
+rpcdump.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/rpcdump.py		docs/items/analysis/impacket.md		工具环境
+rpcmap.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/rpcmap.py		docs/items/analysis/impacket.md		工具环境
 ruff	runtime	`install-tools.sh cli`	已烘焙	Python linter(uv-tool)		/usr/local/bin/ruff		docs/items/tools-cli/cli.md		编程环境
 rust	cache	`install-libcache.sh rust`	缓存固化	加密/证书/解析/协议向 31 个 crate 构建期 fetch 进 /opt/cargo registry,断网 cargo 编译直用	钉版见册	/opt/cargo	支持。断网拉未缓存 crate 立即报 not found	docs/items/libcache/rust.md		编程环境
 rust-lld	compiler	`install-compilers.sh rust`	已烘焙	Rust 工具链:rustup + stable + 十向交叉 target 与配套组件		/usr/local/bin/rust-lld		docs/items/compilers/rust.md		编程环境
@@ -391,19 +391,19 @@ rz-hash	tool	`install-tools.sh re`	已烘焙	逆向工程稳定链:系统库 22 
 rz-run	tool	`install-tools.sh re`	已烘焙	逆向工程稳定链:系统库 22 项 + rizin/rz-ghidra/sigdb 源码编译 + `/opt/re-venv` 五库		/usr/local/bin/rz-run		docs/items/tools-re/re.md		逆向环境
 rz-sign	tool	`install-tools.sh re`	已烘焙	逆向工程稳定链:系统库 22 项 + rizin/rz-ghidra/sigdb 源码编译 + `/opt/re-venv` 五库		/usr/local/bin/rz-sign		docs/items/tools-re/re.md		逆向环境
 rz-test	tool	`install-tools.sh re`	已烘焙	逆向工程稳定链:系统库 22 项 + rizin/rz-ghidra/sigdb 源码编译 + `/opt/re-venv` 五库		/usr/local/bin/rz-test		docs/items/tools-re/re.md		逆向环境
-sambaPipe.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/sambaPipe.py		docs/items/tools-p0/impacket.md		工具环境
-samedit.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/samedit.py		docs/items/tools-p0/impacket.md		工具环境
-samrdump.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/samrdump.py		docs/items/tools-p0/impacket.md		工具环境
+sambaPipe.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/sambaPipe.py		docs/items/analysis/impacket.md		工具环境
+samedit.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/samedit.py		docs/items/analysis/impacket.md		工具环境
+samrdump.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/samrdump.py		docs/items/analysis/impacket.md		工具环境
 sandbox-attacksurface-analysis-tools	ref	`install-tools.sh pz`	参考克隆	/opt/pz-sandbox-tools(有 dotnet 时尽力 `dotnet build` Release)		/opt/pz-sandbox-tools		docs/items/tools-pz/pz.md		代码样板参考
 sasquatch	tool	`install-tools.sh pentest`	已烘焙	补丁版 squashfs 解包器(源码构建)		/usr/local/bin/sasquatch		docs/items/tools-pentest/pentest.md		工具环境
 sdkman	runtime	`install-runtimes.sh sdkman`	已装	多版本 Java 工具链管理入口(`sdk` 命令)	未钉(见册)	/usr/local/sdkman	未验证。已装候选的 `sdk use`/`sdk current` 是纯本地文件操作,且 auto_selfupdate=false 不触网	docs/items/runtimes/sdkman.md		运行时环境
 seccomp-tools	tool	`install-tools.sh pentest`	已烘焙	seccomp 规则提取/编译(gem 1.7.1)		/usr/local/bin/seccomp-tools		docs/items/tools-pentest/pentest.md		工具环境
 secgo	tool	`install-tools.sh secgo`	已装	17 件 Go 安全 CLI(fuzz/爆破/爬虫/密钥扫描/隧道/云与 AD 采集)+ trufflehog(release)	钉版见册;解析日 2026-10-10	/opt/go	支持。版本面/帮助面断网可用	docs/items/tools-secgo/secgo.md		工具环境
 seclists	tool	装面在 pentest 组接线,本册独立登记	已装	渗透测试词表与数据集合集(用户名/密码/URL/敏感模式/载荷等)	钉版见册	/opt/SecLists	过,本地直读;缺它多只工具空跑或自下载(数据册验收句);新鲜度=构建日快照	docs/items/tools-data/seclists.md		工具环境
-secretsdump.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/secretsdump.py		docs/items/tools-p0/impacket.md		工具环境
+secretsdump.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/secretsdump.py		docs/items/analysis/impacket.md		工具环境
 secrust	tool	`install-tools.sh secrust`	已装	rustscan(快扫)/ feroxbuster(内容发现)/ RustHound-CE(BloodHound CE 采集器)	CRATE_PIN[rustscan]=2.4.1;CRATE_PIN[feroxbuster]=2.13.1;解析日 2026-10-10	/opt/cargo/bin	支持。二进制断网可跑	docs/items/tools-secrust/secrust.md		工具环境
 semgrep	tool	`install-tools.sh red`	已装	[semgrep/semgrep](https://github.com/semgrep/semgrep),PyPI 经 tuna;SAST 代码审计				docs/items/tools-red/red.md		工具环境
-services.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/services.py		docs/items/tools-p0/impacket.md		工具环境
+services.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/services.py		docs/items/analysis/impacket.md		工具环境
 sg	tool	`install-tools.sh astgrep`	已烘焙	结构化代码搜索与改写 CLI(入口 `ast-grep` 与 `sg`)		/usr/local/bin/sg		docs/items/tools-astgrep/astgrep.md		工具环境
 shellcheck	tool	`install-tools.sh cli`	已装	`/usr/bin`		/usr/bin/shellcheck		docs/items/tools-cli/cli.md		工具环境
 shuffledns	tool	`install-tools.sh pd`	已装	子域名爆破(massdns 包装)				docs/items/tools-pd/pd.md		工具环境
@@ -414,19 +414,19 @@ sliver	ref	`install-tools.sh c2`	参考克隆	/opt/c2dev-ref/sliver		/opt/c2dev-
 smali	tool	`install-libcache.sh java`(前置 `install-runtimes.sh sdkman` 的 maven 与 JDK)	已烘焙	smali 汇编 CLI(/opt/smali-cli 挂钩)		/usr/local/bin/smali		docs/items/libcache/java.md		逆向环境
 smali-home	ref	`install-libcache.sh java`(前置 `install-runtimes.sh sdkman` 的 maven 与 JDK)	已烘焙	smali 仓克隆(smali-cli 装配源)		/opt/smali		docs/items/libcache/java.md		编程环境
 smbclient	tool	`install-tools.sh pentest`	已装	SMB 共享客户端				docs/items/tools-pentest/pentest.md		工具环境
-smbclient.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/smbclient.py		docs/items/tools-p0/impacket.md		工具环境
-smbexec.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/smbexec.py		docs/items/tools-p0/impacket.md		工具环境
-smbserver.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/smbserver.py		docs/items/tools-p0/impacket.md		工具环境
+smbclient.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/smbclient.py		docs/items/analysis/impacket.md		工具环境
+smbexec.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/smbexec.py		docs/items/analysis/impacket.md		工具环境
+smbserver.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/smbserver.py		docs/items/analysis/impacket.md		工具环境
 smtpd.py	runtime	`install-runtimes.sh python` + `install-libcache.sh python`(wheelhouse 固化)	已烘焙	stdlib 邮件服务脚本(uv-tools 副件)		/usr/local/bin/smtpd.py		docs/items/runtimes/python.md		运行时环境
-sniff.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/sniff.py		docs/items/tools-p0/impacket.md		工具环境
-sniffer.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/sniffer.py		docs/items/tools-p0/impacket.md		工具环境
+sniff.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/sniff.py		docs/items/analysis/impacket.md		工具环境
+sniffer.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/sniffer.py		docs/items/analysis/impacket.md		工具环境
 snmp	tool	`install-tools.sh pentest`	已装	snmpwalk 等 SNMP 客户端套件				docs/items/tools-pentest/pentest.md		工具环境
 socat	tool	`install-tools.sh pentest`	已装	双向通道/端口转发				docs/items/tools-pentest/pentest.md		工具环境
-split.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/split.py		docs/items/tools-p0/impacket.md		工具环境
+split.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/split.py		docs/items/analysis/impacket.md		工具环境
 sqlite3	cache	`install-libcache.sh zig`(前置 `install-compilers.sh zig`,0.16.0)	缓存固化	main				docs/items/libcache/zig-cache.md		编程环境
-sqlmap	tool	`install-tools.sh p0`	已装	SQL 注入自动检测与利用		/usr/bin/sqlmap		docs/items/tools-p0/p0.md		工具环境
-squashfs-tools	tool	`install-tools.sh p0`	已装	SquashFS 固件镜像解包与重打包				docs/items/tools-p0/p0.md		工具环境
-ssdeep	tool	`install-tools.sh p0`	已装	模糊哈希与相似度比对		/usr/bin/ssdeep		docs/items/tools-p0/p0.md		工具环境
+sqlmap	tool	`install-tools.sh analysis`	已装	SQL 注入自动检测与利用		/usr/bin/sqlmap		docs/items/analysis/analysis.md		工具环境
+squashfs-tools	tool	`install-tools.sh analysis`	已装	SquashFS 固件镜像解包与重打包				docs/items/analysis/analysis.md		工具环境
+ssdeep	tool	`install-tools.sh analysis`	已装	模糊哈希与相似度比对		/usr/bin/ssdeep		docs/items/analysis/analysis.md		工具环境
 sshuttle	tool	`install-tools.sh pentest`	已装	基于 ssh 的透明代理隧道				docs/items/tools-pentest/pentest.md		工具环境
 sstimap	tool	`install-tools.sh pentest`	已烘焙	SSTI 探测/利用(独立 venv 1.4.0;tplmap 停维护不装)		/usr/local/bin/sstimap		docs/items/tools-pentest/pentest.md		工具环境
 sstimap-venv	runtime	`install-tools.sh pentest`	已烘焙	SSTImap 独立 venv		/opt/sstimap-venv		docs/items/tools-pentest/pentest.md		工具环境
@@ -434,26 +434,26 @@ steghide	tool	`install-tools.sh pentest`	已装	图片/音频隐写				docs/item
 stegseek	tool	`install-tools.sh pentest`	已烘焙	steghide 暴破(deb 钉 0.6+sha256)		/usr/local/bin/stegseek		docs/items/tools-pentest/pentest.md		工具环境
 subfinder	tool	`install-tools.sh pd`	已装	子域名被动发现				docs/items/tools-pd/pd.md		工具环境
 tccli	tool	`install-tools.sh cloud`	已烘焙	腾讯云 CLI(uv-tool 面)		/usr/local/bin/tccli		docs/items/tools-cloud/cloud.md		工具环境
-tcpdump	tool	`install-tools.sh p0`	已装	命令行抓包		/usr/bin/tcpdump		docs/items/tools-p0/p0.md		工具环境
+tcpdump	tool	`install-tools.sh analysis`	已装	命令行抓包		/usr/bin/tcpdump		docs/items/analysis/analysis.md		工具环境
 telnet	tool	`install-tools.sh pentest`	已装	telnet 客户端(明文协议探测)				docs/items/tools-pentest/pentest.md		工具环境
 testament	compiler	`install-compilers.sh nim`	已烘焙	OffensiveNim 等 maldev 模板的编译器(choosenim 官方安装器)		/usr/local/bin/testament		docs/items/compilers/nim.md		编程环境
 testdisk	tool	`install-tools.sh pentest`	已装	分区/文件恢复(含 photorec)				docs/items/tools-pentest/pentest.md		工具环境
-ticketConverter.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/ticketConverter.py		docs/items/tools-p0/impacket.md		工具环境
-ticketer.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/ticketer.py		docs/items/tools-p0/impacket.md		工具环境
+ticketConverter.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/ticketConverter.py		docs/items/analysis/impacket.md		工具环境
+ticketer.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/ticketer.py		docs/items/analysis/impacket.md		工具环境
 tlsx	tool	`install-tools.sh pd`	已装	TLS 配置分析				docs/items/tools-pd/pd.md		工具环境
 tmux	tool	`install-tools.sh cli`	已装	`/usr/bin`		/usr/bin/tmux		docs/items/tools-cli/cli.md		工具环境
 trivy	tool	`install-tools.sh red`	已装	容器与文件系统漏洞扫描器,db 为构建日快照	TRIVY_VERSION=v0.75.0;解析日 2026-10-10	/usr/bin/trivy	支持。断网扫描(`trivy fs --scanners vuln /etc/hostname`)	docs/items/tools-red/red.md		工具环境
 trivy-db	data	`install-tools.sh red`	已烘焙	漏洞库快照(缺它 trivy 离线 FATAL;构建日快照)		/opt/trivy-db		docs/items/tools-red/trivy.md		信息搜索
 trufflehog	tool	`install-tools.sh secgo`	已装	git 历史与云密钥扫描,单册 [trufflehog.md](trufflehog.md)	TRUFFLEHOG_VERSION=v3.99.2;解析日 2026-10-10	/usr/local/bin/trufflehog	支持。本地 `filesystem`/`git` 扫描断网可跑,纯本地读盘	docs/items/tools-secgo/secgo.md		工具环境
 tsc	runtime	`install-runtimes.sh node`	已烘焙	typescript 编译器(npm 全局件)		/usr/local/bin/tsc		docs/items/runtimes/node.md		运行时环境
-tshark	tool	`install-tools.sh p0`	已装	Wireshark 命令行抓包与协议解析		/usr/bin/tshark		docs/items/tools-p0/p0.md		工具环境
+tshark	tool	`install-tools.sh analysis`	已装	Wireshark 命令行抓包与协议解析		/usr/bin/tshark		docs/items/analysis/analysis.md		工具环境
 tsserver	runtime	`install-tools.sh cli`	已烘焙	typescript LSP 服务面		/usr/local/bin/tsserver		docs/items/tools-cli/cli.md		工具环境
-tstool.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/tstool.py		docs/items/tools-p0/impacket.md		工具环境
+tstool.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/tstool.py		docs/items/analysis/impacket.md		工具环境
 typescript	runtime	`install-tools.sh cli`	已烘焙	ts 编译器(npm 全局)		/usr/local/bin/tsc		docs/items/tools-cli/cli.md		工具环境
 unar	tool	`install-tools.sh pentest`	已装	多格式压缩包解包				docs/items/tools-pentest/pentest.md		工具环境
 uncover	tool	`install-tools.sh pd`	已装	暴露资产聚合(Shodan/Censys 等 API)				docs/items/tools-pd/pd.md		工具环境
 unicorn	tool	`install-tools.sh re`	已装	模拟执行				docs/items/tools-re/re.md		逆向环境
-upx-ucl	tool	`install-tools.sh p0`	已装	可执行文件加壳与脱壳		/usr/bin/upx		docs/items/tools-p0/p0.md		工具环境
+upx-ucl	tool	`install-tools.sh analysis`	已装	可执行文件加壳与脱壳		/usr/bin/upx		docs/items/analysis/analysis.md		工具环境
 urlfinder	tool	`install-tools.sh pd`	已装	被动 URL 发现				docs/items/tools-pd/pd.md		工具环境
 uv	runtime	`install-runtimes.sh uv`	已装	极速 Python 包/工具管理器,本镜像 Python 生态的装件主通道(uv venv / uv pip / uv tool)	UV_VERSION=0.13.0;解析日 2026-10-10	/root/.local/bin/uv	支持。断网拉新包约 8ms 报 "network was disabled"	docs/items/runtimes/uv.md		运行时环境
 vcpkg	compiler	`install-compilers.sh vcpkg`	已装	C/C++ 库包管理器 + 12 个常用库源码编译集(RE/安全方向实用集)	GIT_PIN[microsoft/vcpkg]=e456309491fd…;解析日 2026-10-10	/opt/vcpkg	未验证。已装 12 库离线被构建消费 未验 头文件与库全是 `installed/` 本地文件]	docs/items/compilers/vcpkg.md		编程环境
@@ -461,7 +461,7 @@ vim	tool	`install-tools.sh cli`	已装	`/usr/bin`		/usr/bin/vim		docs/items/tool
 vnc	tool	`install-tools.sh vnc`	已装	XFCE 桌面 + TigerVNC + noVNC/websockify,浏览器经 incus proxy 进容器图形面;轻量 Xvfb+x11vnc 面并存	软钉:发行版源冻结	/usr/share/novnc/vnc.html	支持。纯本地件,断网可起	docs/items/tools-vnc/vnc.md		工具环境
 vnc-screen	tool	`install-tools.sh vnc`	已烘焙	屏幕/VNC 起停面		/usr/local/bin/vnc-screen		docs/items/tools-vnc/vnc.md		工具环境
 vol	tool	`install-libcache.sh python`	已烘焙	volatility3 CLI(PYPI_PIN 独立钉,re-venv 链出)		/usr/local/bin/vol		docs/items/libcache/python.md		工具环境
-volatility3	tool	`install-tools.sh re`(re-venv 链出)	已装	内存取证框架(CLI:vol/volshell)	pins.sh `PYPI_PIN[volatility3]`	/opt/re-venv	过,CLI 本地读;2026-10-11 从 libcache/python 册拆出一事实一册,原处留链接	docs/items/tools-p0/volatility3.md		工具环境
+volatility3	tool	`install-tools.sh re`(re-venv 链出)	已装	内存取证框架(CLI:vol/volshell)	pins.sh `PYPI_PIN[volatility3]`	/opt/re-venv	过,CLI 本地读;2026-10-11 从 libcache/python 册拆出一事实一册,原处留链接	docs/items/analysis/volatility3.md		工具环境
 volshell	tool	`install-libcache.sh python`	已烘焙	逆向/CTF 向 19 个 PyPI 包装进 /opt/re-venv、轮子下载进 /opt/wheelhouse,断网 pip 免索引重装		/usr/local/bin/volshell		docs/items/libcache/python.md		工具环境
 wafw00f	tool	`install-tools.sh red`	已装	PyPI				docs/items/tools-red/red.md		工具环境
 waybackurls	tool	`install-tools.sh secgo`	已装	Wayback 历史 URL				docs/items/tools-secgo/secgo.md		工具环境
@@ -471,11 +471,11 @@ windows-logical-eop-workshop	ref	`install-tools.sh pz`	参考克隆	/opt/windows
 wine	tool	`install-tools.sh bof`	已装	在 Linux 下跑交叉编译出的 Windows PE(如 COFFLoader64.exe)的兼容层	钉版见册;解析日 2026-10-09	/usr/bin/wine	未验证。wine 跑原生 Windows PE 是纯本地动作不依赖网络(未单独断网)	docs/items/tools-bof/wine.md		工具环境
 wine64	tool	`install-tools.sh bof`	已烘焙	wine 主入口		/usr/local/bin/wine64		docs/items/tools-bof/wine.md		工具环境
 wireguard-tools	tool	`install-tools.sh pentest`	已装	wg/wg-quick				docs/items/tools-pentest/pentest.md		工具环境
-wmiexec.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/wmiexec.py		docs/items/tools-p0/impacket.md		工具环境
-wmipersist.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/wmipersist.py		docs/items/tools-p0/impacket.md		工具环境
-wmiquery.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/wmiquery.py		docs/items/tools-p0/impacket.md		工具环境
+wmiexec.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/wmiexec.py		docs/items/analysis/impacket.md		工具环境
+wmipersist.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/wmipersist.py		docs/items/analysis/impacket.md		工具环境
+wmiquery.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/wmiquery.py		docs/items/analysis/impacket.md		工具环境
 wstunnel	tool	`install-tools.sh pivot`	已装	Rust WebSocket 隧道 wstunnel,GIT_PIN sha 钉版构建				docs/items/tools-pivot/pivot.md		工具环境
-xxd	tool	`install-tools.sh p0`	已装	十六进制转储与回写		/usr/bin/xxd		docs/items/tools-p0/p0.md		工具环境
+xxd	tool	`install-tools.sh analysis`	已装	十六进制转储与回写		/usr/bin/xxd		docs/items/analysis/analysis.md		工具环境
 yara	tool	`install-tools.sh re`	已装	样本特征规则扫描				docs/items/tools-re/re.md		逆向环境
 yara-python	tool	`install-tools.sh re`	已装	规则扫描				docs/items/tools-re/re.md		逆向环境
 yara-rules	data	`install-tools.sh re`	已烘焙	yara 规则集	pins.sh `GIT_PIN[Yara-Rules/rules]` 钉 sha(clone_pin)	/opt/yara-rules	支持。本地直读	docs/items/tools-re/re.md		信息搜索

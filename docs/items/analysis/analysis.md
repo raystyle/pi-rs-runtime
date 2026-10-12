@@ -1,6 +1,6 @@
-# 安全分析工具集(p0 安装组)
+# 安全分析工具集(analysis 安装组)
 
-> apt 批、impacket 与 nasm 特例、re-venv 批、GitHub 钉版批 ｜ 状态:已装 ｜ 组:`install-tools.sh p0`
+> apt 批、impacket 与 nasm 特例、re-venv 批、GitHub 钉版批 ｜ 状态:已装 ｜ 组:`install-tools.sh analysis`
 
 ## 版本
 
@@ -10,7 +10,7 @@
 
 ## 来源与安装
 
-- 脚本:`install-tools.sh` 的 `install_p0`。
+- 脚本:`install-tools.sh` 的 `install_analysis`。
 - apt 批、re-venv 批、GitHub 钉版批分三步执行。
 - impacket 与 nasm 在 apt 批之后、re-venv 批之前执行,不计入这三步。
 - impacket:先卸 apt 的 `python3-impacket`,再用 uv 装上游版。见 [impacket.md](impacket.md)。
@@ -60,7 +60,7 @@
 - apt 批整批带 `|| echo`,失败不退出。
 - apt 批、re-venv 批、GitHub 批相互独立。
 - apt 源是阿里云,写在 `image-defs/ubuntu.yaml`。
-- `install_p0` 的日志仍写「TUNA」。这是换源前的文案。
+- `install_analysis` 的日志仍写「TUNA」。这是换源前的文案。
 - 源以 yaml 与 common.sh 的注释为准。
 - nasm 不走 apt,因为 apt 版停在 2.16.01。
 - pwn 与 ROPgadget 只用系统 `/usr/bin/python3`。这是 apt 面,noble 上为 4.12.0/7.4。

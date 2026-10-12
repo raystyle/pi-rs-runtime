@@ -1,6 +1,6 @@
 # jadx
 
-> Java/Android 反编译,DEX/APK 到 Java ｜ 状态:已装 ｜ 组:`install-tools.sh p0`
+> Java/Android 反编译,DEX/APK 到 Java ｜ 状态:已装 ｜ 组:`install-tools.sh analysis`
 
 ## 版本
 
@@ -11,7 +11,7 @@
 ## 来源与安装
 
 - 上游:[skylot/jadx](https://github.com/skylot/jadx)。
-- 脚本:`install-tools.sh` 的 `install_p0`。
+- 脚本:`install-tools.sh` 的 `install_analysis`。
 - 经 `GITHUB_MIRROR` 下载 `jadx-1.5.3.zip`。
 - zip 解到 `/opt/jadx`。
 - 幂等判据:`have jadx`。
@@ -43,5 +43,5 @@
 
 ## 参见
 
-- [p0.md](p0.md)
+- [analysis.md](analysis.md)
 - [offline.md](../../offline.md)

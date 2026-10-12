@@ -1,11 +1,11 @@
 # nasm
 
-> x86/x64 汇编器与反汇编器,含 ndisasm ｜ 状态:已装 ｜ 组:`install-tools.sh p0`
+> x86/x64 汇编器与反汇编器,含 ndisasm ｜ 状态:已装 ｜ 组:`install-tools.sh analysis`
 
 ## 版本
 
 - 版本 3.02。
-- 默认值写在 `install_p0` 内,不在 common.sh。
+- 默认值写在 `install_analysis` 内,不在 common.sh。
 - 环境变量 `NASM_VERSION` 可覆盖。
 - 幂等判据:`nasm -v | grep -q "version 3.02$"`。
 - 当前版本与钉版一致才跳过。改 `NASM_VERSION` 会触发重装。
@@ -16,7 +16,7 @@
 
 - 上游:[nasm.us](https://www.nasm.us/) releasebuilds。
 - URL:`https://www.nasm.us/pub/nasm/releasebuilds/3.02/nasm-3.02.tar.xz`。
-- 脚本:`install-tools.sh` 的 `install_p0`。
+- 脚本:`install-tools.sh` 的 `install_analysis`。
 - 构建:`./configure --prefix=/usr/local && make -j$(nproc) && make install`。
 - 不使用 apt 包。noble 的 apt 版停在 2.16.01。
 
@@ -45,7 +45,7 @@
 
 ## 参见
 
-- [p0.md](p0.md)
+- [analysis.md](analysis.md)
 - [known-issues.md](../../known-issues.md)
 - [offline.md](../../offline.md)
 

@@ -13,7 +13,7 @@
 
 ## 形态分布
 
-- **已装(二进制/CLI 可用)**:编译器 6 组、运行时 13 组、工具已装面(pd 20 + secgo 18 + secrust 3 + pivot 6 + p0 批 + pentest 批 + red 24 + msf + 各单件)
+- **已装(二进制/CLI 可用)**:编译器 6 组、运行时 13 组、工具已装面(pd 20 + secgo 18 + secrust 3 + pivot 6 + analysis 批 + pentest 批 + red 24 + msf + 各单件)
 - **缓存固化(字节在 /opt,非安装)**:libcache 八生态 + trivy-db + nuclei-templates + capa-rules + SecLists/wordlists + frida-server 八平台 + js-lab
 - **参考克隆(只克隆不安装不运行)**:c2dev-ref 7 仓、payload-ref/tradecraft-ref 41 仓+2 tgz、recon-ref 4 仓、pz 4 仓(ADR-0002)
 - **隔离环境**:/opt/re-venv、/opt/analytics、/opt/uv-tools、fnm node 18/20/22/24、sdkman JDK 8/11/17/21/25、/opt/maven-prewarm 等预热工程

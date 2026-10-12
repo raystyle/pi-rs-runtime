@@ -32,4 +32,4 @@
 - rctl: mipsel-linux-gnu-g++-13 kind=compiler path=/usr/bin/mipsel-linux-gnu-g++-13 note=mips 小端交叉链(IoT/路由)
 - rctl: mips-linux-gnu-g++-13 kind=compiler path=/usr/bin/mips-linux-gnu-g++-13 note=mips 大端交叉链
 
-- **限制**:FASM 包内顶层是 `fasm/` 目录,amd64 必须链 `fasm.x64`(包内 `fasm` 是 32 位);nasm 不在本组,归 install-tools.sh p0 组源码钉版(脚本注释规定);幂等:apt 批天然幂等,FASM 靠 `have fasm` 早退,组内无配置写入,不触「早退前写配置」纪律
+- **限制**:FASM 包内顶层是 `fasm/` 目录,amd64 必须链 `fasm.x64`(包内 `fasm` 是 32 位);nasm 不在本组,归 install-tools.sh analysis 组源码钉版(脚本注释规定);幂等:apt 批天然幂等,FASM 靠 `have fasm` 早退,组内无配置写入,不触「早退前写配置」纪律

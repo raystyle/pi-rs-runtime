@@ -407,9 +407,9 @@ install_pivot() {
 }
 
 
-# ---- P0 补齐(grok 业界调研;Kali/REMnux/FLARE 重叠缺口) ------------------
+# ---- 安全分析面补齐(grok 业界调研;Kali/REMnux/FLARE 重叠缺口) ------------------
 # 分三步:apt 批(全 TUNA)/ re-venv pip 批(TUNA PyPI)/ GitHub 钉版批
-install_p0() {
+install_analysis() {
     log "P0 apt 批(20 包,TUNA):多架构调试/pwn/流量/分诊/AD/口令(nasm 走源码钉版,impacket 走 uv 上游,见下)"
     apt-get update -qq
     apt-get install -y --no-install-recommends \
@@ -417,7 +417,7 @@ install_p0() {
         python3-pwntools python3-ropgadget checksec patchelf xxd squashfs-tools \
         nmap sqlmap tcpdump tshark mitmproxy python3-scapy \
         upx-ucl 7zip libimage-exiftool-perl ssdeep \
-        john hashid || echo "!! p0 apt 批部分失败(网络抖动可重跑,已装的会跳过)"
+        john hashid || echo "!! analysis apt 批部分失败(网络抖动可重跑,已装的会跳过)"
     # 批失败不退出:后续 pip 批与 GitHub 批与 apt 包相互独立
     # impacket:noble apt 是发行版冻结版,红队实操用上游脚本;改 uv 装上游(用户裁定)
     # 增量迁移:老镜像里有 apt 版则卸掉
@@ -1034,7 +1034,7 @@ install_pentest() {
             printf '#!/bin/sh\nexec /usr/local/bin/capa.real -r /opt/capa-rules "$@"\n' > /usr/local/bin/capa
             chmod +x /usr/local/bin/capa
         else
-            echo "capa 二进制未找到(p0 组先跑)"
+            echo "capa 二进制未找到(analysis 组先跑)"
         fi
     fi
     # 词表约定:/usr/share/wordlists 软链入口 + rockyou 解包(chmod 644 供 hashcat/john)
@@ -1062,7 +1062,7 @@ set pagination off
 EOF
         gdb --batch -ex quit 2>&1 | grep -qi pwndbg && echo "pwndbg gdbinit 冒烟通过" || echo "!! pwndbg 冒烟未见 banner,查 gdbinit"
     else
-        echo "pwndbg gdbinit.py 未找到(p0 组先跑)"
+        echo "pwndbg gdbinit.py 未找到(analysis 组先跑)"
     fi
     # 时区与 locale:时区钉上海;生成 zh_CN.UTF-8 但默认 LANG 保持 en_US(工具输出可解析性)
     ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
@@ -1581,5 +1581,5 @@ install_vnc() {
 }
 
 # chrome 组不在默认全量:上游修 bug 期用户裁定先不装(2026-10-10);要装显式跑 install-tools.sh chrome
-TOOLS_ALL=(fd astgrep cli herdr ghidra rea re pd secgo secrust pivot p0 c2 bof pz maldev recon nu cloud data pentest red msf vnc agents acp ctl)
+TOOLS_ALL=(fd astgrep cli herdr ghidra rea re pd secgo secrust pivot analysis c2 bof pz maldev recon nu cloud data pentest red msf vnc agents acp ctl)
 run_category TOOLS_ALL "$@"

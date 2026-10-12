@@ -8,7 +8,7 @@
 |---|---|---|
 | [compilers.md](compilers.md) | install-compilers.sh | c golang rust zig nim vcpkg |
 | [runtimes.md](runtimes.md) | install-runtimes.sh | node fnm bun uv python python2 duckdb clickhouse php mono dotnet pwsh sdkman |
-| [tools.md](tools.md) | install-tools.sh | fd astgrep cli herdr ghidra re pd secgo secrust pivot p0 c2 bof pz maldev recon nu pentest red msf |
+| [tools.md](tools.md) | install-tools.sh | fd astgrep cli herdr ghidra re pd secgo secrust pivot analysis c2 bof pz maldev recon nu pentest red msf |
 
 libcache 八生态(go rust python node java pwsh dotnet zig)的组机制直接见 [items/libcache/](../items/README.md#libcacheinstall-libcachesh8-册) 各册(缓存固化不产生安装面命令骨架之外的件)。
 

@@ -1,6 +1,6 @@
 # capa-rules
 
-> capa 恶意软件能力识别规则库(ATT&CK/MBC 映射)｜ 状态:已装(构建日快照)｜ 组:装面在 p0 组,本册独立登记
+> capa 恶意软件能力识别规则库(ATT&CK/MBC 映射)｜ 状态:已装(构建日快照)｜ 组:装面在 analysis 组,本册独立登记
 
 - **版本钉**:pins.sh `GIT_PIN[mandiant/capa-rules]` 钉 sha;与 capa 二进制不同钉(规则库独立演进)
 - **来源与安装**:GitHub clone_pin 到 `/opt/capa-rules`;capa wrapper 注入 `-r`(见 capa 册)

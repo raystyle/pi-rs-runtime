@@ -1,6 +1,6 @@
 # impacket
 
-> Windows 网络协议工具库与示例脚本,协议含 SMB、Kerberos、MSRPC ｜ 状态:已装 ｜ 组:`install-tools.sh p0`
+> Windows 网络协议工具库与示例脚本,协议含 SMB、Kerberos、MSRPC ｜ 状态:已装 ｜ 组:`install-tools.sh analysis`
 
 ## 版本
 
@@ -12,7 +12,7 @@
 ## 来源与安装
 
 - 上游:[fortra/impacket](https://github.com/fortra/impacket)。安装面是 PyPI 包。
-- 脚本:`install-tools.sh` 的 `install_p0`。
+- 脚本:`install-tools.sh` 的 `install_analysis`。
 - 命令:`uv tool install "impacket==<钉>"`。
 - 导出 `UV_TOOL_BIN_DIR=/usr/local/bin`。
 - 导出 `UV_TOOL_DIR=/opt/uv-tools`。
@@ -63,7 +63,7 @@
 
 ## 参见
 
-- [p0.md](p0.md)
+- [analysis.md](analysis.md)
 - [offline.md](../../offline.md)
 - [software-inventory.md](../../software-inventory.md)
 

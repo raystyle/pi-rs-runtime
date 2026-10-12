@@ -1,6 +1,6 @@
 # pwndbg
 
-> GDB 调试增强插件,用于 pwn 与逆向 ｜ 状态:已装 ｜ 组:`install-tools.sh p0` 装本体,`install-tools.sh pentest` 接线
+> GDB 调试增强插件,用于 pwn 与逆向 ｜ 状态:已装 ｜ 组:`install-tools.sh analysis` 装本体,`install-tools.sh pentest` 接线
 
 ## 版本
 
@@ -12,12 +12,12 @@
 ## 来源与安装
 
 - 上游:[pwndbg/pwndbg](https://github.com/pwndbg/pwndbg)。
-- 本体由 `install-tools.sh` 的 p0 组安装。
+- 本体由 `install-tools.sh` 的 analysis 组安装。
 - 系统 gdbinit 由 pentest 组写入。
 - `UV_TOOL_BIN_DIR=/usr/local/bin`。
 - `UV_TOOL_DIR=/opt/uv-tools`。
 - shim 与工具目录对 ubuntu 可读。
-- 配套调试器是 p0 apt 批的 gdb-multiarch。
+- 配套调试器是 analysis apt 批的 gdb-multiarch。
 
 ## 文件
 
@@ -50,7 +50,7 @@
 
 ## 参见
 
-- [p0.md](p0.md)
+- [analysis.md](analysis.md)
 - [offline.md](../../offline.md)
 
 ## rctl 面,机器行

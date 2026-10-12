@@ -47,7 +47,7 @@ check_family() {
 echo "== 闭集族漂移守卫:catalog=$CATALOG =="
 
 mapfile -t IMPACKET < <(cd /opt/uv-tools/impacket/bin 2>/dev/null && ls *.py 2>/dev/null | grep -vx 'activate_this.py' || true)
-check_family impacket docs/items/tools-p0/impacket.md "${IMPACKET[@]}"
+check_family impacket docs/items/analysis/impacket.md "${IMPACKET[@]}"
 
 FRIDA_LIST=(frida)
 for f in /usr/local/bin/frida-*; do [ -e "$f" ] && FRIDA_LIST+=("$(basename "$f")"); done

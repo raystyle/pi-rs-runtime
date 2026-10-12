@@ -8,11 +8,11 @@
 
 | 册 | 标题 |
 | --- | --- |
-| [libcache/python.md](libcache/python.md) | Python 库缓存:re-venv 扩展 + wheelhouse |
+| [analysis/analysis.md](analysis/analysis.md) | 安全分析工具集(analysis 安装组) |
+| [analysis/impacket.md](analysis/impacket.md) | impacket |
+| [libcache/python.md](libcache/python.md) | Python 库缓存 |
 | [tools-bof/bof.md](tools-bof/bof.md) | BOF 工具链:bof 组册 |
 | [tools-cli/cli.md](tools-cli/cli.md) | 基础命令行工具:cli 组 |
-| [tools-p0/impacket.md](tools-p0/impacket.md) | impacket |
-| [tools-p0/p0.md](tools-p0/p0.md) | 安全分析工具集(p0 安装组) |
 | [tools-pd/pd.md](tools-pd/pd.md) | ProjectDiscovery 全家桶:pd 组 |
 | [tools-pentest/frida.md](tools-pentest/frida.md) | frida 全链 |
 | [tools-pentest/pentest.md](tools-pentest/pentest.md) | 渗透测试运行时底线:pentest 组册 |
@@ -24,6 +24,9 @@
 
 | 册 | 标题 |
 | --- | --- |
+| [analysis/nasm.md](analysis/nasm.md) | nasm |
+| [analysis/pspy.md](analysis/pspy.md) | pspy |
+| [analysis/volatility3.md](analysis/volatility3.md) | volatility3 |
 | [runtimes/dotnet.md](runtimes/dotnet.md) | .NET SDK:dotnet |
 | [runtimes/pwsh.md](runtimes/pwsh.md) | PowerShell:pwsh |
 | [tools-acp/acp.md](tools-acp/acp.md) | acp:ACP 通道 |
@@ -45,9 +48,6 @@
 | [tools-herdr/herdr.md](tools-herdr/herdr.md) | herdr |
 | [tools-msf/msf.md](tools-msf/msf.md) | metasploit-framework:msf |
 | [tools-nu/nu.md](tools-nu/nu.md) | nu:nushell |
-| [tools-p0/nasm.md](tools-p0/nasm.md) | nasm:含 ndisasm |
-| [tools-p0/pspy.md](tools-p0/pspy.md) | pspy |
-| [tools-p0/volatility3.md](tools-p0/volatility3.md) | volatility3 |
 | [tools-pentest/donut.md](tools-pentest/donut.md) | donut |
 | [tools-pentest/hashcat.md](tools-pentest/hashcat.md) | hashcat |
 | [tools-pentest/responder.md](tools-pentest/responder.md) | Responder |
@@ -121,11 +121,11 @@
 
 | 册 | 标题 |
 | --- | --- |
+| [analysis/apktool.md](analysis/apktool.md) | apktool |
+| [analysis/capa.md](analysis/capa.md) | capa |
+| [analysis/jadx.md](analysis/jadx.md) | jadx |
+| [analysis/pwndbg.md](analysis/pwndbg.md) | pwndbg |
 | [tools-ghidra/ghidra.md](tools-ghidra/ghidra.md) | Ghidra |
-| [tools-p0/apktool.md](tools-p0/apktool.md) | apktool |
-| [tools-p0/capa.md](tools-p0/capa.md) | capa |
-| [tools-p0/jadx.md](tools-p0/jadx.md) | jadx |
-| [tools-p0/pwndbg.md](tools-p0/pwndbg.md) | pwndbg |
 | [tools-re/angr.md](tools-re/angr.md) | angr |
 | [tools-rea/rea.md](tools-rea/rea.md) | rea:rea-agents |
 
@@ -169,4 +169,4 @@
 | --- | --- |
 | [tools-recon/recon.md](tools-recon/recon.md) | recon 组册:侦察指纹参考,4 仓 |
 
-计数对账:七域合计 88 册(工具集 28,单件 60);按安装组 compilers 6 / runtimes 16 / libcache 8 / tools 58 = 88 册(批量件数见各工具集成员表)。
+计数对账:七域合计 88 册(工具集 28,单件 60);按安装目录 analysis 9, compilers 6, libcache 8, runtimes 16, tools-acp 1, tools-agents 2, tools-astgrep 1, tools-bof 5, tools-c2 1, tools-chrome 1, tools-cli 1, tools-cloud 1, tools-ctl 2, tools-data 4, tools-fd 1, tools-ghidra 1, tools-herdr 1, tools-maldev 1, tools-msf 1, tools-nu 1, tools-pd 2, tools-pentest 5, tools-pivot 1, tools-pz 1, tools-re 2, tools-rea 1, tools-recon 2, tools-red 6, tools-secgo 2, tools-secrust 1, tools-vnc 1。

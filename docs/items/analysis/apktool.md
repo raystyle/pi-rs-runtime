@@ -1,6 +1,6 @@
 # apktool
 
-> APK 反编译与重打包 ｜ 状态:已装 ｜ 组:`install-tools.sh p0`
+> APK 反编译与重打包 ｜ 状态:已装 ｜ 组:`install-tools.sh analysis`
 
 ## 版本
 
@@ -11,7 +11,7 @@
 ## 来源与安装
 
 - 上游:[iBotPeaches/Apktool](https://github.com/iBotPeaches/Apktool)。项目站:[apktool.org](https://apktool.org)。
-- 脚本:`install-tools.sh` 的 `install_p0`。
+- 脚本:`install-tools.sh` 的 `install_analysis`。
 - 经 `GITHUB_MIRROR` 下载 `apktool_2.12.0.jar`。
 - 文件存为 `/opt/apktool/apktool.jar`。
 - 幂等判据:`have apktool`。
@@ -43,5 +43,5 @@
 
 ## 参见
 
-- [p0.md](p0.md)
+- [analysis.md](analysis.md)
 - [offline.md](../../offline.md)

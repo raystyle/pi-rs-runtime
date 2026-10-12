@@ -12,7 +12,7 @@ web探活指纹 web fingerprint	httpx,katana,feroxbuster	httpx -u http://127.0.0
 AD域横向移动 lateral 横向	bloodhound-python,certipy-ad,bloodyAD,mitm6,kerbrute,evil-winrm,responder	responder -h	采集与滥用面;responder 依赖已进 re-venv
 隧道出网 tunnel 代理 proxy 隧道	gost,chisel,frps,frpc,wstunnel,rathole,bore	gost -V	六件全离线可用;bore.pub 公网依赖属边界
 凭据提取 credential dump 凭据	impacket,frida	rctl docs impacket	impacket 上游脚本全家族在 PATH(secretsdump.py 等)
-impacket 家族 smb windows 协议	impacket,secretsdump.py,psexec.py,wmiexec.py,smbexec.py,ntlmrelayx.py,GetUserSPNs.py,GetNPUsers.py	ticketer.py -h	册主名到家族成员的搜索桥;全 70 件另见 docs/items/tools-p0/impacket.md
+impacket 家族 smb windows 协议	impacket,secretsdump.py,psexec.py,wmiexec.py,smbexec.py,ntlmrelayx.py,GetUserSPNs.py,GetNPUsers.py	ticketer.py -h	册主名到家族成员的搜索桥;全 70 件另见 docs/items/analysis/impacket.md
 流量抓包分析 抓包 capture	tcpdump,tshark,mitmproxy	tcpdump -D	tshark 捕获网卡名用 -D 查
 固件解包 firmware binwalk解包	binwalk	binwalk 固件.bin	sasquatch 补丁版 squashfs 解包器已装(册:pentest)
 BOF利用链 bof	COFFLoader,bof-launcher,bof	bof-launcher --help	mingw/wine 面同组;coffee-ldr 上游编不过属 known-issues

@@ -23,7 +23,7 @@
 - rctl: rz-ghidra kind=tool path=/usr/local/lib/x86_64-linux-gnu/rizin/plugins/core_ghidra.so note=rizin 反编译插件,analysis/asm/core 三 so 加 rz_ghidra_sleigh 数据同域
 - rctl: yara-rules kind=data path=/opt/yara-rules note=yara 规则集
 
-- **限制**:不装 apt 的 radare2、不装 knife/rsleigh/Ghidrust,Keystone/Unicorn 走 venv 不走 apt(`install_re` 头注);`libzip-dev` 必给,缺了 meson 会去 libzip.org 拉子项目,国内必失败;rz-ghidra 必须 `--recurse-submodules --shallow-submodules`,自己按版本号克隆 ghidra 会 API 不匹配(core_ghidra.cpp 编译错);`-DUSE_SYSTEM_PUGIXML=ON` 用系统包绕过 third-party pugixml 子模块;rz_core.pc 的 plugindir 是相对路径,pkg-config 直取会装进 CWD 相对目录再被 rm 掉;sigdb 已改版为纯数据仓库(elf/pe + meson),旧 install.sh 不存在;Python 件不进系统 python3,隔离规则:p0 组往同一 `/opt/re-venv` 追加 flare-floss/oletools/netexec(见 [install-surfaces/tools.md](../../install-surfaces/tools.md) p0 节),venv 是共享研究环境、非本组独占;install-surfaces 与 software-inventory 的「tuna」规定已漂移(2026-10-09 切阿里云),件级事实以本册为准
+- **限制**:不装 apt 的 radare2、不装 knife/rsleigh/Ghidrust,Keystone/Unicorn 走 venv 不走 apt(`install_re` 头注);`libzip-dev` 必给,缺了 meson 会去 libzip.org 拉子项目,国内必失败;rz-ghidra 必须 `--recurse-submodules --shallow-submodules`,自己按版本号克隆 ghidra 会 API 不匹配(core_ghidra.cpp 编译错);`-DUSE_SYSTEM_PUGIXML=ON` 用系统包绕过 third-party pugixml 子模块;rz_core.pc 的 plugindir 是相对路径,pkg-config 直取会装进 CWD 相对目录再被 rm 掉;sigdb 已改版为纯数据仓库(elf/pe + meson),旧 install.sh 不存在;Python 件不进系统 python3,隔离规则:analysis 组往同一 `/opt/re-venv` 追加 flare-floss/oletools/netexec(见 [install-surfaces/tools.md](../../install-surfaces/tools.md) analysis 节),venv 是共享研究环境、非本组独占;install-surfaces 与 software-inventory 的「tuna」规定已漂移(2026-10-09 切阿里云),件级事实以本册为准
 
 ## 成员表
 
