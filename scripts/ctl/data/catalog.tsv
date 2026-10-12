@@ -117,7 +117,7 @@ entropia	tool	`install-tools.sh bof`	已烘焙	Windows PIC shellcode/BOF 编译�
 enum4linux-ng	ref	`install-tools.sh red`	已烘焙	enum4linux-ng 仓(wrapper 同名)	pins.sh 钉版:`GIT_PIN[cddmp/enum4linux-ng]` 钉 sha(clone_pin,幂等:HEAD==钉即跳过;失败重试 2 次;解析日 2026-10-10),升级跑 scripts/resolve-pins.sh	/opt/enum4linux-ng	过, 断网冒烟渗透工具面过(78/0,2026-10-10 离线轮;本件 wrapper 是该轮修复件之一,wrapper 层机制见 [offline.md](../../offline.md) §2)。验证:`ip link set eth0 down` 后 `enu	docs/items/tools-red/red.md		工具环境
 esentutl.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/esentutl.py		docs/items/tools-p0/impacket.md		工具环境
 eslint	runtime	`install-tools.sh cli`	已烘焙	npm 全局件		/usr/local/bin/eslint		docs/items/tools-cli/cli.md		工具环境
-evil-winrm	tool	`install-tools.sh red`	已装	[Hackplayers/evil-winrm](https://github.com/Hackplayers/evil-winrm),ruby-china;见 [evil-winrm 册](evil-winrm.md)	pins.sh 钉版(`GEM_PIN[evil-winrm]`,当前钉值 4.1,解析日 2026-10-10),`gem install evil-winrm -v <钉>`(ruby-china 源);升级跑 scripts/resolve-pins.sh	/usr/local/bin/evil-winrm	未验 [推断:]纯 Ruby 本地运行,无自更新机制,断网可起 help 面;连目标 WinRM 需网络。验证:`ip link set eth0 down` 后 `evil-winrm --help` 退 0	docs/items/tools-red/red.md		工具环境
+evil-winrm	tool	`install-tools.sh red`	已烘焙	gem 主入口(gems.ruby-china)	pins.sh 钉版(`GEM_PIN[evil-winrm]`,当前钉值 4.1,解析日 2026-10-10),`gem install evil-winrm -v <钉>`(ruby-china 源);升级跑 scripts/resolve-pins.sh	/usr/local/bin/evil-winrm	未验 [推断:]纯 Ruby 本地运行,无自更新机制,断网可起 help 面;连目标 WinRM 需网络。验证:`ip link set eth0 down` 后 `evil-winrm --help` 退 0	docs/items/tools-red/evil-winrm.md		工具环境
 exchanger.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/exchanger.py		docs/items/tools-p0/impacket.md		工具环境
 exploitdb	data	`install-tools.sh data`	已烘焙	Exploit-DB 快照(PoC 全文+csv 索引)		/opt/data-ref/exploitdb		docs/items/tools-data/dataref.md		数据信息搜索
 fasm	compiler	`install-compilers.sh c`	已烘焙	FASM 汇编器本体		/opt/fasm		docs/items/compilers/c-toolchain.md		编程环境
@@ -190,7 +190,7 @@ hashid	tool	`install-tools.sh p0`	已装	哈希类型识别				docs/items/tools-
 hcxtools	tool	`install-tools.sh pentest`	已装	hcxpcapngtool 等 WiFi 抓包转换				docs/items/tools-pentest/pentest.md		工具环境
 herdr	tool	`install-tools.sh herdr`	已装	终端 workspace 管理器(tmux 之外的 agent 编排面)	`HERDR_VERSION=0.9.3`(lib/common.sh,herdr.dev stable 频道);`HERDR_SHA256=18a8dc65f1c2fa485884344356dea1cfd911c6f06cf46fa78e193f4087f4dba7` 钉 linux-x86_64 资产,`sha256sum -c` 校验不过即 `exi	/usr/local/bin/herdr	未验 [推断:]本体是本地终端编排器,起窗格不触网;其编排的智能体后端连通性属各 agent 自身,断网失败不是缺陷(边界见 [docs/offline.md](../../offline.md))。验�	docs/items/tools-herdr/herdr.md		工具环境
 htop	tool	`install-tools.sh cli`	已装	`/usr/bin`				docs/items/tools-cli/cli.md		工具环境
-httpclient	tool	`install-tools.sh red`	已烘焙	ruby gem 副件		/usr/local/bin/httpclient		docs/items/tools-red/red.md		工具环境
+httpclient	tool	`install-tools.sh red`	已烘焙	RubyGems 副件 shim(httpclient gem 2.9.0,evil-winrm 依赖)		/usr/local/bin/httpclient		docs/items/tools-red/evil-winrm.md		工具环境
 httprobe	tool	`install-tools.sh secgo`	已装	HTTP/HTTPS 探活				docs/items/tools-secgo/secgo.md		工具环境
 httpx	tool	`install-tools.sh pd`	已装	HTTP 探活与指纹				docs/items/tools-pd/pd.md		工具环境
 hydra	tool	`install-tools.sh pentest`	已装	在线口令爆破(清单记录 9.5)				docs/items/tools-pentest/pentest.md		工具环境
@@ -249,7 +249,7 @@ mipsel-linux-gnu-g++-13	compiler	`install-compilers.sh c`	已烘焙	mips 小端�
 mips-linux-gnu-g++-13	compiler	`install-compilers.sh c`	已烘焙	mips 大端交叉链		/usr/bin/mips-linux-gnu-g++-13		docs/items/compilers/c-toolchain.md		编程环境
 mitm6	tool	`install-tools.sh red`	已装	PyPI				docs/items/tools-red/red.md		工具环境
 mitmproxy	tool	`install-tools.sh p0`	已装	HTTP/HTTPS 中间人代理				docs/items/tools-p0/p0.md		工具环境
-mono	runtime	`install-runtimes.sh mono`	已装	老 .NET Framework 项目的构建与运行链:mono 运行时 + xbuild + .NET 4.x 引用程序集	`mono-devel`、`mono-xbuild` noble 源冻结即钉(软钉,留痕 [known-issues](../../known-issues.md));`nuget.exe` 未钉(dist.nuget.org latest 直下,无校验和,pins.sh 未收钉位)	/usr/bin/mono	未验 [推断:]`mono`/`xbuild` 运行与编译本地完成不触网;`nuget.exe restore` 拉未缓存包需联网,mono 面无固化仓兜底;断网冒烟未单独覆盖本件。验证:`ip link set eth	docs/items/runtimes/mono.md		运行时环境
+mono	runtime	`install-runtimes.sh mono`	已烘焙	运行时本尊(xbuild 同域;nuget.exe 行归 libcache/dotnet 册)	`mono-devel`、`mono-xbuild` noble 源冻结即钉(软钉,留痕 [known-issues](../../known-issues.md));`nuget.exe` 未钉(dist.nuget.org latest 直下,无校验和,pins.sh 未收钉位)	/usr/bin/mono	部分已验(2026-10-12)`mono /opt/nuget.exe help` 本地跑通退 0(NuGet 7.9.0.83,usage 面出);`mono`/`xbuild` 编译与 `nuget.exe restore` 拉未缓存包需联网,mono 面无固化仓兜底,属�	docs/items/runtimes/mono.md		运行时环境
 Mono.Cecil	cache	`install-libcache.sh dotnet`(前置 `install-runtimes.sh dotnet`,dotnet-sdk-10.0)	缓存固化	程序集读写				docs/items/libcache/dotnet.md		编程环境
 moreutils	tool	`install-tools.sh cli`	已装	`/usr/bin`				docs/items/tools-cli/cli.md		工具环境
 mqtt_check.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/mqtt_check.py		docs/items/tools-p0/impacket.md		工具环境
@@ -278,7 +278,7 @@ nimsuggest	compiler	`install-compilers.sh nim`	已烘焙	OffensiveNim 等 maldev
 ninja-build	tool	`install-tools.sh re`	已装	meson 后端				docs/items/tools-re/re.md		逆向环境
 nmap	tool	`install-tools.sh p0`	已装	端口扫描与服务识别				docs/items/tools-p0/p0.md		工具环境
 node	cache	`install-libcache.sh node`	缓存固化	加密/PKI/反混淆/解析向 24 个纯 JS/wasm 包固化进 /opt/js-lab,断网裸 `require` 直用	24 个依赖按 `NPM_PIN` 精确钉(package.json 由 pins.sh 生成,缺钉即响),传递闭包再锁进 `scripts/lock/node/package-lock.json`(构建消费走 `npm ci`;再生跑 `scripts/sync-locks.sh`	/opt/js-lab/node_modules	过, 断网 `require` 实证(node require 在断网冒烟清单):`ip link set eth0 down` 后 `node -e "require('node-forge')"` 退 0(fnm 各版本经各自 lib/node 链同形可用);过, `npm install 	docs/items/libcache/node.md		编程环境
-nokogiri	tool	`install-tools.sh red`	已烘焙	ruby gem 副件(HTML 解析,CeWL 依赖)		/usr/local/bin/nokogiri		docs/items/tools-red/red.md		工具环境
+nokogiri	tool	`install-tools.sh red`	已烘焙	RubyGems 副件 shim(CeWL 依赖显式装,1.19.4 带原生件)		/usr/local/bin/nokogiri		docs/items/tools-red/red.md		工具环境
 notify	tool	`install-tools.sh pd`	已装	扫描结果通知推送				docs/items/tools-pd/pd.md		工具环境
 npm	runtime	`install-runtimes.sh node`	已烘焙	node 包管理器(face)		/usr/local/bin/npm		docs/items/runtimes/node.md		运行时环境
 npx	runtime	`install-runtimes.sh node`	已烘焙	Node.js LTS 基座 + npm 全局件(tsc/prettier/eslint/dotnetjs)与 corepack(pnpm/yarn)		/usr/local/bin/npx		docs/items/runtimes/node.md		运行时环境
@@ -373,8 +373,8 @@ rustscan	tool	`install-tools.sh secrust`	已装	快速端口扫描(批喂 nmap)	
 rust-script	tool	`install-compilers.sh rust`	已烘焙	单文件 Rust 脚本(CRATE_PIN 独立钉)		/usr/local/bin/rust-script		docs/items/compilers/rust.md		编程环境
 rustup	compiler	`install-compilers.sh rust`	已烘焙	rustup + stable 工具链 + llvm-tools/rustfmt/clippy/rust-analyzer + 十向交叉 target + rust-script/cargo-zigbuild/cargo-audit + 29 件 crate 预热		/usr/local/bin/rustup		docs/items/compilers/rust.md		编程环境
 rustup-home	compiler	`install-compilers.sh rust`	已烘焙	工具链本体树(/usr/local/bin/rustup 的家)		/opt/rustup		docs/items/compilers/rust.md		编程环境
-rwinrm	tool	`install-tools.sh red`	已烘焙	winrm gem 副件(evil-winrm 依赖链)		/usr/local/bin/rwinrm		docs/items/tools-red/red.md		工具环境
-rwinrmcp	tool	`install-tools.sh red`	已烘焙	winrm-fs gem 副件		/usr/local/bin/rwinrmcp		docs/items/tools-red/red.md		工具环境
+rwinrm	tool	`install-tools.sh red`	已烘焙	RubyGems 副件 shim(winrm gem 2.4.1)		/usr/local/bin/rwinrm		docs/items/tools-red/evil-winrm.md		工具环境
+rwinrmcp	tool	`install-tools.sh red`	已烘焙	RubyGems 副件 shim(winrm-fs gem,远程文件拷贝)		/usr/local/bin/rwinrmcp		docs/items/tools-red/evil-winrm.md		工具环境
 rz-ar	tool	`install-tools.sh re`	已烘焙	逆向工程稳定链:系统库 22 项 + rizin/rz-ghidra/sigdb 源码编译 + `/opt/re-venv` 五库		/usr/local/bin/rz-ar		docs/items/tools-re/re.md		逆向环境
 rz-asm	tool	`install-tools.sh re`	已烘焙	逆向工程稳定链:系统库 22 项 + rizin/rz-ghidra/sigdb 源码编译 + `/opt/re-venv` 五库		/usr/local/bin/rz-asm		docs/items/tools-re/re.md		逆向环境
 rz-ax	tool	`install-tools.sh re`	已烘焙	逆向工程稳定链:系统库 22 项 + rizin/rz-ghidra/sigdb 源码编译 + `/opt/re-venv` 五库		/usr/local/bin/rz-ax		docs/items/tools-re/re.md		逆向环境

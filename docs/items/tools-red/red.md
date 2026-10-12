@@ -55,3 +55,4 @@
 | awscli v2 | 云与内网批 | aws | 软钉(AWSCLI_VERSION 空) | awscli.amazonaws.com 官方 zip 安装器(无国内镜像,直连不通可跳过) |
 
 依赖备注:组头 `apt-get install --no-install-recommends samba-common-bin smbclient ldap-utils`(enum4linux-ng 运行依赖)与 `ruby-full ruby-dev`(gem 批原生件编译)是 noble 随源 apt 件,不计入上表 24 件。
+- rctl: nokogiri kind=tool path=/usr/local/bin/nokogiri note=RubyGems 副件 shim(CeWL 依赖显式装,1.19.4 带原生件)

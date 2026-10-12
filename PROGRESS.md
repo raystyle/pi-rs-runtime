@@ -28,8 +28,8 @@
 
 0. ~~域分类定稿~~(prt-09 已交并吸收):七域定稿确认(数据分析独立成域正确,不加第八域;kind 与域两面并存);三处改判落地(frida/jadx/apktool/capa/pwndbg 与 floss/ilspycmd/smali/baksmali 到 逆向环境,vol/volshell/netexec/pspy 到 工具环境,poc-search 到 工具环境);一级七域够用,ATT&CK 战术留作 caps 多值标签不进 env;docs/items/README 增七域归档视图;待裁定:angr(单独 venv)/HackTricks(1GiB)/GTFOBins(代理 401)
 
-1. prt-07 阶段 2:闭集族全表 + 漂移守卫 2026-10-12 落地(impacket +46 落表;frida 17/17、nim 本尊+8 副件本就全;re 补 rizin/rz-ghidra 显式行填空 path;catalog 493 件;`scripts/check-family-closure.sh` 四族双向对账守卫,容器实测 220 项零漂移 + 正控试验证咬人,新闭族按族域表扩)+ 剩面:catalog 约 190 空 path 行(apt 包名蒸馏形,属守卫扩面)+ 裁定项:microsoft/nuget.exe/httpclient/rwinrm/rwinrmcp(无主)、atlas/nokokiri/ruff(uv-tool shim 未点名);别名行机制已就位(alias 列)
-2. prt-07 阶段 3:拆独立册(SecLists/capa-rules/yara-rules/pspy/volatility3,数据册三条纪律)+ zig 册 id 冲突解(工具链 zig vs 缓存 zig 两册同名,拆缓存行 id=zig-cache);audit 残 12 项目录认领随拆册收口
+1. ~~prt-07 阶段 2 裁定项~~(2026-10-12 收口,实为旧口径误标:八件在 catalog 全有行):microsoft=pwsh 发行树落点行补写、nuget.exe 行早有(libcache/dotnet 册)、httpclient/rwinrm/rwinrmcp 升显式行进 evil-winrm 册(gem 副件)、atlas 早有 nim 行、nokogiri(PROGRESS 原拼写 nokokiri 系误)升显式行进 red 册、ruff 行早有(tools-cli 册);catalog 494 件八件全带 path;坑:起底时没先对 HEAD 行就断「无主」,差点造 ruff/nuget.exe 跨册双归属,自查撤重
+2. catalog 约 184 空 path 行剩面(apt 包名蒸馏形):定性待裁——填 path(动蒸馏或逐册)或定「apt 面位置走 rctl where」为设计(需先把 /usr/bin 纳入路径库根名单,S-0001 当初排除理由需复核);不阻塞
 
 1. ~~合入定制 Chrome~~(2026-10-10 prt-01 完成;**同日晚又因上游修 bug 裁定下架**:镜像卸 /opt/clean-chrome 与三链,chrome 组移出 TOOLS_ALL 默认(显式可跑),机制与 ADR-0007 留仓备用;browse CLI 维持不装):browse CLI 暂缓(仓不可达,T1 挂起等凭证);clean-chrome 155.0.8059.39 经云端道(chrome.ohmygh.com 版本段路由+sha256 锚)进镜像,系统级单副本 /opt/clean-chrome(ADR-0007);vnc-screen.sh 增 chrome 冒烟面(CDP 9222,实证 root/ubuntu/断网三视角 `Chrome/155.0.8059.39`);实证坑:155 挂 --remote-debugging-address 就绑不了 CDP 口(摘除),Chrome 136+ 无 --user-data-dir 时 CDP 静默不开。
 2. ~~脚本级疑点~~(2026-10-10 两批 swarm 全清):bun/zig/nim 早退后配置写入已挪前(golang 组 profile.d 同坑顺手修);jwt_tool/LinkFinder wrapper 实证活 bug(系统 python3 无依赖必炸)已改 re-venv python + 依赖钉版;golang 早退跳过补装残留已由早退判据补三件套存在性根治(删 dlv 残留态实证重跑补装过);rust 组 rustup-init 守卫加执行探针(shim 空转不再卡死)。
