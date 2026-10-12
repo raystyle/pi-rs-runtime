@@ -1,28 +1,73 @@
-# Python 库缓存:re-venv 扩展 + wheelhouse
+# Python 库缓存
 
-> 逆向/CTF 向 19 个 PyPI 包装进 /opt/re-venv、轮子下载进 /opt/wheelhouse,断网 pip 免索引重装 ｜ 状态:缓存固化 ｜ 组:`install-libcache.sh python`
+> 逆向与 CTF 向 Python 库固化:re-venv 扩展 + wheelhouse ｜ 状态:缓存固化 ｜ 组:`install-libcache.sh python`
 
-- **版本钉**:19 包 pins.sh 钉版(`PYPI_PIN[<包>]` 逐件拼 ==,缺钉即响不静默漂,如 pycryptodome 3.24.0、volatility3 2.28.2、z3-solver 5.1.0.0;解析日 2026-10-10),wheelhouse 轮子按同一组钉值 `pip download`;RsaCtfTool `GIT_PIN[RsaCtfTool/RsaCtfTool]` 钉 sha(clone_pin,幂等:HEAD==钉即跳过)。升级=跑 scripts/resolve-pins.sh + 有网阶段重跑本组;钉在 repo 侧 pins.sh,本层无独立锁文件
-- **来源与安装**:PyPI 经 `PIP_INDEX`(common.sh);脚本面 `scripts/install-libcache.sh` `install_python`,`uv pip install` 19 包进 `$RE_VENV`(默认 /opt/re-venv,单包失败只 echo 不中断)到 venv 内装 pip 后 `pip download -d /opt/wheelhouse --index-url $PIP_INDEX` 拉轮子 到 RsaCtfTool 克隆 `/opt/RsaCtfTool` 并 `uv pip install -r requirements.txt` 把依赖锁进同一 venv
-- **落点**:`/opt/re-venv`(19 包 + RsaCtfTool 依赖,与逆向五库/工具同一 venv);`/opt/wheelhouse`(pip 轮子离线重装源);`/opt/RsaCtfTool`(参考克隆);volatility3 的 CLI 链 `/usr/local/bin/{vol,volshell}`
-- **配置与缓存**:运行期消费面是 `/etc/pip.conf`(install-runtimes.sh python 组写):`[install] no-index=true find-links=/opt/wheelhouse`,`pip install <轮子内包>` 免旗标直装;uv 面是 `/etc/uv/uv.toml` `offline=true`(runtimes uv 组)。机制见 [offline.md](../../offline.md) §1/§4
-- **离线行为**:过, 轮子内包断网直装(五生态快失败轮,`pip --no-index` 在断网冒烟清单):`ip link set eth0 down` 后 `pip install --no-index --find-links /opt/wheelhouse pefile` 退 0;过, 轮子外的包立即 No matching distribution 快失败;vol/volshell 断网可用 未验 [推断:二进制与依赖全在 /opt/re-venv 盘上,运行不触网]
-## rctl 面,机器行:catalog 投影声明,audit 豁免依据
+## 版本
+
+- 19 个 PyPI 包逐件钉版,键为 `PYPI_PIN[<包>]`;缺钉即失败,不静默漂移。
+- 示例钉值:pycryptodome 3.24.0;volatility3 2.28.2;z3-solver 5.1.0.0(解析日 2026-10-10)。
+- RsaCtfTool 按 `GIT_PIN[RsaCtfTool/RsaCtfTool]` 钉提交。
+- wheelhouse 轮子按同一组钉值执行 `pip download`。
+- 升级:运行 `scripts/resolve-pins.sh` 换钉,在有网阶段重跑本组。本层无独立锁文件,钉在 pins.sh。
+
+## 来源与安装
+
+- 脚本:`scripts/install-libcache.sh` 的 `install_python`。
+- PyPI 索引:`PIP_INDEX`(common.sh)。
+- 步骤:
+  1. `uv pip install` 19 个包进 /opt/re-venv;单包失败仅记录,不中断。
+  2. venv 内安装 pip,`pip download -d /opt/wheelhouse` 拉取轮子。
+  3. 克隆 RsaCtfTool 到 /opt/RsaCtfTool,`uv pip install -r requirements.txt` 将依赖装入同一 venv。
+
+## 文件
+
+| 路径 | 内容 |
+| --- | --- |
+| /opt/re-venv | 19 个包与 RsaCtfTool 依赖;与逆向五库、工具同一 venv |
+| /opt/wheelhouse | pip 轮子;离线重装源 |
+| /opt/RsaCtfTool | 参考克隆 |
+| /usr/local/bin/vol、/usr/local/bin/volshell | volatility3 CLI |
+
+## 配置
+
+- /etc/pip.conf(install-runtimes.sh python 组写入):`[install] no-index=true`、`find-links=/opt/wheelhouse`。轮子内的包免旗标直装。
+- /etc/uv/uv.toml(runtimes uv 组写入):`offline=true`。
+- 机制说明见 [offline.md](../../offline.md) 第 1 节与第 4 节。
+
+## 离线行为
+
+- 支持:轮子内包直装。关闭 eth0 后,`pip install --no-index --find-links /opt/wheelhouse pefile` 退出码 0。
+- 支持:轮子外的包立即报 No matching distribution,不挂起。
+- 未验证:vol 与 volshell 的运行;二进制与依赖全在盘上,无网络动作。
+
+## 限制
+
+- uv 没有 `pip download` 子命令;须先给 venv 装 pip 再拉轮子。`pip download` 不受 pip.conf `[install]` 节影响,构建期不被离线面拦截。
+- 只锁 requirements 而不固化轮子字节时,断网无法解析依赖,等同未安装。
+- volatility3 的 CLI 随包装进 venv;不链出则没有 vol 命令。
+- uv 不合并配置:用户级 `~/.config/uv/uv.toml` 一旦存在,系统级 `/etc/uv/uv.toml` 整份失效,离线默认随之失效(uv 0.12.15 实测,0.13 未重测)。
+
+## 参见
+
+- [offline.md](../../offline.md)
+- [known-issues.md](../../known-issues.md)
+
+## rctl 面,机器行
 
 - rctl: vol kind=tool path=/usr/local/bin/vol env=工具环境 note=volatility3 CLI(PYPI_PIN 独立钉,re-venv 链出)
 - rctl: volshell kind=tool path=/usr/local/bin/volshell env=工具环境
 - rctl: netexec kind=tool path=/usr/local/bin/netexec env=工具环境 note=NetExec(原 CrackMapExec 续作,re-venv 链出)
 - rctl: floss kind=tool path=/usr/local/bin/floss env=逆向环境 note=FLARE 伪代码字符串提取(re-venv 链出)
 
-- **限制**:uv 无 `pip download` 子命令,须先给 venv 装 pip 再拉轮子(`pip download` 不受 pip.conf `[install]` 节影响,构建期不被离线面拦);volatility3 的 CLI 随包装进 venv,不链出就没有 vol 命令;只锁 requirements 断网等于没装(没有索引可解析),必须固化轮子字节;uv 不合并配置,用户级 `~/.config/uv/uv.toml` 一旦存在,系统级 `/etc/uv/uv.toml` 整份被忽略,离线默认随之失效( uv 0.12.15,
+## 成员清单
 
-成员清单(19 包 + RsaCtfTool,以脚本 `install_python` 为准):
+19 个包 + RsaCtfTool,以脚本 `install_python` 为准。
 
 | 类 | 成员 |
-|---|---|
+| --- | --- |
 | 密码/数学 | pycryptodome、cryptography、gmpy2、sympy、z3-solver |
 | 格式解析 | construct、pefile、pyelftools、dnfile |
-| 取证/恶意代码 | pypykatz、malduck、volatility3(CLI vol/volshell) |
+| 取证/恶意代码 | pypykatz、malduck、volatility3(CLI:vol、volshell) |
 | 调试/HTTP | r2pipe、httpx |
 | 杂项 | beautifulsoup4、lxml、pyjwt、dpkt、xortool |
-| RSA 题框架 | RsaCtfTool(GIT_PIN 钉 sha 克隆 /opt/RsaCtfTool,依赖锁进 re-venv) |
+| RSA 题框架 | RsaCtfTool(钉 sha 克隆 /opt/RsaCtfTool,依赖锁进 re-venv) |
