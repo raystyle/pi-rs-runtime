@@ -4,26 +4,13 @@
 
 ## 版本
 
-- 默认 profile 的 16 件写 `[0,)` 区间。
-- 构建日执行 `mvn versions:resolve-ranges`,把区间解析成精确版本。
-- 解析结果写回 `/opt/maven-prewarm/pom.xml`。
-- 写回的 pom 即锁文件。
-- 重跑时该解析是幂等的。
-- 锁已入库 `scripts/lock/java/pom.xml`。
-- 有锁时直接 `dependency:go-offline` 消费。
-- 再生执行 `scripts/sync-locks.sh`。
-- `dependency:go-offline` 把字节拉进 /opt/m2。
-- smali 与 smali-baksmali 锁定 3.0.10。
-- study profile 的 8 件全部锁定精确旧版。
+- 默认 profile 的 16 件写 `[0,)` 区间;构建日执行 `mvn versions:resolve-ranges`,把区间解析成精确版本;解析结果写回 `/opt/maven-prewarm/pom.xml`;写回的 pom 即锁文件;重跑时该解析是幂等的;锁已入库 `scripts/lock/java/pom.xml`;有锁时直接 `dependency:go-offline` 消费;再生执行 `scripts/sync-locks.sh`;`dependency:go-offline` 把字节拉进 /opt/m2;smali 与 smali-baksmali 锁定 3.0.10;study profile 的 8 件全部锁定精确旧版。
 
 ## 来源与安装
 
 - Maven Central 经阿里云镜像。
 - 镜像写在 `/opt/maven/conf/settings.xml` 的 `mirrorOf=central`,即 `MAVEN_DEP_MIRROR`。
-- google/smali 发布在 GMaven(maven.google.com)。
-- 两个 pom 都显式声明 `<repository><id>gmaven</id>`。
-- settings 的 `mirrorOf=central` 不拦截这个仓库。
-- 脚本:`scripts/install-libcache.sh` 的 `install_java`。
+- google/smali 发布在 GMaven(maven.google.com);两个 pom 都显式声明 `<repository><id>gmaven</id>`;settings 的 `mirrorOf=central` 不拦截这个仓库;脚本:`scripts/install-libcache.sh` 的 `install_java`。
 
 默认 profile 依赖(18 件):
 
@@ -65,39 +52,19 @@ study profile(`-Pstudy`,activeByDefault=false,CVE 复现坐标,8 件精确锁定
 ## 配置
 
 - `/opt/maven/conf/settings.xml` 由 runtimes 的 sdkman 组写入。
-- 其中 `<localRepository>` 固定为 `/opt/m2`。
-- 该文件不依赖 shell。
-- root 与 ubuntu 共用这一份本地仓。
-- 非交互 shell 没有 JAVA_HOME。
-- 脚本从 sdkman 的 current 推出 JAVA_HOME。
+- 其中 `<localRepository>` 固定为 `/opt/m2`;该文件不依赖 shell;root 与 ubuntu 共用这一份本地仓;非交互 shell 没有 JAVA_HOME;脚本从 sdkman 的 current 推出 JAVA_HOME。
 
 ## 离线行为
 
 - 支持:断网冒烟批覆盖 `mvn -o`,见 [offline.md](../../offline.md) 的验证节。
-- study profile 的字节与默认 profile 同一批进入 /opt/m2。
-- 支持:smali 与 baksmali 的断网往返。
+- study profile 的字节与默认 profile 同一批进入 /opt/m2;支持:smali 与 baksmali 的断网往返。
 - 验证:关闭 eth0 后,`cd /opt/maven-prewarm && mvn -o -q dependency:resolve`。
 - 验证:关闭 eth0 后执行 `printf '.class public LA;\n.super Ljava/lang/Object;\n' > a.smali && smali assemble a.smali -o a.dex && baksmali disassemble a.dex`。
-- maven 不做默认离线。
-- 原因是没有「配置离线,再用 CLI 覆盖」这一对开关。
-- 离线构建手工加 `-o`。
-- 边界见 [offline.md](../../offline.md) 第 4 节。
+- maven 不做默认离线;原因是没有「配置离线,再用 CLI 覆盖」这一对开关;离线构建手工加 `-o`;边界见 [offline.md](../../offline.md) 第 4 节。
 
 ## 限制
 
-- `org.jf:dexlib2` 在阿里云与华为镜像上没有该件。
-- 对这些镜像的请求返回 404。
-- smali 的坐标是 GMaven 的 `com.android.tools.smali`。
-- 不是 Maven Central 的 `com.google.smali`。
-- 锁定 3.0.10 之后,dexlib2 经传递依赖回到 /opt/m2。
-- 说明见 [known-issues.md](../../known-issues.md)。
-- 官方 fat jar 只能源码构建,且限于 JDK 11。
-- 因此使用 thin jar、依赖 jar 和 classpath wrapper。
-- 在 heredoc 里写 shell 注释会进入 pom.xml。
-- 结果是 Non-parseable POM。
-- 默认 profile 与 study profile 分两次执行 mvn。
-- 每一次失败都不中断另一次。
-- study 失败不影响默认 profile。
+- `org.jf:dexlib2` 在阿里云与华为镜像上没有该件;对这些镜像的请求返回 404;smali 的坐标是 GMaven 的 `com.android.tools.smali`;不是 Maven Central 的 `com.google.smali`;锁定 3.0.10 之后,dexlib2 经传递依赖回到 /opt/m2;说明见 [known-issues.md](../../known-issues.md);官方 fat jar 只能源码构建,且限于 JDK 11;因此使用 thin jar、依赖 jar 和 classpath wrapper;在 heredoc 里写 shell 注释会进入 pom.xml;结果是 Non-parseable POM;默认 profile 与 study profile 分两次执行 mvn;每一次失败都不中断另一次;study 失败不影响默认 profile。
 
 ## 参见
 

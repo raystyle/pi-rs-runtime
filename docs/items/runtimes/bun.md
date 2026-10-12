@@ -11,22 +11,18 @@
 ## 来源与安装
 
 - 上游是 [bun.sh](https://bun.sh)。安装走 npmmirror 的 npm 全局安装。
-- 装在 `/opt/node` 这个 prefix 下。依赖 [node 册](node.md) 先就位。
-- 脚本:`scripts/install-runtimes.sh` 的 `install_bun`。
+- 装在 `/opt/node` 这个 prefix 下。依赖 [node 册](node.md) 先就位;脚本:`scripts/install-runtimes.sh` 的 `install_bun`。
 
 ## 文件
 
 - npm shim 位于 `/opt/node/bin/bun` 与 `/opt/node/bin/bunx`。
-- 二者软链到 `/usr/local/bin/bun` 与 `/usr/local/bin/bunx`。
-- 非交互 shell 的 PATH 不含 `/opt/node/bin`,所以用这条固定链接兜底。
+- 二者软链到 `/usr/local/bin/bun` 与 `/usr/local/bin/bunx`;非交互 shell 的 PATH 不含 `/opt/node/bin`,所以用这条固定链接兜底。
 
 ## 配置
 
-- bun 不读 npmrc,读 bunfig。
-- root 与 ubuntu 各写 `~/.bunfig.toml`。
+- bun 不读 npmrc,读 bunfig;root 与 ubuntu 各写 `~/.bunfig.toml`。
 - 内容是 `[install] registry = "https://registry.npmmirror.com"`。这是官方推荐写法。
-- 无固化缓存。
-- bunfig 只写 registry,不写离线键。
+- 无固化缓存;bunfig 只写 registry,不写离线键。
 
 ## 离线行为
 
@@ -36,10 +32,7 @@
 
 ## 限制
 
-- 早退判据 `have bun` 写在 bunfig 写入之前。
-- bun 已经存在时,重跑本组不刷新 bunfig。
-- 该顺序与「配置写入放早退前」不一致。当前脚本仍是这个顺序。
-- 已锁定 `BUN_VERSION`,但 `have bun` 早退不重装。
+- 早退判据 `have bun` 写在 bunfig 写入之前;bun 已经存在时,重跑本组不刷新 bunfig;该顺序与「配置写入放早退前」不一致。当前脚本仍是这个顺序;已锁定 `BUN_VERSION`,但 `have bun` 早退不重装。
 - 升级步骤:运行 `scripts/resolve-pins.sh` 刷新锁定值,然后 `npm uninstall -g bun`,再重跑本组。
 
 ## 参见

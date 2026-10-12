@@ -8,8 +8,7 @@
 
 ## 来源与安装
 
-- 脚本:`scripts/install-tools.sh` 的 `install_vnc`。
-- 桌面栈烘焙进镜像。
+- 脚本:`scripts/install-tools.sh` 的 `install_vnc`;桌面栈烘焙进镜像。
 - 启动脚本装在公共位 `/usr/local/bin/vnc-screen`(/root/scripts 权限 0700,ubuntu 用户不可读)。
 
 ## 文件
@@ -23,8 +22,7 @@
 
 ## 配置
 
-- 无镜像级配置。
-- `~/.vnc/xstartup` 首启写入 startxfce4。
+- 无镜像级配置;`~/.vnc/xstartup` 首启写入 startxfce4。
 
 ## 离线行为
 

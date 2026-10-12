@@ -14,8 +14,7 @@
 
 ## 文件
 
-- `/usr/local/bin/overthrone`(实体)。
-- `/usr/local/bin/ovt` 同链。
+- `/usr/local/bin/overthrone`(实体);`/usr/local/bin/ovt` 同链。
 
 ## 配置
 
@@ -23,8 +22,7 @@
 
 ## 离线行为
 
-- 支持:关闭 eth0 后 `overthrone --version` 退出码 0。
-- 对目标的动作(LDAP/SMB/Kerberos 连接、中继监听)属使用期网络。
+- 支持:关闭 eth0 后 `overthrone --version` 退出码 0;对目标的动作(LDAP/SMB/Kerberos 连接、中继监听)属使用期网络。
 
 ## 限制
 

@@ -38,9 +38,7 @@
 
 ## 限制
 
-- 首次 install-all 时,[node 册](node.md) 里的 fnm npmrc 顺写落空。
-- `RUNTIMES_ALL` 的顺序是 node 先于 fnm,当时版本目录还不存在。
-- 本组尾部循环是这一步的补写,并且同时覆盖 ubuntu。
+- 首次 install-all 时,[node 册](node.md) 里的 fnm npmrc 顺写落空;`RUNTIMES_ALL` 的顺序是 node 先于 fnm,当时版本目录还不存在;本组尾部循环是这一步的补写,并且同时覆盖 ubuntu。
 - [known-issues.md](../../known-issues.md) 的旧规定写的是「fnm 经 root `~/.cargo` 安装,再链 `/usr/local/bin`」。现行脚本不是这样。
 - 现行 `CARGO_HOME=/opt/cargo`,并且不链 `/usr/local/bin`。以脚本为准。
 

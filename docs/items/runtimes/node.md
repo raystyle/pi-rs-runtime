@@ -12,9 +12,7 @@
 ## 来源与安装
 
 - 二进制来自 [nodejs.org](https://nodejs.org),经 npmmirror 的 `NODE_MIRROR`(`registry.npmmirror.com/-/binary/node`)。
-- `tar --strip-components=1` 解进 `/opt/node`。
-- registry 指向 npmmirror。
-- 黄金件:`npm install -g typescript prettier eslint`。
+- `tar --strip-components=1` 解进 `/opt/node`;registry 指向 npmmirror;黄金件:`npm install -g typescript prettier eslint`。
 - dotnetjs 来自 [pseudocc/dotnetjs](https://github.com/pseudocc/dotnetjs),是 .NET Framework BCL 的 JS 实现,用于分析与复现 .NET 行为。
 - `COREPACK_NPM_REGISTRY` 指向 npmmirror 后执行 `corepack enable`。
 
@@ -34,8 +32,7 @@
 - npm 11 的 `config set` 拒绝这两个键。
 - npm 把任意键以 `npm_config_*` 传给生命周期脚本。node-gyp 与 electron 按这个方式读取。
 - 离线双保险是 `offline=true` 与 `fetch-retries=0`,并写 mintimeout 500、maxtimeout 1000。
-- 幂等写法:先用 sed 清掉旧键,再追加。
-- 同形 npmrc 顺写给已经存在的 fnm 各版本。见 [fnm 册](fnm.md)。
+- 幂等写法:先用 sed 清掉旧键,再追加;同形 npmrc 顺写给已经存在的 fnm 各版本。见 [fnm 册](fnm.md)。
 - 构建期在线面由 common.sh 导出 `NPM_CONFIG_OFFLINE=false` 与 `NPM_CONFIG_FETCH_*`。环境变量恒优先于配置文件。
 
 ## 离线行为
@@ -54,8 +51,7 @@
 - `npm --prefix` 会连 prefix 级 npmrc 一起丢掉。这是 npm 的行为。项目内用法才吃到该 npmrc。见 [offline.md](../../offline.md) 第 4 节。
 - `sha256sum -c` 的校验行必须写绝对路径。裸文件名按 CWD 解析,裸写会导致安装失败。
 - npmrc 在 `/opt/node` 内。node 升级执行 `rm -rf /opt/node` 之后,脚本每次重写把它补回。
-- 该配置写在早退判据之外,所以幂等成立。
-- 首次 install-all 时 fnm 的版本目录还不存在,node 组的顺写落空。fnm 组尾部补写。
+- 该配置写在早退判据之外,所以幂等成立;首次 install-all 时 fnm 的版本目录还不存在,node 组的顺写落空。fnm 组尾部补写。
 
 ## 参见
 

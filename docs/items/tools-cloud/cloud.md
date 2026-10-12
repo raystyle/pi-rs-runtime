@@ -4,9 +4,7 @@
 
 ## 版本
 
-- `ALIYUN_CLI_VERSION`(当前 v3.5.1,解析日 2026-10-11)。
-- `TCCLI_VERSION`(当前 3.1.180.1)。
-- 升级:运行 `scripts/resolve-pins.sh`,审阅差异后重跑本组。
+- `ALIYUN_CLI_VERSION`(当前 v3.5.1,解析日 2026-10-11);`TCCLI_VERSION`(当前 3.1.180.1);升级:运行 `scripts/resolve-pins.sh`,审阅差异后重跑本组。
 
 ## 来源与安装
 
@@ -29,9 +27,7 @@
 
 ## 离线行为
 
-- 支持:`aliyun version` 与 `tccli --version` 断网可用(本地读)。
-- 一切云 API 调用(枚举、查询)属使用期触网;断网失败是设计边界。
-- 与 discovery 组 cloudlist、uncover 的云面互补。
+- 支持:`aliyun version` 与 `tccli --version` 断网可用(本地读);一切云 API 调用(枚举、查询)属使用期触网;断网失败是设计边界;与 discovery 组 cloudlist、uncover 的云面互补。
 
 ## 限制
 

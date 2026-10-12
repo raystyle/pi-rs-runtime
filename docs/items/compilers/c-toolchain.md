@@ -17,15 +17,11 @@
 
 ## 文件
 
-- apt 件归 dpkg 标准面(`/usr/bin` 等)。入口名即包内命令。
-- FASM 被包装的程序是 `/opt/fasm/fasm/fasm.x64`。
-- `/usr/local/bin/fasm` 软链指向 `fasm.x64`。
-- `fasm.x64` 不存在时,该软链回退指向 32 位 `fasm`。
+- apt 件归 dpkg 标准面(`/usr/bin` 等)。入口名即包内命令;FASM 被包装的程序是 `/opt/fasm/fasm/fasm.x64`;`/usr/local/bin/fasm` 软链指向 `fasm.x64`;`fasm.x64` 不存在时,该软链回退指向 32 位 `fasm`。
 
 ## 配置
 
-- 本组不写任何配置文件。
-- ccache 用各用户默认 `~/.cache/ccache`,未固化进 `/opt`。
+- 本组不写任何配置文件;ccache 用各用户默认 `~/.cache/ccache`,未固化进 `/opt`。
 
 ## 离线行为
 
@@ -35,12 +31,9 @@
 
 ## 限制
 
-- FASM 包内顶层是 `fasm/` 目录。
-- amd64 必须链 `fasm.x64`。包内 `fasm` 是 32 位。
+- FASM 包内顶层是 `fasm/` 目录;amd64 必须链 `fasm.x64`。包内 `fasm` 是 32 位。
 - nasm 不在本组。它归 `install-tools.sh` 的 `install_analysis`,按锁定版本从源码构建(脚本注释规定)。
-- apt 批天然幂等。
-- FASM 靠 `have fasm` 早退。
-- 组内无配置写入,不触「配置写入放早退前」。
+- apt 批天然幂等;FASM 靠 `have fasm` 早退;组内无配置写入,不触「配置写入放早退前」。
 
 ## 参见
 

@@ -5,25 +5,15 @@
 ## 版本
 
 - `GIT_PIN[The-Z-Labs/bof-launcher]` = c9b600a93c72503900c1fc3792eda5aa5602f922。
-- `clone_pin` 在 HEAD 等于锁定提交时跳过。
-- 解析日 2026-10-10。
-- 仓库锁定 zig 0.15.2。
-- 系统 zig 0.16 可能编译失败。
-- 因此使用专用副本 `/opt/zig-0.15.2`。
+- `clone_pin` 在 HEAD 等于锁定提交时跳过;解析日 2026-10-10;仓库锁定 zig 0.15.2;系统 zig 0.16 可能编译失败;因此使用专用副本 `/opt/zig-0.15.2`。
 - 该副本从 ziglang.org 直接下载,没有验签。见 [known-issues.md](../../known-issues.md)。
 - 升级:执行 `scripts/resolve-pins.sh`,再执行 bof 组。
 
 ## 来源与安装
 
-- 脚本:`scripts/install-tools.sh` 的 `install_bof`。
-- 源码克隆到 `/opt/payload-ref/loaders/inproc/bof-launcher`。
-- 未安装时先 `rm -rf`,再重新克隆。
+- 脚本:`scripts/install-tools.sh` 的 `install_bof`;源码克隆到 `/opt/payload-ref/loaders/inproc/bof-launcher`;未安装时先 `rm -rf`,再重新克隆。
 - 构建命令是 `/opt/zig-0.15.2/zig build -Doptimize=ReleaseSafe`。
-- 上游是库,提供 C API 与 Zig API,不是 CLI。
-- 可以运行的 BOF 执行器是示例二进制 `bof_lin_<arch>`。
-- `install -m755` 把它装成 `/usr/local/bin/bof-launcher`。
-- 幂等判据是 `have bof-launcher`。已安装则整段跳过。
-- zig 副本的判据是 `-x /opt/zig-0.15.2/zig`。
+- 上游是库,提供 C API 与 Zig API,不是 CLI;可以运行的 BOF 执行器是示例二进制 `bof_lin_<arch>`;`install -m755` 把它装成 `/usr/local/bin/bof-launcher`;幂等判据是 `have bof-launcher`。已安装则整段跳过;zig 副本的判据是 `-x /opt/zig-0.15.2/zig`。
 
 | 架构 | 示例二进制 |
 | --- | --- |
@@ -34,9 +24,7 @@
 
 - 入口是 `/usr/local/bin/bof-launcher`。
 - 源码与构建树在 `/opt/payload-ref/loaders/inproc/bof-launcher`。
-- 该目录属于 inproc 轴。
-- zig 0.15.2 的专用副本在 `/opt/zig-0.15.2`。
-- 构建产物在源码树的 `zig-out/bin/`,随 inproc 轴一起归档。
+- 该目录属于 inproc 轴;zig 0.15.2 的专用副本在 `/opt/zig-0.15.2`;构建产物在源码树的 `zig-out/bin/`,随 inproc 轴一起归档。
 
 ## 配置
 
@@ -44,19 +32,12 @@
 
 ## 离线行为
 
-- 支持确认源码在位。见 [offline.md](../../offline.md)。
-- 未验证:加载本地 `.o` 并执行。脚本给出的命令是 `bof-launcher run bof.o`。
-- 该动作不依赖网络,尚未单独断网测量。
+- 支持确认源码在位。见 [offline.md](../../offline.md);未验证:加载本地 `.o` 并执行。脚本给出的命令是 `bof-launcher run bof.o`;该动作不依赖网络,尚未单独断网测量。
 - 关闭 eth0 后,`ls /opt/payload-ref/loaders/inproc/bof-launcher/zig-out/bin` 退 0。
 
 ## 限制
 
-- 上游是库,不是 CLI。
-- 装进 PATH 的是示例执行器 `bof_lin_<arch>`。
-- zig 版本错配是构建失败的主要原因。
-- 专用副本与系统 zig 并存,互不影响。
-- 构建失败只 echo,不阻塞本组。
-- BOF 运行还有 mingw 与 wine 这条路径。见 [wine.md](wine.md)。
+- 上游是库,不是 CLI;装进 PATH 的是示例执行器 `bof_lin_<arch>`;zig 版本错配是构建失败的主要原因;专用副本与系统 zig 并存,互不影响;构建失败只 echo,不阻塞本组;BOF 运行还有 mingw 与 wine 这条路径。见 [wine.md](wine.md)。
 
 ## 参见
 

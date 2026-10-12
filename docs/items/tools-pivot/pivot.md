@@ -16,8 +16,7 @@
 
 ## 来源与安装
 
-- 脚本:`scripts/install-tools.sh` 的 `install_pivot`。
-- Go 栈模块经 goproxy.cn(common.sh `GOPROXY`)。
+- 脚本:`scripts/install-tools.sh` 的 `install_pivot`;Go 栈模块经 goproxy.cn(common.sh `GOPROXY`)。
 - Rust 栈 crate 经 /opt/cargo/config.toml 的 sparse 索引(默认 rsproxy.cn;`CRATES_INDEX` 可覆盖)。
 - frp tarball 直连 GitHub;wstunnel 与 rathole 的 git 源经 GITHUB_MIRROR(自锁定版本起)。
 
@@ -34,8 +33,7 @@
 
 - Go 产物落 /opt/go/bin(`GOPATH=/opt/go`)再 `ln -sf` 到 /usr/local/bin。
 - Rust 产物落 /opt/cargo/bin(`CARGO_HOME=/opt/cargo`;~/.cargo 是 /opt/cargo 的软链)再链 /usr/local/bin。
-- frps 与 frpc 例外:直落 /usr/local/bin。
-- 六件入口名同件名。
+- frps 与 frpc 例外:直落 /usr/local/bin;六件入口名同件名。
 
 ## 配置
 

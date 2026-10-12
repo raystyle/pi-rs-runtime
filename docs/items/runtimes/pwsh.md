@@ -39,8 +39,7 @@
 - `/etc/profile.d/psmodules.sh` 导出 `PSModulePath=/opt/psmodules:…`。该文件由 libcache 组写。
 - 它只是登录 shell 的备份面。
 - 非登录 shell(`incus exec`)不读 profile.d。运行期靠系统模块路径上的软链。见 [known-issues.md](../../known-issues.md)。
-- PSGallery 无国内镜像。构建期直连。
-- `Save-PSResource` 部分失败时,重跑可以补齐。
+- PSGallery 无国内镜像。构建期直连;`Save-PSResource` 部分失败时,重跑可以补齐。
 
 ## 离线行为
 
@@ -51,9 +50,7 @@
 ## 限制
 
 - 旧 PackageManagement 的 `Save-Module` 在 noble 加 pwsh 7.4 上段错误。
-- 固化改走 inbox 的 PSResourceGet,命令是 `Save-PSResource`。
-- 模块固化的前置守卫是 `have pwsh`。pwsh 未装时,libcache pwsh 组直接跳过。
-- 先跑 `install-runtimes.sh` 的 pwsh 组。
+- 固化改走 inbox 的 PSResourceGet,命令是 `Save-PSResource`;模块固化的前置守卫是 `have pwsh`。pwsh 未装时,libcache pwsh 组直接跳过;先跑 `install-runtimes.sh` 的 pwsh 组。
 
 ## 参见
 

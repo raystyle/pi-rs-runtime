@@ -4,13 +4,11 @@
 
 ## 版本
 
-- pins.sh 键:`GO_PIN[github.com/DominicBreuker/pspy]`。
-- 升级:运行 `scripts/resolve-pins.sh`,再执行 discovery 组。
+- pins.sh 键:`GO_PIN[github.com/DominicBreuker/pspy]`;升级:运行 `scripts/resolve-pins.sh`,再执行 discovery 组。
 
 ## 来源与安装
 
-- 脚本:`install-tools.sh` 的 discovery 组循环。
-- 安装命令:`go install`,按该锁定版本。
+- 脚本:`install-tools.sh` 的 discovery 组循环;安装命令:`go install`,按该锁定版本。
 
 ## 文件
 
@@ -25,8 +23,7 @@
 
 ## 离线行为
 
-- 支持。程序枚举 `/proc`,并使用 inotify。
-- 不访问网络。
+- 支持。程序枚举 `/proc`,并使用 inotify;不访问网络。
 
 ## 限制
 

@@ -5,12 +5,7 @@
 ## 版本
 
 - rustup-init 与 stable toolchain 随源最新。pins.sh 未收这两项锁定项,取构建日的版本。
-- `CRATE_PIN[rust-script]` = 0.36.0(解析日 2026-10-10)。
-- `CRATE_PIN[cargo-zigbuild]` = 0.23.4(解析日 2026-10-10)。
-- `CRATE_PIN[cargo-audit]` = 0.22.2(解析日 2026-10-10)。
-- 这三件经 `cargo_install_pin` 安装,带 `--locked`。
-- 升级:运行 `scripts/resolve-pins.sh`,再重跑本组。
-- 预热的 29 个 crate 版本全是 `*`,不锁定版本。`cargo fetch` 取构建日最新。
+- `CRATE_PIN[rust-script]` = 0.36.0(解析日 2026-10-10);`CRATE_PIN[cargo-zigbuild]` = 0.23.4(解析日 2026-10-10);`CRATE_PIN[cargo-audit]` = 0.22.2(解析日 2026-10-10);这三件经 `cargo_install_pin` 安装,带 `--locked`;升级:运行 `scripts/resolve-pins.sh`,再重跑本组;预热的 29 个 crate 版本全是 `*`,不锁定版本。`cargo fetch` 取构建日最新。
 
 ## 来源与安装
 
@@ -46,8 +41,7 @@
 ## 配置
 
 - `/opt/cargo/config.toml` 把 crates-io 换成 sparse 索引。`CRATES_INDEX` 默认 `https://rsproxy.cn/index`。
-- 同一文件设置 `git-fetch-with-cli=true`。
-- 同一文件设置 `[net] offline=true`。这是离线优先默认面。
+- 同一文件设置 `git-fetch-with-cli=true`;同一文件设置 `[net] offline=true`。这是离线优先默认面。
 - 构建脚本经 common.sh 导出 `CARGO_NET_OFFLINE=false` 拿回在线。环境变量优先于配置文件。
 - `/etc/profile.d/rustup.sh` 导出 `RUSTUP_HOME`、`CARGO_HOME`、`RUSTUP_DIST_SERVER`、`RUSTUP_UPDATE_ROOT`。
 - 同一文件导出 `CARGO_ZIGBUILD_CACHE_DIR=/opt/cargo-zigbuild-cache`。该文件只在登录 shell 生效。
@@ -61,25 +55,15 @@
 
 - 支持:已经缓存的工具链和依赖。
 - `/opt/cargo/config.toml` 中 `[net] offline=true` 时,获取未缓存的 crate 立即返回 not found。
-- 验证:关闭 eth0 后,在新工程执行 `cargo add <未缓存 crate>`,命令立即失败。
-- `rustc --version` 不访问网络。
-- 依赖已在 `/opt/cargo` registry 的工程,`cargo build` 不访问网络。
-- 工具链与组件位于 `/opt/rustup`。
-- 未验证:windows-gnu 经 mingw-w64 的交叉链接。
-- 未验证:apple-darwin 经 zig 的交叉链接。
-- 未验证:cargo-audit 第一次运行需要 rustsec advisory-db,断网时不可用。
+- 验证:关闭 eth0 后,在新工程执行 `cargo add <未缓存 crate>`,命令立即失败;`rustc --version` 不访问网络;依赖已在 `/opt/cargo` registry 的工程,`cargo build` 不访问网络;工具链与组件位于 `/opt/rustup`;未验证:windows-gnu 经 mingw-w64 的交叉链接;未验证:apple-darwin 经 zig 的交叉链接;未验证:cargo-audit 第一次运行需要 rustsec advisory-db,断网时不可用。
 
 ## 限制
 
-- `incus exec` 不读取 `/etc/profile.d`。
-- `$HOME/.rustup` 不存在时,rustup 报告 no default。
+- `incus exec` 不读取 `/etc/profile.d`;`$HOME/.rustup` 不存在时,rustup 报告 no default。
 - `~/.rustup` 与 `~/.cargo` 是指向 `/opt/rustup` 和 `/opt/cargo` 的符号链接。
 - 配置里的索引段名是 `tuna-sparse`。
 - 生效索引由 `CRATES_INDEX` 决定,默认 `https://rsproxy.cn/index`。
-- rust-lld 的查找同时检查 `/opt/rustup` 与 `/root/.rustup`。
-- 再次执行本组时,`rustc` 已存在则跳过 rustup-init。
-- 配置、profile、符号链接和预热每次重写。
-- nightly 不由本组安装。
+- rust-lld 的查找同时检查 `/opt/rustup` 与 `/root/.rustup`;再次执行本组时,`rustc` 已存在则跳过 rustup-init;配置、profile、符号链接和预热每次重写;nightly 不由本组安装。
 - coffee-ldr 需要 nightly 时,由 bof 组执行 `rustup toolchain install nightly`。
 - 由 root 的 `~/.cargo` 安装的程序只链接二进制。其余文件见 [known-issues.md](../../known-issues.md)。
 

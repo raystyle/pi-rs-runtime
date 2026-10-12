@@ -4,13 +4,7 @@
 
 ## 版本
 
-- 版本 3.02。
-- 默认值写在 `install_analysis` 内,不在 common.sh。
-- 环境变量 `NASM_VERSION` 可覆盖。
-- 幂等判据:`nasm -v | grep -q "version 3.02$"`。
-- 当前版本与锁定版本一致才跳过。改 `NASM_VERSION` 会触发重装。
-- tarball 无校验和。
-- 从官网直接下载。无国内镜像。包小,直连。
+- 版本 3.02;默认值写在 `install_analysis` 内,不在 common.sh;环境变量 `NASM_VERSION` 可覆盖;幂等判据:`nasm -v | grep -q "version 3.02$"`;当前版本与锁定版本一致才跳过。改 `NASM_VERSION` 会触发重装;tarball 无校验和;从官网直接下载。无国内镜像。包小,直连。
 
 ## 来源与安装
 
@@ -33,15 +27,12 @@
 
 ## 离线行为
 
-- 未验证。
-- 运行期无网络依赖。
+- 未验证;运行期无网络依赖。
 - 关闭 eth0 后,`printf 'bits 64\nsection .text\nnop\n' > /tmp/n.asm && nasm -f elf64 /tmp/n.asm -o /tmp/n.o` 退出码 0 为判定命令。
 
 ## 限制
 
-- [known-issues.md](../../known-issues.md) 写 nasm 另有 sha256 校验。
-- 当前安装段没有校验步骤。
-- 以脚本为准:直接下载,不校验。
+- [known-issues.md](../../known-issues.md) 写 nasm 另有 sha256 校验;当前安装段没有校验步骤;以脚本为准:直接下载,不校验。
 
 ## 参见
 

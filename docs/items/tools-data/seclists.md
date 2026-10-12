@@ -4,41 +4,27 @@
 
 ## 版本
 
-- pins.sh `GIT_PIN[danielmiessler/SecLists]` 锁定提交。
-- `clone_pin` 在 HEAD 等于锁定提交时跳过。
-- 升级:执行 `scripts/resolve-pins.sh`,再执行 pentest 组。
+- pins.sh `GIT_PIN[danielmiessler/SecLists]` 锁定提交;`clone_pin` 在 HEAD 等于锁定提交时跳过;升级:执行 `scripts/resolve-pins.sh`,再执行 pentest 组。
 
 ## 来源与安装
 
-- GitHub `clone_pin` 到 `/opt/SecLists`。
-- rockyou 从 Passwords 解出。
-- 落到 `/usr/share/wordlists/rockyou.txt`。
-- hashcat、john、ffuf、feroxbuster 使用这份词表。
+- GitHub `clone_pin` 到 `/opt/SecLists`;rockyou 从 Passwords 解出;落到 `/usr/share/wordlists/rockyou.txt`;hashcat、john、ffuf、feroxbuster 使用这份词表。
 
 ## 文件
 
-- `/opt/SecLists`。
-- `/usr/share/wordlists` 是软链。
+- `/opt/SecLists`;`/usr/share/wordlists` 是软链。
 
 ## 配置
 
-- 无配置文件。
-- 纯数据,直接读取。
-- 目录名即分类。
-- 分类包括 Passwords、Discovery、Web-Shells。
+- 无配置文件;纯数据,直接读取;目录名即分类;分类包括 Passwords、Discovery、Web-Shells。
 
 ## 离线行为
 
-- 支持。本地直读。
-- 缺少本目录时,多个工具空跑,或自行下载词表。
-- 新鲜度等于构建日快照。
+- 支持。本地直读;缺少本目录时,多个工具空跑,或自行下载词表;新鲜度等于构建日快照。
 
 ## 限制
 
-- 顶层目录名即语义。
-- `rctl where` 可以搜这些目录。
-- pentest 册的接线段链接到本册。
-- 接线内容不在本册重复。
+- 顶层目录名即语义;`rctl where` 可以搜这些目录;pentest 册的接线段链接到本册;接线内容不在本册重复。
 
 ## 参见
 

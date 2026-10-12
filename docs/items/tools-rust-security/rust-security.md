@@ -4,15 +4,9 @@
 
 ## 版本
 
-- 解析日 2026-10-10。
-- `CRATE_PIN[rustscan]` = 2.4.1。
-- `CRATE_PIN[feroxbuster]` = 2.13.1。
+- 解析日 2026-10-10;`CRATE_PIN[rustscan]` = 2.4.1;`CRATE_PIN[feroxbuster]` = 2.13.1。
 - 这两件的命令是 `cargo install <crate> --locked --version <版本>`。
-- `--locked` 使用该 crate 自带的 `Cargo.lock`。
-- `GIT_PIN[g0h4n/RustHound-CE]` 锁定提交。
-- `clone_pin` 在 HEAD 等于锁定提交时跳过。
-- RustHound-CE 再执行 `cargo build --release --locked`。
-- 升级:执行 `scripts/resolve-pins.sh`,再执行本组。
+- `--locked` 使用该 crate 自带的 `Cargo.lock`;`GIT_PIN[g0h4n/RustHound-CE]` 锁定提交;`clone_pin` 在 HEAD 等于锁定提交时跳过;RustHound-CE 再执行 `cargo build --release --locked`;升级:执行 `scripts/resolve-pins.sh`,再执行本组。
 
 ## 来源与安装
 
@@ -41,30 +35,19 @@
 
 ## 离线行为
 
-- 支持。三个二进制在断网时可以启动。规定见 [offline.md](../../offline.md)。
-- 关闭 eth0 后,`rustscan --version` 退 0。
-- 未验证:断网扫描本机或内网目标。
-- rustscan 的后端调用本机 nmap。
+- 支持。三个二进制在断网时可以启动。规定见 [offline.md](../../offline.md);关闭 eth0 后,`rustscan --version` 退 0;未验证:断网扫描本机或内网目标;rustscan 的后端调用本机 nmap。
 - feroxbuster 使用本地词表。`/usr/share/wordlists` 有 `rockyou.txt`,以及 SecLists 软链。
 - 判定:断网后 `python3 -m http.server 8000 &`,再执行 `feroxbuster -u http://127.0.0.1:8000 -w /usr/share/wordlists/SecLists/Discovery/Web-Content/common.txt -n`。
 - 未验证:rusthound-ce 的采集。它走内网 LDAP 与 Kerberos,断外网不改变这条协议路径。
-- 镜像里没有域环境,采集本身未验证。
-- 判定入口:`rusthound-ce --help` 退 0。
+- 镜像里没有域环境,采集本身未验证;判定入口:`rusthound-ce --help` 退 0。
 
 ## 限制
 
-- RustHound-CE 依赖 libgssapi-sys,需要 `gssapi.h`。
-- 缺少 `libkrb5-dev` 时,bindgen 报致命错误。脚本在构建前 apt 安装它。
-- crates.io 没有 RustHound-CE,只能从源码构建。
-- 源码放在 `tradecraft-ref/ad`。这是操作员 AD 工具。
-- 归档位置与是否编译无关。
-- findomain 不安装。它的依赖多,经常编译失败。
+- RustHound-CE 依赖 libgssapi-sys,需要 `gssapi.h`;缺少 `libkrb5-dev` 时,bindgen 报致命错误。脚本在构建前 apt 安装它;crates.io 没有 RustHound-CE,只能从源码构建;源码放在 `tradecraft-ref/ad`。这是操作员 AD 工具;归档位置与是否编译无关;findomain 不安装。它的依赖多,经常编译失败。
 - 需要 findomain 时,使用 [Findomain releases](https://github.com/Findomain/Findomain/releases) 的预编译包。脚本注释与 [known-issues.md](../../known-issues.md) 都是这条。
 - 组日志仍写「经 tuna crates」。这是旧称呼。
 - 实际 `CRATES_INDEX` 默认 `https://rsproxy.cn/index`,定义在 `lib/common.sh`。
-- `config.toml` 里的源名 `tuna-sparse` 与这个默认索引不一致。
-- 三件各自以 `have` 为早退判据。
-- RustHound-CE 构建失败时,本次不安装。再次执行该组时安装。
+- `config.toml` 里的源名 `tuna-sparse` 与这个默认索引不一致;三件各自以 `have` 为早退判据;RustHound-CE 构建失败时,本次不安装。再次执行该组时安装。
 - 升级时删除 `/usr/local/bin/rusthound-ce` 后重跑本组,源码会更新到新的 HEAD。
 
 ## 参见

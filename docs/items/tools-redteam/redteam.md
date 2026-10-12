@@ -4,69 +4,36 @@
 
 ## 版本
 
-- 解析日 2026-10-10。
-- uv tool 批逐件取 `PYPI_PIN[<包>]`。
-- ghauri 不走 PyPI,锁定 `GIT_PIN[r0oth3x49/ghauri]` 的提交。
-- gem 批取 `GEM_PIN[<gem>]`,共 6 个键。其中 evil-winrm 为 4.1。
-- git 克隆批取 `GIT_PIN[<owner/repo>]` 的提交。
-- `clone_pin` 在 HEAD 等于锁定提交时跳过。
-- `CYBERCHEF_VERSION` = v11.5.0。
-- `KUBECTL_VERSION` = v1.37.1。
-- `TRIVY_VERSION` = v0.75.0。
-- awscli v2 随软件源。`AWSCLI_VERSION` 留空。
+- 解析日 2026-10-10;uv tool 批逐件取 `PYPI_PIN[<包>]`;ghauri 不走 PyPI,锁定 `GIT_PIN[r0oth3x49/ghauri]` 的提交;gem 批取 `GEM_PIN[<gem>]`,共 6 个键。其中 evil-winrm 为 4.1;git 克隆批取 `GIT_PIN[<owner/repo>]` 的提交;`clone_pin` 在 HEAD 等于锁定提交时跳过;`CYBERCHEF_VERSION` = v11.5.0;`KUBECTL_VERSION` = v1.37.1;`TRIVY_VERSION` = v0.75.0;awscli v2 随软件源。`AWSCLI_VERSION` 留空。
 - 官方 zip 没有干净的版本索引。见 [known-issues.md](../../known-issues.md)。
-- `have` 命中则早退。早退不会把已安装的件升到新锁定版本。
-- 升级:执行 `scripts/resolve-pins.sh`,再执行本组。
+- `have` 命中则早退。早退不会把已安装的件升到新锁定版本;升级:执行 `scripts/resolve-pins.sh`,再执行本组。
 
 ## 来源与安装
 
-- 脚本:`scripts/install-tools.sh` 的 `install_redteam`。
-- uv tool 先使用构建期默认索引。
+- 脚本:`scripts/install-tools.sh` 的 `install_redteam`;uv tool 先使用构建期默认索引。
 - 该索引来自 `UV_CONFIG_FILE=/etc/uv/uv-online.toml`,对应 `PIP_INDEX`。
-- 默认索引失败时,显式改用 tuna。
-- bloodhound-ce 不走这套回退:tuna 没有该包,安装显式使用 pypi.org。
-- ghauri 不在任何 PyPI,从 git 安装。
-- git 克隆经 `GITHUB_MIRROR`。
-- 克隆失败时重试 2 次。
+- 默认索引失败时,显式改用 tuna;bloodhound-ce 不走这套回退:tuna 没有该包,安装显式使用 pypi.org;ghauri 不在任何 PyPI,从 git 安装;git 克隆经 `GITHUB_MIRROR`;克隆失败时重试 2 次。
 - gem 源换成 [gems.ruby-china.com](https://gems.ruby-china.com/),并执行 `--remove rubygems.org`。
-- 安装面总表见 [tools.md](../../install-surfaces/tools.md)。
-- 逐件入口、版本与来源在文末成员清单。
+- 安装面总表见 [tools.md](../../install-surfaces/tools.md);逐件入口、版本与来源在文末成员清单。
 
 ## 文件
 
-- uv tool 隔离安装。`UV_TOOL_DIR=/opt/uv-tools`。
-- `UV_TOOL_BIN_DIR=/usr/local/bin`,入口直接链接。
+- uv tool 隔离安装。`UV_TOOL_DIR=/opt/uv-tools`;`UV_TOOL_BIN_DIR=/usr/local/bin`,入口直接链接。
 - 四个 venv 里依赖分支的 `*.py` 按白名单外链:certipy-ad、bloodyad、bofhound、bloodhound-ce。
-- bloodhound-ce 排在白名单最后,同名脚本以它为准。
-- 没有 console entrypoint 的包写 wrapper,不做硬链。
+- bloodhound-ce 排在白名单最后,同名脚本以它为准;没有 console entrypoint 的包写 wrapper,不做硬链。
 - bloodhound-python 的 wrapper 调用 re-venv 的 `python -m bloodhound`。
-- 该 wrapper 每次无条件重写。
-- depjunk 清单删除指向 uv-tools venv 的非入口依赖 CLI。
-- `httpx` 链回 discovery 组的 Go 产物。
-- semgrep 只链入口名 `semgrep` 与 `pysemgrep`。
-- git 克隆目录是 `/opt/<仓名>`。
+- 该 wrapper 每次无条件重写;depjunk 清单删除指向 uv-tools venv 的非入口依赖 CLI;`httpx` 链回 discovery 组的 Go 产物;semgrep 只链入口名 `semgrep` 与 `pysemgrep`;git 克隆目录是 `/opt/<仓名>`。
 - 四个仓内脚本的 wrapper 都执行 `exec /opt/re-venv/bin/python`:enum4linux-ng、krbrelayx、jwt_tool、LinkFinder。
-- 这四件的依赖按锁定版本装进 re-venv。
-- jwt_tool 在顶层直接 import ratelimit。
-- LinkFinder 在顶层直接 import jsbeautifier。
-- 系统 python3 没有这些模块,用它执行会在 import 失败并退出。
-- CeWL 安装到 `/opt/CeWL`,wrapper 名为 `cewl`。
-- evil-winrm 的 gem 二进制在 `/usr/local/bin`。
-- CyberChef 安装到 `/opt/cyberchef`。
+- 这四件的依赖按锁定版本装进 re-venv;jwt_tool 在顶层直接 import ratelimit;LinkFinder 在顶层直接 import jsbeautifier;系统 python3 没有这些模块,用它执行会在 import 失败并退出;CeWL 安装到 `/opt/CeWL`,wrapper 名为 `cewl`;evil-winrm 的 gem 二进制在 `/usr/local/bin`;CyberChef 安装到 `/opt/cyberchef`。
 
 ## 配置
 
-- 无组级运行期配置。
-- 各件自己的配置见对应册。
+- 无组级运行期配置;各件自己的配置见对应册。
 
 ## 离线行为
 
 - 支持六件 wrapper 的入口:enum4linux-ng、krbrelayx、bloodhound-python、cewl、jwt-tool、linkfinder。
-- wrapper 层机制见 [offline.md](../../offline.md)。
-- 关闭 eth0 后,逐件启动 help 面。例如 `enum4linux-ng -h` 退 0。
-- 未验证:uv tool 与 gem 的纯本地件。它们没有自更新。
-- 这些件的实际操作需要目标网络可达。
-- CyberChef 见 [cyberchef.md](cyberchef.md)。
+- wrapper 层机制见 [offline.md](../../offline.md);关闭 eth0 后,逐件启动 help 面。例如 `enum4linux-ng -h` 退 0;未验证:uv tool 与 gem 的纯本地件。它们没有自更新;这些件的实际操作需要目标网络可达;CyberChef 见 [cyberchef.md](cyberchef.md)。
 
 ## 限制
 
@@ -75,9 +42,7 @@
 - 依赖 CLI 曾盖掉 discovery 组的 Go `httpx`。这些 CLI 包括 httpx、idna、normalizer,散在 certipy-ad、bofhound、bloodhound-ce 三个 venv。
 - `have` 早退不会自行修复被盖掉的链接。外链只走白名单。
 - bloodhound-python 的 wrapper 无条件重写,避免被 bofhound 的依赖链盖掉。
-- ghauri 在官方 PyPI、tuna、阿里云都返回 404,只从 git 仓安装。
-- GitHub 限流时,克隆要重试。
-- jwt_tool 与 LinkFinder 的 wrapper 执行 re-venv 的 python。
+- ghauri 在官方 PyPI、tuna、阿里云都返回 404,只从 git 仓安装;GitHub 限流时,克隆要重试;jwt_tool 与 LinkFinder 的 wrapper 执行 re-venv 的 python。
 - 依赖 ratelimit、pycryptodomex、termcolor、requests、jsbeautifier 按锁定版本装进 re-venv。
 - 克隆仓名是 `ticarpi/jwt_tool`、`GerbenJavado/LinkFinder`、`cddmp/enum4linux-ng`。
 

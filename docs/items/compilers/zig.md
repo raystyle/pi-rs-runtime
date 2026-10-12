@@ -12,14 +12,12 @@
 
 - 来源:[ziglang.org/download](https://ziglang.org/download/)。国内无镜像,直下。
 - 文件名:`zig-<x86_64|aarch64>-linux-0.16.0.tar.xz`。dpkg 架构 amd64 映射 x86_64,arm64 映射 aarch64。其余架构 `exit 1`。
-- 解包:`tar --strip-components=1` 进入 `/opt/zig`。
-- 脚本:`install-compilers.sh` 的 `install_zig`。
+- 解包:`tar --strip-components=1` 进入 `/opt/zig`;脚本:`install-compilers.sh` 的 `install_zig`。
 - 库固化见 [libcache zig-cache 册](../libcache/zig-cache.md)。
 
 ## 文件
 
-- 本体目录 `/opt/zig`,程序 `/opt/zig/zig`。
-- `/usr/local/bin/zig` 软链指向该程序。
+- 本体目录 `/opt/zig`,程序 `/opt/zig/zig`;`/usr/local/bin/zig` 软链指向该程序。
 - `/opt/zig-0.15.2` 是 bof 组为 bof-launcher 安装的专用副本。上游锁定 0.15.2。系统 0.16 可能编不过该副本。它不属于本组。
 
 ## 配置
@@ -40,12 +38,9 @@
 
 ## 限制
 
-- `/etc/profile.d/zig.sh` 写在早退判据之后。zig 已装时,重跑本组不补写该文件。
-- 配置写入放早退前的规则见 [golang 册](golang.md)。
+- `/etc/profile.d/zig.sh` 写在早退判据之后。zig 已装时,重跑本组不补写该文件;配置写入放早退前的规则见 [golang 册](golang.md)。
 - zig 发行包无国内镜像,直下,并且未做 minisig 验签。公钥说明见 [known-issues.md](../../known-issues.md)。
-- 0.16 的 `zig fetch` 必须先 `zig init`。
-- `git+` 过不了 ohmygh 代理,改用 tarball。
-- 旧 tag 的 zon 字符串名会被拒绝。
+- 0.16 的 `zig fetch` 必须先 `zig init`;`git+` 过不了 ohmygh 代理,改用 tarball;旧 tag 的 zon 字符串名会被拒绝。
 - 这三条 `zig fetch` 行为的消费面在 [libcache zig-cache 册](../libcache/zig-cache.md)。
 
 ## 参见

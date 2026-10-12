@@ -11,8 +11,7 @@
 
 - npm 全局 `rea-agents@<版本>` 装进系统 node 全局面 /opt/node/lib/node_modules(npmmirror 镜像)。
 - 构建期 `NPM_CONFIG_OFFLINE=false` 显式拿回在线面;运行期 npm 默认离线(见 [offline.md](../../offline.md) 第 4 节)。
-- Node 要 22.19+ 或 24.11+;镜像默认 node 24.21 满足。
-- 脚本:`scripts/install-tools.sh` 的 `install_rea`。
+- Node 要 22.19+ 或 24.11+;镜像默认 node 24.21 满足;脚本:`scripts/install-tools.sh` 的 `install_rea`。
 
 ## 文件
 

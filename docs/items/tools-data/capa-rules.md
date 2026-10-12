@@ -4,14 +4,11 @@
 
 ## 版本
 
-- pins.sh `GIT_PIN[mandiant/capa-rules]` 锁定提交。
-- 规则库与 capa 二进制各自锁定。
-- 规则库独立演进。
+- pins.sh `GIT_PIN[mandiant/capa-rules]` 锁定提交;规则库与 capa 二进制各自锁定;规则库独立演进。
 
 ## 来源与安装
 
-- GitHub `clone_pin` 到 `/opt/capa-rules`。
-- capa wrapper 注入 `-r`。见 [capa.md](../analysis/capa.md)。
+- GitHub `clone_pin` 到 `/opt/capa-rules`;capa wrapper 注入 `-r`。见 [capa.md](../analysis/capa.md)。
 
 ## 文件
 
@@ -23,16 +20,11 @@
 
 ## 离线行为
 
-- 支持。本地直读。
-- 缺少规则库时,capa 把规则下载到家目录。
-- 这个失败不容易从输出里看出来。
+- 支持。本地直读;缺少规则库时,capa 把规则下载到家目录;这个失败不容易从输出里看出来。
 
 ## 限制
 
-- 规则名带 namespace 前缀。
-- `capa -t` 按前缀选择规则。
-- 前缀例子是 `communication/socket/tcp`。
-- namespace 前缀可以按战术过滤。
+- 规则名带 namespace 前缀;`capa -t` 按前缀选择规则;前缀例子是 `communication/socket/tcp`;namespace 前缀可以按战术过滤。
 
 ## 参见
 

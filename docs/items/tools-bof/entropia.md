@@ -5,8 +5,7 @@
 ## 版本
 
 - `GIT_PIN[entropykit/entropia]` = `05acaba2a1a5fbde8cec3318319d053265ddb7ca`,等于 tag `v0.1-experimental`(解析日 2026-10-11)。
-- 仓库是单提交迁移面,HEAD 就是该 tag;`clone_pin` 在 HEAD 等于锁定提交时跳过。
-- 升级:执行 `scripts/resolve-pins.sh`,审阅差异,再执行本组。
+- 仓库是单提交迁移面,HEAD 就是该 tag;`clone_pin` 在 HEAD 等于锁定提交时跳过;升级:执行 `scripts/resolve-pins.sh`,审阅差异,再执行本组。
 
 ## 来源与安装
 
@@ -35,8 +34,7 @@
 ## 限制
 
 - 锁定 tag 不跟随 HEAD。issue #1(resolver 崩溃,原因 unsafe branch relaxation 发出过期的短跳转偏移)仍未修复,该评论晚于锁定提交且此后 main 无新代码。
-- 语言还没有嵌套结构与 `--avoid=` 坏字节规避;这是 C 道旁边的实验编译道,不是 C 道的升级。
-- PR #2 的测试合并留在 GitHub 记录里,锁定的树里没有(迁移时历史被压平)。
+- 语言还没有嵌套结构与 `--avoid=` 坏字节规避;这是 C 道旁边的实验编译道,不是 C 道的升级;PR #2 的测试合并留在 GitHub 记录里,锁定的树里没有(迁移时历史被压平)。
 - README 写一次 cargo 产出三个 exe、每个 tag 带一份 PDF;zip(1.84MB,四 exe + vsix + stdlib)里没有 PDF。集成以清单和 Cargo 为准。在混合 workspace 根目录执行不带包选择的 `cargo build` 只构建根包,与 README 的差异是同一件事。
 - star 297 全是公告转发(SEKTOR7、5mukx、PT dbugs),动手文字仅 brmk 上手与 CN-SEC 审查两篇,无外部缺陷帖;star 数不是生产采用的信号。
 - typecheck 对空 branch 与非 void 函数里的裸 `ret;` 不报错,与锁定源码一致。

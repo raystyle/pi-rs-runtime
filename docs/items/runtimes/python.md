@@ -5,11 +5,7 @@
 ## 版本
 
 - python3、python3-pip、python3-venv、python3-dev 为 noble 源冻结,即 apt 软件源锁定。见 [known-issues.md](../../known-issues.md)。
-- `PYPI_PIN[polars]` = 2.0.0(解析日 2026-10-10)。
-- `PYPI_PIN[pyarrow]` = 26.0.0(解析日 2026-10-10)。
-- `PYPI_PIN[chdb]` = 4.4.0(解析日 2026-10-10)。
-- `PYPI_PIN[ruff]` = 0.17.0(解析日 2026-10-10)。
-- 升级:运行 `scripts/resolve-pins.sh`,再重跑本组。
+- `PYPI_PIN[polars]` = 2.0.0(解析日 2026-10-10);`PYPI_PIN[pyarrow]` = 26.0.0(解析日 2026-10-10);`PYPI_PIN[chdb]` = 4.4.0(解析日 2026-10-10);`PYPI_PIN[ruff]` = 0.17.0(解析日 2026-10-10);升级:运行 `scripts/resolve-pins.sh`,再重跑本组。
 
 ## 来源与安装
 
@@ -20,8 +16,7 @@
 
 ## 文件
 
-- `/usr/bin/python3` 与 `/usr/bin/pip3` 来自 apt。
-- 分析 venv 在 `/opt/analytics`(`bin/python` 等)。
+- `/usr/bin/python3` 与 `/usr/bin/pip3` 来自 apt;分析 venv 在 `/opt/analytics`(`bin/python` 等)。
 - ruff 的 shim 是 `/usr/local/bin/ruff`,本体在 `/opt/uv-tools/ruff`。
 - pwntools 只走 apt 包 `python3-pwntools`(p0 批),落在 dist-packages。
 
@@ -63,8 +58,7 @@
 ## 离线行为
 
 - 支持:wheelhouse 内的包断网 `pip install` 免旗标直装。机制见 [offline.md](../../offline.md) 第 4 节。
-- 支持:轮子外的包立即报 `No matching distribution`。
-- 在线拉新件使用 `PIP_NO_INDEX=false pip install <包>`。
+- 支持:轮子外的包立即报 `No matching distribution`;在线拉新件使用 `PIP_NO_INDEX=false pip install <包>`。
 - 验证:关闭 eth0 后,`pip install pefile` 成功。pefile 在 wheelhouse 烘焙清单内。
 - 验证:关闭 eth0 后,`pip install <未烘焙包>` 立即报 `No matching distribution`。
 - 未验证:分析 venv 的断网 import。venv 是本地路径,import 不访问网络。断网冒烟未单独覆盖。
@@ -74,8 +68,7 @@
 - pwntools 若走 pip,会盖住 apt 的 dist-packages,造成双版本。规定只走 apt。
 - ruff 用 `uv tool install` 隔离安装。
 - `UV_TOOL_BIN_DIR=/usr/local/bin`,`UV_TOOL_DIR=/opt/uv-tools`。指到 `/opt` 后 ubuntu 可以执行。
-- uv 自身的离线默认与用户级配置见 [uv 册](uv.md)。
-- 快失败默认面见 [offline.md](../../offline.md) 第 4 节。
+- uv 自身的离线默认与用户级配置见 [uv 册](uv.md);快失败默认面见 [offline.md](../../offline.md) 第 4 节。
 
 ## 参见
 

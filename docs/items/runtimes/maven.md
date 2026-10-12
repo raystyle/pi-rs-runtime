@@ -11,18 +11,11 @@
 - 上游:[maven.apache.org](https://maven.apache.org) 的发行包。
 - 镜像:`MAVEN_MIRROR=$ALIYUN/apache/maven`(common.sh 的当前默认)。
 - 文件 `apache-maven-3.9.16-bin.tar.gz` 解到 `/opt/maven`(`--strip-components=1`)。
-- `mvn` 链到 `/usr/local/bin`。
-- 幂等判据:`have mvn`。
+- `mvn` 链到 `/usr/local/bin`;幂等判据:`have mvn`。
 
 ## 文件
 
-- 安装目录 `/opt/maven`。
-- 入口 `/usr/local/bin/mvn`。
-- 本地仓 `/opt/m2`。
-- libcache java 组的预热工程在 `/opt/maven-prewarm`。
-- `versions:resolve-ranges` 把 `[0,)` 区间解析成精确版本,写回 pom。
-- 然后 `dependency:go-offline` 拉取字节。
-- 默认 profile 是 BC、ASM、Jackson、Spring、hutool 等当前安全版。
+- 安装目录 `/opt/maven`;入口 `/usr/local/bin/mvn`;本地仓 `/opt/m2`;libcache java 组的预热工程在 `/opt/maven-prewarm`;`versions:resolve-ranges` 把 `[0,)` 区间解析成精确版本,写回 pom;然后 `dependency:go-offline` 拉取字节;默认 profile 是 BC、ASM、Jackson、Spring、hutool 等当前安全版。
 - study profile 锁定 fastjson、log4j-core、shiro 等 CVE 复现坐标。
 - smali 与 baksmali 3.0.10 经 GMaven。坐标见 [known-issues.md](../../known-issues.md)。
 

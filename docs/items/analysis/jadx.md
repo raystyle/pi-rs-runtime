@@ -4,17 +4,11 @@
 
 ## 版本
 
-- `JADX_VERSION=1.5.3`。脚本带该默认值。环境变量可覆盖。
-- 从 GitHub release 按该版本下载。
-- 无校验和。
+- `JADX_VERSION=1.5.3`。脚本带该默认值。环境变量可覆盖;从 GitHub release 按该版本下载;无校验和。
 
 ## 来源与安装
 
-- 上游:[skylot/jadx](https://github.com/skylot/jadx)。
-- 脚本:`install-tools.sh` 的 `install_analysis`。
-- 经 `GITHUB_MIRROR` 下载 `jadx-1.5.3.zip`。
-- zip 解到 `/opt/jadx`。
-- 幂等判据:`have jadx`。
+- 上游:[skylot/jadx](https://github.com/skylot/jadx);脚本:`install-tools.sh` 的 `install_analysis`;经 `GITHUB_MIRROR` 下载 `jadx-1.5.3.zip`;zip 解到 `/opt/jadx`;幂等判据:`have jadx`。
 
 ## 文件
 
@@ -27,15 +21,11 @@
 
 ## 配置
 
-- 无工具配置。脚本不写配置文件。
-- `java` 由 `install-runtimes.sh` 的 sdkman 组提供。
-- `/usr/local/bin/java` 链接 sdkman current 的 temurin。
+- 无工具配置。脚本不写配置文件;`java` 由 `install-runtimes.sh` 的 sdkman 组提供;`/usr/local/bin/java` 链接 sdkman current 的 temurin。
 
 ## 离线行为
 
-- 未验证。
-- CLI 与 `lib/` 都在本地路径。反编译不访问网络。
-- 关闭 eth0 后,`jadx --version` 退出码 0 为判定命令。
+- 未验证;CLI 与 `lib/` 都在本地路径。反编译不访问网络;关闭 eth0 后,`jadx --version` 退出码 0 为判定命令。
 
 ## 限制
 

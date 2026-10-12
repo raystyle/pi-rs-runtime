@@ -26,8 +26,7 @@
 
 ## 配置
 
-- 脚本不写任何配置文件。
-- `/etc/pip.conf` 是 python3 与 pip3 的面。python2 未装 pip。
+- 脚本不写任何配置文件;`/etc/pip.conf` 是 python3 与 pip3 的面。python2 未装 pip。
 
 ## 离线行为
 
@@ -37,8 +36,7 @@
 
 ## 限制
 
-- 这是 EOL 运行时,与 PHP 7.4 同类,没有官方支持。
-- 样本动态执行只在无网络、无生产数据挂载的隔离环境进行。
+- 这是 EOL 运行时,与 PHP 7.4 同类,没有官方支持;样本动态执行只在无网络、无生产数据挂载的隔离环境进行。
 - 当前部署链未强制该隔离面。见 [known-issues.md](../../known-issues.md)。
 - EOL 运行时保留在镜像上。这一组是 python2、PHP 7.4、PHP 8.1、JDK 11、Node 18、Node 20。见 [known-issues.md](../../known-issues.md)。
 

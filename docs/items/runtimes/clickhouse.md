@@ -19,13 +19,11 @@
 ## 文件
 
 - `/usr/local/bin/clickhouse` 是单二进制,含子命令 local、client、server 等。
-- 没有 `clickhouse-local` 软链。
-- 裸跑 `clickhouse` 即交互式 local。
+- 没有 `clickhouse-local` 软链;裸跑 `clickhouse` 即交互式 local。
 
 ## 配置
 
-- 不起 server。
-- 不写配置。
+- 不起 server;不写配置。
 
 ## 离线行为
 
@@ -36,8 +34,7 @@
 
 ## 限制
 
-- clickhouse.com 直连抖动时,下载失败只打印信息,不退出。
-- 函数末尾以 `true` 兜底。该次执行不安装。再次执行该组时安装。
+- clickhouse.com 直连抖动时,下载失败只打印信息,不退出;函数末尾以 `true` 兜底。该次执行不安装。再次执行该组时安装。
 - 官方安装器没有单独的 clickhouse-local 命令名。写 `clickhouse-local` 软链是错的。
 - 该规定写在脚本的 log 注释里。
 - 用法示例见 [tools 安装面 poc-search 节](../../install-surfaces/tools.md)。

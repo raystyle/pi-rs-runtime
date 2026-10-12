@@ -6,39 +6,23 @@
 
 - 系统库 22 项随 apt noble 源冻结,即软件源锁定。见 [known-issues.md](../../known-issues.md)。
 - rizin、rz-ghidra、sigdb 由 pins.sh 的 `GIT_PIN[rizinorg/…]` 锁定提交。
-- `clone_pin` 在 HEAD 等于锁定提交时跳过。
-- rz-ghidra 的 ghidra 子模块 ref 跟随该锁定提交里的 `.gitmodules`。
-- re-venv 五库由 pins.sh 的 `PYPI_PIN` 锁定版本。
-- capstone 5.0.9。
-- keystone-engine 0.9.2。
-- unicorn 2.1.4。
-- lief 1.0.0。
-- yara-python 4.5.4。
-- 解析日 2026-10-10。
-- 升级:执行 `scripts/resolve-pins.sh`,再执行本组。
+- `clone_pin` 在 HEAD 等于锁定提交时跳过;rz-ghidra 的 ghidra 子模块 ref 跟随该锁定提交里的 `.gitmodules`;re-venv 五库由 pins.sh 的 `PYPI_PIN` 锁定版本;capstone 5.0.9;keystone-engine 0.9.2;unicorn 2.1.4;lief 1.0.0;yara-python 4.5.4;解析日 2026-10-10;升级:执行 `scripts/resolve-pins.sh`,再执行本组。
 
 ## 来源与安装
 
-- 脚本:`scripts/install-tools.sh` 的 `install_reverse`。
-- apt 批的镜像是阿里云。`image-defs/ubuntu.yaml` 写入 deb822。
-- 镜像注记在 `scripts/lib/common.sh`。
+- 脚本:`scripts/install-tools.sh` 的 `install_reverse`;apt 批的镜像是阿里云。`image-defs/ubuntu.yaml` 写入 deb822;镜像注记在 `scripts/lib/common.sh`。
 - rizin、rz-ghidra、sigdb 经 `${GITHUB_MIRROR}https://github.com/rizinorg/…` 克隆源码后编译。
 - rizin 与 sigdb 用 meson。rz-ghidra 用 cmake。
 - re-venv 由 uv 创建。uv 来自 `install-runtimes.sh` 的 uv 组,入口是 `/usr/local/bin/uv`。
 - 包走 PyPI 的阿里云镜像 `PIP_INDEX`。
 - 构建期 common.sh 导出 `UV_CONFIG_FILE=/etc/uv/uv-online.toml`,使用在线配置。
-- 幂等判据之一是 `have rizin`。
-- 幂等判据之一是 `rizin -qc 'Lc' /bin/ls | grep -qi ghidra`。
-- 幂等判据之一是 sigdb 三个目录存在。
-- 幂等判据之一是 `[ -x "$RE_VENV/bin/python" ]`。
+- 幂等判据之一是 `have rizin`;幂等判据之一是 `rizin -qc 'Lc' /bin/ls | grep -qi ghidra`;幂等判据之一是 sigdb 三个目录存在;幂等判据之一是 `[ -x "$RE_VENV/bin/python" ]`。
 
 ## 文件
 
-- rizin 经 `meson install` 装到 `/usr/local`。
-- `/usr/local/bin/rizin` 与配套的 rz-* CLI 在这一次安装里一起出现。
+- rizin 经 `meson install` 装到 `/usr/local`;`/usr/local/bin/rizin` 与配套的 rz-* CLI 在这一次安装里一起出现。
 - 库装到 `/usr/local/lib/x86_64-linux-gnu`。装完执行 `ldconfig`。
-- rz-ghidra 插件装进 rizin 运行时报告的插件目录。
-- 插件目录的取法是 `rizin -qc 'e dir.plugins'`。
+- rz-ghidra 插件装进 rizin 运行时报告的插件目录;插件目录的取法是 `rizin -qc 'e dir.plugins'`。
 - 取不到时,兜底 `/usr/local/lib/x86_64-linux-gnu/rizin/plugins`。
 - sigdb 用 `meson --prefix=/usr/local`,数据落在 `/usr/local/share/rizin/sigdb`。
 - sigdb 安装失败只告警,不中断本组。
@@ -47,8 +31,7 @@
 
 ## 配置
 
-- 无 wrapper。
-- 无按用户分开的配置。
+- 无 wrapper;无按用户分开的配置。
 
 ## 离线行为
 
@@ -60,8 +43,7 @@
 
 ## 限制
 
-- 不安装 apt 的 radare2。
-- 不安装 knife、rsleigh、Ghidrust。
+- 不安装 apt 的 radare2;不安装 knife、rsleigh、Ghidrust。
 - Keystone 与 Unicorn 走 venv,不走 apt。这是 `install_reverse` 开头的规则。
 - `libzip-dev` 必须安装。缺少它时,meson 会到 libzip.org 拉取子项目,在国内会失败。
 - rz-ghidra 必须使用 `--recurse-submodules --shallow-submodules`。

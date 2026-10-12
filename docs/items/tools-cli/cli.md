@@ -12,8 +12,7 @@
 
 ## 来源与安装
 
-- 脚本:`scripts/install-tools.sh` 的 `install_cli`。
-- apt 批带 `|| true`:批内单包失败不中断后续 go/cargo 段,复跑幂等补齐。
+- 脚本:`scripts/install-tools.sh` 的 `install_cli`;apt 批带 `|| true`:批内单包失败不中断后续 go/cargo 段,复跑幂等补齐。
 - yq:`go_install_pin github.com/mikefarah/yq/v4`(goproxy.cn)。
 - gh:`go_install_pin github.com/cli/cli/v2/cmd/gh`(官方 apt 源国内无镜像,源码编译)。
 - apt 镜像为阿里云;源规定见 [docs/params.md](../../params.md)。

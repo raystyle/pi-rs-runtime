@@ -5,10 +5,7 @@
 ## 版本
 
 - pins.sh 的 `GIT_PIN` 锁定 LOLBAS、webappanalyzer、exploit-db。
-- 解析日 2026-10-11。
-- 升级:执行 `scripts/resolve-pins.sh`,审阅差异,再执行本组。
-- 快照在构建日冻结。
-- 与 trivy-db 同一规定。
+- 解析日 2026-10-11;升级:执行 `scripts/resolve-pins.sh`,审阅差异,再执行本组;快照在构建日冻结;与 trivy-db 同一规定。
 
 ## 来源与安装
 
@@ -16,11 +13,7 @@
 - LOLBAS 与 enthec/webappanalyzer 经 GitHub,使用 `clone_pin`。
 - exploit-db 经 GitLab 直连。
 - 地址是 `https://gitlab.com/exploit-database/exploitdb.git`。
-- `GITHUB_MIRROR` 不代理 GitLab。
-- 直连可以到达。
-- GTFOBins 使用 `.github.io` 网页源仓。
-- 主仓经代理返回 403。
-- `_gtfobins/` 共 478 条,是全量。
+- `GITHUB_MIRROR` 不代理 GitLab;直连可以到达;GTFOBins 使用 `.github.io` 网页源仓;主仓经代理返回 403;`_gtfobins/` 共 478 条,是全量。
 
 ## 文件
 
@@ -32,31 +25,17 @@
 
 ## 配置
 
-- 无配置文件。
-- 纯数据,直接读取。
+- 无配置文件;纯数据,直接读取。
 - 与 poc-search 互补。见 [poc-search.md](../tools-recon/poc-search.md)。
-- poc-search 是 PoC-in-GitHub 索引。
-- 本目录的 exploitdb 是 Exploit-DB 全文。
+- poc-search 是 PoC-in-GitHub 索引;本目录的 exploitdb 是 Exploit-DB 全文。
 
 ## 离线行为
 
-- 支持。本地直读,不访问网络。
-- 新鲜度等于构建日快照。
-- 要新数据时,在有网环境重跑本组。
+- 支持。本地直读,不访问网络;新鲜度等于构建日快照;要新数据时,在有网环境重跑本组。
 
 ## 限制
 
-- exploit-db 不含 bin-sploits。
-- 那是 1GB 级二进制包。
-- 2022 之后没有更新。
-- 判定不装。
-- searchsploit 的入口以仓库直读为准。
-- `rctl search` 可以搜到这份数据。
-- perl 包装没有接上。
-- NVD 与 cvelist 的全量约 2.9GiB。
-- 这两份判定不装。
-- HackTricks 以 18M 文本进入。
-- 图片与 `.git` 不进入。
+- exploit-db 不含 bin-sploits;那是 1GB 级二进制包;2022 之后没有更新;判定不装;searchsploit 的入口以仓库直读为准;`rctl search` 可以搜到这份数据;perl 包装没有接上;NVD 与 cvelist 的全量约 2.9GiB;这两份判定不装;HackTricks 以 18M 文本进入;图片与 `.git` 不进入。
 
 ## 参见
 

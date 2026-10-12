@@ -4,29 +4,15 @@
 
 ## 版本
 
-- pins.sh 以 `NUGET_PIN[<包id>]` 锁定版本。
-- 16 个库包加 ilspycmd,共 17 个键。
-- 例:`NUGET_PIN[dnlib]` = 4.5.0。
-- 例:`NUGET_PIN[ilspycmd]` = 11.1.0.9782。
-- 解析日 2026-10-10。
+- pins.sh 以 `NUGET_PIN[<包id>]` 锁定版本;16 个库包加 ilspycmd,共 17 个键;例:`NUGET_PIN[dnlib]` = 4.5.0;例:`NUGET_PIN[ilspycmd]` = 11.1.0.9782;解析日 2026-10-10。
 - `dotnet add package --version` 与 `dotnet tool install --version` 把锁定值写进文件。
-- 库包写入 `/opt/dotnet-prewarm/*.csproj`。
-- ilspycmd 写入 /opt/dotnet-tools。
-- 缺少锁定版本即失败,不静默改用别的版本。
-- 升级:执行 `scripts/resolve-pins.sh`。
-- csproj 即锁文件,已入库 `scripts/lock/dotnet/`。
-- 有锁时拷入后直接 restore。
-- 再生执行 `scripts/sync-locks.sh`。
-- 8 个 RID runtime pack 的版本随 SDK。
+- 库包写入 `/opt/dotnet-prewarm/*.csproj`;ilspycmd 写入 /opt/dotnet-tools;缺少锁定版本即失败,不静默改用别的版本;升级:执行 `scripts/resolve-pins.sh`;csproj 即锁文件,已入库 `scripts/lock/dotnet/`;有锁时拷入后直接 restore;再生执行 `scripts/sync-locks.sh`;8 个 RID runtime pack 的版本随 SDK。
 
 ## 来源与安装
 
-- NuGet 使用华为 v3 镜像 `NUGET_MIRROR`。
-- root 与 ubuntu 的 NuGet.Config 在 `<clear/>` 之后只留这个源。
-- 该配置由 runtimes 的 dotnet 组写入。
+- NuGet 使用华为 v3 镜像 `NUGET_MIRROR`;root 与 ubuntu 的 NuGet.Config 在 `<clear/>` 之后只留这个源;该配置由 runtimes 的 dotnet 组写入。
 - 预热工程:`dotnet new classlib -o /opt/dotnet-prewarm --framework net10.0`。
-- 创建失败时回退默认框架。
-- 脚本:`scripts/install-libcache.sh` 的 `install_dotnet`。
+- 创建失败时回退默认框架;脚本:`scripts/install-libcache.sh` 的 `install_dotnet`。
 
 16 个库包:
 
@@ -59,15 +45,9 @@
 ## 配置
 
 - 离线取件走 NuGet.Config 的 `fallbackPackageFolders`,指向 /opt/nuget-packages。
-- root 与 ubuntu 各一份该配置。
-- 这是 NuGet 的离线机制,与 SDK 的 NuGetFallbackFolder 相同。
-- 不依赖 shell 环境变量。
-- 运行期不再持久导出 `NUGET_PACKAGES`。
-- global 与 fallback 指向同一路径时,登录后的 restore 会写入固化仓。
-- ubuntu 在这种情况下还会权限失败。
+- root 与 ubuntu 各一份该配置;这是 NuGet 的离线机制,与 SDK 的 NuGetFallbackFolder 相同;不依赖 shell 环境变量;运行期不再持久导出 `NUGET_PACKAGES`;global 与 fallback 指向同一路径时,登录后的 restore 会写入固化仓;ubuntu 在这种情况下还会权限失败。
 - `/etc/profile.d/dotnet.sh` 只留 `DOTNET_CLI_TELEMETRY_OPTOUT=1`。
-- nuget fallback 是只读消费面,保持 755。
-- 见 [offline.md](../../offline.md) 第 5 节。
+- nuget fallback 是只读消费面,保持 755;见 [offline.md](../../offline.md) 第 5 节。
 
 ## 离线行为
 
@@ -77,11 +57,7 @@
 
 ## 限制
 
-- dotnet 未安装时,本组直接返回。
-- 需要先跑 runtimes 的 dotnet 组。
-- 单个 `dotnet add` 失败时打印并继续,不中断。
-- restore 与逐个 RID 的 restore 分步执行。
-- 每一步失败都打印,不中断另一步。
+- dotnet 未安装时,本组直接返回;需要先跑 runtimes 的 dotnet 组;单个 `dotnet add` 失败时打印并继续,不中断;restore 与逐个 RID 的 restore 分步执行;每一步失败都打印,不中断另一步。
 
 ## 参见
 

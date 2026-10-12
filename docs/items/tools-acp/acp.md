@@ -4,8 +4,7 @@
 
 ## 版本
 
-- `CLAUDE_ACP_VERSION`(当前 0.89.1)。
-- `CODEX_ACP_VERSION`(当前 2.2.2)。
+- `CLAUDE_ACP_VERSION`(当前 0.89.1);`CODEX_ACP_VERSION`(当前 2.2.2)。
 - 两值解析自 registry(解析日 2026-10-11);升级=对 registry 再解析改锁定值后重跑。
 - 监督进程仓内 `scripts/acp/`(package.json 0.1.0);bun 编译期锁定 `BUN_VERSION`。
 
@@ -33,16 +32,13 @@
 ## 离线行为
 
 - 支持:协议自检。关闭 eth0 后,`acpsup --selftest claude` 完成 initialize(protocolVersion=1)和 session/new,并返回会话标识。
-- 平台 HTTP 只监听 127.0.0.1:7663。
-- 没有凭证时,提示在模型鉴权处失败。模型推理使用运行期网络,不属于离线范围。
+- 平台 HTTP 只监听 127.0.0.1:7663;没有凭证时,提示在模型鉴权处失败。模型推理使用运行期网络,不属于离线范围。
 
 ## 限制
 
 - codex-acp 在 session/new 时要求凭证;没有凭证时自检只完成 initialize。
 - 容器内 terminal/kill 返回 EACCES;长时间命令由该进程自己退出,或由 `/shutdown` 结束监督进程。
-- 权限确认在 120 秒内没有应答则取消,不提供「始终允许」。
-- 平台请求没有 token 时响应 401。
-- 监督进程由 `/shutdown` 或 `--selftest` 结束。
+- 权限确认在 120 秒内没有应答则取消,不提供「始终允许」;平台请求没有 token 时响应 401;监督进程由 `/shutdown` 或 `--selftest` 结束。
 
 ## 参见
 

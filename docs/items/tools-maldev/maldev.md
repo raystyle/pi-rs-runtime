@@ -4,33 +4,19 @@
 
 ## 版本
 
-- 41 个 Git 仓都由 pins.sh 的 `GIT_PIN` 锁定提交。
-- `clone_pin` 在 HEAD 等于锁定提交时跳过。
-- 解析日 2026-10-10。
-- 升级:执行 `scripts/resolve-pins.sh`。
-- Crystal Palace 与 Tradecraft Garden 没有 Git 仓。
-- 官网的 `latest` tgz 没有锁定版本。
-- pins.sh 没有收录这两件的锁定项。
-- 这两件没有校验和。
+- 41 个 Git 仓都由 pins.sh 的 `GIT_PIN` 锁定提交;`clone_pin` 在 HEAD 等于锁定提交时跳过;解析日 2026-10-10;升级:执行 `scripts/resolve-pins.sh`;Crystal Palace 与 Tradecraft Garden 没有 Git 仓;官网的 `latest` tgz 没有锁定版本;pins.sh 没有收录这两件的锁定项;这两件没有校验和。
 
 ## 来源与安装
 
-- 脚本:`scripts/install-tools.sh` 的 `install_maldev`。
-- GitHub 克隆经 `GITHUB_MIRROR`。
-- 每个仓失败后重试一次。
-- 仍然失败时输出「本次不安装。再次执行该组时安装」。
-- 这次失败不阻塞本批。
+- 脚本:`scripts/install-tools.sh` 的 `install_maldev`;GitHub 克隆经 `GITHUB_MIRROR`;每个仓失败后重试一次;仍然失败时输出「本次不安装。再次执行该组时安装」;这次失败不阻塞本批。
 - Crystal Palace 取 `cpsrc-latest.tgz` 与 `cpdist-latest.tgz`。
-- 这两件是 PIC 链接器。
-- Tradecraft Garden 取 `tcg-latest.tgz`。
-- 这件是能力加载器集。
+- 这两件是 PIC 链接器;Tradecraft Garden 取 `tcg-latest.tgz`;这件是能力加载器集。
 - 下载地址是 [tradecraftgarden.org](https://tradecraftgarden.org) 的 `/download`。
 - 下载后解包。
 
 ## 文件
 
-- `/opt/payload-ref` 与 `/opt/tradecraft-ref` 按工件角色分目录。
-- `/opt/c2dev-ref` 属于 c2 组。本组不写这个目录。
+- `/opt/payload-ref` 与 `/opt/tradecraft-ref` 按工件角色分目录;`/opt/c2dev-ref` 属于 c2 组。本组不写这个目录。
 
 | 根 | 叶 | 内容 |
 | --- | --- | --- |
@@ -43,37 +29,19 @@
 
 ## 配置
 
-- 无。
-- 只克隆,不写配置。
-- 仓本体就是固化缓存。
-- Git 克隆的幂等判据是 `.git` 目录是否存在。
+- 无;只克隆,不写配置;仓本体就是固化缓存;Git 克隆的幂等判据是 `.git` 目录是否存在。
 
 ## 离线行为
 
 - 支持。克隆仓只读磁盘,不访问网络。见 [offline.md](../../offline.md)。
 - 关闭 eth0 后,`find /opt/payload-ref /opt/tradecraft-ref -maxdepth 4 -name .git | wc -l` 的结果 ≥ 41。
-- bof 组与 rust-security 组在同一根下的克隆会让这个计数更大。
-- 两件 tgz 没有 `.git`,不计入这个数。
+- bof 组与 rust-security 组在同一根下的克隆会让这个计数更大;两件 tgz 没有 `.git`,不计入这个数。
 
 ## 限制
 
-- 归档轴按工件角色,不按语言。
-- SILENTTRINITY 是 C2,归 c2 组。
-- ysoserial 是反序列化生成器,归 `generators/deserialization`。
-- donut-decryptor 是防御向,归 analysis。
-- 它不被当作进攻模板抄写。
-- 语言只出现在 curricula 这个次级轴。
+- 归档轴按工件角色,不按语言;SILENTTRINITY 是 C2,归 c2 组;ysoserial 是反序列化生成器,归 `generators/deserialization`;donut-decryptor 是防御向,归 analysis;它不被当作进攻模板抄写;语言只出现在 curricula 这个次级轴。
 - COFFLoader、bof-launcher、atomic-bofs、RustHound-CE 不在本组 41 仓内。
-- 它们由 bof 组或 rust-security 组各自克隆并构建。
-- 归档根与本组相同。
-- tcg 的幂等判据是内容存在。
-- 判据是资产内的顶层目录 `tcg/`。
-- 失败时 `rm -rf`,避免空目录把后续执行卡住。
-- crystal-palace 的幂等判据只看目录是否存在。
-- cpsrc 成功而 cpdist 失败时,目录已经存在。
-- 重跑时整段跳过,cpdist 不会补上。
-- 两条判据不对称。
-- 只克隆,不运行。见 [known-issues.md](../../known-issues.md)。
+- 它们由 bof 组或 rust-security 组各自克隆并构建;归档根与本组相同;tcg 的幂等判据是内容存在;判据是资产内的顶层目录 `tcg/`;失败时 `rm -rf`,避免空目录把后续执行卡住;crystal-palace 的幂等判据只看目录是否存在;cpsrc 成功而 cpdist 失败时,目录已经存在;重跑时整段跳过,cpdist 不会补上;两条判据不对称;只克隆,不运行。见 [known-issues.md](../../known-issues.md)。
 
 ## 参见
 

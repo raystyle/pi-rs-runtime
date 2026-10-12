@@ -4,24 +4,14 @@
 
 ## 版本
 
-- pins.sh 键:`PYPI_PIN[impacket]`。
-- 当前值:0.13.1(解析日 2026-10-10)。
-- 升级:运行 `scripts/resolve-pins.sh`,再重跑本组。
-- 在线索引的切换见 [offline.md](../../offline.md) 第 4 节。
+- pins.sh 键:`PYPI_PIN[impacket]`;当前值:0.13.1(解析日 2026-10-10);升级:运行 `scripts/resolve-pins.sh`,再重跑本组;在线索引的切换见 [offline.md](../../offline.md) 第 4 节。
 
 ## 来源与安装
 
 - 上游:[fortra/impacket](https://github.com/fortra/impacket)。安装面是 PyPI 包。
-- 脚本:`install-tools.sh` 的 `install_analysis`。
-- 命令:`uv tool install "impacket==<版本>"`。
-- 导出 `UV_TOOL_BIN_DIR=/usr/local/bin`。
-- 导出 `UV_TOOL_DIR=/opt/uv-tools`。
-- 构建期 uv 配置是 `/etc/uv/uv-online.toml`,索引为阿里云。
+- 脚本:`install-tools.sh` 的 `install_analysis`;命令:`uv tool install "impacket==<版本>"`;导出 `UV_TOOL_BIN_DIR=/usr/local/bin`;导出 `UV_TOOL_DIR=/opt/uv-tools`;构建期 uv 配置是 `/etc/uv/uv-online.toml`,索引为阿里云。
 - 该命令失败时,改用 tuna 索引同一锁定值:`--index-url https://pypi.tuna.tsinghua.edu.cn/simple`。
-- 不使用 noble apt 的冻结包。
-- 镜像里已有 `python3-impacket` 时,先执行 `apt-get remove -y`。
-- 无 `have` 早退。每次重跑都执行安装尝试。
-- 该安装尝试的输出不保留。
+- 不使用 noble apt 的冻结包;镜像里已有 `python3-impacket` 时,先执行 `apt-get remove -y`;无 `have` 早退。每次重跑都执行安装尝试;该安装尝试的输出不保留。
 
 ## 文件
 
@@ -33,33 +23,18 @@
 
 ## 配置
 
-- 无工具自身的配置文件。
-- `/etc/uv/uv.toml` 在运行期设 `offline=true`。
-- 该设置只约束 uv 的包管理动作。
-- 已安装的入口不受该设置影响。
+- 无工具自身的配置文件;`/etc/uv/uv.toml` 在运行期设 `offline=true`;该设置只约束 uv 的包管理动作;已安装的入口不受该设置影响。
 
 ## 离线行为
 
-- 支持本地启动入口。
-- 关闭 eth0 后,`secretsdump.py -h` 退出码 0。
-- 关闭 eth0 后,`describeTicket.py -h` 退出码 0。
-- 关闭 eth0 后,`Get-GPPPassword.py -h` 退出码 0。
-- 关闭 eth0 后,`wmipersist.py -h` 退出码 0。
-- 对目标主机的动作需要到目标的网络。
-- 外网断开且内网可达时,对目标的动作仍可用。
-- eth0 关闭后,只剩本地处理。
+- 支持本地启动入口;关闭 eth0 后,`secretsdump.py -h` 退出码 0;关闭 eth0 后,`describeTicket.py -h` 退出码 0;关闭 eth0 后,`Get-GPPPassword.py -h` 退出码 0;关闭 eth0 后,`wmipersist.py -h` 退出码 0;对目标主机的动作需要到目标的网络;外网断开且内网可达时,对目标的动作仍可用;eth0 关闭后,只剩本地处理。
 
 ## 限制
 
 - redteam 组白名单会把同名 `*.py` 入口链到 bloodhound-ce venv 里的 dirkjanm impacket 叉。
 - bloodhound-ce 在白名单循环中殿后,同名入口以它为准。
 - 该规则写在脚本注释,并写在 [software-inventory.md](../../software-inventory.md)。
-- PATH 上直接调用时,执行的是该叉。
-- 要 fortra 上游原版时,调用 `/opt/uv-tools/impacket/bin/` 下的入口。
-- 覆盖发生在 `install_redteam` 的链接循环。
-- 无 `have` 早退。重跑是否跳过,取决于 uv 自己的行为。
-- 未验证:uv 对已安装的 tool 是否报告 already installed。
-- 重跑日志出现「impacket uv 安装失败」时,先核对该入口是否仍在。
+- PATH 上直接调用时,执行的是该叉;要 fortra 上游原版时,调用 `/opt/uv-tools/impacket/bin/` 下的入口;覆盖发生在 `install_redteam` 的链接循环;无 `have` 早退。重跑是否跳过,取决于 uv 自己的行为;未验证:uv 对已安装的 tool 是否报告 already installed;重跑日志出现「impacket uv 安装失败」时,先核对该入口是否仍在。
 
 ## 参见
 

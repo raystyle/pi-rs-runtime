@@ -26,8 +26,7 @@
 
 ## 离线行为
 
-- 未验证:扫描与改写本地代码不触网。
-- 断网重跑本组幂等早退;断网新装会撞 cargo `offline=true` 亚秒快失败,属预期。
+- 未验证:扫描与改写本地代码不触网;断网重跑本组幂等早退;断网新装会撞 cargo `offline=true` 亚秒快失败,属预期。
 - 验证:关闭 eth0 后 `printf 'print(1)\n' > /tmp/sg-smoke.py && sg run -p 'print($A)' --lang python /tmp/sg-smoke.py` 退出码 0。
 
 ## 限制
