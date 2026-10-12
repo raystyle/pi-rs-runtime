@@ -6,7 +6,7 @@
 - **来源与安装**:crates.io 经 tuna sparse 索引(`/opt/cargo/config.toml`,install-compilers.sh rust 组写);脚本面 `scripts/install-libcache.sh` `install_rust`,临时工程逐个 `cargo add` 31 crate(单个失败只 echo 不中断)后 `cargo fetch` 进 registry 缓存
 - **落点**:`/opt/cargo`(CARGO_HOME,registry 索引+字节);预热工程 `/opt/rust-prewarm-libs` 用后删除;无 `/usr/local/bin` 入口(纯库缓存,工具链与 rust-script 等命令件是 rust 组的面)
 - **配置与缓存**:运行期发现靠家目录软链 `~/.cargo`到/opt/cargo、`~/.rustup`到/opt/rustup(root+ubuntu,rust 组兜底,非登录 shell 也生效);`/opt/cargo/config.toml` `[net] offline=true` 默认快失败,构建脚本经 common.sh `CARGO_NET_OFFLINE=false` 拿回在线面(env 优先于配置文件);机制见 [offline.md](../../offline.md) §1/§4
-- **离线行为**:过, 断网拉未缓存 crate 立即报 not found(五生态快失败轮,[offline.md](../../offline.md) §4 标);过, 依赖缓存的断网编译 root/ubuntu 双视角(cargo-zigbuild 同缓存树,[ADR-0005](../../adr/ADR-0005-shared-writable-cache-piopt-acl.md) 轮)。验证:`ip link set eth0 down` 后对含缓存依赖的工程 `cargo build --offline`
+- **离线行为**:过, 断网拉未缓存 crate 立即报 not found(五生态快失败轮,[offline.md](../../offline.md) §4 标);过, 依赖缓存的断网编译 root/ubuntu 双视角(cargo-zigbuild 同缓存树, 轮)。验证:`ip link set eth0 down` 后对含缓存依赖的工程 `cargo build --offline`
 ## rctl 面,机器行:catalog 投影声明,audit 豁免依据
 
 - rctl: cargo-zigbuild-cache kind=cache path=/opt/cargo-zigbuild-cache note=cargo-zigbuild 缓存树(共享 ACL)

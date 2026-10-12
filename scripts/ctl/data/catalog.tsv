@@ -39,11 +39,11 @@ PowerHTML	cache	`install-libcache.sh pwsh`(前置 `install-runtimes.sh pwsh`)	�
 RsaCtfTool	ref	`install-tools.sh red`	已烘焙	RsaCtfTool 仓		/opt/RsaCtfTool		docs/items/tools-red/red.md		工具环境
 SILENTTRINITY	ref	`install-tools.sh c2`	参考克隆	/opt/c2dev-ref/SILENTTRINITY		/opt/c2dev-ref/SILENTTRINITY		docs/items/tools-c2/c2.md		代码样板参考
 SSTImap-src	ref	`install-tools.sh pentest`	已烘焙	SSTImap 仓源		/opt/SSTImap		docs/items/tools-pentest/pentest.md		工具环境
-SecLists	data	`install-tools.sh pentest`	已烘焙	词表库(缺它多只工具空跑;阶段 3 拆独立册)		/opt/SecLists		docs/items/tools-pentest/pentest.md		数据信息搜索
+SecLists	data	`install-tools.sh pentest`	已烘焙	词表库(缺它多只工具空跑)		/opt/SecLists		docs/items/tools-pentest/pentest.md		数据信息搜索
 SharpZipLib	cache	`install-libcache.sh dotnet`(前置 `install-runtimes.sh dotnet`,dotnet-sdk-10.0)	缓存固化	压缩归档				docs/items/libcache/dotnet.md		编程环境
 System.DirectoryServices.Protocols	cache	`install-libcache.sh dotnet`(前置 `install-runtimes.sh dotnet`,dotnet-sdk-10.0)	缓存固化	LDAP/AD				docs/items/libcache/dotnet.md		编程环境
 aarch64-linux-gnu-g++-13	compiler	`install-compilers.sh c`	已烘焙	aarch64 交叉编译链(支持静态链接)		/usr/bin/aarch64-linux-gnu-g++-13		docs/items/compilers/c-toolchain.md		编程环境
-acp	tool	`install-tools.sh acp`	已装	实例标准 agent 接入通道:ACP v1 + stdio 适配器与监督进程 acpsup(S-0002/REQ-0002)	CLAUDE_ACP_VERSION=0.89.1;CODEX_ACP_VERSION=2.2.2;解析日 2026-10-11	/opt/node/lib/node_modules/	支持。断网 selftest(initialize protocolVersion=1 + session/new 真 id,eth0 down 下同过)	docs/items/tools-acp/acp.md		工具环境
+acp	tool	`install-tools.sh acp`	已装	实例标准 agent 接入通道:ACP v1 + stdio 适配器与监督进程 acpsup	CLAUDE_ACP_VERSION=0.89.1;CODEX_ACP_VERSION=2.2.2;解析日 2026-10-11	/opt/node/lib/node_modules/	支持。断网 selftest(initialize protocolVersion=1 + session/new 真 id,eth0 down 下同过)	docs/items/tools-acp/acp.md		工具环境
 acpsup	service	`install-tools.sh acp`	已烘焙	ACP 监督进程(平台面 127.0.0.1:7663)		/usr/local/bin/acpsup		docs/items/tools-acp/acp.md		工具环境
 addcomputer.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/addcomputer.py		docs/items/tools-p0/impacket.md		工具环境
 aircrack-ng	tool	`install-tools.sh pentest`	已装	WiFi 口令破解套件(清单记录 1.7)				docs/items/tools-pentest/pentest.md		工具环境
@@ -94,7 +94,7 @@ c-toolchain	compiler	`install-compilers.sh c`	已装	C/C++ 编译、调试与逆
 c2	ref	`install-tools.sh c2`	参考克隆	C2 框架源码参考,只克隆不安装不运行	钉版见册;解析日 2026-10-10	/opt/c2dev-ref/	支持。断网冒烟「参考库在位」覆盖	docs/items/tools-c2/c2.md		代码样板参考
 cabextract	tool	`install-tools.sh pentest`	已装	Microsoft CAB 解包				docs/items/tools-pentest/pentest.md		工具环境
 capa	tool	`install-tools.sh p0` 装本体与规则、`install-tools.sh pentest` 接线	已装	恶意软件能力识别(静态特征 到 能力/ATT&CK 映射)	CAPA_VERSION=9.4.0	/opt/capa	未验证。规则与二进制全本地,wrapper 注入 `-r` 后不触网]	docs/items/tools-p0/capa.md		逆向环境
-capa-rules	data	`install-tools.sh p0` 装本体与规则、`install-tools.sh pentest` 接线	已烘焙	能力规则(缺它 capa 自下载;阶段 3 拆册)	pins.sh `GIT_PIN[mandiant/capa-rules]` 钉 sha;与 capa 二进制不同钉(规则库独立演进)	/opt/capa-rules	过,本地直读;缺它 capa 自下载规则到家目录(晦涩错,数据册验收句命中)	docs/items/tools-p0/capa.md		数据信息搜索
+capa-rules	data	`install-tools.sh p0` 装本体与规则、`install-tools.sh pentest` 接线	已烘焙	capa 能力识别规则库(缺它 capa 会自下载规则)	pins.sh `GIT_PIN[mandiant/capa-rules]` 钉 sha;与 capa 二进制不同钉(规则库独立演进)	/opt/capa-rules	过,本地直读;缺它 capa 自下载规则到家目录(晦涩错,数据册验收句命中)	docs/items/tools-p0/capa.md		数据信息搜索
 capstone	tool	`install-tools.sh re`	已装	反汇编				docs/items/tools-re/re.md		逆向环境
 capstone-tool	tool	`install-tools.sh re`	已装	capstone CLI				docs/items/tools-re/re.md		逆向环境
 cargo	compiler	`install-compilers.sh rust`	已烘焙	Rust 工具链:rustup + stable + 十向交叉 target 与配套组件		/usr/local/bin/cargo		docs/items/compilers/rust.md		编程环境
@@ -305,7 +305,7 @@ openvpn	tool	`install-tools.sh pentest`	已装	OpenVPN 客户端				docs/items/t
 osslsigncode	tool	`install-tools.sh pentest`	已装	PE Authenticode 签名/验签(清单记录 2.8-2)				docs/items/tools-pentest/pentest.md		工具环境
 outguess	tool	`install-tools.sh pentest`	已烘焙	outguess 算法隐写(apt)		/usr/bin/outguess		docs/items/tools-pentest/pentest.md		工具环境
 owneredit.py	tool	`install-tools.sh p0`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/owneredit.py		docs/items/tools-p0/impacket.md		工具环境
-p0	tool	`install-tools.sh p0`	已装	P0 安全分析工具集:apt 20 包 + impacket/nasm + re-venv 批 + GitHub 钉版批	钉版见册	/usr/bin	未验证。apt 20 包均为本地分析件,无运行期外网依赖	docs/items/tools-p0/p0.md		工具环境
+p0	tool	`install-tools.sh p0`	已装	安全分析工具集:apt 20 包 + impacket/nasm + re-venv 批 + GitHub 钉版批	钉版见册	/usr/bin	未验证。apt 20 包均为本地分析件,无运行期外网依赖	docs/items/tools-p0/p0.md		工具环境
 patchelf	tool	`install-tools.sh p0`	已装	改写 ELF 解释器与 RPATH		/usr/bin/patchelf		docs/items/tools-p0/p0.md		工具环境
 pd	tool	`install-tools.sh pd`	已装	攻击面测绘与侦察 20 件 Go CLI 集(子域/DNS/端口/HTTP/模板扫描/爬虫/云资产)	钉版见册;解析日 2026-10-10	/opt/go	支持。版本面/帮助面断网可用	docs/items/tools-pd/pd.md		工具环境
 pdf-parser.py	tool	`install-tools.sh pentest`	已烘焙	DSS PDF 解析		/usr/local/bin/pdf-parser.py		docs/items/tools-pentest/pentest.md		工具环境
@@ -482,7 +482,7 @@ yara-rules	data	`install-tools.sh re`	已烘焙	yara 规则集	pins.sh `GIT_PIN[
 yq	tool	`install-tools.sh cli`	已装	`/opt/go/bin` 链 `/usr/local/bin`		/opt/go/bin/yq		docs/items/tools-cli/cli.md		工具环境
 zbar-tools	tool	`install-tools.sh pentest`	已装	zbarimg 条码/二维码识别				docs/items/tools-pentest/pentest.md		工具环境
 zg	tool	`install-tools.sh ctl`	已烘焙	语义检索引擎,rctl search 向量腿	钉版见册	/usr/local/bin/zg	已验(2026-10-12,eth0 down)语义查询 fts+vector 命中且秒级(模型与索引构建期在盘,查询纯本地零网络);冷索引为构建期一次性动作	docs/items/tools-ctl/zg.md		工具环境
-zg-model	model	install-tools.sh ctl	已烘焙	qwen3-embedding-0.6b Q8_0 GGUF 语义嵌入模型烤库(610M;REQ-0005 语义腿,断网查询纯本地)	钉版见册	/opt/zg-models/hf_Qwen_Qwen3-Embedding-0.6B-Q8_0.gguf	已验(断网语义查询 1.3s)	docs/items/tools-ctl/zg.md		工具环境
+zg-model	model	install-tools.sh ctl	已烘焙	qwen3-embedding-0.6b Q8_0 GGUF 语义嵌入模型烤库(610M,断网查询纯本地)	钉版见册	/opt/zg-models/hf_Qwen_Qwen3-Embedding-0.6B-Q8_0.gguf	已验(断网语义查询 1.3s)	docs/items/tools-ctl/zg.md		工具环境
 zig	compiler	`install-compilers.sh zig` + `install-libcache.sh zig`(库固化册:[libcache/zig](../libcache/zig.md))	已烘焙	zig 工具链本体	ZIG_VERSION=0.16.0	/opt/zig	支持。断网 `zig version`	docs/items/compilers/zig.md		编程环境
 zig-0.15.2	cache	`install-tools.sh bof`	已烘焙	bof-launcher 专用 zig 版本副本(versioned-copy)		/opt/zig-0.15.2		docs/items/tools-bof/bof-launcher.md		工具环境
 zig-cache	cache	`install-libcache.sh zig`(前置 `install-compilers.sh zig`,0.16.0)	已烘焙	五库固化缓存	钉版见册	/opt/zig-cache	支持。断网编译 root/ubuntu 双视角	docs/items/libcache/zig-cache.md		编程环境

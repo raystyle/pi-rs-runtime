@@ -9,6 +9,6 @@
 - **离线行为**:未验 [推断:规则与二进制全本地,wrapper 注入 `-r` 后不触网];逐件断网冒烟未单列登记(wrapper 层机制见 [offline.md](../../offline.md))。验证:`ip link set eth0 down` 后 `capa /bin/true` 正常跑完,不因规则缺失报下载错
 ## rctl 面,机器行:catalog 投影声明,audit 豁免依据
 
-- rctl: capa-rules kind=data path=/opt/capa-rules note=能力规则(缺它 capa 自下载;阶段 3 拆册)
+- rctl: capa-rules kind=data path=/opt/capa-rules note=能力规则(缺它 capa 自下载)
 
-- **限制**:wrapper 写法,直接 `printf >` 软链会穿透改写 /opt/capa 里的被包装的程序(fresh 递归 exec),必须先 `mv` 被包装的程序为 `capa.real` 文件、删链再写 wrapper(脚本);行为修正落 wrapper 文件而非 alias,alias 在非交互 shell(incus exec)不生效([ADR-0004](../../adr/ADR-0004-offline-first-fail-fast.md))
+- **限制**:wrapper 写法,直接 `printf >` 软链会穿透改写 /opt/capa 里的被包装的程序(fresh 递归 exec),必须先 `mv` 被包装的程序为 `capa.real` 文件、删链再写 wrapper(脚本);行为修正落 wrapper 文件而非 alias,alias 在非交互 shell(incus exec)不生效()

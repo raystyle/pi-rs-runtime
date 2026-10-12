@@ -11,7 +11,7 @@
 
 - rctl: pspy kind=tool path=/usr/local/bin/pspy env=工具环境 note=无 root 进程刺探(GO_PIN 独立钉,实装在 /opt/go/bin)
 
-- **限制**:`go install` 只适合带 main 的命令,库必须 `go mod tidy` 解析进缓存;go-winres 是命令不是库,import 进预热清单会让 `go build` 报 "is a program"(已剔出改 go install);pspy 仓名已改小写 dominicbreuker(大写被 go 拒);GOTOOLCHAIN 下载同样走 GOPROXY,离线期快失败([ADR-0004](../../adr/ADR-0004-offline-first-fail-fast.md));工具链本体与 go env 写入面见 [../compilers/golang.md](../compilers/golang.md)
+- **限制**:`go install` 只适合带 main 的命令,库必须 `go mod tidy` 解析进缓存;go-winres 是命令不是库,import 进预热清单会让 `go build` 报 "is a program"(已剔出改 go install);pspy 仓名已改小写 dominicbreuker(大写被 go 拒);GOTOOLCHAIN 下载同样走 GOPROXY,离线期快失败();工具链本体与 go env 写入面见 [../compilers/golang.md](../compilers/golang.md)
 
 成员清单(19 库 + 2 命令,以脚本 `install_go` 为准):
 

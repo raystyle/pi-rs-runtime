@@ -4,7 +4,7 @@
 
 - **版本钉**:41 仓全部 pins.sh `GIT_PIN` 钉 sha(clone_pin,幂等:HEAD==钉即跳过;解析日 2026-10-10),升级跑 scripts/resolve-pins.sh;Crystal Palace / Tradecraft Garden 无 Git 仓,官网 `latest` tgz 未钉(pins.sh 未收钉位)、无校验和
 - **来源与安装**:GitHub 经 `GITHUB_MIRROR` 循环克隆(`scripts/install-tools.sh install_maldev`),每仓失败重试一次、仍败 echo 本次不安装,再次执行该组时安装不阻塞批;Crystal Palace(`cpsrc-latest.tgz` + `cpdist-latest.tgz`,PIC 链接器)与 Tradecraft Garden(`tcg-latest.tgz`,能力加载器集)自 [tradecraftgarden.org](https://tradecraftgarden.org) `/download` 直下解包
-- **落点**:三轴归档(裁定见 [ADR-0002](../../adr/ADR-0002-reference-clone-three-axis.md)):`/opt/payload-ref`(generators 产物是字节或变形二进制 / loaders 产物是执行字节的进程 / evasion 往 loader 贴的原语 / curricula 教材按语言分叶 / analysis 防御向)与 `/opt/tradecraft-ref`(上线后的操作员动作:ad/bof/opsec/privesc/skills);`/opt/c2dev-ref` 属 c2 组,本组不落。41 仓 + 2 件 tgz 对账表:
+- **落点**:三轴归档(规定见):`/opt/payload-ref`(generators 产物是字节或变形二进制 / loaders 产物是执行字节的进程 / evasion 往 loader 贴的原语 / curricula 教材按语言分叶 / analysis 防御向)与 `/opt/tradecraft-ref`(上线后的操作员动作:ad/bof/opsec/privesc/skills);`/opt/c2dev-ref` 属 c2 组,本组不落。41 仓 + 2 件 tgz 对账表:
 
 | 仓 | 归档叶(/opt/ 下) |
 |---|---|
@@ -54,4 +54,4 @@
 
 - **配置与缓存**:无(只克隆不写配置;仓本体即固化缓存,git 克隆幂等判据是 `.git` 目录在否)
 - **离线行为**:过, 断网在位核验,断网冒烟覆盖「参考库在位」面([离线机制 §验证](../../offline.md),2026-10-10 轮 78/0);克隆仓纯读盘不触网。验证:`ip link set eth0 down` 后 `find /opt/payload-ref /opt/tradecraft-ref -maxdepth 4 -name .git | wc -l` ≥ 41(bof/secrust 组同轴仓另增计数,tgz 两件无 .git 不计)
-- **限制**:归档是工件角色轴不是语言轴,SILENTTRINITY 是 C2 走 c2 组,ysoserial 是反序列化生成器归 generators/deserialization,donut-decryptor 是防御向归 analysis(避免被当进攻模板抄),语言只做 curricula 次轴([ADR-0002](../../adr/ADR-0002-reference-clone-three-axis.md));有编译产物的仓(COFFLoader/bof-launcher/atomic-bofs/RustHound-CE)由 bof/secrust 组各自克隆构建、落点同轴,不在本组 41 仓内;tcg 幂等以内容存在(资产内 `tcg/` 顶层目录)为判据、失败 rm -rf 目录不被空目录卡住,crystal-palace 幂等却只看目录在否,cpsrc 成而 cpdist 败时目录已在,重跑整段跳过(两判据不对称,);只克隆不运行的裁定 [known-issues](../../known-issues.md)
+- **限制**:归档是工件角色轴不是语言轴,SILENTTRINITY 是 C2 走 c2 组,ysoserial 是反序列化生成器归 generators/deserialization,donut-decryptor 是防御向归 analysis(避免被当进攻模板抄),语言只做 curricula 次轴();有编译产物的仓(COFFLoader/bof-launcher/atomic-bofs/RustHound-CE)由 bof/secrust 组各自克隆构建、落点同轴,不在本组 41 仓内;tcg 幂等以内容存在(资产内 `tcg/` 顶层目录)为判据、失败 rm -rf 目录不被空目录卡住,crystal-palace 幂等却只看目录在否,cpsrc 成而 cpdist 败时目录已在,重跑整段跳过(两判据不对称,;只克隆不运行的规定 [known-issues](../../known-issues.md)

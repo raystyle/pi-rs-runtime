@@ -42,7 +42,7 @@ profile.d 只作登录 shell 的备份面。
 |---|---|---|---|
 | Go | `~/.config/go/env` 里 `GOPROXY=off`(root+ubuntu) | `module lookup disabled by GOPROXY=off`,瞬时 | common.sh export GOPROXY=goproxy.cn |
 | Rust | `/opt/cargo/config.toml` `[net] offline=true` | 未缓存 crate 立即报 not found | `CARGO_NET_OFFLINE=false` |
-| Node | prefix 级 npmrc:`offline=true` + `fetch-retries=0` | `ENOTCACHED` 亚秒;**注意 `--prefix` 会连 npmrc 一起丢掉**(npm,) | `NPM_CONFIG_OFFLINE=false` + `NPM_CONFIG_FETCH_*` |
+| Node | prefix 级 npmrc:`offline=true` + `fetch-retries=0` | `ENOTCACHED` 亚秒;**注意 `--prefix` 会连 npmrc 一起丢掉**(npm, | `NPM_CONFIG_OFFLINE=false` + `NPM_CONFIG_FETCH_*` |
 | uv | `/etc/uv/uv.toml` `offline=true` | 8ms 报 "network was disabled";**注意 uv 不合并配置:用户级 ~/.config/uv/uv.toml 一旦存在,系统级整份被忽略**(离线默认随之失效) | `UV_CONFIG_FILE=/etc/uv/uv-online.toml`(UV_OFFLINE=0 压不过配置文件, uv 0.12.15) |
 | pip | `/etc/pip.conf` `[install] no-index=true find-links=/opt/wheelhouse` | 轮子内的包离线直装;轮子外立即 No matching distribution | `PIP_NO_INDEX=false` |
 
@@ -71,4 +71,4 @@ setgid 只作辅助,它单独压不住 umask 022( zig 自建子目录 g=r-x,ubun
 ## 验证:每轮 publish 前可复跑
 
 断网冒烟脚本覆盖:编译器版本面、离线构建(go build GOPROXY=off / pip --no-index / node require / mvn -o / nuget restore)、
-渗透工具面、分析工具面、参考库在位、断网确认。本轮结果与修复记录见 PROGRESS.md 离线轮条目。
+渗透工具面、分析工具面、参考库在位、断网确认

@@ -33,4 +33,4 @@
 - rctl: tsserver kind=runtime path=/usr/local/bin/tsserver note=typescript LSP 服务面
 - rctl: ruff kind=runtime path=/usr/local/bin/ruff env=编程环境 note=Python linter(uv-tool)
 
-- **限制**:**go 产物必须 `GOPATH=/opt/go`**,不设则 `go install` 落 `/root/go`(0700),ubuntu 不可执行(脚本注释;旧镜像曾未设 GOPATH 且只链 yq,gh 对 ubuntu 不可执行, [known-issues](../../known-issues.md),现脚本 yq/gh 都设都链);**just 兜底必须显式指 /opt/cargo**(与 [astgrep](../tools-astgrep/astgrep.md) 同式 export RUSTUP_HOME/CARGO_HOME + PATH),否则 cargo 产物落 `/root/.cargo`(0700),ubuntu 同样不可执行;离线期 yq/gh/just 的 go/cargo 重装会撞快失败默认,属预期([ADR-0004](../../adr/ADR-0004-offline-first-fail-fast.md))
+- **限制**:**go 产物必须 `GOPATH=/opt/go`**,不设则 `go install` 落 `/root/go`(0700),ubuntu 不可执行(脚本注释;旧镜像曾未设 GOPATH 且只链 yq,gh 对 ubuntu 不可执行, [known-issues](../../known-issues.md),现脚本 yq/gh 都设都链);**just 兜底必须显式指 /opt/cargo**(与 [astgrep](../tools-astgrep/astgrep.md) 同式 export RUSTUP_HOME/CARGO_HOME + PATH),否则 cargo 产物落 `/root/.cargo`(0700),ubuntu 同样不可执行;离线期 yq/gh/just 的 go/cargo 重装会撞快失败默认,属预期()

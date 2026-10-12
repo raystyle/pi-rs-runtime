@@ -7,4 +7,4 @@
 - **落点**:本体 `/opt/vcpkg`(含 ports 树、bootstrap 二进制;库产物在 `installed/` 下按 triplet 分目录);`/usr/local/bin/vcpkg` 软链
 - **配置与缓存**:`/etc/profile.d/vcpkg.sh` 写 `VCPKG_ROOT=/opt/vcpkg` 与 PATH,只是登录 shell 备份面,`incus exec` 非登录不读([known-issues 限制](../../known-issues.md));二进制/资产缓存未配置(量大可配 `VCPKG_BINARY_SOURCES` / `X_VCPKG_ASSET_SOURCES`,脚本头注释规定)
 - **离线行为**:已装 12 库离线被构建消费 未验 [推断:头文件与库全是 `installed/` 本地文件];`vcpkg install <新库>` 断网失败 未验 [推断:ports 树虽在仓内,源 tarball 走各上游、GitHub 居多]。验证:`ip link set eth0 down` 后 `vcpkg install <未装的库>` 应立即报错
-- **限制**:本体克隆与库资产下载都不经 GITHUB_MIRROR(GitHub 直连,脚本头注释);克隆失败先查 git 在不在(install-all 前置批装,脚本报错原文);boost/grpc 编译时长过高,裁定不进默认清单(脚本注释);clone_pin 幂等:HEAD==钉即跳过,漂离钉则 rm -rf 重取钉版,升级=跑 scripts/resolve-pins.sh 刷新钉值再重跑本组;bootstrap 每次重跑(已引导则快速过)
+- **限制**:本体克隆与库资产下载都不经 GITHUB_MIRROR(GitHub 直连,脚本头注释);克隆失败先查 git 在不在(install-all 前置批装,脚本报错原文);boost/grpc 编译时长过高,规定不进默认清单(脚本注释);clone_pin 幂等:HEAD==钉即跳过,漂离钉则 rm -rf 重取钉版,升级=跑 scripts/resolve-pins.sh 刷新钉值再重跑本组;bootstrap 每次重跑(已引导则快速过)

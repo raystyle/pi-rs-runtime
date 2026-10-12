@@ -7,4 +7,4 @@
 - **落点**(设计):`/opt/cargo/bin/coffee-ldr` 或 `~/.cargo/bin/coffee-ldr` 软链 `/usr/local/bin/coffee-ldr`;实际未装上(上游 nightly 亦编不过)
 - **配置与缓存**:nightly 工具链装 `/opt/rustup`(借 rust 组共享面);coffee 本体未落盘
 - **离线行为**:件未装上,无运行期离线面;未验 [推断:] nightly 工具链本体随 rustup 固化离线可用
-- **限制**:上游 lib.rs 用 `#![feature(c_variadic/core_intrinsics)]`,stable 编不过必须 nightly;nightly 亦失败,裁定「上游问题,留档」(脚本出口文案;[PROGRESS.md](../../../PROGRESS.md) 待办节跟踪);失败不阻塞,BOF 运行还有 [bof-launcher](bof-launcher.md) 与 mingw/wine([wine.md](wine.md))路径;coffee-ldr 曾走 root `~/.cargo` 再链出,残留面规定见 [known-issues](../../known-issues.md)
+- **限制**:上游 lib.rs 用 `#![feature(c_variadic/core_intrinsics)]`,stable 编不过必须 nightly;nightly 亦失败,规定「上游问题,留档」(脚本出口文案;[PROGRESS.md](../../../PROGRESS.md) 待办节跟踪);失败不阻塞,BOF 运行还有 [bof-launcher](bof-launcher.md) 与 mingw/wine([wine.md](wine.md))路径;coffee-ldr 曾走 root `~/.cargo` 再链出,残留面规定见 [known-issues](../../known-issues.md)

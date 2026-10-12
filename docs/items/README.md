@@ -41,8 +41,8 @@
 | ghidra | [ghidra](tools-ghidra/ghidra.md) |
 | rea | [rea](tools-rea/rea.md)(morluto/rea,MCP+CLI,Ghidra 无头 provider) |
 | re | [re](tools-re/re.md)(组册:系统库 22 项+rizin/rz-ghidra/sigdb+re-venv) · [angr](tools-re/angr.md)(符号执行,独立 venv) |
-| p0 拆册 | [pspy](tools-p0/pspy.md)(无 root 进程刺探) · [volatility3](tools-p0/volatility3.md)(内存取证) |
-| data 拆册 | [seclists](tools-data/seclists.md) · [capa-rules](tools-data/capa-rules.md) · [yara-rules](tools-data/yara-rules.md)(语料独立登记) |
+| p0 独立登记 | [pspy](tools-p0/pspy.md)(无 root 进程刺探) · [volatility3](tools-p0/volatility3.md)(内存取证) |
+| data 独立登记 | [seclists](tools-data/seclists.md) · [capa-rules](tools-data/capa-rules.md) · [yara-rules](tools-data/yara-rules.md)(语料独立登记) |
 | pd | [pd](tools-pd/pd.md)(组册 20 CLI)· [nuclei](tools-pd/nuclei.md) |
 | secgo | [secgo](tools-secgo/secgo.md)(组册 18 CLI)· [trufflehog](tools-secgo/trufflehog.md) |
 | secrust | [secrust](tools-secrust/secrust.md)(组册 3 件) |
@@ -62,7 +62,7 @@
 | agents | [claude-code](tools-agents/claude-code.md) · [codex](tools-agents/codex.md)(agent CLIs,凭证经挂载不进镜像) |
 | cloud | [cloud](tools-cloud/cloud.md)(云 CLI:aliyun+tccli,凭证使用期注入) |
 | data | [dataref](tools-data/dataref.md)(数据信息资产:LOLBAS/webappanalyzer/exploit-db 快照) |
-| acp | [acp](tools-acp/acp.md)(ACP v1+stdio 通道:适配器+监督进程 acpsup,REQ-0002) |
+| acp | [acp](tools-acp/acp.md)(ACP v1+stdio 通道:适配器+监督进程 acpsup |
 | chrome | [clean-chrome](tools-chrome/clean-chrome.md)(定制 Chromium 155,云端道+sha256 锚) |
 
 计数对账:compilers 6 / runtimes 16 / libcache 8 / tools 58 = 88 册(2026-10-12 增 zg);组册承载的批量件数见各组册成员表(组册成员数 = 脚本实装件数)。

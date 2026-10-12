@@ -11,4 +11,4 @@
 
 - rctl: poc-search kind=tool path=/usr/local/bin/poc-search env=工具环境 note=PoC 查询 wrapper(已装入口,非参考克隆)
 
-- **限制**:空命中文案问题,rg 无命中退 1,`set -euo pipefail` 下管道赋值会静默杀死脚本,故先 `|| true` 收名单再判空,输出「索引无命中: <词>」退 1;索引无该 CVE 时文案「索引无 <CVE>(可在 https://github.com/nomi-sec/PoC-in-GitHub 核实)」退 1;无参打印用法退 0,未知选项打印用法退 1;索引仓 README 明示混有恶意样本,本 wrapper 只读索引不下载,下载执行是使用者自己的裁量(脚本注释裁定; [known-issues](../../known-issues.md))
+- **限制**:空命中文案问题,rg 无命中退 1,`set -euo pipefail` 下管道赋值会静默杀死脚本,故先 `|| true` 收名单再判空,输出「索引无命中: <词>」退 1;索引无该 CVE 时文案「索引无 <CVE>(可在 https://github.com/nomi-sec/PoC-in-GitHub 核实)」退 1;无参打印用法退 0,未知选项打印用法退 1;索引仓 README 明示混有恶意样本,本 wrapper 只读索引不下载,下载执行是使用者自己的裁量(脚本注释规定; [known-issues](../../known-issues.md))

@@ -7,4 +7,4 @@
 - **落点**:`/usr/local/bin/clean-chrome`(wrapper,恒 `--no-sandbox`,容器内核限制),`chrome`/`chromium` 同链;被包装的程序 `/opt/clean-chrome/<ver>/chrome`
 - **配置与缓存**:无;运行期依赖(X 库/NSS/字体)由组内 apt 批兜底
 - **离线行为**:过, 断网可起(本地二进制,无更新检查);验证:断网后 `clean-chrome --version` 与 root/ubuntu 双视角 CDP 冒烟(vnc-screen.sh chrome)
-- **限制**:本件跨机派单,browse CLI 因仓不可达(v0.34.0 资产 404,git 要凭证)暂缓(T1 挂起,总台裁定),「browse chrome install」语义由本组复刻;152-r5 与 155 的云上规定曾漂移,以 latest 指针实查为准(2026-10-10 155 已上云);**问题**:clean-chrome 155 挂 `--remote-debugging-address` 就绑不了 CDP 端口(隔离变量;裸 `--remote-debugging-port` 默认绑回环,浏览面照走),Chrome 136+ 无独立 `--user-data-dir` 时 CDP 静默不开;对接见 [ADR-0007](../../adr/ADR-0007-clean-chrome-placement.md)、冒烟面 [tools-vnc/vnc.md](../tools-vnc/vnc.md)
+- **限制**:本件跨机派单,browse CLI 因仓不可达(v0.34.0 资产 404,git 要凭证)暂缓(T1 挂起,总台规定),「browse chrome install」语义由本组复刻;152-r5 与 155 的云上规定曾漂移,以 latest 指针实查为准(2026-10-10 155 已上云);**问题**:clean-chrome 155 挂 `--remote-debugging-address` 就绑不了 CDP 端口(隔离变量;裸 `--remote-debugging-port` 默认绑回环,浏览面照走),Chrome 136+ 无独立 `--user-data-dir` 时 CDP 静默不开;对接见 、冒烟面 [tools-vnc/vnc.md](../tools-vnc/vnc.md)

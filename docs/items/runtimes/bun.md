@@ -6,9 +6,9 @@
 - **来源与安装**:[bun.sh](https://bun.sh) 经 npmmirror 的 npm 全局安装(装在 /opt/node prefix 下,依赖 [node 册](node.md) 先就位);`scripts/install-runtimes.sh` `install_bun`
 - **落点**:npm shim `/opt/node/bin/{bun,bunx}` 到 软链 `/usr/local/bin/{bun,bunx}`(非交互 shell 的 PATH 不含 /opt/node/bin,固定链接兜底)
 - **配置与缓存**:bun 不读 npmrc,要 bunfig:root 与 ubuntu 各写 `~/.bunfig.toml` 的 `[install] registry = "https://registry.npmmirror.com"`(官方推荐写法);无固化缓存
-- **离线行为**:未验 断网拉新件 [推断:bun 不吃 npmrc 离线双保险,离线拉新按自身重试节奏走;裁定不钉默认离线(量级小),见 [ADR-0004](../../adr/ADR-0004-offline-first-fail-fast.md) 与 [offline.md](../../offline.md) §4,无断网专项记录]。验证(待做):`ip link set eth0 down` 后 `mkdir -p /tmp/bt && cd /tmp/bt && bun add lodash` 观察失败节奏
+- **离线行为**:未验 断网拉新件 [推断:bun 不吃 npmrc 离线双保险,离线拉新按自身重试节奏走;规定不钉默认离线(量级小),见 与 [offline.md](../../offline.md) §4,无断网专项记录]。验证(待做):`ip link set eth0 down` 后 `mkdir -p /tmp/bt && cd /tmp/bt && bun add lodash` 观察失败节奏
 ## rctl 面,机器行:catalog 投影声明,audit 豁免依据
 
 - rctl: bunx kind=runtime path=/usr/local/bin/bunx
 
-- **限制**:早退判据 `have bun` 在 bunfig 写入**之前**,增量重跑(bun 已在)刷不上 bunfig,与 AGENTS.md「配置写入一律放早退之前」的判据相悖,待修;已钉 `BUN_VERSION` 但 `have bun` 早退不重装,升级=跑 scripts/resolve-pins.sh 刷新钉值后 `npm uninstall -g bun` 再重跑本组;bunfig 只写 registry 不写离线键(ADR-0004 裁定:bun/corepack 生态不钉默认离线)
+- **限制**:早退判据 `have bun` 在 bunfig 写入**之前**,增量重跑(bun 已在)刷不上 bunfig,与 AGENTS.md「配置写入一律放早退之前」的判据相悖,待修;已钉 `BUN_VERSION` 但 `have bun` 早退不重装,升级=跑 scripts/resolve-pins.sh 刷新钉值后 `npm uninstall -g bun` 再重跑本组;bunfig 只写 registry 不写离线键

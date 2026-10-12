@@ -31,8 +31,8 @@ incus exec pi-rs-runtime-20261010-2210 --user 1000 --group 1000 -- env HOME=/hom
 - 推送脚本进容器后必须 grep 验证内容落地;跑批中的脚本禁止换盘重推(bash 按字节偏移续读)
 - **一批一实例**:已有工作实例时禁止再 `incus launch`(每次都是整盘解包)。改动都进该实例;稳定后先问用户,点头才 `incus publish`(整盘 gzip,约 18–22 分钟)。不自行决定发或不发,也不为单笔改动再解包再打包
 - **版本名**:`pi-rs-runtime-YYYYMMDD-HHMM`(主机本地时间)。实例名取 launch 时刻,镜像版本别名取 publish 时刻,两者不是同一时间。浮动别名 `pi-rs-runtime` 只指向最新已发布镜像。禁止 `rt-*` 和 `-dev`
-- 文档单一真相:件级结构事实(版本钉/落点/离线态/kind/alias/任务词袋)只在 `scripts/ctl/data/resources.json`(资源契约,REQ-0006,单 JSON 维护);件级叙事(问题/来源长文/操作细节)在 `docs/items/<组>/<件>.md`;`catalog.tsv`/`caps.tsv` 是 JSON 的烤库投影(`scripts/gen-rctl-catalog.sh` 再生,勿手改);新增或改动资源只改 JSON 一处,投影与守卫自动跟,并在 items 索引对账册数
-- 不可逆裁定立 ADR(docs/adr/),实现回填;每轮工作落 PROGRESS.md 当前状态,历史轮次归 docs/diary/
+- 文档单一真相:件级结构事实(版本钉/落点/离线态/kind/alias/任务词袋)只在 `scripts/ctl/data/resources.json`(资源契约单 JSON 维护);件级叙事(问题/来源长文/操作细节)在 `docs/items/<组>/<件>.md`;`catalog.tsv`/`caps.tsv` 是 JSON 的烤库投影(`scripts/gen-rctl-catalog.sh` 再生,勿手改);新增或改动资源只改 JSON 一处,投影与守卫自动跟,并在 items 索引对账册数
+- 不可逆规定立 ADR(docs/adr/),实现回填;每轮工作落 PROGRESS.md 当前状态,历史轮次归 docs/diary/
 
 ## Must not
 

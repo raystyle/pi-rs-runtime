@@ -2,14 +2,14 @@
 
 > Java 依赖字节固化进 /opt/m2(默认 profile 安全新版 + study profile CVE 复现坐标)+ smali/baksmali dex 汇编/反汇编 CLI ｜ 状态:缓存固化 ｜ 组:`install-libcache.sh java`(前置 `install-runtimes.sh sdkman` 的 maven 与 JDK)
 
-- **版本钉**:默认 profile 16 件写 `[0,)` 区间,构建日 `mvn versions:resolve-ranges` 解析成精确版本写回 `/opt/maven-prewarm/pom.xml`(写回的 pom 即锁文件,重跑幂等;锁已入库 `scripts/lock/java/pom.xml`,有锁直接 `dependency:go-offline` 消费,再生跑 `scripts/sync-locks.sh`),再 `dependency:go-offline` 把字节拉进 /opt/m2;smali/smali-baksmali 钉 3.0.10;study profile 8 件全钉精确旧版
+- **版本钉**:默认 profile 16 件写 `[0,` 区间,构建日 `mvn versions:resolve-ranges` 解析成精确版本写回 `/opt/maven-prewarm/pom.xml`(写回的 pom 即锁文件,重跑幂等;锁已入库 `scripts/lock/java/pom.xml`,有锁直接 `dependency:go-offline` 消费,再生跑 `scripts/sync-locks.sh`),再 `dependency:go-offline` 把字节拉进 /opt/m2;smali/smali-baksmali 钉 3.0.10;study profile 8 件全钉精确旧版
 - **来源与安装**:Maven Central 经阿里云镜像(`/opt/maven/conf/settings.xml` 的 `mirrorOf=central`,即 `MAVEN_DEP_MIRROR`);google/smali 发布在 GMaven(maven.google.com),两个 pom 均显式声明 `<repository><id>gmaven</id>`,settings 的 `mirrorOf=central` 不拦它;脚本段 `scripts/install-libcache.sh install_java`
 
  默认 profile 依赖(18 件):
 
  | 坐标 | 钉版 |
  |---|---|
- | org.bouncycastle:bcprov-jdk18on / bcpkix-jdk18on | `[0,)` 构建日解析 |
+ | org.bouncycastle:bcprov-jdk18on / bcpkix-jdk18on | `[0,` 构建日解析 |
  | org.ow2.asm:asm / asm-commons / asm-util | 同上 |
  | org.javassist:javassist | 同上 |
  | com.fasterxml.jackson.core:jackson-databind | 同上 |

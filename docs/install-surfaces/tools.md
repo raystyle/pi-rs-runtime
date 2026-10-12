@@ -5,11 +5,11 @@
 ## 组机制:共性
 
 - Go 工具批(pd/secgo):`go install` 进 GOPATH=/opt/go/bin 再链 /usr/local/bin;`@latest` + `have` 早退 = 「首次装到的那份」,升级要删了重跑;v2/v3/v8 模块路径产物改名回原名(ffuf/gobuster/gitleaks)
-- uv tool 批(red):UV_TOOL_DIR=/opt/uv-tools,venv 外链到 /usr/local/bin 必须白名单化(ADR-0003)
+- uv tool 批(red):UV_TOOL_DIR=/opt/uv-tools,venv 外链到 /usr/local/bin 必须白名单化
 - Release 钉版批:tag 经 `git ls-remote` 取(api.github.com 限流 403 ),资产名校验架构映射;无校验和的件在 known-issues 
-- git 克隆批:`--depth 1` 钉 /opt,升级靠重跑;参考克隆只归档不安装(ADR-0002)
+- git 克隆批:`--depth 1` 钉 /opt,升级靠重跑;参考克隆只归档不安装
 - apt 批:阿里云源(image-defs/ubuntu.yaml 钉入),整批一条命令,成员表在组册
-- wrapper 层:/usr/local/bin 压过 PATH 后段,承载运行期行为修正(trivy/nuclei/capa/responder/bloodhound-python 等;ADR-0004,alias 在非交互 shell 不生效)
+- wrapper 层:/usr/local/bin 压过 PATH 后段,承载运行期行为修正(trivy/nuclei/capa/responder/bloodhound-python 等alias 在非交互 shell 不生效)
 - 收尾卫生:clean-image.sh(install-all.sh 末尾)清可再生缓存,不碰 /opt 固化件
 
 ## 册索引
@@ -36,4 +36,4 @@
 | `acp` | ACP 适配器钉版+acpsup 监督进程(bun 编译);selftest 协议级自证 |
 | `ctl` | rctl 核心 CLI(bun 编译,bun 版本闸;烤库 /var/lib/rctl+index) |
 
-`pentest` 组同批扩:CFT pwn gems(one_gadget Ruby3.2 面 1.10.0/seccomp-tools)、REQ-0004 九件(zsteg gem/stegseek deb sha256 钉/outguess/foremost apt/phpggc wrapper php8.3/git-dumper/apkid uv-tool/commix wrapper/SSTImap 独立 venv);`re` 组扩:qiling 进 re-venv、angr 独立 /opt/angr-venv(禁 extra)。
+`pentest` 组同批扩:CFT pwn gems(one_gadget Ruby3.2 面 1.10.0/seccomp-tools)、 九件(zsteg gem/stegseek deb sha256 钉/outguess/foremost apt/phpggc wrapper php8.3/git-dumper/apkid uv-tool/commix wrapper/SSTImap 独立 venv);`re` 组扩:qiling 进 re-venv、angr 独立 /opt/angr-venv(禁 extra)。

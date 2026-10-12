@@ -14,7 +14,7 @@
 - rctl: netexec kind=tool path=/usr/local/bin/netexec env=工具环境 note=NetExec(原 CrackMapExec 续作,re-venv 链出)
 - rctl: floss kind=tool path=/usr/local/bin/floss env=逆向环境 note=FLARE 伪代码字符串提取(re-venv 链出)
 
-- **限制**:uv 无 `pip download` 子命令,须先给 venv 装 pip 再拉轮子(`pip download` 不受 pip.conf `[install]` 节影响,构建期不被离线面拦);volatility3 的 CLI 随包装进 venv,不链出就没有 vol 命令;只锁 requirements 断网等于没装(没有索引可解析),必须固化轮子字节;uv 不合并配置,用户级 `~/.config/uv/uv.toml` 一旦存在,系统级 `/etc/uv/uv.toml` 整份被忽略,离线默认随之失效( uv 0.12.15,[ADR-0004](../../adr/ADR-0004-offline-first-fail-fast.md))
+- **限制**:uv 无 `pip download` 子命令,须先给 venv 装 pip 再拉轮子(`pip download` 不受 pip.conf `[install]` 节影响,构建期不被离线面拦);volatility3 的 CLI 随包装进 venv,不链出就没有 vol 命令;只锁 requirements 断网等于没装(没有索引可解析),必须固化轮子字节;uv 不合并配置,用户级 `~/.config/uv/uv.toml` 一旦存在,系统级 `/etc/uv/uv.toml` 整份被忽略,离线默认随之失效( uv 0.12.15,
 
 成员清单(19 包 + RsaCtfTool,以脚本 `install_python` 为准):
 

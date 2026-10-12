@@ -1,6 +1,6 @@
 # acp:ACP 通道
 
-> 实例标准 agent 接入通道:ACP v1 + stdio 适配器与监督进程 acpsup(S-0002/REQ-0002)｜ 状态:已装(协议面;agent 推理待凭证/网关)｜ 组:`install-tools.sh acp`
+> 实例标准 agent 接入通道:ACP v1 + stdio 适配器与监督进程 acpsup｜ 状态:已装(协议面;agent 推理待凭证/网关)｜ 组:`install-tools.sh acp`
 
 - **版本钉**:pins.sh 标量 `CLAUDE_ACP_VERSION`(当前 0.89.1)与 `CODEX_ACP_VERSION`(当前 2.2.2),2026-10-11 registry 规定,升级=对 registry 再解析改钉重跑;监督进程仓内 `scripts/acp/`(package.json 0.1.0),bun 编译期钉 `BUN_VERSION`
 - **来源与安装**:npm `@agentclientprotocol/claude-agent-acp@<钉>` 与 `@agentclientprotocol/codex-acp@<钉>` 经 npmmirror(npmjs 三级兜底);构建期在线面;acpsup 由 bun `--compile` 产 `/usr/local/bin/acpsup`;装面 `scripts/install-tools.sh install_acp`(尾段自动跑 `acpsup --selftest claude`)

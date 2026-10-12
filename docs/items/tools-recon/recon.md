@@ -15,4 +15,4 @@
 
 - **配置与缓存**:无(只克隆不写配置;`poc-index.parquet` 是构建期固化数据,机制见 [poc-search 册](poc-search.md))
 - **离线行为**:过, 断网在位核验,断网冒烟覆盖「参考库在位」面([离线机制 §验证](../../offline.md),2026-10-10 轮 78/0);指纹库纯读盘不触网。验证:`ip link set eth0 down` 后 `ls /opt/recon-ref` 四仓齐
-- **限制**:PoC-in-GitHub 索引仓 README 明示混有恶意样本,本组只克隆索引供查询,下载执行是使用者自己的裁量( [known-issues](../../known-issues.md));`/opt/recon-ref` 是三轴归档的侦察轴,裁定见 [ADR-0002](../../adr/ADR-0002-reference-clone-three-axis.md)
+- **限制**:PoC-in-GitHub 索引仓 README 明示混有恶意样本,本组只克隆索引供查询,下载执行是使用者自己的裁量( [known-issues](../../known-issues.md));`/opt/recon-ref` 是三轴归档的侦察轴,规定见
