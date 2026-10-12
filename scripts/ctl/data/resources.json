@@ -6448,6 +6448,19 @@
    "book": "docs/items/runtimes/maven.md",
    "alias": "",
    "env": "编程环境"
+  },
+  {
+   "id": "overthrone",
+   "kind": "tool",
+   "group": "`install-tools.sh redteam`",
+   "status": "已装",
+   "desc": "AD 利用框架:枚举+攻击图+横向+持久化+中继,Rust 单二进制",
+   "pin": "GIT_PIN[karmanya03/overthrone]=v0.4.9;解析日 2026-10-12",
+   "path": "/usr/local/bin/overthrone",
+   "offline": "未验证。二进制本地可跑;对目标的动作需网络",
+   "book": "docs/items/tools-redteam/overthrone.md",
+   "alias": "ovt",
+   "env": "工具环境"
   }
  ],
  "caps": [

@@ -147,3 +147,4 @@
 - 组头 `apt-get install --no-install-recommends` 安装 `samba-common-bin`、`smbclient`、`ldap-utils`。这是 enum4linux-ng 的运行依赖。
 - 同一次还安装 `ruby-full` 与 `ruby-dev`,供 gem 批编译原生扩展。
 - 这些是 noble 随源的 apt 包,不计入上表 24 件。
+- rctl: overthrone kind=tool path=/usr/local/bin/overthrone alias=ovt note=AD 利用框架(枚举/攻击图/横向/持久化/中继)

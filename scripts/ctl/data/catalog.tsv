@@ -308,6 +308,7 @@ one_gadget	tool	`install-tools.sh pentest`	已烘焙	libc one-gadget 查找(gem 
 openvpn	tool	`install-tools.sh pentest`	已装	OpenVPN 客户端				docs/items/tools-pentest/pentest.md		工具环境
 osslsigncode	tool	`install-tools.sh pentest`	已装	PE Authenticode 签名/验签(清单记录 2.8-2)				docs/items/tools-pentest/pentest.md		工具环境
 outguess	tool	`install-tools.sh pentest`	已烘焙	outguess 算法隐写(apt)		/usr/bin/outguess		docs/items/tools-pentest/pentest.md		工具环境
+overthrone	tool	`install-tools.sh redteam`	已装	AD 利用框架:枚举+攻击图+横向+持久化+中继,Rust 单二进制	GIT_PIN[karmanya03/overthrone]=v0.4.9;解析日 2026-10-12	/usr/local/bin/overthrone	未验证。二进制本地可跑;对目标的动作需网络	docs/items/tools-redteam/overthrone.md	ovt	工具环境
 owneredit.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/owneredit.py		docs/items/analysis/impacket.md		工具环境
 patchelf	tool	`install-tools.sh analysis`	已装	改写 ELF 解释器与 RPATH		/usr/bin/patchelf		docs/items/analysis/analysis.md		工具环境
 pdf-parser.py	tool	`install-tools.sh pentest`	已烘焙	DSS PDF 解析		/usr/local/bin/pdf-parser.py		docs/items/tools-pentest/pentest.md		工具环境
