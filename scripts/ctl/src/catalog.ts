@@ -9,6 +9,7 @@ export interface Rec {
   alias?: string
   env?: string
   taskHint?: string
+  capPrimary?: boolean // 能力词典 ids 首位=样例工具(与 example 列同源)
 }
 
 export interface Cap {
@@ -50,6 +51,7 @@ export function caps(): Cap[] {
 function scoreOne(r: Rec, t: string): number {
   let hit = 0
   if (r.id.toLowerCase().includes(t)) hit += 10
+  if (r.alias && r.alias.toLowerCase().includes(t)) hit += 9
   if (r.desc.toLowerCase().includes(t)) hit += 6
   if (r.group.toLowerCase().includes(t)) hit += 3
   if (r.taskHint && r.taskHint.includes(t)) hit += 8
@@ -65,17 +67,25 @@ export function score(r: Rec, q: string): number {
     if (hit === 0) return 0 // 全词件命中才算结果
     s += hit
   }
+  // 整句任务词加成:能力词典 task 覆盖完整问句时,该族应排到词面命中之上;词典样例再抬一手
+  if (r.taskHint && r.taskHint.includes(q.toLowerCase())) {
+    s += 4
+    if (r.capPrimary) s += 2
+  }
   return s
 }
 
-// caps 词典任务词参与 search 命中(能力问句)
+// caps 词典任务词参与 search 命中(能力问句);ids 首位标为词典样例
 export function withTaskHints(recs: Rec[], capList: Cap[]): Rec[] {
   const byId = new Map(recs.map((r) => [r.id, r]))
   for (const c of capList) {
-    for (const id of c.ids.split(",").map((x) => x.trim()).filter(Boolean)) {
+    const ids = c.ids.split(",").map((x) => x.trim()).filter(Boolean)
+    ids.forEach((id, i) => {
       const r = byId.get(id)
-      if (r) r.taskHint = (r.taskHint ? r.taskHint + " " : "") + c.task.toLowerCase()
-    }
+      if (!r) return
+      r.taskHint = (r.taskHint ? r.taskHint + " " : "") + c.task.toLowerCase()
+      if (i === 0) r.capPrimary = true
+    })
   }
   return recs
 }

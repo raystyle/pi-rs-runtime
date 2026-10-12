@@ -1,19 +1,26 @@
 # rctl caps 能力词典:task	ids(须在 catalog)	example(可抄命令,断网可跑)	note
-# 种子版;ids 漂移由 drift.test.ts 守卫
-破解hash	hashcat,john	hashcat -m 1000 hash.txt /usr/share/wordlists/rockyou.txt	rockyou 走 rctl where rockyou;规则面 hashcat --example-hashes
-子域枚举	subfinder,dnsx,shuffledns,amass,assetfinder	subfinder -d example.com	被动源断网失败属边界
-端口扫描	naabu,masscan,nmap	naabu -host 127.0.0.1 -top-ports 100	naabu/masscan 有 setcap 免 sudo
-web探活指纹	httpx,katana,feroxbuster	httpx -u http://127.0.0.1:8000 -silent	本地目标断网可跑
-漏洞扫描	nuclei,trivy	nuclei -duc -u http://127.0.0.1:8000	模板离线可用;trivy db 构建日快照
-目录爆破	ffuf,gobuster,feroxbuster	ffuf -w /opt/SecLists/Discovery/Web-Content/common.txt -u http://127.0.0.1:8000/FUZZ	词表直读 /opt/SecLists
-源码审计泄漏	gitleaks,trufflehog,semgrep	gitleaks git /opt/c2dev-ref/sliver	trufflehog 零命中退 1 属语义
-逆向ELF	ghidra,rizin,rea,capa,pwndbg	rea decompile /bin/ls main	rea 是 Ghidra 无头封装;剥离件用地址取函数
-逆向安卓	jadx,apktool,frida	jadx --version	apk 重打包链 apktool;frida-server 八平台 /opt/frida-server
-逆向.NET	dotnet,mono	dotnet --version	ILSpy 无独立 CLI 时走 dotnet 工具链面
-AD域横向	bloodhound-python,certipy-ad,bloodyAD,mitm6,kerbrute,evil-winrm,responder	responder -h	采集与滥用面;responder 依赖已进 re-venv
-隧道出网	gost,chisel,frps,frpc,wstunnel,rathole,bore	gost -V	六件全离线可用;bore.pub 公网依赖属边界
-凭据提取	impacket,frida	rctl docs impacket	impacket 上游脚本全家族在 PATH(secretsdump.py 等)
-流量抓包分析	tcpdump,tshark,mitmproxy	tcpdump -D	tshark 捕获网卡名用 -D 查
-固件解包	binwalk	binwalk 固件.bin	sasquatch 补丁版 squashfs 解包器已装(册:pentest)
-BOF利用链	bof-launcher,bof	bof-launcher --help	mingw/wine 面同组;coffee-ldr 上游编不过属 known-issues
-实例总控	rctl	rctl --llms	本工具;env 子命令看实例态
+# 种子版;ids 漂移由 drift.test.ts 守卫;task 是中英同义词袋(空格分隔,子串参与 search 命中)
+破解hash 哈希 hash cracking	hashcat,john	hashcat -m 1000 hash.txt /usr/share/wordlists/rockyou.txt	rockyou 走 rctl where rockyou;规则面 hashcat --example-hashes
+子域枚举 subdomain 子域	subfinder,dnsx,shuffledns,amass,assetfinder	subfinder -d example.com	被动源断网失败属边界
+端口扫描 port scan	naabu,masscan,nmap	naabu -host 127.0.0.1 -top-ports 100	naabu/masscan 有 setcap 免 sudo
+web探活指纹 web fingerprint	httpx,katana,feroxbuster	httpx -u http://127.0.0.1:8000 -silent	本地目标断网可跑
+漏洞扫描 vulnerability nuclei扫描	nuclei,trivy	nuclei -duc -u http://127.0.0.1:8000	模板离线可用;trivy db 构建日快照
+目录爆破 目录 fuzz	ffuf,gobuster,feroxbuster	ffuf -w /opt/SecLists/Discovery/Web-Content/common.txt -u http://127.0.0.1:8000/FUZZ	词表直读 /opt/SecLists
+源码审计泄漏 secret leak	gitleaks,trufflehog,semgrep	gitleaks git /opt/c2dev-ref/sliver	trufflehog 零命中退 1 属语义
+逆向ELF 逆向 elf	ghidra,rizin,rea,capa,pwndbg	rea decompile /bin/ls main	rea 是 Ghidra 无头封装;剥离件用地址取函数
+逆向安卓 android apk	jadx,apktool,frida	jadx --version	apk 重打包链 apktool;frida-server 八平台 /opt/frida-server
+逆向.NET dotnet ildasm	dotnet,mono	dotnet --version	ILSpy 无独立 CLI 时走 dotnet 工具链面
+AD域横向移动 lateral 横向	bloodhound-python,certipy-ad,bloodyAD,mitm6,kerbrute,evil-winrm,responder	responder -h	采集与滥用面;responder 依赖已进 re-venv
+隧道出网 tunnel 代理 proxy 隧道	gost,chisel,frps,frpc,wstunnel,rathole,bore	gost -V	六件全离线可用;bore.pub 公网依赖属边界
+凭据提取 credential dump 凭据	impacket,frida	rctl docs impacket	impacket 上游脚本全家族在 PATH(secretsdump.py 等)
+impacket 家族 smb windows 协议	impacket,secretsdump.py,psexec.py,wmiexec.py,smbexec.py,ntlmrelayx.py,GetUserSPNs.py,GetNPUsers.py	ticketer.py -h	册主名到家族成员的搜索桥;全 70 件另见 docs/items/tools-p0/impacket.md
+流量抓包分析 抓包 capture	tcpdump,tshark,mitmproxy	tcpdump -D	tshark 捕获网卡名用 -D 查
+固件解包 firmware binwalk解包	binwalk	binwalk 固件.bin	sasquatch 补丁版 squashfs 解包器已装(册:pentest)
+BOF利用链 bof	COFFLoader,bof-launcher,bof	bof-launcher --help	mingw/wine 面同组;coffee-ldr 上游编不过属 known-issues
+实例总控 rctl自述	rctl	rctl --llms	本工具;env 子命令看实例态
+票据操作 kerberos ticket 票据	ticketer.py,ticketConverter.py,getST.py,getTGT.py	ticketer.py -h	金票银票与票据转换;impacket 家族成员
+口令密码爆破 password brute 口令 密码	hydra,kerbrute,john,hashcat	hydra -h	在线离线两道;cewl 二进制在但册面未落行(docs 缺口另收)
+反序列化利用 deserialization 反序列化	phpggc	phpggc -l	PHP gadget 链;wrapper 钉 php8.3
+词表字典 wordlist 字典	SecLists	rctl where SecLists	目录爆破/口令面共用;kind=data
+网页截图 screenshot 截图	gowitness	gowitness --version	需 Chrome,断网对内网目标可用
+提权面 privilege escalation 提权 EOP	windows-logical-eop-workshop	ls /opt/windows-logical-eop-workshop	EOP 教材参考;linux 面走内核漏洞库

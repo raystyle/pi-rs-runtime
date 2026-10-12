@@ -11,7 +11,7 @@
 - 线上镜像:**`5e947cfcd98e`**(18.7 GB);历史发布链见 [docs/diary/2026-10-10-offline-rounds.md](docs/diary/2026-10-10-offline-rounds.md) 尾部
 - 2026-10-11 agent 平台轮(十批+entropia 晚批,全程细节归 [docs/diary/2026-10-11-agent-platform-rounds.md](docs/diary/2026-10-11-agent-platform-rounds.md)):回归五缺口修复+宿主信号策略发现;rea/rctl(REQ-0001)/agents/acp(REQ-0002)/清点分类归档(七域+audit 清零)/物化预热(REQ-0003)/工作流补缺(REQ-0004,交叉链+stego+web 泄漏);grok 十一笺联席;catalog 447 件、87 册、四 REQ implemented;实例开发态未打包(用户裁定)
 - 2026-10-12 acp-01(grok 调研,断言 5/5 过):pi-rs 自实现 ACP Agent 侧可行,ACP prompt 轮与 AgentSession.prompt 到 agent_settled 同构;MVP=rs-agent 内新 mode(--mode acp 加 acp-entry.ts,stdio JSON-RPC,直接调 AgentSession,与私有 JSONL rpc mode 并存不桥接,chord 不承担帧);S-0002 五节补三句落地;pi-rs 实现单待派(九件清单在轮次档 acp-01-research.md 第 4 节)
-- 2026-10-12 余账推进轮:impacket 闭集族全表收口(+46 机器行,catalog 447 到 493 件,shim 全在位,断网 -h 抽验 4/4,册离线行为转已验);冒烟收编 scripts/smoke-release.sh 完成过评审落地(smoke-01 四假过全修+视角双守卫+跑板重写,真双视角断网全绿 root 81/0、ubuntu 68/0,负控 root 进程跑 ubuntu 视角退 2;坑:herdr 抄成 herder 转录错、apt lists 两态语义、choosenim current 是文件)
+- 2026-10-12 余账推进轮:impacket 闭集族全表收口(+46 机器行,catalog 447 到 493 件,shim 全在位,断网 -h 抽验 4/4,册离线行为转已验);冒烟收编 scripts/smoke-release.sh 完成过评审落地(smoke-01 四假过全修+视角双守卫+跑板重写,真双视角断网全绿 root 81/0、ubuntu 68/0,负控 root 进程跑 ubuntu 视角退 2;坑:herdr 抄成 herder 转录错、apt lists 两态语义、choosenim current 是文件);rctl 搜索回归与召回优化(金标 27 案 recall@10 门禁落地 test/search.test.ts,MRR 0.502 到 0.944,caps 词典双语词袋 18 到 26 条+家族桥,评分加 alias/整句/样例位;容器五查实证,dev 实例已更新)
 - 方向档:完整系统容器进 web 平台(左 chat 可切 agent,右持久浏览器 VNC,平台在另项目);自建 agent API 网关;实例 RPC=ACP v1+stdio(S-0002);rctl=给 agent 用的 CLI;自家 agent 定名 pi-rs(agents 面留位)
 
 ## 近三轮:细节在 diary
@@ -28,7 +28,7 @@
 
 0. ~~域分类定稿~~(prt-09 已交并吸收):七域定稿确认(数据分析独立成域正确,不加第八域;kind 与域两面并存);三处改判落地(frida/jadx/apktool/capa/pwndbg 与 floss/ilspycmd/smali/baksmali 到 逆向环境,vol/volshell/netexec/pspy 到 工具环境,poc-search 到 工具环境);一级七域够用,ATT&CK 战术留作 caps 多值标签不进 env;docs/items/README 增七域归档视图;待裁定:angr(单独 venv)/HackTricks(1GiB)/GTFOBins(代理 401)
 
-1. prt-07 阶段 2:闭集族全表 + 漂移守卫 2026-10-12 落地(impacket +46 落表;frida 17/17、nim 本尊+8 副件本就全;re 补 rizin/rz-ghidra 显式行填空 path;catalog 493 件;`scripts/check-family-closure.sh` 四族双向对账守卫,容器实测 220 项零漂移 + 正控试验证咬人,新闭族按族域表扩)+ 剩面:catalog 约 190 空 path 行(apt 包名蒸馏形,属守卫扩面)+ 裁定项:microsoft/nuget.exe/httpclient/rwinrm/rwinrmcp(无主)、atlas/nokokiri/ruff(uv-tool shim 未点名);别名行机制已就位(alias 列)
+1. prt-07 阶段 2:闭集族全表 + 漂移守卫 2026-10-12 落地(impacket +46 落表;frida 17/17、nim 本尊+8 副件本就全;re 补 rizin/rz-ghidra 显式行填空 path;catalog 493 件;`scripts/check-family-closure.sh` 四族双向对账守卫,容器实测 220 项零漂移 + 正控试验证咬人,新闭族按族域表扩)+ 剩面:catalog 约 190 空 path 行(apt 包名蒸馏形,属守卫扩面)+ 裁定项:microsoft/nuget.exe/httpclient/rwinrm/rwinrmcp(无主)、atlas/nokokiri/ruff(uv-tool shim 未点名);别名行机制已就位(alias 列);cewl 二进制在但册面无行(docs 缺口,搜「口令密码爆破」时词典暂不含)
 2. prt-07 阶段 3:拆独立册(SecLists/capa-rules/yara-rules/pspy/volatility3,数据册三条纪律)+ zig 册 id 冲突解(工具链 zig vs 缓存 zig 两册同名,拆缓存行 id=zig-cache);audit 残 12 项目录认领随拆册收口
 
 1. ~~合入定制 Chrome~~(2026-10-10 prt-01 完成;**同日晚又因上游修 bug 裁定下架**:镜像卸 /opt/clean-chrome 与三链,chrome 组移出 TOOLS_ALL 默认(显式可跑),机制与 ADR-0007 留仓备用;browse CLI 维持不装):browse CLI 暂缓(仓不可达,T1 挂起等凭证);clean-chrome 155.0.8059.39 经云端道(chrome.ohmygh.com 版本段路由+sha256 锚)进镜像,系统级单副本 /opt/clean-chrome(ADR-0007);vnc-screen.sh 增 chrome 冒烟面(CDP 9222,实证 root/ubuntu/断网三视角 `Chrome/155.0.8059.39`);实证坑:155 挂 --remote-debugging-address 就绑不了 CDP 口(摘除),Chrome 136+ 无 --user-data-dir 时 CDP 静默不开。

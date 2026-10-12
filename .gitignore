@@ -1,3 +1,4 @@
 incus.tar.xz
 rootfs.squashfs
 *.tar.xz
+scripts/ctl/dist/
