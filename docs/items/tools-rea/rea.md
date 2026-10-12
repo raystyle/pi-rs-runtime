@@ -61,6 +61,6 @@
 - [offline.md](../../offline.md)
 - [known-issues.md](../../known-issues.md)
 
-## rctl 面,机器行
+## rctl 收录行
 
 - rctl: rea-agents kind=tool path=/usr/local/bin/rea-agents note=rea 常驻面入口

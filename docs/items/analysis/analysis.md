@@ -77,7 +77,7 @@
 - [params.md](../../params.md)
 - [offline.md](../../offline.md)
 
-## rctl 面,机器行
+## rctl 收录行
 - rctl: apkid kind=tool path=/usr/local/bin/apkid note=APK 加壳/编译器识别(uv tool 3.1.0,yara-python-dex 独立)
 
 ## 成员清单

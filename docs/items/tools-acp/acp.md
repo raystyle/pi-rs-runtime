@@ -49,6 +49,6 @@
 - [offline.md](../../offline.md)
 - [known-issues.md](../../known-issues.md)
 
-## rctl 面,机器行
+## rctl 收录行
 
 - rctl: acpsup kind=service path=/usr/local/bin/acpsup note=ACP 监督进程(平台面 127.0.0.1:7663)

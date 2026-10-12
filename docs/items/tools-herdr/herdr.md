@@ -37,6 +37,6 @@
 - [docs/params.md](../../params.md)
 - [known-issues.md](../../known-issues.md)
 
-## rctl 面,机器行
+## rctl 收录行
 
 - rctl: herdr kind=tool path=/usr/local/bin/herdr note=终端 workspace 管理器(agent 编排面)

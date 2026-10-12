@@ -52,7 +52,7 @@
 - [maven 册](maven.md)
 - [offline.md](../../offline.md)
 
-## rctl 面,机器行
+## rctl 收录行
 
 - rctl: javac kind=runtime path=/usr/local/bin/javac note=JDK 编译器入口
 

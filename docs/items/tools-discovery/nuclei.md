@@ -62,7 +62,7 @@
 - [offline.md](../../offline.md)
 - [known-issues.md](../../known-issues.md)
 
-## rctl 面,机器行
+## rctl 收录行
 
 这些行是 catalog 投影声明,也是 audit 豁免依据。
 

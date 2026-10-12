@@ -87,7 +87,7 @@
 
 - [offline.md](../../offline.md)
 
-## rctl 面,机器行
+## rctl 收录行
 
 - rctl: ilspycmd kind=tool path=/usr/local/bin/ilspycmd env=逆向环境 note=.NET 反编译 CLI(NUGET_PIN 单独锁定,装在 /opt/dotnet-tools)
 - rctl: dotnet-prewarm kind=cache path=/opt/dotnet-prewarm note=restore 预热工程(csproj 锁)

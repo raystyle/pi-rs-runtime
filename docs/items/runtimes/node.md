@@ -62,7 +62,7 @@
 - [offline.md](../../offline.md)
 - [fnm 册](fnm.md)
 
-## rctl 面,机器行
+## rctl 收录行
 
 - rctl: npm kind=runtime path=/usr/local/bin/npm note=node 包管理器(face)
 - rctl: npx kind=runtime path=/usr/local/bin/npx

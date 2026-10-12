@@ -49,7 +49,7 @@
 - [known-issues.md](../../known-issues.md)
 - [offline.md](../../offline.md)
 
-## rctl 面,机器行
+## rctl 收录行
 
 - rctl: nasm kind=tool path=/usr/local/bin/nasm
 - rctl: ndisasm kind=tool path=/usr/local/bin/ndisasm note=反汇编面

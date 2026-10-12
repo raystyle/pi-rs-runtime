@@ -46,6 +46,6 @@
 - [../tools-vnc/vnc.md](../tools-vnc/vnc.md)
 - [docs/params.md](../../params.md)
 
-## rctl 面,机器行
+## rctl 收录行
 
 - rctl: clean-chrome kind=tool path=/usr/local/bin/clean-chrome note=定制 Chromium wrapper(恒 --no-sandbox;组保留不默认装)

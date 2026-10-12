@@ -41,7 +41,7 @@
 - [offline.md](../../offline.md)
 - [python.md](../libcache/python.md)
 
-## rctl 面,机器行
+## rctl 收录行
 
 - rctl: vol kind=tool path=/usr/local/bin/vol env=工具环境 note=volatility3 CLI
 - rctl: volshell kind=tool path=/usr/local/bin/volshell env=工具环境

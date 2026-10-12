@@ -52,7 +52,7 @@
 - [offline.md](../../offline.md)
 - [known-issues.md](../../known-issues.md)
 
-## rctl 面,机器行
+## rctl 收录行
 
 - rctl: vol kind=tool path=/usr/local/bin/vol env=工具环境 note=volatility3 CLI(PYPI_PIN 单独锁定,re-venv 链出)
 - rctl: volshell kind=tool path=/usr/local/bin/volshell env=工具环境

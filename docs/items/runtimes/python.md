@@ -83,7 +83,7 @@
 - [known-issues.md](../../known-issues.md)
 - [uv 册](uv.md)
 
-## rctl 面,机器行
+## rctl 收录行
 
 - rctl: analytics-venv kind=runtime path=/opt/analytics env=数据分析 note=数据分析 venv(polars/pyarrow/chdb 物化)
 - rctl: 2to3 kind=runtime path=/usr/local/bin/2to3

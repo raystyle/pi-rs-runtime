@@ -74,7 +74,7 @@
 - [offline.md](../../offline.md)
 - [known-issues.md](../../known-issues.md)
 
-## rctl 面,机器行
+## rctl 收录行
 
 - rctl: cargo-zigbuild-cache kind=cache path=/opt/cargo-zigbuild-cache note=cargo-zigbuild 缓存树(共享 ACL)
 

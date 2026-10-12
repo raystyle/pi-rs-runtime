@@ -69,7 +69,7 @@
 - [offline.md](../../offline.md)
 - [golang 册](../compilers/golang.md)
 
-## rctl 面,机器行
+## rctl 收录行
 
 - rctl: pspy kind=tool path=/usr/local/bin/pspy env=工具环境 note=无 root 进程刺探(GO_PIN 单独锁定,实装在 /opt/go/bin)
 

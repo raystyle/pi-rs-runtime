@@ -89,7 +89,7 @@
 - [offline.md](../../offline.md)
 - [zig 编译器册](../compilers/zig.md)
 
-## rctl 面,机器行
+## rctl 收录行
 
 - rctl: zig-cache kind=cache path=/opt/zig-cache note=五库固化缓存
 - rctl: zig-prewarm kind=cache path=/opt/zig-prewarm note=五库预热工程(zon 锁)

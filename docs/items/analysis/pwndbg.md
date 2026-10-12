@@ -53,6 +53,6 @@
 - [analysis.md](analysis.md)
 - [offline.md](../../offline.md)
 
-## rctl 面,机器行
+## rctl 收录行
 
 - rctl: pwndbg-lldb kind=tool path=/usr/local/bin/pwndbg-lldb note=pwndbg 的 lldb 面

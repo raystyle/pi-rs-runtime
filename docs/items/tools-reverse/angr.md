@@ -53,6 +53,6 @@
 - [reverse.md](reverse.md)
 - [offline.md](../../offline.md)
 
-## rctl 面,机器行
+## rctl 收录行
 
 - rctl: angr-venv kind=runtime path=/opt/angr-venv note=angr 独立 venv(符号执行;python -c import angr 消费)

@@ -89,7 +89,7 @@
 - [known-issues.md](../../known-issues.md)
 - [rust 库缓存](../libcache/rust.md)
 
-## rctl 面,机器行
+## rctl 收录行
 
 - rctl: rustc kind=compiler path=/usr/local/bin/rustc note=Rust 编译器本尊
 - rctl: cargo kind=compiler path=/usr/local/bin/cargo

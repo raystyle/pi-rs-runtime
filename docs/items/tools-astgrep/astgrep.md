@@ -40,7 +40,7 @@
 - [docs/params.md](../../params.md)
 - [known-issues.md](../../known-issues.md)
 
-## rctl 面,机器行
+## rctl 收录行
 
 - rctl: ast-grep kind=tool path=/usr/local/bin/ast-grep note=入口名(带连字符)
 - rctl: sg kind=tool path=/usr/local/bin/sg

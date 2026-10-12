@@ -46,7 +46,7 @@
 
 - [known-issues.md](../../known-issues.md)
 
-## rctl 面,机器行
+## rctl 收录行
 
 - rctl: python2.7 kind=runtime path=/usr/local/bin/python2.7 note=python2 入口
 - rctl: python2.7-config kind=runtime path=/usr/local/bin/python2.7-config

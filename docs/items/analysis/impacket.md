@@ -67,7 +67,7 @@
 - [offline.md](../../offline.md)
 - [software-inventory.md](../../software-inventory.md)
 
-## rctl 面,机器行
+## rctl 收录行
 - rctl: secretsdump.py kind=tool path=/usr/local/bin/secretsdump.py
 - rctl: GetNPUsers.py kind=tool path=/usr/local/bin/GetNPUsers.py
 - rctl: GetUserSPNs.py kind=tool path=/usr/local/bin/GetUserSPNs.py

@@ -63,7 +63,7 @@
 - [docs/params.md](../../params.md)
 - [known-issues.md](../../known-issues.md)
 
-## rctl 面,机器行
+## rctl 收录行
 
 - rctl: eslint kind=runtime path=/usr/local/bin/eslint note=npm 全局件
 - rctl: prettier kind=runtime path=/usr/local/bin/prettier note=npm 全局件

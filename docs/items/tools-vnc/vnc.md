@@ -45,6 +45,6 @@
 - [known-issues.md](../../known-issues.md)
 - [offline.md](../../offline.md)
 
-## rctl 面,机器行
+## rctl 收录行
 
 - rctl: vnc-screen kind=tool path=/usr/local/bin/vnc-screen note=屏幕/VNC 起停面

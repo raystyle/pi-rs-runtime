@@ -47,7 +47,7 @@
 - [docs/params.md](../../params.md)
 - [docs/offline.md](../../offline.md)
 
-## rctl 面,机器行
+## rctl 收录行
 
 - rctl: ghidraRun kind=tool path=/usr/local/bin/ghidraRun
 - rctl: analyzeHeadless kind=tool path=/usr/local/bin/analyzeHeadless note=无头分析入口

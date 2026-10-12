@@ -59,6 +59,6 @@
 - [analysis.md](analysis.md)
 - [offline.md](../../offline.md)
 
-## rctl 面,机器行
+## rctl 收录行
 
 - rctl: capa-rules kind=data path=/opt/capa-rules note=能力规则(缺它 capa 自下载)

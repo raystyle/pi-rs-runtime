@@ -46,7 +46,7 @@
 
 - [offline.md](../../offline.md)
 
-## rctl 面,机器行
+## rctl 收录行
 
 - rctl: fasm kind=compiler path=/opt/fasm note=FASM 汇编器本体
 - rctl: aarch64-linux-gnu-g++-13 kind=compiler path=/usr/bin/aarch64-linux-gnu-g++-13 note=arm64 交叉链(静态编译)

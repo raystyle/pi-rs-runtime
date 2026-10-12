@@ -104,7 +104,7 @@ study profile(`-Pstudy`,activeByDefault=false,CVE 复现坐标,8 件精确锁定
 - [offline.md](../../offline.md)
 - [known-issues.md](../../known-issues.md)
 
-## rctl 面,机器行
+## rctl 收录行
 
 - rctl: smali kind=tool path=/usr/local/bin/smali env=逆向环境 note=smali 汇编 CLI(/opt/smali-cli 挂钩)
 - rctl: baksmali kind=tool path=/usr/local/bin/baksmali env=逆向环境

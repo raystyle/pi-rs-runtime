@@ -43,7 +43,7 @@
 - [docs/params.md](../../params.md)
 - [known-issues.md](../../known-issues.md)
 
-## rctl 面,机器行
+## rctl 收录行
 
 - rctl: aliyun kind=tool path=/usr/local/bin/aliyun note=阿里云 CLI
 - rctl: tccli kind=tool path=/usr/local/bin/tccli note=腾讯云 CLI(uv-tool 面)

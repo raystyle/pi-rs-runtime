@@ -15,6 +15,8 @@ export function resolveZg(): string | undefined {
 }
 
 const MODEL_CACHE = process.env.RCTL_ZG_MODEL_CACHE ?? "/opt/zg-models"
+// jieba 字典:zvec 预编译包随包数据,装在持久位(缺它 fts 面开不了,2026-10-12 回归)
+const JIEBA_DICT = process.env.RCTL_ZG_JIEBA_DICT ?? "/usr/local/share/zvec/jieba_dict"
 
 // 检索单元:每行一微文档(短句描述语义召回最佳,全文稀释;pi-rs 2026-10-09 用户裁定同源)
 export function semanticDoc(r: Rec): string {
@@ -70,7 +72,7 @@ export function prewarmSemantic(recs: Rec[], dataDir: string, zgPath?: string): 
   const dir = join(dataDir, "semantic")
   const need = ensureMirror(recs, dir)
   if (!need) return { ok: true, detail: "镜像未变,索引在位" }
-  const r = spawnSync(zg, ["--index", "--mode", "direct", "--model-cache", MODEL_CACHE], { cwd: dir, timeout: 3_600_000 })
+  const r = spawnSync(zg, ["--index", "--mode", "direct", "--model-cache", MODEL_CACHE], { cwd: dir, timeout: 3_600_000, env: { ...process.env, ZVEC_JIEBA_DICT_DIR: JIEBA_DICT } })
   if (r.status !== 0) return { ok: false, detail: `索引退出码 ${r.status ?? "null"}` }
   return { ok: true, detail: "全量索引完成" }
 }
@@ -88,12 +90,12 @@ export function semanticSearch(
   const argv = ["--model-cache", MODEL_CACHE]
   try {
     if (ensureMirror(recs, dir)) {
-      spawnSync(zg, ["--index", "--mode", "direct", ...argv], { cwd: dir, timeout: 180_000 })
+      spawnSync(zg, ["--index", "--mode", "direct", ...argv], { cwd: dir, timeout: 180_000, env: { ...process.env, ZVEC_JIEBA_DICT_DIR: JIEBA_DICT } })
     }
     const qr = spawnSync(
       zg,
       [q, "--fts", q, "--fuse", "--mode", "direct", "--compact", "--preview", "none", "--limit", String(limit), ...argv],
-      { cwd: dir, timeout: 60_000, encoding: "utf8" },
+      { cwd: dir, timeout: 60_000, encoding: "utf8", env: { ...process.env, ZVEC_JIEBA_DICT_DIR: JIEBA_DICT } },
     )
     if (qr.status !== 0 || !qr.stdout) return undefined
     return zgHitsToRecs(qr.stdout, byName)

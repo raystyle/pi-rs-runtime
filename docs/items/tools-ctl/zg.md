@@ -10,6 +10,6 @@
 - **限制**:查询模式检索根取 cwd,非 positional 参数(位置参会被并进查询词;pi-rs spawn 同款 cwd 形);config 子命令是 `zg --config …` 前缀(旧 `zg config …` 形已废);libzvec_c_api.so 是伴生共享库,装二进制必须连同 + ldconfig;上游 HEAD 锁定相对 pi-rs vendored fork(30c3160+doc-header/per-file-cap 修复)不含那两修复——本用途检索单元是一行微文档非源码切块,不受影响
 - **调用先例**:pi-rs `packages/rs-agent/src/extensions/rust_script/search-tool.ts`(positional+--fts 双腿 --fuse 融合;词表没见过的新造词靠 fts 腿兜,dbg_cli 与 postex 两例 )
 
-## rctl 面,机器行:catalog 投影声明,audit 豁免依据
+## rctl 收录行
 
 - rctl: zg kind=tool path=/usr/local/bin/zg note=语义检索引擎,rctl search 向量腿

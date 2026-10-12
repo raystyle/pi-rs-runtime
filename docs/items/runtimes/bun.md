@@ -47,6 +47,6 @@
 - [node 册](node.md)
 - [offline.md](../../offline.md)
 
-## rctl 面,机器行
+## rctl 收录行
 
 - rctl: bunx kind=runtime path=/usr/local/bin/bunx

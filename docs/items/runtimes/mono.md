@@ -48,6 +48,6 @@
 - [known-issues.md](../../known-issues.md)
 - [dotnet 册](dotnet.md)
 
-## rctl 面,机器行
+## rctl 收录行
 
 - rctl: mono kind=runtime path=/usr/bin/mono note=运行时本尊(xbuild 同域;nuget.exe 行归 libcache/dotnet 册)

@@ -49,7 +49,7 @@
 - [redteam.md](redteam.md)
 - [offline.md](../../offline.md)
 
-## rctl 面,机器行
+## rctl 收录行
 
 这些行是 catalog 投影声明,也是 audit 豁免依据。
 

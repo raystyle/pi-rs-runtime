@@ -50,7 +50,7 @@
 - [offline.md](../../offline.md)
 - [golang 册](golang.md)
 
-## rctl 面,机器行
+## rctl 收录行
 
 - rctl: nimble kind=compiler path=/usr/local/bin/nimble
 - rctl: nimgrep kind=compiler path=/usr/local/bin/nimgrep

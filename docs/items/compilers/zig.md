@@ -55,6 +55,6 @@
 - [golang 册](golang.md)
 - [libcache zig-cache 册](../libcache/zig-cache.md)
 
-## rctl 面,机器行
+## rctl 收录行
 
 - rctl: zig kind=compiler path=/opt/zig note=zig 工具链本体

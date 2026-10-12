@@ -7,7 +7,7 @@
 - **文件**:`/usr/bin/wine`(wine 包);`/usr/local/bin/wine64` 兜底软链 到 `$(command -v wine)`(脚本 `have wine64 || { have wine && ln -sf … }`,幂等判据 `have wine64`);wine loader 本体在 `/usr/lib/wine/`
 - **配置与缓存**:脚本不写配置;首跑 PE 时就地建 `~/.wine` prefix 未验 [推断:]
 - **离线行为**:未验 [推断:] wine 跑原生 Windows PE 是纯本地动作不依赖网络(未单独断网);.NET PE 缺 mono 时会触发组件下载,属在线动作。验证:`ip link set eth0 down` 后 `wine64 --version` 退 0
-## rctl 面,机器行:catalog 投影声明,audit 豁免依据
+## rctl 收录行
 
 - rctl: wine64 kind=tool path=/usr/local/bin/wine64 note=wine 主入口
 

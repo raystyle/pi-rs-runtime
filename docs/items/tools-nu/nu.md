@@ -38,7 +38,7 @@
 
 - [docs/offline.md](../../offline.md)
 
-## rctl 面,机器行
+## rctl 收录行
 
 - rctl: aws kind=tool path=/usr/local/bin/aws note=AWS CLI v2(awscli 官方 zip 装,未锁定,属 known-issues 软件源锁定)
 - rctl: aws_completer kind=tool path=/usr/local/bin/aws_completer note=aws CLI 补全副件
