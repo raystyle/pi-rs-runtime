@@ -7,14 +7,16 @@
 智能体渗透测试运行时系统(pi-rs-runtime):Ubuntu 24.04 noble + Incus,离线可用(建成后无外网可干活,断网冒烟为发布门禁),供智能体做渗透测试与 CTF。仓库只维护 yaml、脚本与文档,镜像产物不入库(ADR-0001)。
 
 ## 当前状态
+- 2026-10-13 agent 网关烤进镜像 + ACP 对外(细节归 docs/diary/2026-10-13-agent-gateway-acp-expose.md):overcast 网关按「完整照本机」接线(claude managed settings env 12 键 + codex config 三份 + 共享模型目录 + web_search 禁用;令牌经环境变量或令牌文件给,仓库公开绝不进 git);acpsup 转 systemd 常驻,incus proxy 绑 tailnet 地址 10.10.10.13:7663 对外(用户裁定;LAN 面不开,Bearer 默认拒绝,无 token 401,带 token 200,LAN 探测 000);外部回环:claude/codex session/new+prompt 双过网关模型 zp-cc-glm53[1m]/zp-cx-glm53,CLI root/ubuntu 四回环全绿;无令牌重跑防回退闸过;方向裁定:对外 ACP 接口改独立 Golang 服务(本仓独立目录,随容器部署,claude/codex/pi 三后端),研究单 acpex-01 已派 grok(w7:p5)
 
 - 2026-10-12 用词:册节名是「版本」和「文件」。机制称版本锁定,路径称安装路径。`docs/doc-spec.md` 第 5 节已禁「版本钉」「钉版」「钉名」「落点」。
 - 线上镜像:**`5e947cfcd98e`**(18.7 GB);历史发布链见 [docs/diary/2026-10-10-offline-rounds.md](docs/diary/2026-10-10-offline-rounds.md) 尾部
 - 2026-10-11 agent 平台轮(十批+entropia 晚批,全程细节归 [docs/diary/2026-10-11-agent-platform-rounds.md](docs/diary/2026-10-11-agent-platform-rounds.md)):回归五缺口修复+宿主信号策略发现;rea/rctl(REQ-0001)/agents/acp(REQ-0002)/清点分类归档(七域+audit 清零)/物化预热(REQ-0003)/工作流补缺(REQ-0004,交叉链+stego+web 泄漏);grok 十一笺联席;catalog 447 件、87 册、四 REQ implemented;实例开发态未打包(用户裁定)
 - 2026-10-12 acp-01(grok 调研,断言 5/5 过):pi-rs 自实现 ACP Agent 侧可行,ACP prompt 轮与 AgentSession.prompt 到 agent_settled 同构;MVP=rs-agent 内新 mode(--mode acp 加 acp-entry.ts,stdio JSON-RPC,直接调 AgentSession,与私有 JSONL rpc mode 并存不桥接,chord 不承担帧);S-0002 五节补三句落地;pi-rs 实现单待派(九件清单在轮次档 acp-01-research.md 第 4 节)
 - 2026-10-12 余账推进轮:impacket 闭集族全表收口(+46 机器行,catalog 447 到 493 件,shim 全在位,断网 -h 抽验 4/4,册离线行为转已验);冒烟收编 scripts/smoke-release.sh 完成过评审落地(smoke-01 四假过全修+视角双守卫+跑板重写,真双视角断网全绿 root 81/0、ubuntu 68/0,负控 root 进程跑 ubuntu 视角退 2);rctl 搜索回归与召回优化(金标 27 案 recall@10 门禁,MRR 0.502 到 0.944,caps 双语词袋+家族桥);**REQ-0005 rctl 语义搜索落地**(zg 引擎容器冷构建+qwen3-embedding-0.6b 烤库 610M sha256 锚+微文档索引 494 件 5.3M,断网双视角 engine=zvec 纯语义命中,查询 1.3s,回退词面恒绿;册 88、catalog 494);**REQ-0006 资源契约 JSON 迁移批落地**(resources.json 495 件+caps 24 条为结构真源,gen 翻转为投影+册双向对账 236 行+book 落盘守卫,容器 audit 361/0/0 全绿,族守卫 220 零漂移,金标 14/0;顺手修旧蒸馏 bytewise 截断 29 处,投影序改码点排序;AGENTS 单一真相改写:结构在 JSON、叙事在册、tsv 投影勿手改);**产品级文档规范落地**(docspec-01,grok 研究执笔断言过:docs/doc-spec.md 立分类矩阵/八签册模板/禁词表 21 行/字段长度契约 desc≤80 pin≤80 offline≤90/迁移序九步;守卫成形 scripts/check-doc-style.sh 基线棘轮即刻生效,基线 field_overlength 158/field_banned 48/md_banned_lines 274/md_old_tags 94 只许降;88 册改写按迁移序排批)
-- 方向档:完整系统容器进 web 平台(左 chat 可切 agent,右持久浏览器 VNC,平台在另项目);自建 agent API 网关;实例 RPC=ACP v1+stdio(S-0002);rctl=给 agent 用的 CLI;自家 agent 定名 pi-rs(agents 面留位)
+- 方向档:完整系统容器进 web 平台(左 chat 可切 agent,右持久浏览器 VNC,平台在另项目);自建 agent API 网关(overcast 已在 192.168.88.10:8317 运行,镜像侧 2026-10-13 已接线);对外 ACP 接口独立 Golang 服务(本仓独立目录,claude/codex/pi 三后端,研究单 acpex-01);实例 RPC=ACP v1+stdio(S-0002);rctl=给 agent 用的 CLI;自家 agent 定名 pi-rs(agents 面留位)
 
+6. ACP 对外 Go 服务:等 acpex-01 研究回收(grok w7:p5,/tmp/acpex-01/),按方案立 REQ(独立目录、随容器部署、claude/codex/pi 三后端、日志设计);当前 TS acpsup + proxy 引出是过渡面
 ## 近三轮:细节在 diary
 
 - 2026-10-10 纯离线三轮 + 快失败默认化 + smali 批 ,到  [docs/diary/2026-10-10-offline-rounds.md](docs/diary/2026-10-10-offline-rounds.md)

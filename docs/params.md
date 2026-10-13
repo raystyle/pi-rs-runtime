@@ -75,3 +75,15 @@
 | STEGSEEK_VERSION + STEGSEEK_SHA256 | 0.6 + deb sha256 | stegseek(release deb 锚) |
 
 npm/pypi/git/gem 新增锁定版本:rea-agents 6.3.0、aioquic 1.4.0、qiling 1.4.6、angr 10.0.3、git-dumper 1.0.9、apkid 3.1.0、one_gadget 1.10.0(Ruby3.2 面)、seccomp-tools 1.7.1、zsteg 0.2.14;git 新增锁定版本:LOLBAS/webappanalyzer/exploitdb(GitLab 直连道)/hacktricks(浅克隆文本面)/gtfobins(.github.io 源仓)/phpggc/commix/SSTImap。
+
+## agent 网关(`install-tools.sh agents`,全部可选)
+
+| 名称 | 默认 | 约束 |
+|------|------|------|
+| `AGENT_GATEWAY_URL` | `http://192.168.88.10:8317` | overcast 网关;置空则跳过网关接线 |
+| `AGENT_GATEWAY_TOKEN` | 空 | 网关令牌;不入库;经环境变量或 `AGENT_GATEWAY_TOKEN_PATH`(默认 `/root/.agent-gateway-token`)给;消费后删除 |
+| `AGENT_CC_HAIKU` / `AGENT_CC_SUBAGENT` | `zp-cc-glm53fh[1m]` | claude haiku 与子代理模型映射 |
+| `AGENT_CC_SONNET` / `AGENT_CC_OPUS` | `zp-cc-glm53[1m]` | claude sonnet 与 opus 模型映射 |
+| `AGENT_CX_MODEL` | `zp-cx-glm53` | codex 模型 |
+
+接线产物:claude 的 `/etc/claude-code/managed-settings.json` env、codex 的 `/etc/codex/models.json` 与三份 config(root/ubuntu/skel,0600);缺令牌重跑保留盘上已有网关配置。

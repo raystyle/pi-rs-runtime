@@ -1409,7 +1409,7 @@ install_cloud() {
     have tccli && tccli --version 2>&1 | head -1
 }
 
-# ---- agents(claude code + codex CLI:锁定版本 npm 全局;二进制在镜像,凭证走挂载不进 rootfs)----
+# ---- agents(claude code + codex CLI:锁定版本 npm 全局;网关接线随镜像,用户凭证不进 rootfs)----
 install_agents() {
     log "agent CLIs(claude code + codex;版本由 pins.sh 锁定 标量,经 npmmirror)"
     local cv="${CLAUDE_CODE_VERSION:?pins.sh 缺 CLAUDE_CODE_VERSION}" xv="${CODEX_VERSION:?pins.sh 缺 CODEX_VERSION}"
@@ -1419,15 +1419,78 @@ install_agents() {
         || { echo "!! agent CLIs 装失败(查 npmmirror 可达与锁定值)"; return 1; }
     ln -sfn /opt/node/bin/claude /usr/local/bin/claude
     ln -sfn /opt/node/bin/codex /usr/local/bin/codex
-    # 镜像内只放策略不放密钥:组织级 managed settings(用户文件压不过它)
+    # agent 网关(overcast):URL 与模型映射随脚本默认入库;令牌只经环境变量或令牌文件给,绝不进 git
+    local gw="${AGENT_GATEWAY_URL:-http://192.168.88.10:8317}"
+    local tok="${AGENT_GATEWAY_TOKEN:-}"
+    local tokfile="${AGENT_GATEWAY_TOKEN_PATH:-/root/.agent-gateway-token}"
+    if [ -z "$tok" ] && [ -r "$tokfile" ]; then tok="$(cat "$tokfile")"; fi
+    local cch="${AGENT_CC_HAIKU:-zp-cc-glm53fh[1m]}" ccs="${AGENT_CC_SONNET:-zp-cc-glm53[1m]}"
+    local cco="${AGENT_CC_OPUS:-zp-cc-glm53[1m]}" ccsb="${AGENT_CC_SUBAGENT:-zp-cc-glm53fh[1m]}" cxm="${AGENT_CX_MODEL:-zp-cx-glm53}"
     install -d /etc/claude-code
-    printf '{\n  "env": {\n    "DISABLE_UPDATES": "1",\n    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",\n    "DISABLE_TELEMETRY": "1"\n  }\n}\n' \
-        > /etc/claude-code/managed-settings.json
+    if [ -n "$gw" ] && [ -n "$tok" ]; then
+        # 组织级 managed settings:策略 + 网关 env,用户文件压不过(令牌随镜像,用量集中网关侧)
+        cat > /etc/claude-code/managed-settings.json <<MSEOF
+{
+  "env": {
+    "DISABLE_UPDATES": "1",
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+    "DISABLE_TELEMETRY": "1",
+    "ANTHROPIC_BASE_URL": "${gw}",
+    "ANTHROPIC_AUTH_TOKEN": "${tok}",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "${cch}",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "${ccs}",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "${cco}",
+    "CLAUDE_CODE_SUBAGENT_MODEL": "${ccsb}",
+    "API_TIMEOUT_MS": "3000000",
+    "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1000000",
+    "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "70"
+  }
+}
+MSEOF
+        # codex:共享模型目录一份 + config 三份(root/ubuntu/skel;0600,含网关令牌)
+        install -d /etc/codex
+        install -m644 "$HERE/data/codex-models.json" /etc/codex/models.json
+        local cxd
+        for cxd in /root/.codex /home/ubuntu/.codex /etc/skel/.codex; do
+            install -d "$cxd"
+            cat > "$cxd/config.toml" <<CXEOF
+model = "${cxm}"
+model_provider = "zai"
+model_catalog_json = "/etc/codex/models.json"
+model_reasoning_effort = "high"
+preferred_auth_method = "apikey"
+forced_login_method = "api"
+approval_policy = "never"
+sandbox_mode = "danger-full-access"
+
+[model_providers.zai]
+name = "zai-overcast"
+base_url = "${gw}/v1"
+experimental_bearer_token = "${tok}"
+wire_api = "responses"
+
+[tools.web_search]
+enabled = false
+CXEOF
+            chmod 600 "$cxd/config.toml"
+        done
+        chown -R 1000:1000 /home/ubuntu/.codex
+        rm -f "$tokfile"
+        echo "agent 网关已接线:${gw}(claude managed settings + codex 三份 config;令牌文件已消费删除)"
+    elif grep -q ANTHROPIC_BASE_URL /etc/claude-code/managed-settings.json 2>/dev/null; then
+        # 防回退:无令牌重跑不剥盘上已有网关配置
+        echo "网关令牌未提供;盘上 managed settings 已含网关配置,保留不覆盖"
+    else
+        # 无网关面:镜像内只放策略不放密钥(组织级 managed settings,用户文件压不过它)
+        printf '{\n  "env": {\n    "DISABLE_UPDATES": "1",\n    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",\n    "DISABLE_TELEMETRY": "1"\n  }\n}\n' \
+            > /etc/claude-code/managed-settings.json
+    fi
     claude --version || echo "!! claude 起不来"
     codex --version || echo "!! codex 起不来"
-    echo "凭证与配置不进镜像:宿主侧 incus disk device 挂 ~/.claude 与 ~/.codex(shift=true),"
-    echo "或实例环境变量注 CLAUDE_CODE_OAUTH_TOKEN/CODEX_API_KEY;见 docs/items/tools-agents/"
+    echo "网关口径:模型道经 overcast 网关,令牌随镜像配置,实例不挂用户凭证;个人配置仍可挂载覆盖,"
+    echo "CLAUDE_CODE_OAUTH_TOKEN/CODEX_API_KEY 环境变量旧道保留;见 docs/items/tools-agents/"
 }
+
 
 # ---- acp(标准 agent 接入通道:ACP 适配器锁定版本 + 监督进程 acpsup,S-0002/REQ-0002)----
 install_acp() {
@@ -1452,7 +1515,28 @@ install_acp() {
     bun build --compile --minify src/main.ts --outfile /usr/local/bin/acpsup
     cd /
     acpsup --selftest claude || echo "!! acpsup selftest(claude)未过——协议面证据缺失,查适配器 stderr"
-    echo "acpsup 平台面:127.0.0.1:7663,Bearer token 首启随机落 /var/lib/acpsup/token(打印一次);对宿主引出照 6080 口径(incus proxy + 不裸奔)"
+    cat > /etc/systemd/system/acpsup.service <<UNITEOF
+[Unit]
+Description=ACP supervisor (acpsup)
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/acpsup
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+UNITEOF
+    systemctl daemon-reload
+    systemctl enable acpsup
+    # 旧进程经 /shutdown 自停(信号策略下不依赖 kill),再起新编译的二进制
+    if systemctl is-active --quiet acpsup; then
+        curl -fsS -m 5 -X POST -H "Authorization: Bearer $(cat /var/lib/acpsup/token 2>/dev/null)" \
+            http://127.0.0.1:7663/shutdown >/dev/null 2>&1 || true
+        sleep 1
+    fi
+    systemctl start acpsup || echo "!! acpsup 服务起不来(手动查:systemctl status acpsup)"
+    echo "acpsup 平台面:127.0.0.1:7663,Bearer token 首启随机落 /var/lib/acpsup/token(打印一次);systemd 常驻;对宿主引出照 6080 口径(incus proxy + 不裸奔)"
 }
 
 # ---- rctl(核心 CLI:实例总控,agent 第一入口;仓内 TS + bun 编译)----

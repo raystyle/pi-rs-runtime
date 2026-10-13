@@ -44,7 +44,7 @@ SharpZipLib	cache	`install-libcache.sh dotnet`(前置 `install-runtimes.sh dotne
 System.DirectoryServices.Protocols	cache	`install-libcache.sh dotnet`(前置 `install-runtimes.sh dotnet`,dotnet-sdk-10.0)	缓存固化	LDAP/AD				docs/items/libcache/dotnet.md		编程环境
 aarch64-linux-gnu-g++-13	compiler	`install-compilers.sh c`	已烘焙	aarch64 交叉编译链(支持静态链接)		/usr/bin/aarch64-linux-gnu-g++-13		docs/items/compilers/c-toolchain.md		编程环境
 acp	tool	`install-tools.sh acp`	已装	实例标准 agent 接入通道:ACP v1 + stdio 适配器与监督进程 acpsup	CLAUDE_ACP_VERSION=0.89.1;CODEX_ACP_VERSION=2.2.2;解析日 2026-10-11	/opt/node/lib/node_modules/	支持。断网 selftest(initialize protocolVersion=1 + session/new 真 id,eth0 down 下同过)	docs/items/tools-acp/acp.md		工具环境
-acpsup	service	`install-tools.sh acp`	已烘焙	ACP 监督进程(平台面 127.0.0.1:7663)		/usr/local/bin/acpsup		docs/items/tools-acp/acp.md		工具环境
+acpsup	service	`install-tools.sh acp`	已烘焙	ACP 监督进程(平台面 127.0.0.1:7663;systemd 常驻,经 incus proxy 对外)		/usr/local/bin/acpsup		docs/items/tools-acp/acp.md		工具环境
 addcomputer.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/addcomputer.py		docs/items/analysis/impacket.md		工具环境
 aircrack-ng	tool	`install-tools.sh pentest`	已装	WiFi 口令破解套件(清单记录 1.7)				docs/items/tools-pentest/pentest.md		工具环境
 aliyun	tool	`install-tools.sh cloud`	已烘焙	阿里云 CLI		/usr/local/bin/aliyun		docs/items/tools-cloud/cloud.md		工具环境
@@ -110,14 +110,14 @@ checkMSSQLStatus.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协
 checksec	tool	`install-tools.sh analysis`	已装	二进制保护属性检查(NX/PIE/Canary/RELRO)		/usr/bin/checksec		docs/items/analysis/analysis.md		工具环境
 chisel	tool	`install-tools.sh go-security`	已装	HTTP/WebSocket 隧道				docs/items/tools-go-security/go-security.md		工具环境
 claude	tool	`install-tools.sh agents`	已烘焙	claude-code CLI 入口名		/usr/local/bin/claude		docs/items/tools-agents/claude-code.md		工具环境
-claude-code	tool	`install-tools.sh agents`	已装	Anthropic Claude Code CLI(agent 挂载面之一)	latest 道;解析日 2026-10-11	/opt/node/bin/claude	未验证。边界型,`--version`/`doctor` 不开会话	docs/items/tools-agents/claude-code.md		工具环境
+claude-code	tool	`install-tools.sh agents`	已装	Anthropic Claude Code CLI(agent 网关面;经 overcast 出模型,网关令牌随镜像)	latest 道;解析日 2026-10-11	/opt/node/bin/claude	未验证。边界型,`--version`/`doctor` 不开会话	docs/items/tools-agents/claude-code.md		工具环境
 clean-chrome	tool	`install-tools.sh chrome`	未装	定制 Chromium(云安全场景:`--auto-allow-devtools-connections`、bad-flags 黄条已剔除)	latest 道	/usr/local/bin/clean-chrome	支持。断网可起(本地二进制,无更新检查)	docs/items/tools-chrome/clean-chrome.md		工具环境
 cli	tool	`install-tools.sh cli`	已装	git/jq/yq/shellcheck/gh/just/tmux/rclone/aria2/fzf/bat 等命令行工具组	GO_PIN[github.com/mikefarah/yq/v4]=v4.54.1		未验证。本地件(jq/yq/shellcheck/just/tmux/fzf/bat/htop/ncdu/moreutils/vim、git 本地操作)不触网	docs/items/tools-cli/cli.md		工具环境
 clickhouse	runtime	`install-runtimes.sh clickhouse`	已装	列存分析引擎单二进制;本镜像只用 clickhouse local 直查本地文件	软件源锁定:发行版源冻结;解析日 2026-10-09	/usr/local/bin/clickhouse	未验证。`clickhouse local` 是嵌入式引擎直查本地文件,不触网	docs/items/runtimes/clickhouse.md		数据分析
 cloud	tool	`install-tools.sh cloud`	已装	云资产面 CLI:aliyun(阿里云)与 tccli(腾讯云)	TCCLI_VERSION=3.1.180.1;解析日 2026-10-11	/usr/local/bin/aliyun	支持。`aliyun version` 与 `tccli --version` 断网可用(本地读)	docs/items/tools-cloud/cloud.md		工具环境
 cloudlist	tool	`install-tools.sh discovery`	已装	多云资产枚举				docs/items/tools-discovery/discovery.md		工具环境
 cmake	tool	`install-tools.sh reverse`	已装	rz-ghidra 构建				docs/items/tools-reverse/reverse.md		逆向环境
-codex	tool	`install-tools.sh agents`	已装	OpenAI Codex CLI(agent 挂载面之一)	pins.sh 标量 `CODEX_VERSION`(当前 0.162.1,2026-10-11 解析;alpha 通道不锁定)	/opt/node/bin/codex	未验证。边界型,`--version`/`login status` 读本地	docs/items/tools-agents/codex.md		工具环境
+codex	tool	`install-tools.sh agents`	已装	OpenAI Codex CLI(agent 网关面;经 overcast 出模型,网关令牌随镜像)	pins.sh 标量 `CODEX_VERSION`(当前 0.162.1,2026-10-11 解析;alpha 通道不锁定)	/opt/node/bin/codex	未验证。边界型,`--version`/`login status` 读本地	docs/items/tools-agents/codex.md		工具环境
 coffee-ldr	tool	`install-tools.sh bof`	已装	未装上(构建失败留档)	CRATE_PIN[coffee-ldr]=0.2.2;解析日 2026-10-10	/opt/cargo/bin/coffee-ldr	件未装上,无运行期离线面;未验 [推断:] nightly 工具链本体随 rustup 固化离线可用	docs/items/tools-bof/bof.md		工具环境
 commix	tool	`install-tools.sh pentest`	已烘焙	OS 命令注入(仓 4.2.dev,python3 wrapper)		/usr/local/bin/commix		docs/items/tools-pentest/pentest.md		工具环境
 commix-src	ref	`install-tools.sh pentest`	已烘焙	commix 仓源		/opt/commix		docs/items/tools-pentest/pentest.md		工具环境
