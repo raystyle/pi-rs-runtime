@@ -6,7 +6,7 @@
 
 - `CLAUDE_ACP_VERSION`(当前 0.89.1);`CODEX_ACP_VERSION`(当前 2.2.2)。
 - 两值解析自 registry(解析日 2026-10-11);升级=对 registry 再解析改锁定值后重跑。
-- 监督进程:`scripts/acpsvc/`(Go,版本是源码常量,ldflags 注入,当前 0.1.0);TS 工程 `scripts/acp/` 为待删旧面(M3 前),回滚锚是镜像内 `/usr/local/bin/acpsup.tsbak`。
+- 监督进程:`scripts/acpsvc/`(Go,版本是源码常量,ldflags 注入,当前 0.1.0);TS 工程已删(M3,2026-10-13),源码留 git 历史,可执行回滚锚是镜像内 `/usr/local/bin/acpsup.tsbak`。
 
 ## 来源与安装
 

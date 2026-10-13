@@ -20,6 +20,7 @@ R7 rctl 关系:rctl 仍是 agent 用的发现 CLI,不做通道;acp 册进 catalo
 - T4 install-tools.sh acp 组:适配器 npm 三级兜底安装+bun 版本闸+编译+/usr/local/bin/acpsup+组内自动 selftest
 - T5 容器实证 2026-10-11:claude selftest PASS(initialize protocolVersion=1、真 sessionId、prompt 到鉴权层快失败属无凭证边界);codex 适配器 session/new 即要鉴权(实证边界入册);HTTP 面无 token 401/带 token 200 双 agent ready//shutdown 自停(端口关);断网(eth0 down)selftest 同过
 - T6 册 tools-acp/acp.md+catalog 再生成+计数 78
+- T7 承接(2026-10-13):平台口与 Client 由 REQ-0007 的 Go 工程 scripts/acpsvc 承接(M2 切流,M3 删 TS 工程);本单 R1-R7 语义在 Go 面原样保持并扩展(多密钥、SSE 断点、四模型)
 
 ## 验收判据
 

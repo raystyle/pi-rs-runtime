@@ -73,3 +73,9 @@
 - 测试模式语义补全:鉴权关时限流与每密钥上限一并旁路(全员共桶无意义),全局会话 8 保留;实证 #2-#8 过、#9 恰拒。
 - 外部验收(经 tailnet):三后端 session/prompt 全绿(pi 首次对外)、claude 四别名/codex 三别名矩阵 7/7、SSE 每事件 id 行+15s 心跳+零断流、bounce 清表后限额精确。
 - hx-web 接入单派 pi-server(fleet seq 55):三后端+模型别名+事件形+断点重连契约全文。
+
+## M2 验收残项与 M3 下线 TS
+
+- 残项全过:Go 版本面(acpsup --version 出 go 字样);日志 canary 双阴性(固定句与 Bearer 均不落 /var/log/acpsup/acpsup.log);keys.json 与日志 0600 root;ubuntu 视角容器内回环 health 200;eth0 down 下 Go selftest 过(initialize+session/new 本地,prompt 网络层失败=协议面证据)且回环 health 200,网络恢复 egress 复归。
+- M3 删 `scripts/acp/`(仓与实例),源码留 git 历史;`acpsup.tsbak`(90MB TS 本尊)留镜像内作可执行回滚锚,publish 批裁定去留;REQ-0002 补 T7 承接行,REQ-0007 转 implemented。
+- hx-web 接入:fleet(seq 55)之外按用户令 agents 直达 pi-web(pi-server w4:p1,cwd /home/ubuntu/repos/hx-web),已投递且目标开工处理。
