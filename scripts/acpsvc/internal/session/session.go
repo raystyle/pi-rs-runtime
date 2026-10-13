@@ -83,6 +83,9 @@ type Session struct {
 	promptsMu      sync.Mutex
 	promptInFlight bool
 
+	actMu   sync.Mutex
+	lastAct time.Time
+
 	permMu  sync.Mutex
 	perms   map[string]*Slot
 	permSeq int
@@ -93,7 +96,7 @@ type Session struct {
 // NewSession 建会话;广播环与会话同生命周期。
 func NewSession(id, agent, cwd, keyID string, ag *acpclient.Agent) *Session {
 	return &Session{
-		ID: id, Agent: agent, Cwd: cwd, KeyID: keyID, Ag: ag,
+		ID: id, Agent: agent, Cwd: cwd, KeyID: keyID, Ag: ag, lastAct: time.Now(),
 		ring:   NewRing(),
 		subs:   make(map[chan Event]struct{}),
 		perms:  make(map[string]*Slot),
@@ -101,8 +104,23 @@ func NewSession(id, agent, cwd, keyID string, ag *acpclient.Agent) *Session {
 	}
 }
 
+// touch 记最近活动(空闲逐出判据)。
+func (s *Session) touch() {
+	s.actMu.Lock()
+	s.lastAct = time.Now()
+	s.actMu.Unlock()
+}
+
+// Idle 判断会话是否空闲超时。
+func (s *Session) Idle(ttl time.Duration) bool {
+	s.actMu.Lock()
+	defer s.actMu.Unlock()
+	return time.Since(s.lastAct) > ttl
+}
+
 // Broadcast 入环并推订阅者;返回分配的事件 id。
 func (s *Session) Broadcast(env Envelope) uint64 {
+	s.touch()
 	s.ringMu.Lock()
 	ev := s.ring.Append(env)
 	s.ringMu.Unlock()
@@ -167,6 +185,7 @@ func (s *Session) TryPrompt() (release func(), ok bool) {
 		return nil, false
 	}
 	s.promptInFlight = true
+	s.touch()
 	var once sync.Once
 	return func() {
 		once.Do(func() {
@@ -242,6 +261,23 @@ func (t *Table) Remove(id string) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 	delete(t.byID, id)
+}
+
+// SweepIdle 逐出空闲超时会话(关适配器 stdin 自退,订阅面经 Done 通道收尾);返回逐出数。
+func (t *Table) SweepIdle(ttl time.Duration) int {
+	t.mu.Lock()
+	var out []*Session
+	for id, s := range t.byID {
+		if s.Idle(ttl) {
+			out = append(out, s)
+			delete(t.byID, id)
+		}
+	}
+	t.mu.Unlock()
+	for _, s := range out {
+		s.Close()
+	}
+	return len(out)
 }
 
 // Len 返回当前会话数。

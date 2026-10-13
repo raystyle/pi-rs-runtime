@@ -276,8 +276,22 @@ func (s *Server) Handler() http.Handler {
 	return mux
 }
 
-// ListenAndServe 起服务(仅回环)。
+// ListenAndServe 起服务(仅回环);内置空闲会话回收
+// (ACPSUP_SESSION_IDLE 分钟,默认 30;无 close 面时防调用方积累压满上限)。
 func (s *Server) ListenAndServe() error {
+	go func() {
+		ttl := 30 * time.Minute
+		if v := os.Getenv("ACPSUP_SESSION_IDLE"); v != "" {
+			if n, err := strconv.Atoi(v); err == nil && n > 0 {
+				ttl = time.Duration(n) * time.Minute
+			}
+		}
+		for range time.Tick(time.Minute) {
+			if n := s.table.SweepIdle(ttl); n > 0 && s.log != nil {
+				s.log.Info("session_sweep", "cat", "audit", "action", "session/sweep", "evicted", n)
+			}
+		}
+	}()
 	s.httpSrv = &http.Server{
 		Addr:              fmt.Sprintf("127.0.0.1:%d", s.cfg.Port),
 		Handler:           s.Handler(),

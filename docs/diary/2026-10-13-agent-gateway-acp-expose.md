@@ -84,3 +84,8 @@
 
 - pi-web 回执:bin/acpsup-bridge.mjs(stdio ACP→REST+SSE 桥,after= 断点重连,权限卡请求化)三后端全切,本地承重面撤;pi 后端桥冒烟 end_turn。
 - 我侧响应:会话上限环境变量化(ACPSUP_SESSION_MAX,默认 8,unit 测试期注 16)并换档清表(16 空位);警示桥侧勿碰 /shutdown(测试模式全员 admin,干净退出不回拉);ACSUP_KEY 命名无冲突确认;终验由 pi-web 跑。
+
+## codex 间歇 web_search 移交与空闲回收
+
+- pi-web 移交自查复现并定性:①裸 codex session/new 400 = 我方换档窗口碰撞(npm 重装适配器+弹服务,窗口内 spawn 短暂失败),事后实证净;②间歇 web_search 错:实例内 CLI 直连复现 50%(zp-cx-glm53 3/6 错、显式 -c tools.web_search.enabled=false 仍 3/6、ds-cx-pro 4/4 净)——web_search 非发自 codex,是网关 zp-cx 路由/池侧注入,带 request id 移交 pi-web;③500/悬空归其网关双实例期,已切单实例。
+- 无 close 面压力实发(双方联测 16 槽打满):会话空闲自动回收上线(ACPSUP_SESSION_IDLE,默认 30 分钟,审计记 session/sweep)。
