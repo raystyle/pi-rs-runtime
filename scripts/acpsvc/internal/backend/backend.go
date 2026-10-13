@@ -26,7 +26,8 @@ const (
 type Def struct {
 	Name     string
 	Kind     Kind
-	Argv     []string // native:完整 argv;adapter:由 Bin 解析后拼 node <入口>
+	Pkg      string   // adapter:npm 包名(bin 从其 package.json 解析)
+	Argv     []string // native:完整 argv;adapter:由 Resolve 拼出
 	Env      []string // KEY=VALUE,逐条注入子进程
 	FS       bool     // initialize 的 clientCapabilities.fs
 	Terminal bool     // initialize 的 clientCapabilities.terminal
@@ -35,10 +36,22 @@ type Def struct {
 // Registry 返回三行,顺序即 /health 的 agents 顺序;pi 的就绪是运行期判定。
 func Registry() []Def {
 	return []Def{
-		{Name: "claude", Kind: KindAdapter, Env: []string{"DISABLE_UPDATES=1"}, FS: true, Terminal: true},
-		{Name: "codex", Kind: KindAdapter, Env: []string{"CODEX_PATH=/usr/local/bin/codex", "NO_BROWSER=1"}, FS: true, Terminal: true},
+		{Name: "claude", Kind: KindAdapter, Pkg: "claude-agent-acp", Env: []string{"DISABLE_UPDATES=1"}, FS: true, Terminal: true},
+		{Name: "codex", Kind: KindAdapter, Pkg: "codex-acp", Env: []string{"CODEX_PATH=/usr/local/bin/codex", "NO_BROWSER=1"}, FS: true, Terminal: true},
 		{Name: "pi", Kind: KindNative, Argv: []string{"/usr/local/bin/pi-rs", "--mode", "acp"}, FS: false, Terminal: false},
 	}
+}
+
+// Resolve 拼出子进程 argv:adapter 是 node + 包 bin 入口,native 原样返回。
+func (d Def) Resolve() ([]string, error) {
+	if d.Kind == KindNative {
+		return d.Argv, nil
+	}
+	bin, err := BinFromPackageJSON(AdapterRoot(d.Pkg), d.Pkg)
+	if err != nil {
+		return nil, err
+	}
+	return append([]string{"node"}, bin), nil
 }
 
 // Find 按对外名取一行。
