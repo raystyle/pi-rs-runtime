@@ -28,6 +28,9 @@ go_latest() { # go_latest <module/path> → vX.Y.Z 或 40 位 sha
         if [ -n "$v" ]; then printf '%s' "$v"; return; fi
         sleep 1
     done
+    # @latest 缓存缺席的模块(gobuster/v3 实证 404 而 @v/list 活):列表取最大干净版本
+    v="$(curl -fsSL -m 12 "$GOPROXY_API/$esc/@v/list" 2>/dev/null | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1 || true)"
+    if [ -n "$v" ]; then printf '%s' "$v"; return; fi
     case "$esc" in
         golang.org/x/tools/gopls) git_latest_tag golang/tools "gopls/" ;;
         github.com/go-gost/gost*)
@@ -170,6 +173,8 @@ GO_SPECS=(
     github.com/sensepost/gowitness github.com/bloodhoundad/azurehound/v2
     github.com/praetorian-inc/nerva/cmd/nerva github.com/praetorian-inc/brutus/cmd/brutus
     github.com/praetorian-inc/aurelian
+    # acpsvc(REQ-0007 M1 依赖:日志轮转与限流)
+    gopkg.in/natefinch/lumberjack.v2 golang.org/x/time
 )
 # spec → 模块路径(截到版本目录或仓名):/@latest 要模块路径不要包路径
 go_mod_of() {
