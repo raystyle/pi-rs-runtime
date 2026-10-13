@@ -1,33 +1,35 @@
 # acp:ACP 通道
 
-> 实例标准 agent 接入通道:ACP v1 + stdio 适配器与监督进程 acpsup ｜ 状态:已装(agent 推理经网关;平台面 systemd 常驻,经 incus proxy 对外) ｜ 组:`install-tools.sh acp`
+> 实例标准 agent 接入通道:ACP v1 + stdio 与平台 HTTP 监督进程 acpsup(Go 承接在役) ｜ 状态:已装(三后端 claude/codex/pi;推理经网关) ｜ 组:`install-tools.sh acp`
 
 ## 版本
 
 - `CLAUDE_ACP_VERSION`(当前 0.89.1);`CODEX_ACP_VERSION`(当前 2.2.2)。
 - 两值解析自 registry(解析日 2026-10-11);升级=对 registry 再解析改锁定值后重跑。
-- 监督进程仓内 `scripts/acp/`(package.json 0.1.0);bun 编译期锁定 `BUN_VERSION`。
+- 监督进程:`scripts/acpsvc/`(Go,版本是源码常量,ldflags 注入,当前 0.1.0);TS 工程 `scripts/acp/` 为待删旧面(M3 前),回滚锚是镜像内 `/usr/local/bin/acpsup.tsbak`。
 
 ## 来源与安装
 
 - 适配器:npm `@agentclientprotocol/claude-agent-acp@<版本>` 与 `@agentclientprotocol/codex-acp@<版本>`,经 npmmirror(npmjs 三级兜底);构建期在线面。
-- 监督进程:acpsup 由 bun `--compile` 产 `/usr/local/bin/acpsup`。
-- 脚本:`scripts/install-tools.sh` 的 `install_acp`;旧进程先经 `/shutdown` 自停,再自动跑 `acpsup --selftest claude`,随后写 systemd unit 并起服务。
-- Go 承接工程 `scripts/acpsvc/`(承接方案在研究档案,需求单在 docs/req):M0 已建库,`install_acp` 末段跑 `go test ./...` 作组门禁;不产二进制不起第二单元,M2 切流前面板与 7663 全由 TS 服务。
+- 监督进程:`scripts/acpsvc` 由 `install_acp` 编到 `/usr/local/bin/acpsup`(同名同 unit 同端口)。
+- 脚本:`scripts/install-tools.sh` 的 `install_acp`,M2 切流序:Go 编到临时件 → 7664 完即退自检闸(不过则 7663 不动)→ 旧进程 `/shutdown` 自停并等单元彻底退出(容器内信号不可投,不能 restart)→ 首次换档备份 `acpsup.tsbak`(只认第一次,保 TS 回滚锚)→ 顶同名 → 起服务 → health 三后端验收,败态回滚 tsbak。
 
 ## 文件
 
 | 路径 | 内容 |
 | --- | --- |
 | /opt/node/lib/node_modules/@agentclientprotocol/ | 适配器;入口从各包 bin 解析,对布局稳 |
-| /usr/local/bin/acpsup | 监督进程 |
+| /usr/local/bin/acpsup | 监督进程(Go 二进制) |
+| /usr/local/bin/acpsup.tsbak | 切流前的 TS 本尊,回滚锚 |
+| /var/lib/acpsup/keys.json | 多密钥表(SHA-256 哈希落盘,0600);首启含 legacy 导入与 admin 一把 |
+| /var/log/acpsup/acpsup.log | 审计与访问日志(slog JSON,lumberjack 轮转;恒不含 prompt 正文与令牌) |
 | /etc/systemd/system/acpsup.service | 常驻 unit;`Restart=on-failure`;实例重启自起 |
 | /var/lib/acpsup/token | 平台 token;首启随机,权限 0600,打印一次,不进镜像 |
 | 127.0.0.1:7663 | 平台 HTTP 面;仅回环,对外经 incus proxy 引出 |
 
 ## 配置
 
-- 无配置文件。
+- 无配置文件;密钥面是 `keys.json`(管理口 `POST /keys` {label,role} 发新钥、`GET /keys` 列表、`POST /keys/{id}/revoke` 吊销;admin 全路由,caller 业务路由,`/shutdown` 与 keys 族对 caller 回 403)。
 - agent 环境:claude 适配器 `DISABLE_UPDATES=1`;codex 适配器 `CODEX_PATH=/usr/local/bin/codex`(指镜像内锁定版本,禁用适配器自带)加 `NO_BROWSER=1`;模型道沿 agents 批的网关接线(见 claude-code 与 codex 册),acpsup 不经手凭证。
 - 对外引出(宿主执行):`incus config device add <实例> acp proxy listen=tcp:10.10.10.13:7663 connect=tcp:127.0.0.1:7663`;listen 绑宿主 tailnet 地址(tailscale0),只对 tailnet 开,LAN 面不开;全端点先过 Bearer(无 token 401),不裸奔;要放开别的面改 listen。
 - token 自取:`incus exec <实例> -- cat /var/lib/acpsup/token`;调用示例:`curl -H "Authorization: Bearer <token>" http://<宿主>:7663/health`。
@@ -42,11 +44,13 @@
 
 ## 限制
 
-- 信号策略:容器内 kill 族 EACCES;监督进程的停止走 `/shutdown` 自终止(干净退出,unit 不再拉起,重启实例才回);长时间命令由进程自己退出。
+- 信号策略:容器内 kill 族 EACCES;监督进程的停止走 `/shutdown` 自终止(干净退出,unit 不再拉起);切流/换档等单元退出回收有竞态窗,安装脚本带 inactive 等待闸。
+- `GET /events` 每事件带 `id:` 行,断线重连带 `Last-Event-ID` 头或 `after=` 参数断点重放;事件滑出环(2000 条)从最旧重放;15 秒 `: ping` 心跳。
 - 权限确认在 120 秒内没有应答则取消,不提供「始终允许」;平台请求没有 token 时响应 401;监督进程由 `/shutdown` 或 `--selftest` 结束。
-- codex-acp 的 session/new 要凭证;网关接线后 session/new 与 prompt 全通(2026-10-13 实例内自检与宿主外部回环双过);无网关令牌时,回到只完成 initialize 的边界。
+- codex-acp 的 session/new 要凭证;网关接线后全通(2026-10-13 双视角回环过)。
+- 会话全局上限 8 活,无 close 面(MVP 边界):调用方复用会话,服务重启清表;同会话并发第二个 prompt 回 409。
 - proxy 设备属实例配置,不进镜像;新实例按配置节命令一条复现。
-- 测试模式(unit 注 `ACPSUP_AUTH_OFF=1`,2026-10-13 起):任意请求放行,身份记 test/admin;回收时删该环境变量重启即回默认拒绝。
+- 测试模式(unit 注 `ACPSUP_AUTH_OFF=1`,2026-10-13 起):任意请求放行,身份记 test/admin;限流与每密钥会话上限随鉴权一起旁路(全员共桶无意义),全局会话上限 8 仍护机;回收时删该环境变量重启即回默认拒绝。
 
 ## 参见
 

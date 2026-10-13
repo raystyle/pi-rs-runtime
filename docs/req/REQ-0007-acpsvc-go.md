@@ -1,6 +1,6 @@
 # REQ-0007 acpsvc:独立 Go 工程承接 acpsup
 
-> 状态:draft(M0 已落) ｜ 提出:2026-10-13 ｜ 设计研究:[S-0003](../research/S-0003-acpsvc-go.md)(acpex-01,grok 出案,回执 49 过/1 撤/6 缺) ｜ 前置:REQ-0002(保持 implemented 至 M2 切流,平台口与 Client 由本单承接)
+> 状态:draft(M0-M2 已落,M3 待) ｜ 提出:2026-10-13 ｜ 设计研究:[S-0003](../research/S-0003-acpsvc-go.md)(acpex-01,grok 出案,回执 49 过/1 撤/6 缺) ｜ 前置:REQ-0002(保持 implemented 至 M2 切流,平台口与 Client 由本单承接)
 
 ## 需求
 
@@ -22,7 +22,7 @@ R12 进程随镜像常驻:`install_acp` 写单元并 enable,只绑 `127.0.0.1:76
 - T1 REQ 立单(2026-10-13)
 - T2 M0 建库(2026-10-13):`go.mod`(go 1.27.1,零第三方依赖)+ `cmd/acpsup`(参数面与版本,M0 不启服务)+ `internal/` 六包(backend 注册表与 pi 就绪探针、acpclient 分帧、session 事件环断点重放、platform 密钥模型、logx slog 面、fsimpl 绝对路径);`install_acp` 尾段增 Go 段跑 `go test ./...` 作组门禁;7663 仍由 TS acpsup 服务,面板零改动;实例内 go test 全绿
 - T3 M1 移植并自证(2026-10-13):依赖锁定落(lumberjack v2.2.1、x/time v0.16.0 进 resolve-pins 与 go.mod/go.sum);六包全量移植——acpclient 子进程客户端(请求/通知/服务端请求分派/超时/有界 Close)、session 会话表+每密钥限+事件环断点重放+权限槽 120 秒、platform HTTP 全端点(多密钥双角色、legacy 导入、短请求桶 429、并发 prompt 409、SSE id+Last-Event-ID+15s 心跳、会话级 model 参数)、fsimpl terminal 族、logx lumberjack 文件面;实例内 go test 六包绿;install_acp 增 M1 段(acpsup-go 构建 + 7664 完即退 selftest 门禁,实跑 protocolVersion=1+真 sessionId+end_turn 过网关);7663 仍由 TS acpsup 服务,不产第二常驻单元
-- T4 M2 切流(待做):七步切换序 + 回滚闸
+- T4 M2 切流(2026-10-13):七步切换序进 install_acp(7664 自检闸→/shutdown 自停→tsbak 只认首次→顶同名→inactive 等待闸→起服务→health 三后端验收,败态回滚);测试模式限流与每密钥上限随鉴权旁路(全局 8 保留);429 桶测试改确定性道;实切两次(幂等重跑过),外部验证:三后端 session/prompt 全绿(含 pi 首次对外)、四模型矩阵 7/7、SSE 每事件 id+15s 心跳零断、限额全局 8 精确触发;切流竞态(start 撞未回收单元致旧进程滞留)由 inactive 等待闸根治并实证
 - T5 M3 下线 TS(待做):删除条件三项满足后删 `scripts/acp/`
 - T6 册面与契约同步(M2 时点):acp 册、resources.json、catalog 再生
 

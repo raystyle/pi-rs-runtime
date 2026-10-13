@@ -1507,19 +1507,30 @@ install_acp() {
             "@agentclientprotocol/codex-acp@${xav}" \
         || echo "!! codex-acp 装失败"
     # CODEX_PATH 由 acpsup 运行时注入(指镜像内锁定版本 codex,禁用适配器自带)
-    # 监督进程:bun 编译(rctl 同栈;bun 版本闸同 ctl 组口径)
-    local bv; bv="$(bun --version 2>/dev/null || true)"
-    [ "$bv" = "${BUN_VERSION:?}" ] || { echo "!! bun ${bv:-缺} != 锁定版本 ${BUN_VERSION};先跑 install-runtimes.sh bun"; return 1; }
-    cd /root/scripts/acp
-    bun build --compile --minify src/main.ts --outfile /usr/local/bin/acpsup
-    cd /
-    # 旧进程先经 /shutdown 自停(信号策略下不依赖 kill),再 selftest(免与常驻单元抢 7663),最后起新二进制
+    # M2 切流序(S-0003 第 1 节七步,REQ-0007 R4):Go 编到临时件 → 7664 自检闸(不过则 7663 不动)→
+    # 旧进程 /shutdown 自停 → 备 tsbak(只认第一次,保 TS 回滚锚)→ 顶同名二进制 → 起服务 →
+    # HTTP 验收三后端,败态回滚 tsbak 再起(unit 段之后)
+    export PATH="$PATH:/usr/local/go/bin:/opt/go/bin"
+    command -v go >/dev/null 2>&1 || { echo "!! go 缺席;先跑 install-compilers.sh golang"; return 1; }
+    (cd /root/scripts/acpsvc && go test ./...) || { echo "!! acpsvc go test 未过"; return 1; }
+    local newbin=/usr/local/bin/acpsup.new
+    (cd /root/scripts/acpsvc && go build -trimpath -ldflags "-s -w -X main.version=0.1.0" \
+        -o "$newbin" ./cmd/acpsup) || { echo "!! acpsvc 构建失败"; rm -f "$newbin"; return 1; }
+    "$newbin" --port 7664 --selftest claude \
+        || { echo "!! 新二进制 7664 自检未过,7663 不动(仍由旧 acpsup 服务)"; rm -f "$newbin"; return 1; }
+    # 旧进程自停(信号策略下不依赖 kill;TS 与旧 Go 同道)
     if systemctl is-active --quiet acpsup; then
         curl -fsS -m 5 -X POST -H "Authorization: Bearer $(cat /var/lib/acpsup/token 2>/dev/null)" \
             http://127.0.0.1:7663/shutdown >/dev/null 2>&1 || true
         sleep 1
     fi
-    acpsup --selftest claude || echo "!! acpsup selftest(claude)未过——协议面证据缺失,查适配器 stderr"
+    # 备份只认第一次(TS 本尊);Go 自更新不覆盖 tsbak,保真回滚锚
+    if [ -x /usr/local/bin/acpsup ] && [ ! -f /usr/local/bin/acpsup.tsbak ]; then
+        mv /usr/local/bin/acpsup /usr/local/bin/acpsup.tsbak
+    else
+        rm -f /usr/local/bin/acpsup
+    fi
+    install -m 755 "$newbin" /usr/local/bin/acpsup && rm -f "$newbin" /usr/local/bin/acpsup-go
     cat > /etc/systemd/system/acpsup.service <<UNITEOF
 [Unit]
 Description=ACP supervisor (acpsup)
@@ -1535,18 +1546,25 @@ WantedBy=multi-user.target
 UNITEOF
     systemctl daemon-reload
     systemctl enable acpsup
+    # 旧进程退出回收与 start 之间有竞态窗(start 在 unit 仍 active 时是 no-op,滞留旧二进制):
+    # 等单元彻底 inactive 再 start(容器内信号 EPERM,不能 restart/stop,只能等自退)
+    for _ in 1 2 3 4 5 6 7 8 9 10; do systemctl is-active --quiet acpsup || break; sleep 0.5; done
     systemctl start acpsup || echo "!! acpsup 服务起不来(手动查:systemctl status acpsup)"
-    echo "acpsup 平台面:127.0.0.1:7663,Bearer token 首启随机落 /var/lib/acpsup/token(打印一次);systemd 常驻;对宿主引出照 6080 口径(incus proxy + 不裸奔)"
-    # Go 承接工程 M0(REQ-0007/S-0003):建库面只跑 go test;不产二进制不起第二单元,7663 仍由上面的 TS 面服务
-    export PATH="$PATH:/usr/local/go/bin:/opt/go/bin"
-    command -v go >/dev/null 2>&1 || { echo "!! go 缺席;先跑 install-compilers.sh golang"; return 1; }
-    (cd /root/scripts/acpsvc && go test ./...) || { echo "!! acpsvc go test 未过(M0 门禁)"; return 1; }
-    # M1:编 acpsup-go 并 7664 完即退自检;不替换 7663 的 TS 面,不起第二单元(REQ-0007 R3)
-    (cd /root/scripts/acpsvc && go build -trimpath -ldflags "-s -w -X main.version=0.1.0" \
-        -o /usr/local/bin/acpsup-go ./cmd/acpsup) || { echo "!! acpsvc 构建失败(M1)"; return 1; }
-    /usr/local/bin/acpsup-go --port 7664 --selftest claude \
-        || { echo "!! acpsup-go 7664 自检未过(M1 门禁)"; return 1; }
-    echo "acpsvc M0+M1:go test 绿;acpsup-go 7664 自检过(不占 7663,TS 面继续服务)"
+    # HTTP 验收:health 三后端面;败态回滚 tsbak(测试模式期任意 token 亦通,token 道双兼容)
+    sleep 1
+    local health
+    health="$(curl -fsS -m 8 -H "Authorization: Bearer $(cat /var/lib/acpsup/token 2>/dev/null)" \
+        http://127.0.0.1:7663/health 2>/dev/null || true)"
+    if printf '%s' "$health" | grep -q '"ok":true' && printf '%s' "$health" | grep -q '"name":"pi"'; then
+        echo "M2 切流过:7663 由 Go acpsup 服务;三后端:$(printf '%s' "$health" | grep -o '"name":"[a-z]*"' | cut -d'"' -f4 | tr '\n' ' ')"
+    else
+        echo "!! 7663 验收失败(health: ${health:-空}),回滚 tsbak"
+        rm -f /usr/local/bin/acpsup
+        if [ -f /usr/local/bin/acpsup.tsbak ]; then mv /usr/local/bin/acpsup.tsbak /usr/local/bin/acpsup; fi
+        systemctl start acpsup || true
+        return 1
+    fi
+    echo "acpsup 平台面(Go 承接):127.0.0.1:7663;密钥 /var/lib/acpsup/keys.json + 旧 token 导入 legacy;systemd 常驻;对宿主引出照 6080 口径(incus proxy + 不裸奔);回滚锚 /usr/local/bin/acpsup.tsbak"
 }
 
 # ---- rctl(核心 CLI:实例总控,agent 第一入口;仓内 TS + bun 编译)----

@@ -44,7 +44,7 @@ SharpZipLib	cache	`install-libcache.sh dotnet`(前置 `install-runtimes.sh dotne
 System.DirectoryServices.Protocols	cache	`install-libcache.sh dotnet`(前置 `install-runtimes.sh dotnet`,dotnet-sdk-10.0)	缓存固化	LDAP/AD				docs/items/libcache/dotnet.md		编程环境
 aarch64-linux-gnu-g++-13	compiler	`install-compilers.sh c`	已烘焙	aarch64 交叉编译链(支持静态链接)		/usr/bin/aarch64-linux-gnu-g++-13		docs/items/compilers/c-toolchain.md		编程环境
 acp	tool	`install-tools.sh acp`	已装	实例标准 agent 接入通道:ACP v1 + stdio 适配器与监督进程 acpsup	CLAUDE_ACP_VERSION=0.89.1;CODEX_ACP_VERSION=2.2.2;解析日 2026-10-11	/opt/node/lib/node_modules/	支持。断网 selftest(initialize protocolVersion=1 + session/new 真 id,eth0 down 下同过)	docs/items/tools-acp/acp.md		工具环境
-acpsup	service	`install-tools.sh acp`	已烘焙	ACP 监督进程(平台面 127.0.0.1:7663;systemd 常驻,经 incus proxy 对外)		/usr/local/bin/acpsup		docs/items/tools-acp/acp.md		工具环境
+acpsup	service	`install-tools.sh acp`	已烘焙	ACP 监督进程(Go 承接在役;7663 三后端 claude/codex/pi,systemd 常驻,incus proxy 对外)	go 常量 0.1.0(ldflags 注入)	/usr/local/bin/acpsup		docs/items/tools-acp/acp.md		工具环境
 addcomputer.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/addcomputer.py		docs/items/analysis/impacket.md		工具环境
 aircrack-ng	tool	`install-tools.sh pentest`	已装	WiFi 口令破解套件(清单记录 1.7)				docs/items/tools-pentest/pentest.md		工具环境
 aliyun	tool	`install-tools.sh cloud`	已烘焙	阿里云 CLI		/usr/local/bin/aliyun		docs/items/tools-cloud/cloud.md		工具环境

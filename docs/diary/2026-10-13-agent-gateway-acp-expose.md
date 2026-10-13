@@ -65,3 +65,11 @@
 - 同批模型面(pi-rs-core 5b63ec3):pi 默认模型面 = overcast 网关四模型(默认 ds-cx-flash),凭证任意非空即过;走官方 API 设 PI_GATEWAY_BASE_URL=off。
 - 总台对接验证:pi-rs-core 仓根 npm run build 产 bundle(72 件 9.2MB);临时道装进实例(/opt/pi-rs/bundle + /usr/local/bin/pi-rs wrapper 指 /opt/node/bin/node);`pi-rs --help` 列 acp;backend pi 行注 DEEPSEEK_API_KEY=overcast;`acpsup-go --port 7664 --selftest pi` 出 protocolVersion=1(222ms)+真 sessionId+prompt end_turn;Go 面起 7665 验 /health 三后端 ready 全 true、/shutdown 干净退出。
 - 待 M2 批:pi-rs 安装件进镜像(pi-rs-core 发布锁定版本,替临时道)、七步切流后 pi 上 7663 公共面。
+
+## M2 切流(Go 承接在役)
+
+- install_acp 重写为七步切流序:Go 编临时件→7664 完即退自检闸(不过 7663 不动)→旧进程 /shutdown 自停→tsbak 只认首次(TS 本尊回滚锚,Go 自更新不覆盖)→顶同名→起服务→health 三后端验收,败态回滚 tsbak;TS 构建段(bun build)移除。
+- 两坑收编:①44 桶测试 flake(靠跑速,慢机补币漏检)改确定性道(直耗桶再 HTTP 断言 429);②切流竞态——/shutdown 后旧单元未及回收时 systemctl start 是 no-op,旧进程滞留表观为「新二进制限流不生效」(7666/7667 同盘二进制对照实证 + 弹起即愈),加 inactive 等待闸(循环等单元退净再 start)根治。
+- 测试模式语义补全:鉴权关时限流与每密钥上限一并旁路(全员共桶无意义),全局会话 8 保留;实证 #2-#8 过、#9 恰拒。
+- 外部验收(经 tailnet):三后端 session/prompt 全绿(pi 首次对外)、claude 四别名/codex 三别名矩阵 7/7、SSE 每事件 id 行+15s 心跳+零断流、bounce 清表后限额精确。
+- hx-web 接入单派 pi-server(fleet seq 55):三后端+模型别名+事件形+断点重连契约全文。

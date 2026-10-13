@@ -160,17 +160,19 @@ func extractToken(t *testing.T, body []byte) string {
 
 func TestRateLimit(t *testing.T) {
 	s, tok := newTestServer(t)
-	h := s.Handler()
-	saw429 := false
-	for i := 0; i < shortRouteBurst+5; i++ {
-		resp, _ := doJSON(t, h, "GET", "/health", tok, nil)
-		if resp.StatusCode == 429 {
-			saw429 = true
-			break
+	// 确定性道:先直接耗尽该密钥的桶(不依赖调用速度),再走 HTTP 断言 429
+	l := s.limiter("legacy")
+	for i := 0; i < shortRouteBurst; i++ {
+		if !l.Allow() {
+			t.Fatalf("桶内第 %d 次应放行", i+1)
 		}
 	}
-	if !saw429 {
-		t.Fatal("短请求桶超速应出 429")
+	if l.Allow() {
+		t.Fatal("超桶应拒")
+	}
+	resp, _ := doJSON(t, s.Handler(), "GET", "/health", tok, nil)
+	if resp.StatusCode != 429 {
+		t.Fatalf("桶尽后 health = %d, want 429", resp.StatusCode)
 	}
 }
 

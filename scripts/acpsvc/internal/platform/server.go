@@ -74,10 +74,14 @@ func New(cfg Config) *Server {
 	if cfg.DataDir == "" {
 		cfg.DataDir = "/var/lib/acpsup"
 	}
+	perKeyMax := 4
+	if testAuthOff {
+		perKeyMax = 0
+	}
 	return &Server{
 		cfg:      cfg,
 		log:      cfg.Log,
-		table:    session.NewTable(8, 4),
+		table:    session.NewTable(8, perKeyMax),
 		terms:    fsimpl.NewTerminals(),
 		reg:      backend.Registry(),
 		limiters: make(map[string]*rate.Limiter),
@@ -200,7 +204,8 @@ func (s *Server) auth(next http.HandlerFunc, adminOnly bool, shortRoute bool) ht
 				return
 			}
 		}
-		if shortRoute && !s.limiter(keyID).Allow() {
+		// 测试模式身份无意义(全员同一桶),限流随鉴权一起关;全局会话上限仍护机
+		if shortRoute && !testAuthOff && !s.limiter(keyID).Allow() {
 			w.Header().Set("Retry-After", "5")
 			jsonWrite(w, 429, map[string]any{"error": "rate_limited"})
 			return
