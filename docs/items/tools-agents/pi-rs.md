@@ -11,7 +11,7 @@
 
 - 发行件:`pi-rs-dist-<版本>-x86_64-unknown-linux-gnu.tar.gz`(pi-rs-core Releases;含 dist 全 bundle、acp-entry、vendor blob、rust-scripts)。
 - 下载道三链:GITHUB_MIRROR 前置 → GitHub 直连 → 宿主预推 `/root/<件名>`(前两道不可达时,构建机 `gh release download` 后推入);sha256 校验不过即失败。
-- 解包到 `/opt/pi-rs`,入口 wrapper `/usr/local/bin/pi-rs`(exec `/opt/node/bin/node /opt/pi-rs/dist/bundle/cli.js`);`--help` 列 acp 是安装闸;脚本:`install-tools.sh` 的 `install_pi_rs`(agents 组尾部)。
+- 解包到 `/opt/pi-rs`(整包解:顶层 `package.json` 是版本 walk-up 命中点,bundle 运行时读它解析版本——只抽 dist/bundle 子树会回退 0.0.0,旧临时道的病根),入口 wrapper `/usr/local/bin/pi-rs`(exec `/opt/node/bin/node /opt/pi-rs/dist/bundle/cli.js`);`--help` 列 acp 是安装闸;脚本:`install-tools.sh` 的 `install_pi_rs`(agents 组尾部)。
 - 本仓不编译 pi-rs。
 
 ## 文件
