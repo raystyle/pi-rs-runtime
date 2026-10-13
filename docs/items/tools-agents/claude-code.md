@@ -19,7 +19,7 @@
 ## 配置
 
 - 网关部署已进镜像:managed settings 的 env 带 `ANTHROPIC_BASE_URL`(overcast 网关)、`ANTHROPIC_AUTH_TOKEN`(网关令牌)、模型映射(haiku 与子代理是 `zp-cc-glm53fh[1m]`,sonnet 与 opus 是 `zp-cc-glm53[1m]`)、`API_TIMEOUT_MS=3000000` 与自动压缩参数;它的优先级高于用户 token;实例不挂用户 OAuth;用量集中在网关侧。
-- 网关 URL 与模型映射经环境变量覆盖(`AGENT_GATEWAY_URL`、`AGENT_CC_*`);令牌经 `AGENT_GATEWAY_TOKEN` 或令牌文件(默认 `/root/.agent-gateway-token`)给,消费后删除,不进仓库;缺令牌重跑时,盘上已有网关配置保留不覆盖。
+- 网关 URL 与模型映射经环境变量覆盖(`AGENT_GATEWAY_URL`、`AGENT_CC_*`);令牌经 `AGENT_GATEWAY_TOKEN` 或令牌文件(默认 `/root/.agent-gateway-token`)给,消费后删除,不进仓库;网关关鉴权期统一用占位串 `overcast`(2026-10-13 起),鉴权重开时换真令牌重跑即可;缺令牌重跑时,盘上已有网关配置保留不覆盖。
 - 个人凭证面:无头登录在有浏览器的机器执行 `claude setup-token`,再注入长效 token;`CLAUDE_CODE_OAUTH_TOKEN` 环境变量旧道保留;root 与 ubuntu 共用挂载时,设 `CLAUDE_CONFIG_DIR=/home/ubuntu/.claude`;挂载个人 `~/.claude` 覆盖用户层,压不过组织级策略。
 
 ## 离线行为

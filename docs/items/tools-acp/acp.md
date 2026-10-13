@@ -31,7 +31,9 @@
 - agent 环境:claude 适配器 `DISABLE_UPDATES=1`;codex 适配器 `CODEX_PATH=/usr/local/bin/codex`(指镜像内锁定版本,禁用适配器自带)加 `NO_BROWSER=1`;模型道沿 agents 批的网关接线(见 claude-code 与 codex 册),acpsup 不经手凭证。
 - 对外引出(宿主执行):`incus config device add <实例> acp proxy listen=tcp:10.10.10.13:7663 connect=tcp:127.0.0.1:7663`;listen 绑宿主 tailnet 地址(tailscale0),只对 tailnet 开,LAN 面不开;全端点先过 Bearer(无 token 401),不裸奔;要放开别的面改 listen。
 - token 自取:`incus exec <实例> -- cat /var/lib/acpsup/token`;调用示例:`curl -H "Authorization: Bearer <token>" http://<宿主>:7663/health`。
-- 端点面:`GET /health`;`POST /session/new` {agent,cwd};`POST /session/prompt` {sessionId,text};`POST /session/cancel`;`GET /events?sessionId=`(SSE,先回放后订阅);`POST /permission` {requestId,optionId};`POST /shutdown`。
+- 端点面:`GET /health`;`POST /session/new` {agent,cwd,model?};`POST /session/prompt` {sessionId,text};`POST /session/cancel`;`GET /events?sessionId=`(SSE,先回放后订阅,15 秒心跳注释保活,防网关层空闲断流);`POST /permission` {requestId,optionId};`POST /shutdown`。
+- 模型选择(四模型面):`session/new` 的可选 `model` 给网关别名;claude 注 `ANTHROPIC_MODEL`(可用 `zp-cc-glm53[1m]`、`zp-cc-glm53fh[1m]`、`ds-cc-pro`、`ds-cc-flash`),codex 生成会话级 `CODEX_HOME` 改 model 行(可用 `zp-cx-glm53`、`ds-cx-pro`、`ds-cx-flash` 等);未给用烤库默认;别名与档位以网关侧表为准。
+- 事件线形(调用方按此匹配):更新是 `{"kind":"session/update","update":{"sessionUpdate":"…"}}`;权限卡是 `{"kind":"permission","requestId":"perm-…","request":{…}}`,`requestId` 顶层取,应答走 `POST /permission`。
 
 ## 离线行为
 
@@ -44,6 +46,7 @@
 - 权限确认在 120 秒内没有应答则取消,不提供「始终允许」;平台请求没有 token 时响应 401;监督进程由 `/shutdown` 或 `--selftest` 结束。
 - codex-acp 的 session/new 要凭证;网关接线后 session/new 与 prompt 全通(2026-10-13 实例内自检与宿主外部回环双过);无网关令牌时,回到只完成 initialize 的边界。
 - proxy 设备属实例配置,不进镜像;新实例按配置节命令一条复现。
+- 测试模式(unit 注 `ACPSUP_AUTH_OFF=1`,2026-10-13 起):任意请求放行,身份记 test/admin;回收时删该环境变量重启即回默认拒绝。
 
 ## 参见
 

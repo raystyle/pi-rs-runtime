@@ -11,7 +11,7 @@
 - npm 包是 `@openai/codex@<版本>`;经 npmmirror 全局装进 `/opt/node`;启动器以 `#!/usr/bin/env node` 开头;它再拉起平台二进制;该二进制是 `x86_64-unknown-linux-musl`,作为 linux-x64 可选依赖。
 - 构建期的在线安装与 agents 组的其他件相同。见 [claude-code.md](claude-code.md)。
 - 链接到 `/usr/local/bin/codex`。
-- 网关接线在同一函数:共享模型目录装 `/etc/codex/models.json`(源文件 `scripts/data/codex-models.json`);config 三份写 `/root/.codex/`、`/home/ubuntu/.codex/` 与 `/etc/skel/.codex/`(均 0600,含网关令牌)。
+- 网关接线在同一函数:共享模型目录装 `/etc/codex/models.json`(源文件 `scripts/data/codex-models.json`;含 `zp-cx-glm53`、`zp-cx-glm5t` 与 `ds-cx-pro`、`ds-cx-flash` 两别名,DeepSeek 窗按 128K 保守申报,只影响显示);config 三份写 `/root/.codex/`、`/home/ubuntu/.codex/` 与 `/etc/skel/.codex/`(均 0600,含网关令牌,关鉴权期占位 `overcast`)。
 
 ## 文件
 

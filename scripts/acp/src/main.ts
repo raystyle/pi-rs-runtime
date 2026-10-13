@@ -32,6 +32,16 @@ function ensureToken(): string {
   return tok
 }
 
+// 会话级 CODEX_HOME:拷烤库 config 改 model 行(四模型面);目录留在 /tmp 随实例生命周期
+function codexHomeWithModel(model: string): string {
+  const home = `/tmp/acpsup-codex-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+  mkdirSync(home, { recursive: true })
+  let cfg = readFileSync("/root/.codex/config.toml", "utf-8")
+  cfg = cfg.replace(/^model = ".*"$/m, `model = "${model}"`)
+  writeFileSync(join(home, "config.toml"), cfg, { mode: 0o600 })
+  return home
+}
+
 // ---- 适配器注册表:从各包 package.json 的 bin 解析入口(对布局变化稳) ----
 async function adapterEntry(pkg: string): Promise<string> {
   const pj = JSON.parse(await readFile(join(ADAPTER_ROOT, pkg, "package.json"), "utf-8"))
@@ -115,12 +125,16 @@ function json(code: number, body: unknown): Response {
   return new Response(JSON.stringify(body), { status: code, headers: { "content-type": "application/json" } })
 }
 
+// 测试模式:ACPSUP_AUTH_OFF=1 时任意请求放行(默认拒绝保持;回收时删环境变量重启)
+const AUTH_OFF = process.env.ACPSUP_AUTH_OFF === "1"
+
 const server = Bun.serve({
   port: PORT,
   hostname: "127.0.0.1",
+  idleTimeout: 255, // 空闲超时顶格(配合 SSE 心跳;默认 10s 会杀静默流)
   async fetch(req) {
     const url = new URL(req.url)
-    if (req.headers.get("authorization") !== `Bearer ${token}`) return json(401, { error: "unauthorized" })
+    if (!AUTH_OFF && req.headers.get("authorization") !== `Bearer ${token}`) return json(401, { error: "unauthorized" })
     const path = url.pathname
 
     if (path === "/health" && req.method === "GET") {
@@ -128,11 +142,18 @@ const server = Bun.serve({
     }
 
     if (path === "/session/new" && req.method === "POST") {
-      const body = await req.json().catch(() => ({})) as { agent?: string; cwd?: string }
+      const body = await req.json().catch(() => ({})) as { agent?: string; cwd?: string; model?: string }
       const def = registry.find((a) => a.name === body.agent && a.ready)
       if (!def) return json(400, { error: `未知或未就绪 agent:${body.agent ?? ""}` })
       const cwd = body.cwd && body.cwd.startsWith("/") ? body.cwd : "/tmp"
-      const agent = new AcpAgent(def.name, "node", [def.entry!], def.env, cwd)
+      // 四模型面(2026-10-13):可选 model 指定网关别名,claude 注 ANTHROPIC_MODEL,
+      // codex 生成会话级 CODEX_HOME(烤库 config 改 model 行);未给用烤库默认
+      const env: Record<string, string> = { ...def.env }
+      if (body.model) {
+        if (def.name === "claude") env.ANTHROPIC_MODEL = body.model
+        else if (def.name === "codex") env.CODEX_HOME = codexHomeWithModel(body.model)
+      }
+      const agent = new AcpAgent(def.name, "node", [def.entry!], env, cwd)
       const s: Session = {
         id: `pending-${Date.now().toString(36)}`, agent: def.name, cwd, agent_: agent,
         events: [], subs: new Set(),
@@ -147,7 +168,7 @@ const server = Bun.serve({
         if (!sn?.sessionId) throw new Error("适配器未回 sessionId")
         s.id = sn.sessionId
         sessions.set(s.id, s)
-        return json(200, { sessionId: s.id, agent: def.name, initialize: init })
+        return json(200, { sessionId: s.id, agent: def.name, model: body.model ?? null, initialize: init })
       } catch (e) {
         return json(502, { error: String(e), adapterStderr: agent.stderrTail.slice(-5) })
       }
@@ -182,8 +203,14 @@ const server = Bun.serve({
       const stream = new ReadableStream({
         start(controller) {
           const enc = new TextEncoder()
-          for (const ev of s.events) controller.enqueue(enc.encode(`data: ${JSON.stringify(ev)}\n\n`))
-          s.subs.add((ev) => { try { controller.enqueue(enc.encode(`data: ${JSON.stringify(ev)}\n\n`)) } catch { /* 已断 */ } })
+          const push = (chunk: string) => controller.enqueue(enc.encode(chunk))
+          for (const ev of s.events) push(`data: ${JSON.stringify(ev)}\n\n`)
+          // acpsup-fix-01:Bun.serve 空闲超时(默认 10s)杀静默流;15s 心跳注释保活,
+          // 客户端断开时清定时器与订阅,避免泄漏
+          const teardown = () => { clearInterval(hb); s.subs.delete(sub) }
+          const sub = (ev: unknown) => { try { push(`data: ${JSON.stringify(ev)}\n\n`) } catch { teardown() } }
+          const hb = setInterval(() => { try { push(": ping\n\n") } catch { teardown() } }, 15_000)
+          s.subs.add(sub)
         },
       })
       return new Response(stream, { headers: { "content-type": "text/event-stream" } })

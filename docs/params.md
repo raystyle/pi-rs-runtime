@@ -81,7 +81,7 @@ npm/pypi/git/gem 新增锁定版本:rea-agents 6.3.0、aioquic 1.4.0、qiling 1.
 | 名称 | 默认 | 约束 |
 |------|------|------|
 | `AGENT_GATEWAY_URL` | 空 | overcast 网关地址,接线必填,部署时显式给;不给则跳过接线并保留盘上已有网关配置 |
-| `AGENT_GATEWAY_TOKEN` | 空 | 网关令牌;不入库;经环境变量或 `AGENT_GATEWAY_TOKEN_PATH`(默认 `/root/.agent-gateway-token`)给;消费后删除 |
+| `AGENT_GATEWAY_TOKEN` | 空 | 网关令牌;不入库;经环境变量或 `AGENT_GATEWAY_TOKEN_PATH`(默认 `/root/.agent-gateway-token`)给;消费后删除;关鉴权期统一占位 `overcast` |
 | `AGENT_CC_HAIKU` / `AGENT_CC_SUBAGENT` | `zp-cc-glm53fh[1m]` | claude haiku 与子代理模型映射 |
 | `AGENT_CC_SONNET` / `AGENT_CC_OPUS` | `zp-cc-glm53[1m]` | claude sonnet 与 opus 模型映射 |
 | `AGENT_CX_MODEL` | `zp-cx-glm53` | codex 模型 |

@@ -1527,6 +1527,7 @@ After=network.target
 
 [Service]
 ExecStart=/usr/local/bin/acpsup
+Environment=ACPSUP_AUTH_OFF=1
 Restart=on-failure
 
 [Install]
@@ -1540,7 +1541,12 @@ UNITEOF
     export PATH="$PATH:/usr/local/go/bin:/opt/go/bin"
     command -v go >/dev/null 2>&1 || { echo "!! go 缺席;先跑 install-compilers.sh golang"; return 1; }
     (cd /root/scripts/acpsvc && go test ./...) || { echo "!! acpsvc go test 未过(M0 门禁)"; return 1; }
-    echo "acpsvc M0:go test 绿(建库面;7663 由 TS acpsup 服务)"
+    # M1:编 acpsup-go 并 7664 完即退自检;不替换 7663 的 TS 面,不起第二单元(REQ-0007 R3)
+    (cd /root/scripts/acpsvc && go build -trimpath -ldflags "-s -w -X main.version=0.1.0" \
+        -o /usr/local/bin/acpsup-go ./cmd/acpsup) || { echo "!! acpsvc 构建失败(M1)"; return 1; }
+    /usr/local/bin/acpsup-go --port 7664 --selftest claude \
+        || { echo "!! acpsup-go 7664 自检未过(M1 门禁)"; return 1; }
+    echo "acpsvc M0+M1:go test 绿;acpsup-go 7664 自检过(不占 7663,TS 面继续服务)"
 }
 
 # ---- rctl(核心 CLI:实例总控,agent 第一入口;仓内 TS + bun 编译)----

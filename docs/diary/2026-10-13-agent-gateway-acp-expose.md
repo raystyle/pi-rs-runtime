@@ -50,3 +50,11 @@
 - `preferred_auth_method` 在 codex 0.162.1 已不被识别(启动警告),烤库 config 与册面移除;codex 非 tty 下会读 stdin,脚本外调用加 `</dev/null`。
 - 用户告知网关将关鉴权(任意 token 放行);当日实测两址(10.10.10.9 / 192.168.88.10)两式(/v1/models、/v1/messages)假 token 均 401 Invalid API key——未生效或另口,待核;部署侧不受影响(真令牌在配,鉴权开着也通,关了也通)。
 - 同日复核:网关鉴权已实关(10.10.10.9:8317 假 token 与无头均 200 出模型表;192.168.88.10:8317 LAN 面无头也 200)。服务端逐请求判定,容器侧零动作、请求级实时生效。注意:关鉴权后暴露面=谁能达该口,tailnet 面可控,LAN 面 192.168.88.10:8317 现对全网段开放,网关侧自行权衡(用户当日裁定:内网测试开放,接受该暴露面)。
+
+## acpsup-fix-01 与四模型面
+
+- 修复单(fleet seq 40/46 派回):①SSE 断连复现三组对齐(权限等待静默、模型思考静默 10.1 秒、回合尾 usage_update 后静默;断口干净无 chunk 终止符,curl exit 18 与 python ChunkedEncodingError 同形)→ 根因=Bun.serve 空闲超时默认 10 秒杀静默流,权限卡只是静默起点不是触发器;修复=/events 增 15 秒心跳注释(`: ping`)+ Bun.serve idleTimeout 255 + 断开清定时器与订阅;验证:静默 35 秒双心跳零断、工具回合全流完整。②文档事件形修正:线形权限卡是 `{kind:"permission",requestId,request}` 顶层、更新是 `{kind:"session/update",update}`,正确示例进 acp 册端点面。
+- 四模型面:session/new 增可选 `model`;claude 注 `ANTHROPIC_MODEL`,codex 生成会话级 CODEX_HOME 改 model 行(catalog 绝对路径不受影响);实跑矩阵 7/7(claude:zp-cc-glm53[1m]/zp-cc-glm53fh[1m]/ds-cc-pro/ds-cc-flash;codex:zp-cx-glm53/ds-cx-pro/ds-cx-flash);models.json 增 ds-cx-pro/ds-cx-flash(128K 保守申报)。
+- ACP 测试模式(用户裁定):unit 注 `ACPSUP_AUTH_OFF=1`,任意请求放行(TS 与 Go 面同构开关),回收删行重启即回默认拒绝。
+- acpsvc M1 落地:六包全量移植,实例 go test 六包绿(修两处测试自坑:fake 不回 pingreq 应答、Close 无界等长命子进程);install_acp 增 M1 段,acpsup-go 7664 完即退自检过(protocolVersion=1+真 sessionId+end_turn);7663 仍 TS 服务。
+- pi 后端:P1 九件单误派旧 pi-rs 仓后纠正,委托 pi-rs-core 工作台(acp-core-01,wC:p1 主格),回执道 /tmp/acp-core-01/。
