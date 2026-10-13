@@ -1488,8 +1488,30 @@ CXEOF
     codex --version || echo "!! codex 起不来"
     echo "网关口径:模型道经 overcast 网关,令牌随镜像配置,实例不挂用户凭证;个人配置仍可挂载覆盖,"
     echo "CLAUDE_CODE_OAUTH_TOKEN/CODEX_API_KEY 环境变量旧道保留;见 docs/items/tools-agents/"
+    install_pi_rs
 }
 
+
+# ---- pi-rs(自家 agent:pi-rs-core GitHub Release 直下 + sha256 锚,ACP 原生后端)----
+install_pi_rs() {
+    log "pi-rs ${PI_RS_CORE_VERSION}(pi-rs-core 发行件;镜像道对该仓不可用,直连兜底,再兜宿主预推)"
+    local name="pi-rs-dist-${PI_RS_CORE_VERSION}-x86_64-unknown-linux-gnu.tar.gz"
+    local tgz="/tmp/${name}" ok=0 u
+    for u in "${GITHUB_MIRROR}https://github.com/raystyle/pi-rs-core/releases/download/v${PI_RS_CORE_VERSION}/${name}" \
+             "https://github.com/raystyle/pi-rs-core/releases/download/v${PI_RS_CORE_VERSION}/${name}"; do
+        curl -fsSL -m 600 -o "$tgz" "$u" 2>/dev/null && { ok=1; break; }
+    done
+    # 直连也败时吃宿主预推的 /root/<name>(构建机网络受限道的落盘件)
+    if [ "$ok" != 1 ] && [ -s "/root/${name}" ]; then cp "/root/${name}" "$tgz"; ok=1; fi
+    [ "$ok" = 1 ] || { echo "!! pi-rs 发行件三道皆败(可宿主 gh release download 后推 /root/${name})"; return 1; }
+    echo "${PI_RS_SHA256}  ${tgz}" | sha256sum -c - >/dev/null || { echo "!! pi-rs 发行件 sha256 不符"; rm -f "$tgz"; return 1; }
+    rm -rf /opt/pi-rs && mkdir -p /opt/pi-rs
+    tar xzf "$tgz" -C /opt/pi-rs && rm -f "$tgz"
+    printf '#!/bin/sh\nexec /opt/node/bin/node /opt/pi-rs/dist/bundle/cli.js "$@"\n' > /usr/local/bin/pi-rs
+    chmod 755 /usr/local/bin/pi-rs
+    pi-rs --help 2>&1 | grep -q "acp" || { echo "!! pi-rs --help 未列 acp 模式"; return 1; }
+    echo "pi-rs ${PI_RS_CORE_VERSION} 就位:/opt/pi-rs(入口 /usr/local/bin/pi-rs,ACP 模式在列;模型面默认网关,走官方设 PI_GATEWAY_BASE_URL=off)"
+}
 
 # ---- acp(标准 agent 接入通道:ACP 适配器锁定版本 + 监督进程 acpsup,S-0002/REQ-0002)----
 install_acp() {

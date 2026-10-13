@@ -44,6 +44,7 @@
 | `PD_VERSION` | `latest` | projectdiscovery 全家桶 `go install` 版本 |
 | `PY2_VERSION` | `2.7.18` | 源码编译，`--enable-shared` |
 | `PHP_VERSIONS` | `7.4 8.1 8.3` | sury 源；VLD 逐版本尽力编译 |
+| `PI_RS_CORE_VERSION` / `PI_RS_SHA256` | `0.3.0` / `fc666060…1bc1a0fb` | pi-rs-core GitHub Release 发行件锚;镜像道对该仓不可用,直连兜底,再兜宿主预推 /root;换版本两值同改 |
 | `GHIDRA_VERSION` / `GHIDRA_DATE` / `GHIDRA_SHA256` | `12.1.3` / `20260817` / `93a5d11a9ad510622acaaf908c556a7b9b764d338e78a7567f3689bf5081fd54` | 三者配套，换版本时同步换 |
 | `FASM_VERSION` | `1.73.32` | 见 `install-compilers.sh` 内 `install_c` |
 | `JADX_VERSION` / `APKTOOL_VERSION` / `CAPA_VERSION` | `1.5.3` / `2.12.0` / `9.4.0` | 见 `install-tools.sh` 内 `install_analysis` |

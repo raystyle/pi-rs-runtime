@@ -32,7 +32,7 @@
 |---|---|
 | `cloud` | aliyun(release tar 道,资产名无 v 前缀)+ tccli(uv tool 道);凭证使用期注入 |
 | `data` | 数据语料面:LOLBAS/webappanalyzer(GitHub 锁定)/exploitdb(**GitLab 直连道**,同 clone_pin 语义内联)/hacktricks(浅克隆剔 .git/图,18M 文本面)/gtfobins(.github.io 源仓道,主仓被代理 403);.ht-pin 幂等 |
-| `agents` | claude-code/codex npm 锁定版本(linux-x64 可选依赖禁 omit)+ managed-settings.json 策略与网关 env、codex 烤库 config 三份与共享模型目录(网关令牌经环境变量或令牌文件给,不进仓库) |
+| `agents` | claude-code/codex npm 锁定版本(linux-x64 可选依赖禁 omit)+ managed-settings.json 策略与网关 env、codex 烤库 config 三份与共享模型目录(网关令牌经环境变量或令牌文件给,不进仓库)+ pi-rs 发行件安装(GitHub Release + sha256 锚,ACP 原生后端) |
 | `acp` | ACP 适配器锁定版本+acpsup 监督进程(bun 编译)+ systemd 常驻;selftest 协议级自证;对外经 incus proxy(照 6080 规定,不裸奔) |
 | `ctl` | rctl 核心 CLI(bun 编译,bun 版本闸;烤库 /var/lib/rctl+index) |
 

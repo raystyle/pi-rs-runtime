@@ -100,3 +100,10 @@
 - pi-web 报障驱动:zacp default_cwd 指网关宿主路径,session/new 400。裁定走 c 变体(契约定死容器路径)+ 后端补缺:cwd 白名单自动建(ACPSUP_CWD_ALLOW,默认 /tmp 与 /srv/work)+ GET /file 文件承接面(限会话 cwd 子树、4MiB 封顶、403 越树、逐出后 404,审计 file/read);共享卷方案留用户裁。
 - 换档滞留旧身顽疾(systemd on-failure 自动重拉与二进制换装竞态,第三次现身)根治:unit 烤 ACPSUP_BUILD 时间戳、/health 回显、验收强校验指纹,不符自动弹换重试三次;本次实证 build 1791902900 在役。
 - 协议三点回执:events id 会话内严格单调、after 排他续传(边界=环窗 2000);会话上限默认 8/ACPSUP_SESSION_MAX 可调(现役 16)、空闲回收默认 30 分钟;prompt 断开续跑是既定语义(S-0003),取消走显式 /session/cancel。
+
+## pi-rs 正式安装件(P2 收口)
+
+- pi-rs-core v0.3.0 发版(工件 44MB + sha256 边车 fc666060…);安装件按 GHIDRA 先例进 common.sh 标量(PI_RS_CORE_VERSION/PI_RS_SHA256;镜像道对该仓不可用——api 403、release 资产 404、git ls-remote 要凭证,直连均通——下载三链:镜像→直连→宿主 gh 预推 /root 落盘件)。
+- install_pi_rs:sha256 锚、解包 /opt/pi-rs(dist/bundle 布局)、wrapper 指 /opt/node/bin/node、--help 含 acp 作闸;挂 agents 组尾部;踩坑:改了 install-tools.sh 忘推 common.sh,unbound variable 静默跳段(实跑尾输出定位)。
+- 实例换装:临时道(宿主构建 bundle)被正式发行件替;ACP initialize 报 0.3.0、prompt end_turn;/health pi ready 探针直取新件。
+- 文档面:新册 tools-agents/pi-rs.md(八签)、resources.json 增件、params 版本锁定行、surfaces agents 行、items README 与 software-inventory 计数同步(89 册 498 件)。

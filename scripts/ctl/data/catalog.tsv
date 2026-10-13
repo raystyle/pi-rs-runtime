@@ -318,6 +318,7 @@ pentest	tool	`install-tools.sh pentest`	已装	内网客户端/远程/爆破/取
 php	runtime	`install-runtimes.sh php`	已装	webshell 逆向运行时:7.4 复现老样本、8.x 对照现代样本,VLD dump opcode	软件源锁定:发行版源冻结	/usr/bin/php7.4	未验证。CLI 解释器纯本地,`php<v> -d vld.active=1 <样本>` dump opcode 不触网	docs/items/runtimes/php.md		运行时环境
 phpggc	tool	`install-tools.sh pentest`	已烘焙	PHP 反序列化 gadget 链生成(wrapper php8.3)		/usr/local/bin/phpggc		docs/items/tools-pentest/pentest.md		工具环境
 phpggc-src	ref	`install-tools.sh pentest`	已烘焙	phpggc 仓源		/opt/phpggc		docs/items/tools-pentest/pentest.md		工具环境
+pi-rs	tool	`install-tools.sh agents`	已装	自家 agent(pi-rs-core 产品仓),ACP 原生后端	PI_RS_CORE_VERSION=0.3.0(GitHub Release + PI_RS_SHA256 锚)	/usr/local/bin/pi-rs	未验证。`--help` 与 ACP 握手是本地面,推理经网关属运行期网络	docs/items/tools-agents/pi-rs.md		工具环境
 ping.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/ping.py		docs/items/analysis/impacket.md		工具环境
 ping6.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/ping6.py		docs/items/analysis/impacket.md		工具环境
 pivot	tool	`install-tools.sh pivot`	已装	内网代理跳板与隧道:gost/frps/frpc/wstunnel/rathole/bore	GO_PIN[github.com/go-gost/gost/cmd/gost]=v0.0.0-20261…;解析日 2026-10-10	/opt/go/bin	未验证。: server 端起 listener、client 连内网目标均不依赖外网,断外网(内网可达)下可用,eth0 全断退化为 loopback 对连	docs/items/tools-pivot/pivot.md		工具环境

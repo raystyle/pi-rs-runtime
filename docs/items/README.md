@@ -2,7 +2,7 @@
 
 按七域列册;域内分工具集与单件。工具集判定:册内成员表或契约行不少于 5;单件为一册一件。安装组是安装执行单位,信息在各册题头与计数对账。
 
-## 工具环境,46 册
+## 工具环境,47 册
 
 ### 工具集,12 册
 
@@ -31,6 +31,7 @@
 | [runtimes/dotnet.md](runtimes/dotnet.md) | .NET SDK:dotnet |
 | [tools-acp/acp.md](tools-acp/acp.md) | acp:ACP 通道 |
 | [tools-agents/claude-code.md](tools-agents/claude-code.md) | claude-code |
+| [tools-agents/pi-rs.md](tools-agents/pi-rs.md) | pi-rs |
 | [tools-agents/codex.md](tools-agents/codex.md) | codex |
 | [tools-astgrep/astgrep.md](tools-astgrep/astgrep.md) | ast-grep:sg |
 | [tools-bof/bof-launcher.md](tools-bof/bof-launcher.md) | bof-launcher |
@@ -171,12 +172,12 @@
 
 ## 计数对账
 
-七域合计 88 册:工具集 31,单件 57。按安装目录:
+七域合计 89 册:工具集 31,单件 58。按安装目录:
 
 | 目录 册 | 目录 册 | 目录 册 | 目录 册 |
 | --- | --- | --- | --- |
 | analysis 9 | compilers 6 | libcache 8 | runtimes 16 |
-| tools-acp 1 | tools-agents 2 | tools-astgrep 1 | tools-bof 5 |
+| tools-acp 1 | tools-agents 3 | tools-astgrep 1 | tools-bof 5 |
 | tools-c2 1 | tools-chrome 1 | tools-cli 1 | tools-cloud 1 |
 | tools-ctl 2 | tools-data 4 | tools-discovery 2 | tools-filesearch 1 |
 | tools-ghidra 1 | tools-go-security 2 | tools-herdr 1 | tools-maldev 1 |

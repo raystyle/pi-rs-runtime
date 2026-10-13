@@ -6461,6 +6461,19 @@
    "book": "docs/items/tools-redteam/overthrone.md",
    "alias": "ovt",
    "env": "工具环境"
+  },
+  {
+   "id": "pi-rs",
+   "kind": "tool",
+   "group": "`install-tools.sh agents`",
+   "status": "已装",
+   "desc": "自家 agent(pi-rs-core 产品仓),ACP 原生后端",
+   "pin": "PI_RS_CORE_VERSION=0.3.0(GitHub Release + PI_RS_SHA256 锚)",
+   "path": "/usr/local/bin/pi-rs",
+   "offline": "未验证。`--help` 与 ACP 握手是本地面,推理经网关属运行期网络",
+   "book": "docs/items/tools-agents/pi-rs.md",
+   "alias": "",
+   "env": "工具环境"
   }
  ],
  "caps": [
