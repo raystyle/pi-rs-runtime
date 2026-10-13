@@ -1550,6 +1550,8 @@ UNITEOF
     # 旧进程退出回收与 start 之间有竞态窗(start 在 unit 仍 active 时是 no-op,滞留旧二进制):
     # 等单元彻底 inactive 再 start(容器内信号 EPERM,不能 restart/stop,只能等自退)
     for _ in 1 2 3 4 5 6 7 8 9 10; do systemctl is-active --quiet acpsup || break; sleep 0.5; done
+    # 清失败态:换档窗口若触发过监听失败的 on-failure 重拉(旧二进制滞留),reset 后才起真身
+    systemctl reset-failed acpsup 2>/dev/null || true
     systemctl start acpsup || echo "!! acpsup 服务起不来(手动查:systemctl status acpsup)"
     # HTTP 验收:health 三后端面;败态回滚 tsbak(测试模式期任意 token 亦通,token 道双兼容)
     sleep 1

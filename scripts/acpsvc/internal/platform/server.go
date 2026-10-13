@@ -371,6 +371,11 @@ func (s *Server) handleSessionNew(w http.ResponseWriter, r *http.Request) {
 	if !strings.HasPrefix(cwd, "/") {
 		cwd = "/tmp"
 	}
+	// cwd 必须是存在的目录(hx-web 联测暴露:无效 cwd 曾报成含混的 agent 未就绪)
+	if fi, err := os.Stat(cwd); err != nil || !fi.IsDir() {
+		jsonWrite(w, 400, map[string]any{"error": "cwd 无效(需存在的绝对路径目录):" + body.Cwd})
+		return
+	}
 	// 四模型面(2026-10-13):可选 model 指定网关别名;claude 注 ANTHROPIC_MODEL,
 	// codex 生成会话级 CODEX_HOME;未给用烤库默认
 	env := append([]string(nil), def.Env...)

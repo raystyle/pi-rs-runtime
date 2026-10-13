@@ -89,3 +89,8 @@
 
 - pi-web 移交自查复现并定性:①裸 codex session/new 400 = 我方换档窗口碰撞(npm 重装适配器+弹服务,窗口内 spawn 短暂失败),事后实证净;②间歇 web_search 错:实例内 CLI 直连复现 50%(zp-cx-glm53 3/6 错、显式 -c tools.web_search.enabled=false 仍 3/6、ds-cx-pro 4/4 净)——web_search 非发自 codex,是网关 zp-cx 路由/池侧注入,带 request id 移交 pi-web;③500/悬空归其网关双实例期,已切单实例。
 - 无 close 面压力实发(双方联测 16 槽打满):会话空闲自动回收上线(ACPSUP_SESSION_IDLE,默认 30 分钟,审计记 session/sweep)。
+
+## hx-web 联测闭环与换档硬化
+
+- pi-web 终验回执全绿:经网关→桥→acpsup 三后端只回复 ok 全 end_turn,别名抽查过,桥权限卡回环实测过(Write 工具卡→应答→完成);其两根因自解(cwd chdir 建 /tmp workspace;网关双实例清)。
+- 联测暴露两处我侧硬化:①cwd 无效曾报成含混的「agent 未就绪」(chdir 细节),session/new 增 cwd 存在性闸,报「cwd 无效(需存在的绝对路径目录)」;②换档窗口曾现 status=1 监听失败→on-failure 重拉旧二进制滞留(journal 重拉计数 8,systemd 杀 cgroup EPERM 适配器残留),换档序增 systemctl reset-failed,净弹后 cwd 闸实证生效。
