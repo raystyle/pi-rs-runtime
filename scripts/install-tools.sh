@@ -1419,8 +1419,8 @@ install_agents() {
         || { echo "!! agent CLIs 装失败(查 npmmirror 可达与锁定值)"; return 1; }
     ln -sfn /opt/node/bin/claude /usr/local/bin/claude
     ln -sfn /opt/node/bin/codex /usr/local/bin/codex
-    # agent 网关(overcast):URL 与模型映射随脚本默认入库;令牌只经环境变量或令牌文件给,绝不进 git
-    local gw="${AGENT_GATEWAY_URL:-http://192.168.88.10:8317}"
+    # agent 网关(overcast):地址经 AGENT_GATEWAY_URL 变量指定(不落默认值);模型映射随脚本默认入库;令牌只经环境变量或令牌文件给,绝不进 git
+    local gw="${AGENT_GATEWAY_URL:-}"
     local tok="${AGENT_GATEWAY_TOKEN:-}"
     local tokfile="${AGENT_GATEWAY_TOKEN_PATH:-/root/.agent-gateway-token}"
     if [ -z "$tok" ] && [ -r "$tokfile" ]; then tok="$(cat "$tokfile")"; fi
@@ -1458,7 +1458,6 @@ model = "${cxm}"
 model_provider = "zai"
 model_catalog_json = "/etc/codex/models.json"
 model_reasoning_effort = "high"
-preferred_auth_method = "apikey"
 forced_login_method = "api"
 approval_policy = "never"
 sandbox_mode = "danger-full-access"

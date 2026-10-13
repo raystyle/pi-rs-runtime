@@ -43,3 +43,9 @@
 - 次序坑修正:服务常驻后 selftest 与单元抢 7663 绑口(S-0003 §6 预判过);旧进程 /shutdown 前置到 selftest 之前,修后 selftest PASS。
 - 实例验证:go test 六包全绿(cmd 无测试);selftest PASS(claude);服务 active;tailnet /health 200 双 agent ready,面板零改动。
 - publish 按用户指示:全部调好后再议。
+
+## 网关地址变量化与配置项清理
+
+- 网关地址改 tailnet `10.10.10.9:8317`(用户指定),且脚本默认值移除:`AGENT_GATEWAY_URL` 空默认,接线必填,params 同步;实例已带变量重部署,claude/codex 配置两处 base_url 均为新址,root 面回环全绿,外部 ACP 回环 end_turn(16935 token)。
+- `preferred_auth_method` 在 codex 0.162.1 已不被识别(启动警告),烤库 config 与册面移除;codex 非 tty 下会读 stdin,脚本外调用加 `</dev/null`。
+- 用户告知网关将关鉴权(任意 token 放行);当日实测两址(10.10.10.9 / 192.168.88.10)两式(/v1/models、/v1/messages)假 token 均 401 Invalid API key——未生效或另口,待核;部署侧不受影响(真令牌在配,鉴权开着也通,关了也通)。

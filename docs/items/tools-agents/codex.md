@@ -19,7 +19,7 @@
 
 ## 配置
 
-- 烤库 config 内容:模型 `zp-cx-glm53`;提供商 `zai`(overcast;`base_url` 指网关 `/v1`;`experimental_bearer_token` 是网关令牌;`wire_api = "responses"`);`model_catalog_json` 指共享模型目录;推理力度 high;`preferred_auth_method = "apikey"` 与 `forced_login_method = "api"` 免登录;`approval_policy = "never"` 与 `sandbox_mode = "danger-full-access"`(容器即沙箱);`[tools.web_search] enabled = false`(网关不支持该工具,不禁则请求被拒)。
+- 烤库 config 内容:模型 `zp-cx-glm53`;提供商 `zai`(overcast;`base_url` 指网关 `/v1`;`experimental_bearer_token` 是网关令牌;`wire_api = "responses"`);`model_catalog_json` 指共享模型目录;推理力度 high;`forced_login_method = "api"` 免登录(`preferred_auth_method` 在 0.162.1 已不被识别,不写);`approval_policy = "never"` 与 `sandbox_mode = "danger-full-access"`(容器即沙箱);`[tools.web_search] enabled = false`(网关不支持该工具,不禁则请求被拒)。
 - 网关 URL、模型与令牌的给法见 [claude-code.md](claude-code.md)(codex 侧模型变量是 `AGENT_CX_MODEL`);缺令牌重跑保留盘上配置。
 - 个人面:设备码登录 `codex login --device-auth`(beta);或 `printenv CODEX_API_KEY | codex login --with-api-key`(`CODEX_API_KEY` 只对 `codex exec` 这类非交互进程成立);本机机器面(hooks 状态、项目信任表、状态行、插件市场)不进镜像。
 
