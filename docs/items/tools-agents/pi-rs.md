@@ -5,7 +5,7 @@
 ## 版本
 
 - common.sh 标量 `PI_RS_CORE_VERSION` = 0.3.0(pi-rs-core GitHub Release 锚);`PI_RS_SHA256` 是发行件 sha256 边车锚,换版本两值同改。
-- 版本面注记:CLI `--version` 出 0.0.0(源码常量滞后),ACP initialize 报真实版本。
+- CLI `--version` 与 ACP initialize 同源,均报真实版本(0.3.0 实测六路径一致:wrapper 与裸 node、多 cwd)。
 
 ## 来源与安装
 
@@ -30,7 +30,6 @@
 
 ## 限制
 
-- CLI `--version` 常量滞后(0.0.0),以 ACP initialize 版本为准。
 - 模型目录与别名以 pi-rs-core 侧锁定为准,本仓不代理。
 - MVP 边界(pi-rs-core 实现):不做 session/load 族、HTTP/SSE MCP、音频、内嵌 resource、多 session 表、allow_always。
 
