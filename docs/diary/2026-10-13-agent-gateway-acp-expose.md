@@ -58,3 +58,10 @@
 - ACP 测试模式(用户裁定):unit 注 `ACPSUP_AUTH_OFF=1`,任意请求放行(TS 与 Go 面同构开关),回收删行重启即回默认拒绝。
 - acpsvc M1 落地:六包全量移植,实例 go test 六包绿(修两处测试自坑:fake 不回 pingreq 应答、Close 无界等长命子进程);install_acp 增 M1 段,acpsup-go 7664 完即退自检过(protocolVersion=1+真 sessionId+end_turn);7663 仍 TS 服务。
 - pi 后端:P1 九件单误派旧 pi-rs 仓后纠正,委托 pi-rs-core 工作台(acp-core-01,wC:p1 主格),回执道 /tmp/acp-core-01/。
+
+## pi 后端收单与对接验证(acp-core-01)
+
+- pi-rs-core 交付 11311e2(90368da 九件 + 5b63ec3 模型面 + 评审修复),已推 origin/main;回执 /tmp/acp-core-01/receipt.md:九件与六条硬约束全过,grok 一轮 F(许可桥双包,每 gated tool 发两张卡)修复后二轮 CONFIRM,pi 侧 ACP e2e 自打 9/9(真 --mode acp 子进程+网关模型)。
+- 同批模型面(pi-rs-core 5b63ec3):pi 默认模型面 = overcast 网关四模型(默认 ds-cx-flash),凭证任意非空即过;走官方 API 设 PI_GATEWAY_BASE_URL=off。
+- 总台对接验证:pi-rs-core 仓根 npm run build 产 bundle(72 件 9.2MB);临时道装进实例(/opt/pi-rs/bundle + /usr/local/bin/pi-rs wrapper 指 /opt/node/bin/node);`pi-rs --help` 列 acp;backend pi 行注 DEEPSEEK_API_KEY=overcast;`acpsup-go --port 7664 --selftest pi` 出 protocolVersion=1(222ms)+真 sessionId+prompt end_turn;Go 面起 7665 验 /health 三后端 ready 全 true、/shutdown 干净退出。
+- 待 M2 批:pi-rs 安装件进镜像(pi-rs-core 发布锁定版本,替临时道)、七步切流后 pi 上 7663 公共面。
