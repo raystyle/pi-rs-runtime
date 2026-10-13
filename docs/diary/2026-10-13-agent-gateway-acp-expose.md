@@ -34,3 +34,12 @@
 
 - publish 未做(等用户点头);proxy 设备属实例配置不进镜像,新实例按 acp 册配置节一条复现。
 - acpex-01 研究回收后立 REQ 并吸收进研究档案(docs/research/)。
+
+## M0 — REQ-0007 立单与 acpsvc 建库
+
+- REQ-0007 立(draft;R1-R12 照 S-0003 收敛,trace T2 回填 M0)。
+- `scripts/acpsvc/` 建库:go.mod(go 1.27.1,零第三方依赖)+ cmd/acpsup(参数面,M0 不启服务)+ internal 六包(backend 注册表与 pi 就绪探针、acpclient 分帧、session 事件环断点重放、platform 密钥模型、logx slog 面、fsimpl 绝对路径);gofmt 净;host go 1.27.0 低于 go.mod 要求,按仓纪律以实例(1.27.1)为验证面。
+- install_acp 末段增 Go 段:PATH 补 /usr/local/go/bin,`go test ./...` 失败即组败;不产二进制不起第二单元。
+- 次序坑修正:服务常驻后 selftest 与单元抢 7663 绑口(S-0003 §6 预判过);旧进程 /shutdown 前置到 selftest 之前,修后 selftest PASS。
+- 实例验证:go test 六包全绿(cmd 无测试);selftest PASS(claude);服务 active;tailnet /health 200 双 agent ready,面板零改动。
+- publish 按用户指示:全部调好后再议。

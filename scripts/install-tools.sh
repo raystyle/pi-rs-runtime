@@ -1514,6 +1514,12 @@ install_acp() {
     cd /root/scripts/acp
     bun build --compile --minify src/main.ts --outfile /usr/local/bin/acpsup
     cd /
+    # 旧进程先经 /shutdown 自停(信号策略下不依赖 kill),再 selftest(免与常驻单元抢 7663),最后起新二进制
+    if systemctl is-active --quiet acpsup; then
+        curl -fsS -m 5 -X POST -H "Authorization: Bearer $(cat /var/lib/acpsup/token 2>/dev/null)" \
+            http://127.0.0.1:7663/shutdown >/dev/null 2>&1 || true
+        sleep 1
+    fi
     acpsup --selftest claude || echo "!! acpsup selftest(claude)未过——协议面证据缺失,查适配器 stderr"
     cat > /etc/systemd/system/acpsup.service <<UNITEOF
 [Unit]
@@ -1529,14 +1535,13 @@ WantedBy=multi-user.target
 UNITEOF
     systemctl daemon-reload
     systemctl enable acpsup
-    # 旧进程经 /shutdown 自停(信号策略下不依赖 kill),再起新编译的二进制
-    if systemctl is-active --quiet acpsup; then
-        curl -fsS -m 5 -X POST -H "Authorization: Bearer $(cat /var/lib/acpsup/token 2>/dev/null)" \
-            http://127.0.0.1:7663/shutdown >/dev/null 2>&1 || true
-        sleep 1
-    fi
     systemctl start acpsup || echo "!! acpsup 服务起不来(手动查:systemctl status acpsup)"
     echo "acpsup 平台面:127.0.0.1:7663,Bearer token 首启随机落 /var/lib/acpsup/token(打印一次);systemd 常驻;对宿主引出照 6080 口径(incus proxy + 不裸奔)"
+    # Go 承接工程 M0(REQ-0007/S-0003):建库面只跑 go test;不产二进制不起第二单元,7663 仍由上面的 TS 面服务
+    export PATH="$PATH:/usr/local/go/bin:/opt/go/bin"
+    command -v go >/dev/null 2>&1 || { echo "!! go 缺席;先跑 install-compilers.sh golang"; return 1; }
+    (cd /root/scripts/acpsvc && go test ./...) || { echo "!! acpsvc go test 未过(M0 门禁)"; return 1; }
+    echo "acpsvc M0:go test 绿(建库面;7663 由 TS acpsup 服务)"
 }
 
 # ---- rctl(核心 CLI:实例总控,agent 第一入口;仓内 TS + bun 编译)----

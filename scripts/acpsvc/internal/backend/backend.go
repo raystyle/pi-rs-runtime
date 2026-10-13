@@ -1,0 +1,120 @@
+// Package backend 是三家 agent 的静态注册表:claude 与 codex 走 npm 适配器,pi 原生直连。
+// 表不是插件目录;每行定 name/kind/argv/env 与 initialize 要广告的 clientCapabilities。
+package backend
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
+	"time"
+)
+
+// Kind 只有两值:adapter(npm 适配器拉 CLI)与 native(pi-rs 自带 ACP Agent 侧)。
+type Kind string
+
+const (
+	KindAdapter Kind = "adapter"
+	KindNative  Kind = "native"
+)
+
+// Def 是注册表一行。
+type Def struct {
+	Name     string
+	Kind     Kind
+	Argv     []string // native:完整 argv;adapter:由 Bin 解析后拼 node <入口>
+	Env      []string // KEY=VALUE,逐条注入子进程
+	FS       bool     // initialize 的 clientCapabilities.fs
+	Terminal bool     // initialize 的 clientCapabilities.terminal
+}
+
+// Registry 返回三行,顺序即 /health 的 agents 顺序;pi 的就绪是运行期判定。
+func Registry() []Def {
+	return []Def{
+		{Name: "claude", Kind: KindAdapter, Env: []string{"DISABLE_UPDATES=1"}, FS: true, Terminal: true},
+		{Name: "codex", Kind: KindAdapter, Env: []string{"CODEX_PATH=/usr/local/bin/codex", "NO_BROWSER=1"}, FS: true, Terminal: true},
+		{Name: "pi", Kind: KindNative, Argv: []string{"/usr/local/bin/pi-rs", "--mode", "acp"}, FS: false, Terminal: false},
+	}
+}
+
+// Find 按对外名取一行。
+func Find(name string) (Def, bool) {
+	for _, d := range Registry() {
+		if d.Name == name {
+			return d, true
+		}
+	}
+	return Def{}, false
+}
+
+// AdapterRoot 是适配器包根;入口从各包 package.json 的 bin 字段解析,不写死文件名。
+func AdapterRoot(pkg string) string {
+	return filepath.Join("/opt/node/lib/node_modules/@agentclientprotocol", pkg)
+}
+
+// BinFromPackageJSON 读 package.json 的 bin 字段,返回入口脚本绝对路径。
+// bin 是字符串直接用;是名到路径的映射时,先取与包名同名者,无则第一项。
+func BinFromPackageJSON(modRoot, pkg string) (string, error) {
+	b, err := os.ReadFile(filepath.Join(modRoot, "package.json"))
+	if err != nil {
+		return "", err
+	}
+	var pkgJSON struct {
+		Bin json.RawMessage `json:"bin"`
+	}
+	if err := json.Unmarshal(b, &pkgJSON); err != nil {
+		return "", err
+	}
+	if len(pkgJSON.Bin) == 0 {
+		return "", errors.New("bin 字段缺席")
+	}
+	var binStr string
+	if err := json.Unmarshal(pkgJSON.Bin, &binStr); err == nil {
+		return filepath.Join(modRoot, binStr), nil
+	}
+	var binMap map[string]string
+	if err := json.Unmarshal(pkgJSON.Bin, &binMap); err != nil {
+		return "", fmt.Errorf("bin 字段形不支持: %w", err)
+	}
+	if p, ok := binMap[pkg]; ok {
+		return filepath.Join(modRoot, p), nil
+	}
+	for _, p := range binMap {
+		return filepath.Join(modRoot, p), nil
+	}
+	return "", errors.New("bin 映射为空")
+}
+
+// PiReady 检查 pi 后端就绪:二进制可执行,且 --help 在 5 秒内结束并提到 acp 模式。
+// 不拉会话;不就绪的 err 文案区分缺二进制、超时/失败、模式未列三种。
+func PiReady(argv []string) error {
+	if len(argv) == 0 {
+		return errors.New("pi: argv 为空")
+	}
+	bin := argv[0]
+	if filepath.IsAbs(bin) {
+		if fi, err := os.Stat(bin); err != nil || fi.IsDir() || fi.Mode()&0o111 == 0 {
+			return fmt.Errorf("pi: 二进制缺席或不可执行: %s", bin)
+		}
+	} else if _, err := exec.LookPath(bin); err != nil {
+		return fmt.Errorf("pi: 二进制缺席: %s", bin)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	var out []byte
+	out, err := exec.CommandContext(ctx, bin, "--help").Output()
+	if ctx.Err() == context.DeadlineExceeded {
+		return errors.New("pi: --help 5 秒未结束")
+	}
+	if err != nil {
+		return fmt.Errorf("pi: --help 失败: %w", err)
+	}
+	if !strings.Contains(string(out), "acp") {
+		return errors.New("pi: --help 未列 acp 模式")
+	}
+	return nil
+}

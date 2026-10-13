@@ -12,7 +12,8 @@
 
 - 适配器:npm `@agentclientprotocol/claude-agent-acp@<版本>` 与 `@agentclientprotocol/codex-acp@<版本>`,经 npmmirror(npmjs 三级兜底);构建期在线面。
 - 监督进程:acpsup 由 bun `--compile` 产 `/usr/local/bin/acpsup`。
-- 脚本:`scripts/install-tools.sh` 的 `install_acp`;尾段自动跑 `acpsup --selftest claude`,随后写 systemd unit 并起服务。
+- 脚本:`scripts/install-tools.sh` 的 `install_acp`;旧进程先经 `/shutdown` 自停,再自动跑 `acpsup --selftest claude`,随后写 systemd unit 并起服务。
+- Go 承接工程 `scripts/acpsvc/`(承接方案在研究档案,需求单在 docs/req):M0 已建库,`install_acp` 末段跑 `go test ./...` 作组门禁;不产二进制不起第二单元,M2 切流前面板与 7663 全由 TS 服务。
 
 ## 文件
 
