@@ -79,3 +79,8 @@
 - 残项全过:Go 版本面(acpsup --version 出 go 字样);日志 canary 双阴性(固定句与 Bearer 均不落 /var/log/acpsup/acpsup.log);keys.json 与日志 0600 root;ubuntu 视角容器内回环 health 200;eth0 down 下 Go selftest 过(initialize+session/new 本地,prompt 网络层失败=协议面证据)且回环 health 200,网络恢复 egress 复归。
 - M3 删 `scripts/acp/`(仓与实例),源码留 git 历史;`acpsup.tsbak`(90MB TS 本尊)留镜像内作可执行回滚锚,publish 批裁定去留;REQ-0002 补 T7 承接行,REQ-0007 转 implemented。
 - hx-web 接入:fleet(seq 55)之外按用户令 agents 直达 pi-web(pi-server w4:p1,cwd /home/ubuntu/repos/hx-web),已投递且目标开工处理。
+
+## hx-web 切道对齐
+
+- pi-web 回执:bin/acpsup-bridge.mjs(stdio ACP→REST+SSE 桥,after= 断点重连,权限卡请求化)三后端全切,本地承重面撤;pi 后端桥冒烟 end_turn。
+- 我侧响应:会话上限环境变量化(ACPSUP_SESSION_MAX,默认 8,unit 测试期注 16)并换档清表(16 空位);警示桥侧勿碰 /shutdown(测试模式全员 admin,干净退出不回拉);ACSUP_KEY 命名无冲突确认;终验由 pi-web 跑。

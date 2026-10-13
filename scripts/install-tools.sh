@@ -1539,6 +1539,7 @@ After=network.target
 [Service]
 ExecStart=/usr/local/bin/acpsup
 Environment=ACPSUP_AUTH_OFF=1
+Environment=ACPSUP_SESSION_MAX=16
 Restart=on-failure
 
 [Install]

@@ -78,10 +78,17 @@ func New(cfg Config) *Server {
 	if testAuthOff {
 		perKeyMax = 0
 	}
+	// 全局会话上限可调(ACPSUP_SESSION_MAX,默认 8);无 close 面时调用方积累会压满,运营按需放宽
+	globalMax := 8
+	if v := os.Getenv("ACPSUP_SESSION_MAX"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+			globalMax = n
+		}
+	}
 	return &Server{
 		cfg:      cfg,
 		log:      cfg.Log,
-		table:    session.NewTable(8, perKeyMax),
+		table:    session.NewTable(globalMax, perKeyMax),
 		terms:    fsimpl.NewTerminals(),
 		reg:      backend.Registry(),
 		limiters: make(map[string]*rate.Limiter),
