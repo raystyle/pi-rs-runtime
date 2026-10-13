@@ -1531,6 +1531,7 @@ install_acp() {
         rm -f /usr/local/bin/acpsup
     fi
     install -m 755 "$newbin" /usr/local/bin/acpsup && rm -f "$newbin" /usr/local/bin/acpsup-go
+    BUILD_TS="$(date +%s)"
     cat > /etc/systemd/system/acpsup.service <<UNITEOF
 [Unit]
 Description=ACP supervisor (acpsup)
@@ -1540,11 +1541,13 @@ After=network.target
 ExecStart=/usr/local/bin/acpsup
 Environment=ACPSUP_AUTH_OFF=1
 Environment=ACPSUP_SESSION_MAX=16
+Environment=ACPSUP_BUILD=__BUILD_TS__
 Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target
 UNITEOF
+    sed -i "s/__BUILD_TS__/${BUILD_TS}/" /etc/systemd/system/acpsup.service
     systemctl daemon-reload
     systemctl enable acpsup
     # 旧进程退出回收与 start 之间有竞态窗(start 在 unit 仍 active 时是 no-op,滞留旧二进制):
@@ -1553,13 +1556,23 @@ UNITEOF
     # 清失败态:换档窗口若触发过监听失败的 on-failure 重拉(旧二进制滞留),reset 后才起真身
     systemctl reset-failed acpsup 2>/dev/null || true
     systemctl start acpsup || echo "!! acpsup 服务起不来(手动查:systemctl status acpsup)"
-    # HTTP 验收:health 三后端面;败态回滚 tsbak(测试模式期任意 token 亦通,token 道双兼容)
-    sleep 1
-    local health
-    health="$(curl -fsS -m 8 -H "Authorization: Bearer $(cat /var/lib/acpsup/token 2>/dev/null)" \
-        http://127.0.0.1:7663/health 2>/dev/null || true)"
-    if printf '%s' "$health" | grep -q '"ok":true' && printf '%s' "$health" | grep -q '"name":"pi"'; then
-        echo "M2 切流过:7663 由 Go acpsup 服务;三后端:$(printf '%s' "$health" | grep -o '"name":"[a-z]*"' | cut -d'"' -f4 | tr '\n' ' ')"
+    # HTTP 验收:三后端 + 构建指纹(滞留旧身检测:health.build 必须等于本次构建时间戳;
+    # systemmd 自动重拉与换档的竞态会让旧二进制顶在 7663 上,指纹不对就弹换重试)
+    local health try
+    for try in 1 2 3; do
+        sleep 1
+        health="$(curl -fsS -m 8 -H "Authorization: Bearer $(cat /var/lib/acpsup/token 2>/dev/null)" \
+            http://127.0.0.1:7663/health 2>/dev/null || true)"
+        if printf '%s' "$health" | grep -q '"build":"'"${BUILD_TS}"'"'; then break; fi
+        curl -fsS -m 5 -X POST -H "Authorization: Bearer $(cat /var/lib/acpsup/token 2>/dev/null)" \
+            http://127.0.0.1:7663/shutdown >/dev/null 2>&1 || true
+        for _ in 1 2 3 4 5 6 7 8 9 10; do systemctl is-active --quiet acpsup || break; sleep 0.5; done
+        systemctl reset-failed acpsup 2>/dev/null || true
+        systemctl start acpsup
+    done
+    if printf '%s' "$health" | grep -q '"ok":true' && printf '%s' "$health" | grep -q '"name":"pi"' \
+        && printf '%s' "$health" | grep -q '"build":"'"${BUILD_TS}"'"'; then
+        echo "M2 切流过:7663 由 Go acpsup 服务(build ${BUILD_TS});三后端:$(printf '%s' "$health" | grep -o '"name":"[a-z]*"' | cut -d'"' -f4 | tr '\n' ' ')"
     else
         echo "!! 7663 验收失败(health: ${health:-空}),回滚 tsbak"
         rm -f /usr/local/bin/acpsup

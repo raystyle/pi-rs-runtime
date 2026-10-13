@@ -269,6 +269,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("POST /session/cancel", s.auth(s.handleCancel, false, true))
 	mux.HandleFunc("GET /events", s.auth(s.handleEvents, false, false))
 	mux.HandleFunc("POST /permission", s.auth(s.handlePermission, false, true))
+	mux.HandleFunc("GET /file", s.auth(s.handleFile, false, true))
 	mux.HandleFunc("POST /shutdown", s.auth(s.handleShutdown, true, true))
 	mux.HandleFunc("POST /keys", s.auth(s.handleKeyCreate, true, true))
 	mux.HandleFunc("GET /keys", s.auth(s.handleKeyList, true, true))
@@ -321,7 +322,7 @@ func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 		}
 		agents = append(agents, entry)
 	}
-	jsonWrite(w, 200, map[string]any{"ok": true, "acpsup": version(), "agents": agents})
+	jsonWrite(w, 200, map[string]any{"ok": true, "acpsup": version(), "build": os.Getenv("ACPSUP_BUILD"), "agents": agents})
 }
 
 func (s *Server) spawn(def backend.Def, env []string, cwd string) (*acpclient.Agent, error) {
@@ -371,9 +372,12 @@ func (s *Server) handleSessionNew(w http.ResponseWriter, r *http.Request) {
 	if !strings.HasPrefix(cwd, "/") {
 		cwd = "/tmp"
 	}
-	// cwd 必须是存在的目录(hx-web 联测暴露:无效 cwd 曾报成含混的 agent 未就绪)
-	if fi, err := os.Stat(cwd); err != nil || !fi.IsDir() {
-		jsonWrite(w, 400, map[string]any{"error": "cwd 无效(需存在的绝对路径目录):" + body.Cwd})
+	// cwd 语义(hx-web 桥面对齐):调用方传容器内绝对路径;不存在的目录在白名单前缀下
+	// 自动建(ACPSUP_CWD_ALLOW 逗号分隔,默认 /tmp,/srv/work),之外报 400
+	if fi, err := os.Stat(cwd); err == nil && fi.IsDir() {
+		// 存在且是目录,直接用
+	} else if err := mkdirAllowlisted(cwd); err != nil {
+		jsonWrite(w, 400, map[string]any{"error": err.Error()})
 		return
 	}
 	// 四模型面(2026-10-13):可选 model 指定网关别名;claude 注 ANTHROPIC_MODEL,
@@ -580,6 +584,70 @@ func (s *Server) serverRequest(sess *session.Session, method string, params json
 	default:
 		respondErr(-32601, "acpsup 未实现 "+method)
 	}
+}
+
+// cwdAllowRoots 是 cwd 自动建的白名单前缀(环境变量覆盖,逗号分隔)。
+func cwdAllowRoots() []string {
+	v := os.Getenv("ACPSUP_CWD_ALLOW")
+	if v == "" {
+		return []string{"/tmp/", "/srv/work/"}
+	}
+	var out []string
+	for _, p := range strings.Split(v, ",") {
+		p = strings.TrimSpace(p)
+		if p != "" {
+			if !strings.HasSuffix(p, "/") {
+				p += "/"
+			}
+			out = append(out, p)
+		}
+	}
+	return out
+}
+
+// mkdirAllowlisted 在白名单前缀下建目录(含父目录);之外返回可读错误。
+func mkdirAllowlisted(cwd string) error {
+	for _, root := range cwdAllowRoots() {
+		if strings.HasPrefix(cwd, root) {
+			if err := os.MkdirAll(cwd, 0o755); err != nil {
+				return fmt.Errorf("cwd 建不了(%s):%v", cwd, err)
+			}
+			return nil
+		}
+	}
+	return fmt.Errorf("cwd 无效(需存在的绝对路径目录,或在自动建白名单 %v 下):%s", cwdAllowRoots(), cwd)
+}
+
+// handleFile 是文件承接面:取该会话 cwd 子树内的一个文件(桥/平台读不到容器 FS 的补面)。
+// 安全边界:会话必须在表(空闲逐出后失效)、路径绝对且 Clean 后仍在该会话 cwd 子树内、4MiB 封顶。
+func (s *Server) handleFile(w http.ResponseWriter, r *http.Request) {
+	sid := r.URL.Query().Get("sessionId")
+	path := r.URL.Query().Get("path")
+	sess := s.table.Get(sid)
+	if sess == nil {
+		jsonWrite(w, 404, map[string]any{"error": "无此会话(空闲逐出或不存在)"})
+		return
+	}
+	if !filepath.IsAbs(path) {
+		jsonWrite(w, 400, map[string]any{"error": "path 需绝对路径"})
+		return
+	}
+	clean := filepath.Clean(path)
+	rel, err := filepath.Rel(sess.Cwd, clean)
+	if err != nil || rel == ".." || strings.HasPrefix(rel, "../") {
+		jsonWrite(w, 403, map[string]any{"error": "path 越出会话 cwd 子树"})
+		return
+	}
+	content, err := fsimpl.ReadTextFileBounded(fsimpl.ReadParams{Path: clean})
+	if err != nil {
+		jsonWrite(w, 404, map[string]any{"error": err.Error()})
+		return
+	}
+	if s.log != nil {
+		s.log.Info("file_read", "cat", "audit", "action", "file/read",
+			"session_id", sess.ID, "path", clipStr(clean, 256), "bytes", len(content))
+	}
+	jsonWrite(w, 200, map[string]any{"path": clean, "content": content})
 }
 
 func (s *Server) handlePrompt(w http.ResponseWriter, r *http.Request) {

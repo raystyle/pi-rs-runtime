@@ -94,3 +94,9 @@
 
 - pi-web 终验回执全绿:经网关→桥→acpsup 三后端只回复 ok 全 end_turn,别名抽查过,桥权限卡回环实测过(Write 工具卡→应答→完成);其两根因自解(cwd chdir 建 /tmp workspace;网关双实例清)。
 - 联测暴露两处我侧硬化:①cwd 无效曾报成含混的「agent 未就绪」(chdir 细节),session/new 增 cwd 存在性闸,报「cwd 无效(需存在的绝对路径目录)」;②换档窗口曾现 status=1 监听失败→on-failure 重拉旧二进制滞留(journal 重拉计数 8,systemd 杀 cgroup EPERM 适配器残留),换档序增 systemctl reset-failed,净弹后 cwd 闸实证生效。
+
+## 桥面对齐:cwd 语义与文件承接
+
+- pi-web 报障驱动:zacp default_cwd 指网关宿主路径,session/new 400。裁定走 c 变体(契约定死容器路径)+ 后端补缺:cwd 白名单自动建(ACPSUP_CWD_ALLOW,默认 /tmp 与 /srv/work)+ GET /file 文件承接面(限会话 cwd 子树、4MiB 封顶、403 越树、逐出后 404,审计 file/read);共享卷方案留用户裁。
+- 换档滞留旧身顽疾(systemd on-failure 自动重拉与二进制换装竞态,第三次现身)根治:unit 烤 ACPSUP_BUILD 时间戳、/health 回显、验收强校验指纹,不符自动弹换重试三次;本次实证 build 1791902900 在役。
+- 协议三点回执:events id 会话内严格单调、after 排他续传(边界=环窗 2000);会话上限默认 8/ACPSUP_SESSION_MAX 可调(现役 16)、空闲回收默认 30 分钟;prompt 断开续跑是既定语义(S-0003),取消走显式 /session/cancel。

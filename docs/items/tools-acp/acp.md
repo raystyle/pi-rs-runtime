@@ -33,7 +33,8 @@
 - agent 环境:claude 适配器 `DISABLE_UPDATES=1`;codex 适配器 `CODEX_PATH=/usr/local/bin/codex`(指镜像内锁定版本,禁用适配器自带)加 `NO_BROWSER=1`;模型道沿 agents 批的网关接线(见 claude-code 与 codex 册),acpsup 不经手凭证。
 - 对外引出(宿主执行):`incus config device add <实例> acp proxy listen=tcp:10.10.10.13:7663 connect=tcp:127.0.0.1:7663`;listen 绑宿主 tailnet 地址(tailscale0),只对 tailnet 开,LAN 面不开;全端点先过 Bearer(无 token 401),不裸奔;要放开别的面改 listen。
 - token 自取:`incus exec <实例> -- cat /var/lib/acpsup/token`;调用示例:`curl -H "Authorization: Bearer <token>" http://<宿主>:7663/health`。
-- 端点面:`GET /health`;`POST /session/new` {agent,cwd,model?};`POST /session/prompt` {sessionId,text};`POST /session/cancel`;`GET /events?sessionId=`(SSE,先回放后订阅,15 秒心跳注释保活,防网关层空闲断流);`POST /permission` {requestId,optionId};`POST /shutdown`。
+- 端点面:`GET /health`(含 `build` 构建指纹,换档滞留检测用);`POST /session/new` {agent,cwd,model?};`POST /session/prompt` {sessionId,text};`POST /session/cancel`;`GET /events?sessionId=`(SSE,先回放后订阅,15 秒心跳注释保活);`POST /permission` {requestId,optionId};`GET /file?sessionId=&path=`(文件承接面,限该会话 cwd 子树,4MiB 封顶,空闲逐出后失效);`POST /shutdown`。
+- cwd 语义(桥面对齐):调用方传容器内绝对路径;目录不存在时在白名单前缀下自动建(`ACPSUP_CWD_ALLOW` 逗号分隔,默认 `/tmp/,/srv/work/`),之外 400;产物落容器内,平台侧经 `/file` 取。
 - 模型选择(四模型面):`session/new` 的可选 `model` 给网关别名;claude 注 `ANTHROPIC_MODEL`(可用 `zp-cc-glm53[1m]`、`zp-cc-glm53fh[1m]`、`ds-cc-pro`、`ds-cc-flash`),codex 生成会话级 `CODEX_HOME` 改 model 行(可用 `zp-cx-glm53`、`ds-cx-pro`、`ds-cx-flash` 等);未给用烤库默认;别名与档位以网关侧表为准。
 - 事件线形(调用方按此匹配):更新是 `{"kind":"session/update","update":{"sessionUpdate":"…"}}`;权限卡是 `{"kind":"permission","requestId":"perm-…","request":{…}}`,`requestId` 顶层取,应答走 `POST /permission`。
 
