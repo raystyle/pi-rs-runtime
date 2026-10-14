@@ -145,11 +145,16 @@ func (m *vncManager) bootSweepAsync() {
 }
 
 func (m *vncManager) bootSweep() {
+	// 持锁整程:与 Ensure 的 alloc 串行,防止异步清扫在中途 RemoveAll 抽走活栈的目录
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	orphans := 0
 	for i := 0; i < vncSlotCount; i++ {
 		display := vncDisplayBase + i
 		if _, err := os.Stat(xSocket(display)); err != nil {
 			continue
 		}
+		orphans++
 		m.closeOrphanChrome(vncCdpBase + i)
 		dl := time.Now().Add(2 * time.Second)
 		for time.Now().Before(dl) {
@@ -159,13 +164,20 @@ func (m *vncManager) bootSweep() {
 			time.Sleep(100 * time.Millisecond)
 		}
 		if _, err := os.Stat(xSocket(display)); err == nil {
-			m.markLeak(i)
+			m.slots[i] = &vncStack{mgr: m, slot: i, leaky: true, display: display, cdpPort: vncCdpBase + i}
 			continue
 		}
-		m.freeSlot(i)
 	}
-	_ = os.RemoveAll(m.base)
-	_ = os.MkdirAll(m.base, 0o700)
+	// 基目录只在零孤儿时整体清(有孤儿时目录里可能还有现场,不赌)
+	if orphans == 0 {
+		_ = os.RemoveAll(m.base)
+		_ = os.MkdirAll(m.base, 0o700)
+	} else {
+		_ = os.MkdirAll(m.base, 0o700)
+	}
+	if m.log != nil {
+		m.log.Info("vnc_boot_sweep", "cat", "audit", "orphans", orphans)
+	}
 }
 
 // closeOrphanChrome 对孤儿 chrome 发 CDP Browser.close(自退道,不发信号)。
