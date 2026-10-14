@@ -157,7 +157,9 @@ touch "/tmp/.X11-unix/X$d"
 exec sleep 60`)
 	t.Cleanup(func() {
 		_ = os.Remove("/tmp/.X11-unix/X" + strconv.Itoa(vncDisplayBase))
-		_ = exec.Command("pkill", "-f", filepath.Join(dir, "fake-chrome")).Run()
+		// 假 chrome 是 exec 后的 python(cmdline 无脚本路径),按响应特征串清杀;
+		// 清不干净会占住 192xx 口,把 alloc 的泄漏槽逻辑误当真泄漏(实例内已踩)
+		_ = exec.Command("pkill", "-f", "devtools/browser/fake").Run()
 		_ = exec.Command("pkill", "-f", filepath.Join(dir, "fake-xvfb")).Run()
 	})
 	s.vnc.xdpyinfo = writeBin(t, dir, "fake-xdpyinfo", "exit 0")
