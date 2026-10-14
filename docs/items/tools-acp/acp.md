@@ -6,7 +6,7 @@
 
 - `CLAUDE_ACP_VERSION`(当前 0.89.1);`CODEX_ACP_VERSION`(当前 2.2.2)。
 - 两值解析自 registry(解析日 2026-10-11);升级=对 registry 再解析改锁定值后重跑。
-- 监督进程:`scripts/acpsvc/`(Go,版本是源码常量,ldflags 注入,当前 0.1.0);TS 工程已删(M3,2026-10-13),源码留 git 历史,可执行回滚锚是镜像内 `/usr/local/bin/acpsup.tsbak`。
+- 监督进程:`scripts/acpsvc/`(Go,版本是源码常量,ldflags 注入,当前 0.2.0);TS 工程已删(M3,2026-10-13),源码留 git 历史,可执行回滚锚是镜像内 `/usr/local/bin/acpsup.tsbak`。
 
 ## 来源与安装
 
@@ -35,8 +35,8 @@
 - token 自取:`incus exec <实例> -- cat /var/lib/acpsup/token`;调用示例:`curl -H "Authorization: Bearer <token>" http://<宿主>:7663/health`。
 - 端点面:`GET /health`(含 `build` 构建指纹,换档滞留检测用);`POST /session/new` {agent,cwd,model?};`POST /session/resume` {agent,sessionId,cwd,model?}(跨监督进程重启续会话;cwd 须等会话记录的 cwd,后端 fail-closed;未知 id 502,已在表 409);`POST /session/prompt` {sessionId,text};`POST /session/model` {sessionId,model};`POST /session/cancel`;`GET /events?sessionId=`(SSE,先回放后订阅,15 秒心跳注释保活);`POST /permission` {requestId,optionId};`GET /file?sessionId=&path=`(文件承接面,限该会话 cwd 子树,4MiB 封顶,空闲逐出后失效);`POST /shutdown`。
 - cwd 语义(桥面对齐):调用方传容器内绝对路径;目录不存在时在白名单前缀下自动建(`ACPSUP_CWD_ALLOW` 逗号分隔,默认 `/tmp/,/srv/work/`),之外 400;产物落容器内,平台侧经 `/file` 取。
-- 模型清单与换模(2026-10-14 双面):`GET /models?agent=` 出各 agent 合法别名、默认与可换子清单(`models` 建会话全清单,`switch_models` 中会话可换子集,`switchable` 总开关);`POST /session/model` {sessionId,model} 中会话换模,转发 ACP 原生 `session/set_config_option`(configId=model),会话号不变。
-- 两道语义:建会话 `model` 参数走 spawn env 道(claude 注 `ANTHROPIC_MODEL`,codex 会话级 `CODEX_HOME`),全清单生效;中会话换模走 set_config_option 道,claude 只认网关 `/v1/models` 在列名(`zp-cc-glm53[1m]`、`zp-cc-glm53fh[1m]`;ds 档别名 set 后静默回落默认,故列外),codex 认目录全别名,pi 待 pi-rs-core 支持后开放(暂 400 明示)。
+- 模型清单与换模(2026-10-14 双面):`GET /models?agent=` 出各 agent 合法别名、默认与可换子清单(`models` 建会话全清单,`switch_models` 中会话可换清单,四模型面两者全等,`switchable` 总开关);`POST /session/model` {sessionId,model} 中会话换模,转发 ACP 原生 `session/set_config_option`(configId=model),会话号不变。
+- 两道语义:建会话 `model` 参数走 spawn env 道(claude 注 `ANTHROPIC_MODEL`,codex 会话级 `CODEX_HOME`),全清单生效;中会话换模按后端分道(catalog `switch_mode`,2026-10-14):codex 直通 ACP `set_config_option`(认目录全别名,第四别名 `zp-cx-glm5t`);claude 走重建道——适配器 `set_config_option` 只认 SDK 档位词、任意别名被解析后经 managed env 映射回 zp-cc GLM(适配器源码与 ds 档实跑已验),故以新 `ANTHROPIC_MODEL` 重拉适配器:已发过 prompt 的会话用 `session/resume` 原号续接(transcript 在盘,暗号跨换模已验),空会话(建后未发首条,无 transcript 可续,旧病 -32002)底层全新 `session/new` 换新号;对外会话号、事件环、权限桥两者都恒不变,适配器事件按 AcpID 匹配。pi 待 pi-rs-core 支持后开放(暂 400 明示)。
 - 换模边界:回合在途 409(不排队);非法别名 400 带合法清单;`session/new` 响应透传后端 `configOptions`(桥拼下拉用);`config_option_update` 通知经事件流回推。
 - 事件线形(调用方按此匹配):更新是 `{"kind":"session/update","update":{"sessionUpdate":"…"}}`;权限卡是 `{"kind":"permission","requestId":"perm-…","request":{…}}`,`requestId` 顶层取,应答走 `POST /permission`。
 

@@ -131,3 +131,12 @@
 - 契约③接线:POST /session/resume {agent,sessionId,cwd,model?}——spawn+initialize+ACP 原生 resume;cwd fail-closed,未知 id 502,在表 409;E2E:claude 会话横跨监督进程重启续接,暗号问答回「樱桃原子」(记忆真续);pi 会话 -32601 属版本时序(resume 晚于 v0.3.0 发行),下版升 PI_RS_CORE_VERSION 即通,已更正告知 pi-rs-core。
 - 换档凭证事故与根修:发布期删 token 文件后,换档脚本的停机/验收 bearer 全空 → 验收三连假红 → 回滚闸消费 tsbak(本实例 TS 回滚锚失,镜像内仍有)。恢复道:journal 抓 admin 键重建 token 文件。根修:EnsureKeys 首启同步把新 admin 键写进 token 文件(操作者 bearer 约定),新实例不再重蹈。
 - resume 测试三态落地(fake 适配器增 resume 分支);全套件六包绿。
+
+## 四模型换模放宽(2026-10-14 深夜,pi-web 用户反馈单)
+
+- 界面反馈:下拉各应 4 可用。网关已列 ds-cc-pro/ds-cc-flash/zp-cx-glm5t/zp-cx-glm53fh(直打网关回 model 字段 deepseek-flash/deepseek-v4-pro,ds 档真 DeepSeek 池)。
+- claude 堵点定性:适配器 set_config_option 的 value 永远解析成 SDK 选项表规范值(档位词),调用方原始串不透传;ds 别名 fuzzy 落 opus,经 managed env 映射回 zp-cc-glm53[1m](GLM),适配器源码与实跑双验;连 zp-cc 两别名的 set 也存在同类模糊解析,故 claude 换模整体改重建道。
+- 重建道:重拉适配器(新 ANTHROPIC_MODEL;spawn env 与建会话道同机制,CLI 对别名仅 unrecognized_model 警告仍原样上送)→ 有轮次 session/resume 原号续接(transcript 在盘)→ 空会话 session/new 底层换 AcpID(对外号恒不变,-32002 除根)→ SwapAdapter 原子换进程,事件环/权限桥/会话号不动,请求参数与事件匹配走 AcpSessionID()。
+- codex 第四别名 zp-cx-glm5t(共享目录在册),set_config_option 直通不变。
+- 采集教训:SSE 回放读块大于在途字节时 python read 阻塞到超时并丢已收字节(65536 读块吞小回放,4096+心跳容忍 curl -N 才稳);诊断期加 update_mismatch/rebuild_swapped 审计行(留存,零 mismatch 全程)。
+- E2E:claude 三别名(ds-cc-flash/zp-cc-glm53fh[1m]/ds-cc-pro)换模 200 rebuilt、暗号跨换模续答、模型标识随 env、同名 noop、非法别名 400 带清单;codex 空会话直通 zp-cx-glm5t + prompt end_turn;acpsup 0.2.0 上线,go.sum 入仓。

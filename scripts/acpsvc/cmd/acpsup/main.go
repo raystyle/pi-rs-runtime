@@ -17,7 +17,7 @@ import (
 )
 
 // version 是服务自身版本;发布经 -ldflags '-X main.version=...' 注入(S-0003 第 1 节)。
-var version = "0.1.0"
+var version = "0.2.0"
 
 func main() {
 	port := flag.Int("port", 7663, "平台 HTTP 监听端口(仅回环)")

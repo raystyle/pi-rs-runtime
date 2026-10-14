@@ -30,15 +30,20 @@ import (
 // pi 中会话换模待 pi-rs-core 支持 set_config_option 后开放)。
 var modelCatalog = map[string]struct {
 	Models       []string // 建会话 model 参数合法面(spawn env 道,全清单)
-	SwitchModels []string // 中会话换模合法面(ACP set_config_option 道,实验界定的子集)
+	SwitchModels []string // 中会话换模合法面(四模型面,与 Models 全等)
+	SwitchMode   string   // 换模道:rebuild=重拉适配器+resume 续接(claude);set=set_config_option 直通(codex)
 	Default      string
 }{
-	// claude 运行时换模只认网关 /v1/models 在列名(zp-cc-* 在列;ds-cc-* 网关未列,
-	// set 后静默回落默认——ds 档建会话时经 ANTHROPIC_MODEL 全通,实验 2026-10-13)
+	// claude 适配器把 set_config_option 的任意串解析成 SDK 档位词再经 managed env 映射回
+	// zp-cc GLM(适配器源码与 ds 别名实跑自证,2026-10-14),换模走重建道:
+	// 以新 ANTHROPIC_MODEL 重拉适配器、session/resume 原 id 续接,会话号与事件环不变
 	"claude": {Models: []string{"zp-cc-glm53[1m]", "zp-cc-glm53fh[1m]", "ds-cc-pro", "ds-cc-flash"},
-		SwitchModels: []string{"zp-cc-glm53[1m]", "zp-cc-glm53fh[1m]"}, Default: "zp-cc-glm53[1m]"},
-	"codex": {Models: []string{"zp-cx-glm53", "ds-cx-pro", "ds-cx-flash"},
-		SwitchModels: []string{"zp-cx-glm53", "ds-cx-pro", "ds-cx-flash"}, Default: "ds-cx-pro"},
+		SwitchModels: []string{"zp-cc-glm53[1m]", "zp-cc-glm53fh[1m]", "ds-cc-pro", "ds-cc-flash"},
+		SwitchMode:   "rebuild", Default: "zp-cc-glm53[1m]"},
+	// codex 适配器认目录全别名,set_config_option 直通;第四别名 zp-cx-glm5t(目录在册)
+	"codex": {Models: []string{"zp-cx-glm53", "zp-cx-glm5t", "ds-cx-pro", "ds-cx-flash"},
+		SwitchModels: []string{"zp-cx-glm53", "zp-cx-glm5t", "ds-cx-pro", "ds-cx-flash"},
+		SwitchMode:   "set", Default: "ds-cx-pro"},
 	"pi": {Models: []string{"ds-cx-flash", "zp-cx-chat", "ds-cx-pro", "zp-cc-glm53fh"},
 		SwitchModels: nil, Default: "ds-cx-flash"},
 }
@@ -61,8 +66,9 @@ func (s *Server) handleModels(w http.ResponseWriter, r *http.Request) {
 	jsonWrite(w, 200, out)
 }
 
-// handleSessionModel 中会话换模:转发 ACP 原生 session/set_config_option(configId=model)。
-// 回合在途 409(不排队);非法别名 400 带合法清单;适配器未实现(如 pi)400 明示。
+// handleSessionModel 中会话换模,按 catalog.SwitchMode 分道:codex(set)直通 ACP 原生
+// session/set_config_option(configId=model);claude(rebuild)走 rebuildModel 重建道。
+// 回合在途 409(不排队);非法别名 400 带合法清单;适配者未实现(如 pi)400 明示。
 func (s *Server) handleSessionModel(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		SessionID string `json:"sessionId"`
@@ -97,13 +103,22 @@ func (s *Server) handleSessionModel(w http.ResponseWriter, r *http.Request) {
 		jsonWrite(w, 409, map[string]any{"error": "prompt_in_flight"})
 		return
 	}
+	def, ok := backend.Find(sess.Agent)
+	if !ok {
+		jsonWrite(w, 500, map[string]any{"error": "注册表缺 agent:" + sess.Agent})
+		return
+	}
+	if cat.SwitchMode == "rebuild" {
+		s.rebuildModel(w, r, sess, def, body.Model)
+		return
+	}
 	ctx, cancel := context.WithTimeout(r.Context(), handshakeTO)
 	defer cancel()
-	res, err := sess.Ag.Request(ctx, "session/set_config_option", map[string]any{
-		"sessionId": sess.ID, "configId": "model", "value": body.Model,
+	res, err := sess.Adapter().Request(ctx, "session/set_config_option", map[string]any{
+		"sessionId": sess.AcpSessionID(), "configId": "model", "value": body.Model,
 	})
 	if err != nil {
-		jsonWrite(w, 502, map[string]any{"error": err.Error(), "adapterStderr": sess.Ag.StderrTail()})
+		jsonWrite(w, 502, map[string]any{"error": err.Error(), "adapterStderr": sess.Adapter().StderrTail()})
 		return
 	}
 	if s.log != nil {
@@ -116,6 +131,101 @@ func (s *Server) handleSessionModel(w http.ResponseWriter, r *http.Request) {
 	_ = json.Unmarshal(res, &out)
 	jsonWrite(w, 200, map[string]any{"ok": true, "sessionId": sess.ID, "model": body.Model,
 		"configOptions": out.ConfigOptions})
+}
+
+// spawnModelEnv 在注册表 env 上叠加模型道:claude 注 ANTHROPIC_MODEL(spawn env 直达,
+// 任意网关别名生效),codex 生成会话级 CODEX_HOME;model 空返回烤库默认 env。
+func spawnModelEnv(def backend.Def, model string) ([]string, error) {
+	env := append([]string(nil), def.Env...)
+	if model == "" {
+		return env, nil
+	}
+	switch def.Name {
+	case "claude":
+		env = append(env, "ANTHROPIC_MODEL="+model)
+	case "codex":
+		home, err := codexHomeWithModel(model)
+		if err != nil {
+			return nil, err
+		}
+		env = append(env, "CODEX_HOME="+home)
+	}
+	return env, nil
+}
+
+// rebuildModel 是 claude 中会话换模的重建道:适配器 set_config_option 只认 SDK 档位词,
+// 任意别名被解析回落(适配器源码与 ds 档实跑自证,2026-10-14),故以新 ANTHROPIC_MODEL
+// 重拉适配器、session/resume 原 id 续接(transcript 在盘);事件环、权限桥、会话号不变。
+// wire 的适配器事件以 AcpID 匹配(空会话重建后适配器发新号)。
+// 占 prompt 位串行化:重建期间新 prompt 与并发换模回 409;失败不动原会话。
+func (s *Server) rebuildModel(w http.ResponseWriter, r *http.Request, sess *session.Session, def backend.Def, model string) {
+	if model == sess.Model {
+		jsonWrite(w, 200, map[string]any{"ok": true, "sessionId": sess.ID, "model": model, "noop": true})
+		return
+	}
+	rel, ok := sess.TryPrompt()
+	if !ok {
+		jsonWrite(w, 409, map[string]any{"error": "prompt_in_flight"})
+		return
+	}
+	defer rel()
+	env, err := spawnModelEnv(def, model)
+	if err != nil {
+		jsonWrite(w, 500, map[string]any{"error": "模型面生成失败:" + err.Error()})
+		return
+	}
+	ctx, cancel := context.WithTimeout(r.Context(), handshakeTO)
+	defer cancel()
+	ag, err := s.spawn(def, env, sess.Cwd)
+	if err != nil {
+		jsonWrite(w, 502, map[string]any{"error": "agent 未就绪:" + err.Error()})
+		return
+	}
+	caps := map[string]any{
+		"fs":       map[string]any{"readTextFile": def.FS, "writeTextFile": def.FS},
+		"terminal": def.Terminal,
+	}
+	if _, err := ag.Request(ctx, "initialize", map[string]any{"protocolVersion": 1, "clientCapabilities": caps}); err != nil {
+		ag.Close()
+		jsonWrite(w, 502, map[string]any{"error": err.Error(), "adapterStderr": ag.StderrTail()})
+		return
+	}
+	// 空会话(未发过 prompt,无 transcript 可续)直接底层重建换新号;
+	// 已有对话走 session/resume 原号续接。对外会话号两者都恒不变。
+	newAcpID := sess.AcpSessionID()
+	if !sess.Prompted() {
+		var sn struct {
+			SessionID     string          `json:"sessionId"`
+			ConfigOptions json.RawMessage `json:"configOptions"`
+		}
+		res, err := ag.Request(ctx, "session/new", map[string]any{"cwd": sess.Cwd, "mcpServers": []any{}})
+		if err != nil || json.Unmarshal(res, &sn) != nil || sn.SessionID == "" {
+			ag.Close()
+			jsonWrite(w, 502, map[string]any{"error": "换模重建失败:" + err.Error(), "adapterStderr": ag.StderrTail()})
+			return
+		}
+		newAcpID = sn.SessionID
+	} else if _, err := ag.Request(ctx, "session/resume", map[string]any{
+		"sessionId": newAcpID, "cwd": sess.Cwd, "mcpServers": []any{},
+	}); err != nil {
+		ag.Close()
+		jsonWrite(w, 502, map[string]any{"error": "换模续接失败:" + err.Error(), "adapterStderr": ag.StderrTail()})
+		return
+	}
+	old := sess.Adapter()
+	sess.SwapAdapter(ag, newAcpID)
+	sess.Model = model
+	s.wire(sess)
+	if s.log != nil {
+		s.log.Info("rebuild_swapped", "cat", "audit", "session_id", sess.ID,
+			"acp_id", newAcpID, "prompted", sess.Prompted())
+	}
+	go old.Close()
+	if s.log != nil {
+		s.log.Info("session_model", "cat", "audit", "action", "session/model(rebuild)",
+			"session_id", sess.ID, "agent", sess.Agent, "model", model)
+	}
+	jsonWrite(w, 200, map[string]any{"ok": true, "sessionId": sess.ID, "model": model, "rebuilt": true})
 }
 
 // modelLineRe 匹配烤库 codex config 的 model 行(会话级模型覆盖用)。
@@ -485,21 +595,11 @@ func (s *Server) handleSessionNew(w http.ResponseWriter, r *http.Request) {
 		jsonWrite(w, 400, map[string]any{"error": err.Error()})
 		return
 	}
-	// 四模型面(2026-10-13):可选 model 指定网关别名;claude 注 ANTHROPIC_MODEL,
-	// codex 生成会话级 CODEX_HOME;未给用烤库默认
-	env := append([]string(nil), def.Env...)
-	if body.Model != "" {
-		switch def.Name {
-		case "claude":
-			env = append(env, "ANTHROPIC_MODEL="+body.Model)
-		case "codex":
-			home, err := codexHomeWithModel(body.Model)
-			if err != nil {
-				jsonWrite(w, 500, map[string]any{"error": "codex 模型面生成失败:" + err.Error()})
-				return
-			}
-			env = append(env, "CODEX_HOME="+home)
-		}
+	// 四模型面(2026-10-13):可选 model 指定网关别名,叠加道见 spawnModelEnv;未给用烤库默认
+	env, err := spawnModelEnv(def, body.Model)
+	if err != nil {
+		jsonWrite(w, 500, map[string]any{"error": "模型面生成失败:" + err.Error()})
+		return
 	}
 	ctx, cancel := context.WithTimeout(r.Context(), handshakeTO)
 	defer cancel()
@@ -536,6 +636,7 @@ func (s *Server) handleSessionNew(w http.ResponseWriter, r *http.Request) {
 	}
 	key, _ := r.Context().Value(keyCtx).(Key)
 	sess := session.NewSession(sn.SessionID, def.Name, cwd, key.ID, ag)
+	sess.Model = body.Model
 	if err := s.table.Add(sess); err != nil {
 		ag.Close()
 		jsonWrite(w, 429, map[string]any{"error": "session_limited"})
@@ -552,7 +653,7 @@ func (s *Server) handleSessionNew(w http.ResponseWriter, r *http.Request) {
 
 // wire 装配一个会话的回调:事件入环、fs/terminal 真实现、权限桥 120 秒。
 func (s *Server) wire(sess *session.Session) {
-	ag := sess.Ag
+	ag := sess.Adapter()
 	ag.StderrOut = s.stderrTap()
 	ag.OnUpdate = func(params json.RawMessage) {
 		var p struct {
@@ -560,10 +661,16 @@ func (s *Server) wire(sess *session.Session) {
 			Update    json.RawMessage `json:"update"`
 		}
 		if err := json.Unmarshal(params, &p); err != nil {
+			if s.log != nil {
+				s.log.Warn("update_unmarshal_fail", "cat", "audit", "session_id", sess.ID, "err", err.Error())
+			}
 			return
 		}
-		if p.SessionID == sess.ID {
+		if p.SessionID == sess.AcpSessionID() {
 			sess.Broadcast(session.Envelope{Kind: "session/update", Update: p.Update})
+		} else if s.log != nil {
+			s.log.Warn("update_mismatch", "cat", "audit", "session_id", sess.ID,
+				"acp_id", sess.AcpSessionID(), "got", p.SessionID)
 		}
 	}
 	ag.OnServerRequest = func(method string, params json.RawMessage, respond func(any), respondErr func(int, string)) {
@@ -761,19 +868,10 @@ func (s *Server) handleSessionResume(w http.ResponseWriter, r *http.Request) {
 		jsonWrite(w, 400, map[string]any{"error": err.Error()})
 		return
 	}
-	env := append([]string(nil), def.Env...)
-	if body.Model != "" {
-		switch def.Name {
-		case "claude":
-			env = append(env, "ANTHROPIC_MODEL="+body.Model)
-		case "codex":
-			home, err := codexHomeWithModel(body.Model)
-			if err != nil {
-				jsonWrite(w, 500, map[string]any{"error": err.Error()})
-				return
-			}
-			env = append(env, "CODEX_HOME="+home)
-		}
+	env, err := spawnModelEnv(def, body.Model)
+	if err != nil {
+		jsonWrite(w, 500, map[string]any{"error": err.Error()})
+		return
 	}
 	ctx, cancel := context.WithTimeout(r.Context(), handshakeTO)
 	defer cancel()
@@ -800,6 +898,7 @@ func (s *Server) handleSessionResume(w http.ResponseWriter, r *http.Request) {
 	}
 	key, _ := r.Context().Value(keyCtx).(Key)
 	sess := session.NewSession(body.SessionID, def.Name, cwd, key.ID, ag)
+	sess.Model = body.Model
 	if err := s.table.Add(sess); err != nil {
 		ag.Close()
 		jsonWrite(w, 429, map[string]any{"error": "session_limited"})
@@ -864,18 +963,19 @@ func (s *Server) handlePrompt(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer release()
+	sess.MarkPrompted()
 	if s.log != nil {
 		s.log.Info("prompt", "cat", "audit", "action", "session/prompt",
 			"session_id", sess.ID, "agent", sess.Agent, "prompt_bytes", len(body.Text))
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), promptTimeout)
 	defer cancel()
-	res, err := sess.Ag.Request(ctx, "session/prompt", map[string]any{
-		"sessionId": sess.ID,
+	res, err := sess.Adapter().Request(ctx, "session/prompt", map[string]any{
+		"sessionId": sess.AcpSessionID(),
 		"prompt":    []any{map[string]any{"type": "text", "text": body.Text}},
 	})
 	if err != nil {
-		jsonWrite(w, 502, map[string]any{"error": err.Error(), "adapterStderr": sess.Ag.StderrTail()})
+		jsonWrite(w, 502, map[string]any{"error": err.Error(), "adapterStderr": sess.Adapter().StderrTail()})
 		return
 	}
 	jsonWrite(w, 200, map[string]any{"stopReason": json.RawMessage(res)})
@@ -893,7 +993,7 @@ func (s *Server) handleCancel(w http.ResponseWriter, r *http.Request) {
 		jsonWrite(w, 404, map[string]any{"error": "无此会话"})
 		return
 	}
-	sess.Ag.Notify("session/cancel", map[string]any{"sessionId": sess.ID})
+	sess.Adapter().Notify("session/cancel", map[string]any{"sessionId": sess.AcpSessionID()})
 	if s.log != nil {
 		s.log.Info("session_cancel", "cat", "audit", "action", "session/cancel", "session_id", sess.ID)
 	}
@@ -1101,4 +1201,4 @@ func clipStr(s string, n int) string {
 	return s[:n] + "…"
 }
 
-func version() string { return "0.1.0" }
+func version() string { return "0.2.0" }

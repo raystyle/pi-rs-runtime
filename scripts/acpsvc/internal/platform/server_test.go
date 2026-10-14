@@ -23,12 +23,13 @@ while IFS= read -r line; do
   id=$(printf '%s' "$line" | sed -n 's/.*"id":\([0-9][0-9]*\).*/\1/p')
   case "$line" in
     *'"initialize"'*) printf '{"jsonrpc":"2.0","id":%s,"result":{"protocolVersion":1}}\n' "$id" ;;
-    *'"session/new"'*) printf '{"jsonrpc":"2.0","id":%s,"result":{"sessionId":"fake-sess"}}\n' "$id" ;;
+    *'"session/new"'*) d=$(dirname "$0"); c=$(cat "$d/n" 2>/dev/null || echo 0); c=$((c+1)); echo $c > "$d/n"; printf '{"jsonrpc":"2.0","id":%s,"result":{"sessionId":"fake-sess%d"}}\n' "$id" "$c" ;;
     *'"session/prompt"'*)
-      printf '{"jsonrpc":"2.0","method":"session/update","params":{"sessionId":"fake-sess","update":{"sessionUpdate":"agent_message_chunk"}}}\n'
+      printf '{"jsonrpc":"2.0","method":"session/update","params":{"sessionId":"fake-sess1","update":{"sessionUpdate":"agent_message_chunk"}}}\n'
       printf '{"jsonrpc":"2.0","id":%s,"result":{"stopReason":{"stopReason":"end_turn"}}}\n' "$id" ;;
     *'"session/resume"'*)
-      case "$line" in *"resume-sid-ok"*) printf '{"jsonrpc":"2.0","id":%s,"result":{}}\n' "$id" ;; *) printf '{"jsonrpc":"2.0","id":%s,"error":{"code":-32000,"message":"unknown session"}}\n' "$id" ;; esac ;;
+      case "$line" in *"resume-sid-ok"*|*"fake-sess"*) printf '{"jsonrpc":"2.0","id":%s,"result":{}}\n' "$id" ;; *) printf '{"jsonrpc":"2.0","id":%s,"error":{"code":-32000,"message":"unknown session"}}\n' "$id" ;; esac ;;
+    *'"session/set_config_option"'*) printf '{"jsonrpc":"2.0","id":%s,"result":{"configOptions":[{"id":"model","currentValue":"ds-cx-flash"}]}}\n' "$id" ;;
   esac
 done
 `
@@ -102,7 +103,7 @@ func TestSessionPromptEvents(t *testing.T) {
 	if resp.StatusCode != 200 || !strings.Contains(string(body), "fake-sess") {
 		t.Fatalf("session/new = %d %s", resp.StatusCode, body)
 	}
-	resp, body = doJSON(t, h, "POST", "/session/prompt", tok, map[string]any{"sessionId": "fake-sess", "text": "只回复 ok"})
+	resp, body = doJSON(t, h, "POST", "/session/prompt", tok, map[string]any{"sessionId": "fake-sess1", "text": "只回复 ok"})
 	if resp.StatusCode != 200 || !strings.Contains(string(body), "end_turn") {
 		t.Fatalf("prompt = %d %s", resp.StatusCode, body)
 	}
@@ -110,7 +111,7 @@ func TestSessionPromptEvents(t *testing.T) {
 	// 处理器在订阅环里长驻,用可取消 ctx 驱动返回(修挂死:httptest 默认 ctx 永不完成)
 	sseGet := func(after string) string {
 		ctx, cancel := context.WithCancel(context.Background())
-		req := httptest.NewRequest("GET", "/events?sessionId=fake-sess&after="+after, nil).WithContext(ctx)
+		req := httptest.NewRequest("GET", "/events?sessionId=fake-sess1&after="+after, nil).WithContext(ctx)
 		req.Header.Set("Authorization", "Bearer "+tok)
 		rec := httptest.NewRecorder()
 		done := make(chan struct{})
@@ -183,7 +184,7 @@ func TestPromptInFlight409(t *testing.T) {
 	h := s.Handler()
 	_, _ = doJSON(t, h, "POST", "/session/new", tok, map[string]any{"agent": "claude"})
 	// 先手动占住 prompt 位,再打 prompt 应 409
-	sess := s.table.Get("fake-sess")
+	sess := s.table.Get("fake-sess1")
 	if sess == nil {
 		t.Fatal("会话缺席")
 	}
@@ -191,7 +192,7 @@ func TestPromptInFlight409(t *testing.T) {
 	if !ok {
 		t.Fatal("占位失败")
 	}
-	resp, _ := doJSON(t, h, "POST", "/session/prompt", tok, map[string]any{"sessionId": "fake-sess", "text": "x"})
+	resp, _ := doJSON(t, h, "POST", "/session/prompt", tok, map[string]any{"sessionId": "fake-sess1", "text": "x"})
 	if resp.StatusCode != 409 {
 		t.Fatalf("并发 prompt = %d, want 409", resp.StatusCode)
 	}
@@ -215,6 +216,58 @@ func TestSessionResume(t *testing.T) {
 	resp, _ = doJSON(t, h, "POST", "/session/resume", tok, map[string]any{"agent": "claude", "sessionId": "resume-sid-ok", "cwd": "/tmp"})
 	if resp.StatusCode != 409 {
 		t.Fatalf("重复 resume = %d, want 409", resp.StatusCode)
+	}
+}
+
+// 中会话换模两道(SwitchMode):claude=重建道(重拉适配器+resume 续接,会话号不变),
+// codex=set 直通;非法别名 400 带合法清单。
+func TestSessionModelRebuild(t *testing.T) {
+	s, tok := newTestServer(t)
+	h := s.Handler()
+	resp, _ := doJSON(t, h, "POST", "/session/new", tok, map[string]any{"agent": "claude", "cwd": "/tmp"})
+	if resp.StatusCode != 200 {
+		t.Fatalf("session/new = %d", resp.StatusCode)
+	}
+	// 空会话(未发 prompt)换模:无 transcript 可续,底层全新 session/new 换新号,对外号不变
+	resp, body := doJSON(t, h, "POST", "/session/model", tok, map[string]any{"sessionId": "fake-sess1", "model": "ds-cc-flash"})
+	if resp.StatusCode != 200 || !strings.Contains(string(body), `"rebuilt":true`) {
+		t.Fatalf("empty rebuild = %d %s", resp.StatusCode, body)
+	}
+	if !strings.Contains(string(body), `"sessionId":"fake-sess1"`) {
+		t.Fatalf("对外会话号应不变: %s", body)
+	}
+	// prompt 落新底层会话号(fake-sess2)
+	resp, body = doJSON(t, h, "POST", "/session/prompt", tok, map[string]any{"sessionId": "fake-sess1", "text": "只回复 ok"})
+	if resp.StatusCode != 200 || !strings.Contains(string(body), "end_turn") {
+		t.Fatalf("post-switch prompt = %d %s", resp.StatusCode, body)
+	}
+	// 有轮次后换模:session/resume 续接道(原号)
+	resp, body = doJSON(t, h, "POST", "/session/model", tok, map[string]any{"sessionId": "fake-sess1", "model": "zp-cc-glm53fh[1m]"})
+	if resp.StatusCode != 200 || !strings.Contains(string(body), `"rebuilt":true`) {
+		t.Fatalf("resume rebuild = %d %s", resp.StatusCode, body)
+	}
+	// 同名再换是 noop
+	resp, body = doJSON(t, h, "POST", "/session/model", tok, map[string]any{"sessionId": "fake-sess1", "model": "zp-cc-glm53fh[1m]"})
+	if resp.StatusCode != 200 || !strings.Contains(string(body), `"noop":true`) {
+		t.Fatalf("noop switch = %d %s", resp.StatusCode, body)
+	}
+	// 非法别名 400 带合法清单
+	resp, body = doJSON(t, h, "POST", "/session/model", tok, map[string]any{"sessionId": "fake-sess1", "model": "ds-cx-pro"})
+	if resp.StatusCode != 400 || !strings.Contains(string(body), `"legal"`) {
+		t.Fatalf("illegal = %d %s", resp.StatusCode, body)
+	}
+}
+
+func TestSessionModelSetCodex(t *testing.T) {
+	s, tok := newTestServer(t)
+	h := s.Handler()
+	resp, _ := doJSON(t, h, "POST", "/session/new", tok, map[string]any{"agent": "codex", "cwd": "/tmp"})
+	if resp.StatusCode != 200 {
+		t.Fatalf("session/new = %d", resp.StatusCode)
+	}
+	resp, body := doJSON(t, h, "POST", "/session/model", tok, map[string]any{"sessionId": "fake-sess1", "model": "zp-cx-glm5t"})
+	if resp.StatusCode != 200 || !strings.Contains(string(body), "configOptions") {
+		t.Fatalf("codex set = %d %s", resp.StatusCode, body)
 	}
 }
 

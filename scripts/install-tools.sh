@@ -1565,7 +1565,7 @@ install_acp() {
     command -v go >/dev/null 2>&1 || { echo "!! go 缺席;先跑 install-compilers.sh golang"; return 1; }
     (cd /root/scripts/acpsvc && go test ./...) || { echo "!! acpsvc go test 未过"; return 1; }
     local newbin=/usr/local/bin/acpsup.new
-    (cd /root/scripts/acpsvc && go build -trimpath -ldflags "-s -w -X main.version=0.1.0" \
+    (cd /root/scripts/acpsvc && go build -trimpath -ldflags "-s -w -X main.version=0.2.0" \
         -o "$newbin" ./cmd/acpsup) || { echo "!! acpsvc 构建失败"; rm -f "$newbin"; return 1; }
     "$newbin" --port 7664 --selftest claude \
         || { echo "!! 新二进制 7664 自检未过,7663 不动(仍由旧 acpsup 服务)"; rm -f "$newbin"; return 1; }

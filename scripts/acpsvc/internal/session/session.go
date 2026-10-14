@@ -72,7 +72,11 @@ type Session struct {
 	Agent string
 	Cwd   string
 	KeyID string
-	Ag    *acpclient.Agent
+	Model string
+	AcpID string // 适配器侧会话号(空会话换模重建底层时更换;对外号 ID 恒不变)
+
+	agentMu sync.Mutex
+	Ag      *acpclient.Agent
 
 	ringMu sync.Mutex
 	ring   *Ring
@@ -82,6 +86,7 @@ type Session struct {
 
 	promptsMu      sync.Mutex
 	promptInFlight bool
+	prompted       bool // 已发过 prompt(空会话判据:换模无 transcript 可续)
 
 	actMu   sync.Mutex
 	lastAct time.Time
@@ -96,12 +101,37 @@ type Session struct {
 // NewSession 建会话;广播环与会话同生命周期。
 func NewSession(id, agent, cwd, keyID string, ag *acpclient.Agent) *Session {
 	return &Session{
-		ID: id, Agent: agent, Cwd: cwd, KeyID: keyID, Ag: ag, lastAct: time.Now(),
+		ID: id, AcpID: id, Agent: agent, Cwd: cwd, KeyID: keyID, Ag: ag, lastAct: time.Now(),
 		ring:   NewRing(),
 		subs:   make(map[chan Event]struct{}),
 		perms:  make(map[string]*Slot),
 		closed: make(chan struct{}),
 	}
+}
+
+// Agent 返回当前适配器(重建道换进程后,读方一致取用)。
+func (s *Session) Adapter() *acpclient.Agent {
+	s.agentMu.Lock()
+	ag := s.Ag
+	s.agentMu.Unlock()
+	return ag
+}
+
+// SwapAdapter 原子换底层适配器进程与适配器侧会话号(中会话换模重建道;
+// 空会话道换新号,续接道传原号)。
+func (s *Session) SwapAdapter(ag *acpclient.Agent, acpID string) {
+	s.agentMu.Lock()
+	s.Ag = ag
+	s.AcpID = acpID
+	s.agentMu.Unlock()
+}
+
+// AcpSessionID 返回适配器侧会话号(请求参数与事件匹配用)。
+func (s *Session) AcpSessionID() string {
+	s.agentMu.Lock()
+	id := s.AcpID
+	s.agentMu.Unlock()
+	return id
 }
 
 // touch 记最近活动(空闲逐出判据)。
@@ -197,6 +227,20 @@ func (s *Session) TryPrompt() (release func(), ok bool) {
 }
 
 // PromptInFlight 报本会话是否有在途回合(换模等面判 409 用)。
+// MarkPrompted 记会话已发过 prompt(换模空会话判据)。
+func (s *Session) MarkPrompted() {
+	s.promptsMu.Lock()
+	s.prompted = true
+	s.promptsMu.Unlock()
+}
+
+// Prompted 报会话是否发过 prompt。
+func (s *Session) Prompted() bool {
+	s.promptsMu.Lock()
+	defer s.promptsMu.Unlock()
+	return s.prompted
+}
+
 func (s *Session) PromptInFlight() bool {
 	s.promptsMu.Lock()
 	defer s.promptsMu.Unlock()
@@ -211,8 +255,8 @@ func (s *Session) Close() {
 	default:
 		close(s.closed)
 	}
-	if s.Ag != nil {
-		go s.Ag.Close()
+	if s.Adapter() != nil {
+		go s.Adapter().Close()
 	}
 }
 
