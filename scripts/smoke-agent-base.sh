@@ -52,7 +52,7 @@ section "[$VIEW] C. 五面孔与引擎"
 chkout "claude"        "claude" 30 claude --version
 chkout "codex"         "codex" 30 codex --version
 chkout "pi-rs"         "[0-9]+\.[0-9]+" 30 pi-rs --version
-chkout "acpsup(自检)"  "selftest PASS" 90 acpsup --selftest claude
+if [ "$VIEW" = root ]; then chkout "acpsup(自检)" "selftest PASS" 90 acpsup --selftest claude; fi   # 自检写 keys.json(0600 root),仅 root 视角
 chk   "clean-chrome" clean-chrome --version
 chk   "browse 版本"   browse --version
 chk   "zg"            zg --version
@@ -101,7 +101,7 @@ section "[$VIEW] F. VNC 直显与桌面面"
 chk "Xvfb" command -v Xvfb   # 此版 Xvfb 无 -version 旗标,验在位即可
 chk "x11vnc" x11vnc -version
 chk "xauth" xauth -v
-[ -d /var/lib/acpsup/vnc ] && ok "acpsup vnc 基目录在" || bad "vnc 基目录缺"
+if [ "$VIEW" = root ]; then [ -d /var/lib/acpsup/vnc ] && ok "acpsup vnc 基目录在" || bad "vnc 基目录缺"; fi   # 0700 root
 # 直显面二进制与显示口纪律(主动桥面在 E2E 阶段验,冒烟只验在位)
 [ -d /usr/share/novnc ] && ok "noVNC 在" || bad "noVNC 缺"
 have vncserver && ok "tigervnc 在" || bad "tigervnc 缺"
