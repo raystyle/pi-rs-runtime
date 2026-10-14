@@ -1607,7 +1607,7 @@ install_ctl() {
 install_zg() {
     log "zg ${GIT_PIN[zvec-ai/zvec-grep]:0:7} 段(zvec-grep 语义引擎 + ${ZG_MODEL_REF:-} 烤库)"
     local sha="${GIT_PIN[zvec-ai/zvec-grep]:?pins.sh 缺少 zvec-ai/zvec-grep 锁定版本,跑 scripts/resolve-pins.sh}"
-    install -d /opt/zg-models
+    install -d /opt/zg-models /var/lib/rctl
     # 幂等:二进制在 + 构建锁定标记==当前锁定的版本 → 早退
     if command -v zg >/dev/null 2>&1 && [ "$(cat /var/lib/rctl/.zg-built-sha 2>/dev/null)" = "$sha" ]; then
         echo "zg 已在锁定的提交上(幂等早退)"
