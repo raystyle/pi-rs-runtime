@@ -19,6 +19,7 @@
 
 - `poc-search --deep <CVE-ID>` 是多源深查(2026-10-14 增,pi 会话反推):PoC-in-GitHub 索引、Exploit-DB 快照(csv 索引与 PoC 正文引用)、nuclei 模板、metasploit 模块,分节输出命中路径;五源一发,替代此前 agent 手扒多步。
 - Exploit-DB 快照自带的官方检索器 `searchsploit` 同批链进 `/usr/local/bin`(与 exploits 目录同位自定位),提供全文检索面。
+- `rctl poc-search <参数>` 是本件的 rctl 直通子命令(2026-10-14):argv 原样转发、输出原样直出(非信封)、退出码透传;旗标名空间属本件,不经 rctl 旗标白名单。
 
 ## 配置
 

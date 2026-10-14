@@ -104,15 +104,28 @@ export function searchWithEngine(
 ): { hits: Rec[]; engine: "zvec" | "lexical" } {
   const all = withTaskHints(catalog(), caps())
   const zgPath = resolveZg()
+  const pool = all.filter((r) => (!kind || r.kind === kind) && (!env || r.env === env))
+  const lexScored = pool.map((r) => ({ r, s: score(r, q) })).filter((x) => x.s > 0).sort((a, b) => b.s - a.s)
   if (zgPath) {
     const sem = semanticSearch(q, all, dataDir(), limit, zgPath)
     if (sem) {
-      const hits = sem.filter((r) => (!kind || r.kind === kind) && (!env || r.env === env)).slice(0, limit)
+      // 外层 RRF 融合(2026-10-14):zg 内部融 vec+fts,但词面腿的 id 精确/词权重信号
+      // 仍会在语义裸排里被同 desc 家族淹没(frida 12 兄弟挤掉裸名)或主题漂移
+      // (隧道族掉出转发语义 top-8);两腿名次倒数融合,再叠 id 精确锚
+      const K = 60
+      const rrf = new Map<string, number>()
+      sem.forEach((r, i) => rrf.set(r.id, (rrf.get(r.id) ?? 0) + 1 / (K + i)))
+      lexScored.forEach((x, i) => rrf.set(x.r.id, (rrf.get(x.r.id) ?? 0) + 1 / (K + i)))
+      const byId = new Map(all.map((r) => [r.id, r]))
+      const merged = [...rrf.keys()].map((id) => byId.get(id)).filter((r): r is Rec => !!r)
+      const k = q.trim().toLowerCase()
+      const exact = merged.find((r) => r.id.toLowerCase() === k)
+      const ordered = exact ? [exact, ...merged.filter((r) => r !== exact)] : merged
+      const hits = ordered.slice(0, limit)
       if (hits.length > 0) return { hits, engine: "zvec" }
       // 语义命中被 kind/env 过滤光时仍回退词面,保过滤语义与词面一致
     }
   }
-  const pool = all.filter((r) => (!kind || r.kind === kind) && (!env || r.env === env))
   return {
     hits: pool
       .map((r) => ({ r, s: score(r, q) }))

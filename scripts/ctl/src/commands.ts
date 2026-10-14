@@ -71,6 +71,15 @@ export const COMMANDS: Cmd[] = [
     flags: ["--class <ok|alias|exempt|missing-id|stale>"],
   },
   {
+    name: "poc-search",
+    args: "<CVE-ID|-k 词|--deep CVE|--ch SQL|--reindex>",
+    desc: "PoC 检索直通:转 /usr/local/bin/poc-search 全参数(输出原样非信封;--deep 五源一发)",
+    examples: [
+      { cmd: "rctl poc-search CVE-2020-14750", desc: "PoC-in-GitHub 索引精确查" },
+      { cmd: "rctl poc-search --deep CVE-2020-14750", desc: "五源深查(索引/EDB/nuclei/msf)" },
+    ],
+  },
+  {
     name: "index",
     desc: "建/刷路径库(/var/lib/rctl/paths.json;剪枝缓存树,未变根跳过)",
     examples: [{ cmd: "rctl index", desc: "重建路径库并打印统计" }],

@@ -59,7 +59,7 @@ test("金标集自检:must/first 的 id 都在 catalog", () => {
   expect(miss).toEqual([])
 })
 
-test("recall@10 门禁:must 全进 top-10", () => {
+test("recall@10 门禁:must 全进 top-10", () => { // 27 案 × zvec ~1.3s/查,超时给 300s(2026-10-14:语料 498 件后默认 5s 必炸)
   const fails: string[] = []
   for (const c of CASES) {
     const got = search(c.q, c.kind, K).map((r) => r.id)
@@ -69,7 +69,7 @@ test("recall@10 门禁:must 全进 top-10", () => {
   }
   if (fails.length) console.log(fails.join("\n"))
   expect(fails).toEqual([])
-})
+}, 300_000)
 
 test("MRR 观察(不进门禁,排名劣化时人看)", () => {
   let mrr = 0
@@ -84,4 +84,4 @@ test("MRR 观察(不进门禁,排名劣化时人看)", () => {
   }
   console.log(`MRR=${(mrr / CASES.filter((c) => c.first).length).toFixed(3)}\n` + rows.join("\n"))
   expect(true).toBe(true)
-})
+}, 300_000)

@@ -48,3 +48,4 @@
 
 - [zg.md](zg.md)
 - [offline.md](../../offline.md)
+- `rctl poc-search <CVE-ID|--deep CVE|-k 词>`:PoC 检索直通(转 poc-search 全参数,输出原样非信封)

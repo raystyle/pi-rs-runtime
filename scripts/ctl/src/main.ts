@@ -24,6 +24,18 @@ interface Opts {
   limit: number
 }
 const o: Opts = { format: "toon", full: false, json: false, llms: false, schema: false, help: false, limit: 20 }
+// poc-search 直通:旗标名空间属被包装工具(--deep/--ch/--reindex 不在本 ctl 白名单),
+// 解析循环前整段拦截,argv 原样转发,输出原样直出(非信封),退出码透传
+if (process.argv[2] === "poc-search") {
+  try {
+    const p = Bun.spawnSync(["/usr/local/bin/poc-search", ...process.argv.slice(3)], { stdout: "inherit", stderr: "inherit" })
+    process.exit(p.exitCode ?? 1)
+  } catch {
+    process.stderr.write(`rctl: poc-search 缺席(/usr/local/bin/poc-search);先跑 install-tools.sh recon
+`)
+    process.exit(2)
+  }
+}
 const positional: string[] = []
 for (let i = 0; i < args.length; i++) {
   const a = args[i]

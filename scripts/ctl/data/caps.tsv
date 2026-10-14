@@ -23,3 +23,4 @@ BOF利用链 bof	COFFLoader,bof-launcher,bof	bof-launcher --help	mingw/wine 面�
 词表字典 wordlist 字典	SecLists	rctl where SecLists	目录爆破/口令面共用;kind=data
 网页截图 screenshot 截图	gowitness	gowitness --version	需 Chrome,断网对内网目标可用
 提权面 privilege escalation 提权 EOP	windows-logical-eop-workshop	ls /opt/windows-logical-eop-workshop	EOP 教材参考;linux 面走内核漏洞库
+poc检索 CVE利用代码 PoC搜索 exploit查找	poc-search,exploitdb,nuclei-templates,metasploit		poc-search --deep 一发多源;searchsploit 全文检索 Exploit-DB 快照
