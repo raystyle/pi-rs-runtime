@@ -78,6 +78,8 @@ incus exec rt-build -- bash /root/scripts/install-all.sh
 
 `install-all.sh` 先装隐式依赖（`ca-certificates curl wget gpg unzip zip xz-utils file`），再按 编译器 到 运行时 到 库缓存 到 工具 顺序跑四个分类脚本，不转发过滤器；末尾自动跑 `clean-image.sh` 做镜像卫生（删可再生缓存与一次性残留，不碰 `/opt` 固化的离线缓存与 fnm node 多版本；可独立执行）。要装单项用分类脚本，例如 `./install-compilers.sh rust` 或 `./install-runtimes.sh python node`。
 
+agent 基座道（agent-base 分支主道，本分支不跑全量）：`bash /root/scripts/install-agent-base.sh` 只装五面孔（claude code/codex/pi-rs、acpsup、browse、clean-chrome）+ zg 向量引擎与模型烤库（pi-rs 内置插件功能的依赖）+ VNC 桌面，及其依赖构建环境（c/golang/rust/node + 锁定闭包）；browse 引擎单副本复用 chrome 组（`BROWSE_CHROME` 指路，acpsup 后端 env 已注入）；发布门禁是 `smoke-agent-base.sh`（双视角，照 smoke-release.sh 头注跑法）。
+
 
 安装面事实（按代码逐条核对的「组|项目|版本|官方来源|安装命令」全表）见 [docs/install-surfaces/](docs/install-surfaces/)。
 

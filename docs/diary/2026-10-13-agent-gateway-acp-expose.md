@@ -165,3 +165,11 @@
 - 构建面:TOOLS_ALL 去 c2/maldev/metasploit(组保留显式装);install 去 SecLists/trivy-db 烘焙与 wrapper/C2 克隆/BOF 参考集(COFFLoader/atomic-bofs/TrustedSec)/maldev 41 仓/recon 指纹三仓/data 四面/rockyou 词表接线;bof-launcher 构建树保留构建期、clean-image 清;clean-image 增不烤面删除段;smoke F 节改向(不烤面残留即坏)。
 - 实例:purge metasploit-framework、rm 各面、trivy wrapper 还原真身;根 42G→34G(两批累计 60G→34G,-26G);poc-search(CVE-2021-44228 索引+--deep)、searchsploit、trivy --version 验过。
 - 文档:14 本册 + 资源行/投影同步;禁词表两轮清绿(「裁定」「口径」都在表里,措辞改「瘦身批」);gitleaks 断网判定例从 c2dev-ref/sliver 换 /root/scripts。
+
+## agent-base 分支开批(2026-10-14 深夜)
+
+- 用户两步裁定:main 保产品态(裁剪批不落 main,顶 43a69f1);起 agent-base 分支做镜像重建,只为 claude code/codex/pi-rs、browse、clean-chrome 五面孔 + 依赖构建环境。
+- 三问三答:rctl/zg 不进 → 后澄清 zg+向量搜索进(pi-rs 内置插件功能依赖,rctl 仍不进,非推翻);VNC 桌面带;旧实例与镜像先删后建(pi-web 桥接受断服窗口,删前预告)。
+- 入口 install-agent-base.sh:c(gcc/cmake)golang(acpsup)rust(pi)→ node → libcache rust(scripts/lock/rust 锁闭包,pi 离线锚)→ zg chrome browse vnc agents acp → clean-image。
+- 基座瘦身:golang 去三件套+跳板预热;rust 去交叉 target×9/组件面/zigbuild/audit(留 llvm-tools=rust-lld + rust-script);node 全局面只留 typescript;browse 单副本(BROWSE_CHROME→/opt/clean-chrome/CURRENT/chrome,profile.d + acpsup backend env 双道,ACP 拉起的 agent 不读 profile.d 所以 env 注入是主道)。
+- smoke-agent-base.sh:A 断网自证、B 版本面+不装面点名(zig/dotnet/bun/rctl 装上即错)、C 五面孔+引擎+模型烤库在位、D 实跑(browse daemon headless/about:blank、zg 离线索引+语义命中)、E 离线闭包 fetch --locked 与 go/npm 快失败、F VNC 轻量面。

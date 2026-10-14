@@ -358,7 +358,7 @@ raiseChild.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SM
 rathole	tool	`install-tools.sh pivot`	已装	Rust 隧道 rathole,CRATE_PIN/GIT_PIN 双路径锁定版本				docs/items/tools-pivot/pivot.md		工具环境
 rbcd.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/rbcd.py		docs/items/analysis/impacket.md		工具环境
 rclone	tool	`install-tools.sh cli`	已装	`/usr/bin`		/usr/bin/rclone		docs/items/tools-cli/cli.md		工具环境
-rctl	tool	`install-tools.sh ctl`	已装	pi runtime 实例总 ctl:agent 第一入口,渐进索引与全资源可搜(search/where/caps/show/env)	锁定版本见册	/usr/local/bin/rctl	支持。全命令零网络	docs/items/tools-ctl/rctl.md		工具环境
+rctl	tool	`install-tools.sh ctl`	未装	核心 CLI 与资源目录(agent-base 基座不装;产品道 install-all.sh 面)	锁定版本见册	/usr/local/bin/rctl	支持。全命令零网络	docs/items/tools-ctl/rctl.md		工具环境
 rdp_check.py	tool	`install-tools.sh analysis`	已烘焙	Windows 网络协议(SMB/Kerberos/MSRPC)工具库与整套示例脚本(secretsdump.py 等)		/usr/local/bin/rdp_check.py		docs/items/analysis/impacket.md		工具环境
 rea	tool	`install-tools.sh rea`	已装	agent 逆向工具面(morluto/rea:MCP server + CLI,Ghidra 无头 provider,封装 analyzeHeadless)	NPM_PIN[rea-agents]=6.3.0	/opt/node/bin/rea	支持。断网全链路:eth0 down 后 `rea doctor` Ghidra provider healthy(20 项 ok)+ 带符号 ELF `rea	docs/items/tools-rea/rea.md		逆向环境
 rea-agents	tool	`install-tools.sh rea`	已烘焙	rea 常驻面入口		/usr/local/bin/rea-agents		docs/items/tools-rea/rea.md		逆向环境
@@ -485,7 +485,7 @@ yara-python	tool	`install-tools.sh reverse`	已装	规则扫描				docs/items/to
 yara-rules	data	`install-tools.sh reverse`	已烘焙	yara 规则集	pins.sh `GIT_PIN[Yara-Rules/rules]` 锁定 sha(clone_pin)	/opt/yara-rules	支持。本地直读	docs/items/tools-reverse/reverse.md		信息搜索
 yq	tool	`install-tools.sh cli`	已装	`/opt/go/bin` 链 `/usr/local/bin`		/opt/go/bin/yq		docs/items/tools-cli/cli.md		工具环境
 zbar-tools	tool	`install-tools.sh pentest`	已装	zbarimg 条码/二维码识别				docs/items/tools-pentest/pentest.md		工具环境
-zg	tool	`install-tools.sh ctl`	已烘焙	语义检索引擎,rctl search 向量腿	锁定版本见册	/usr/local/bin/zg	已验(2026-10-12,eth0 down)语义查询 fts+vector 命中且秒级(模型与索引构建期在盘,查询纯本地零网络);冷索引为构建期一次性动作	docs/items/tools-ctl/zg.md		工具环境
+zg	tool	`install-tools.sh ctl`	已烘焙	语义检索引擎(zvec-grep);agent-base 基座面孔:pi-rs 内置插件功能的向量搜索依赖	锁定版本见册	/usr/local/bin/zg	已验(2026-10-12,eth0 down)语义查询 fts+vector 命中且秒级(模型与索引构建期在盘,查询纯本地零网络);冷索引为构建期一次性动作	docs/items/tools-ctl/zg.md		工具环境
 zg-model	model	install-tools.sh ctl	已烘焙	qwen3-embedding-0.6b Q8_0 GGUF 语义嵌入模型烤库(610M,断网查询纯本地)	锁定版本见册	/opt/zg-models/hf_Qwen_Qwen3-Embedding-0.6B-Q8_0.gguf	已验(断网语义查询 1.3s)	docs/items/tools-ctl/zg.md		工具环境
 zig	compiler	`install-compilers.sh zig` + `install-libcache.sh zig`(库固化册:[libcache/zig](../libcache/zig.md))	已烘焙	zig 工具链本体	ZIG_VERSION=0.16.0	/opt/zig	支持。断网 `zig version`	docs/items/compilers/zig.md		编程环境
 zig-0.15.2	cache	`install-tools.sh bof`	已烘焙	bof-launcher 专用 zig 版本副本(versioned-copy)		/opt/zig-0.15.2		docs/items/tools-bof/bof-launcher.md		工具环境

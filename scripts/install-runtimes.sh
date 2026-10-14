@@ -59,14 +59,7 @@ EOF
     npm install -g typescript          # tsc:pi-rs 基座要求
     ln -sf /opt/node/bin/tsc /usr/local/bin/tsc
     ln -sf /opt/node/bin/tsserver /usr/local/bin/tsserver
-    # 黄金:corepack 启用 pnpm/yarn;prettier/eslint 全局
-    export COREPACK_NPM_REGISTRY="$NPM_REGISTRY"   # pnpm/yarn 首次下载走 npmmirror
-    corepack enable 2>/dev/null || true
-    npm install -g prettier eslint
-    ln -sf /opt/node/bin/prettier /usr/local/bin/prettier 2>/dev/null || true
-    ln -sf /opt/node/bin/eslint /usr/local/bin/eslint 2>/dev/null || true
-    # dotnetjs:.NET Framework BCL 的 JS 实现(pseudocc),分析/复现 .NET 行为用
-    npm install -g dotnetjs || echo "dotnetjs 失败(npmmirror)"
+    # 基座口径:corepack/prettier/eslint/dotnetjs 不装(产品道 install-all.sh 面,main 分支)
     node -v && npm -v && tsc --version
 }
 

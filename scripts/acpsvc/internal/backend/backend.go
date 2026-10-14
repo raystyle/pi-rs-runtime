@@ -40,9 +40,9 @@ type Def struct {
 // 出现后,无 UI 的 ACP 重启会静默不加载项目面;平台持久区 /srv/work 语义下信任合理)。
 func Registry() []Def {
 	return []Def{
-		{Name: "claude", Kind: KindAdapter, Pkg: "claude-agent-acp", Env: []string{"DISABLE_UPDATES=1"}, FS: true, Terminal: true},
-		{Name: "codex", Kind: KindAdapter, Pkg: "codex-acp", Env: []string{"CODEX_PATH=/usr/local/bin/codex", "NO_BROWSER=1"}, FS: true, Terminal: true},
-		{Name: "pi", Kind: KindNative, Argv: []string{"/usr/local/bin/pi-rs", "--approve", "--mode", "acp"}, Env: []string{"DEEPSEEK_API_KEY=overcast"}, FS: false, Terminal: false},
+		{Name: "claude", Kind: KindAdapter, Pkg: "claude-agent-acp", Env: []string{"DISABLE_UPDATES=1", "BROWSE_CHROME=/opt/clean-chrome/CURRENT/chrome"}, FS: true, Terminal: true},
+		{Name: "codex", Kind: KindAdapter, Pkg: "codex-acp", Env: []string{"CODEX_PATH=/usr/local/bin/codex", "NO_BROWSER=1", "BROWSE_CHROME=/opt/clean-chrome/CURRENT/chrome"}, FS: true, Terminal: true},
+		{Name: "pi", Kind: KindNative, Argv: []string{"/usr/local/bin/pi-rs", "--approve", "--mode", "acp"}, Env: []string{"DEEPSEEK_API_KEY=overcast", "BROWSE_CHROME=/opt/clean-chrome/CURRENT/chrome"}, FS: false, Terminal: false},
 	}
 }
 

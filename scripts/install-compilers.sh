@@ -51,14 +51,10 @@ export GOPATH=\${GOPATH:-/opt/go}
 export PATH=\$PATH:\$GOPATH/bin
 EOF
     [ -e /usr/local/go/bin/go ] && ln -sf /usr/local/go/bin/go /usr/local/bin/go
-    for b in dlv gopls golangci-lint; do
-        [ -e "/opt/go/bin/$b" ] && ln -sf "/opt/go/bin/$b" "/usr/local/bin/$b"
-    done
-    # 判据须含三件套二进制本体:go 版本匹配但 dlv/gopls/golangci-lint 缺失(上半程失败残留)
-    # 时若早退,重跑永远跳过 go_install_pin 补救;缺一即落安装段(have X || go_install_pin 幂等补装)
-    if have go && [ "$(go env GOVERSION)" = "go$GOLANG_VERSION" ] \
-        && have dlv && have gopls && have golangci-lint; then
-        echo "已安装 $(go env GOVERSION) 与三件套,跳过"; return
+    # 基座口径:go 工具链本体即面(acpsup 编译用);开发三件套(dlv/gopls/golangci-lint)
+    # 与跳板库预热不装(产品道 install-all.sh 面,main 分支)
+    if have go && [ "$(go env GOVERSION)" = "go$GOLANG_VERSION" ]; then
+        echo "已安装 $(go env GOVERSION),跳过"; return
     fi
     local tgz="go${GOLANG_VERSION}.linux-$(dpkg --print-architecture).tar.gz"
     curl -fSL "${GO_DOWNLOAD}/${tgz}" -o "/tmp/${tgz}"
@@ -80,41 +76,6 @@ for rel in json.load(sys.stdin):
     export PATH=$PATH:/usr/local/go/bin
     # go env 由组首直写 root/ubuntu 两份(GOPROXY=off 默认面);本函数后续 go install
     # 走 common.sh export 的 GOPROXY(env 优先于 go env 文件),不受影响
-    # 黄金三件:调试器 dlv、语言服务器 gopls、静态检查 golangci-lint(锁定版本,缺少锁定版本即响)
-    # 注意:go install 产物落在 $(go env GOPATH)/bin(持久化后为 /opt/go/bin),不在 /usr/local/go/bin
-    export GOPATH=/opt/go
-    local gobin; gobin="/opt/go/bin"
-    have dlv          || go_install_pin github.com/go-delve/delve/cmd/dlv
-    have gopls        || go_install_pin golang.org/x/tools/gopls
-    have golangci-lint || go_install_pin github.com/golangci/golangci-lint/cmd/golangci-lint
-    for b in dlv gopls golangci-lint; do
-        [ -e "$gobin/$b" ] && ln -sf "$gobin/$b" "/usr/local/bin/$b"
-    done
-    # 跳板/代理库预热:进模块缓存,自写隧道工具 go build 不再爬网
-    local gpw=/tmp/go-prewarm
-    rm -rf "$gpw" && mkdir -p "$gpw"
-    cat > "$gpw/go.mod" <<'EOF'
-module prewarm
-
-go 1.23
-EOF
-    cat > "$gpw/main.go" <<'EOF'
-package main
-
-import (
-    _ "github.com/elazarl/goproxy"
-    _ "github.com/xtaci/smux"
-    _ "github.com/hashicorp/yamux"
-    _ "github.com/quic-go/quic-go"
-    _ "golang.org/x/net/proxy"
-    _ "github.com/armon/go-socks5"
-)
-
-func main() {}
-EOF
-    ( cd "$gpw" && GOFLAGS=-mod=mod go mod tidy >/dev/null 2>&1 && go build ./... ) \
-        && echo "go 跳板库已预热" || echo "!! go 库预热失败(不影响链本体)"
-    rm -rf "$gpw"
     export PATH=$PATH:/usr/local/go/bin
     go version
 }
@@ -171,31 +132,17 @@ EOF
     done
     shared_writable_cache /opt/cargo-zigbuild-cache
     . /opt/cargo/env
-    # pi-rs 件执行链:rust-lld(llvm-tools)+ fmt/clippy + rust-script + cargo-zigbuild(锁定版本)
-    rustup component add llvm-tools rustfmt clippy rust-analyzer
-    # 全平台交叉 target(grok 全平台矩阵):rust-std 必须构建期进 /opt/rustup,离线才链得上
-    # 宿主那一档由 stable 默认自带;windows-gnu 链接用 mingw,apple-darwin 纯 Rust 链接用 zig 桩
-    local _t
-    for _t in x86_64-unknown-linux-gnu aarch64-unknown-linux-gnu \
-              x86_64-unknown-linux-musl aarch64-unknown-linux-musl \
-              armv7-unknown-linux-gnueabihf riscv64gc-unknown-linux-gnu \
-              x86_64-pc-windows-gnu i686-pc-windows-gnu \
-              x86_64-apple-darwin aarch64-apple-darwin; do
-        rustup target add "$_t" 2>/dev/null || echo "target $_t 预加失败(留待排查)"
-    done
-    rustup target list --installed
+    # 基座口径:llvm-tools(rust-lld,pi-rs 件执行链链接器)+ rust-script;
+    # fmt/clippy/rust-analyzer 组件、九交叉 target、cargo-zigbuild/cargo-audit 不装
+    # (产品道 install-all.sh 面,main 分支)
+    rustup component add llvm-tools
     have rust-script      || cargo_install_pin rust-script
-    have cargo-zigbuild   || cargo_install_pin cargo-zigbuild
-    have cargo-audit      || cargo_install_pin cargo-audit   # 依赖漏洞审计
-    for b in cargo-audit; do
-        [ -e /opt/cargo/bin/$b ] && ln -sf /opt/cargo/bin/$b "/usr/local/bin/$b"
-    done
     # rust-lld 进 PATH(pi-rs 件执行链直接当链接器用)
     # 注意:ls 多操作数有一个不存在即返回 2,pipefail 下会让赋值语句整个失败退出;
     # 末尾 || true 兜底,两个布局(新版 /opt/rustup、旧版 /root/.rustup)都探
     local rlld; rlld="$(ls /opt/rustup/toolchains/*/lib/rustlib/*/bin/rust-lld /root/.rustup/toolchains/*/lib/rustlib/*/bin/rust-lld 2>/dev/null | head -1 || true)"
     [ -n "$rlld" ] && ln -sf "$rlld" /usr/local/bin/rust-lld
-    for b in rustc cargo rustup rust-script cargo-zigbuild; do
+    for b in rustc cargo rustup rust-script; do
         [ -e /opt/cargo/bin/$b ] && ln -sf /opt/cargo/bin/$b "/usr/local/bin/$b"
     done
     # 家目录兼容链:非登录 shell(incus exec/systemd/cron)不读 profile.d,

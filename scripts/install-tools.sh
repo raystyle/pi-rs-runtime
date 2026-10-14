@@ -1731,14 +1731,13 @@ install_browse() {
         printf '%s' "$ver" > "$dest/.version"
     fi
     ln -sf "$dest/browse" /usr/local/bin/browse
-    # 引擎:browse 托管面装锁定版 clean-chrome(云端道;同版已装即跳)
-    local eng="${CHROME_VERSION:?pins.sh 缺 CHROME_VERSION}"
-    if ! browse chrome list 2>/dev/null | grep -qF "\"version\": \"${eng}\""; then
-        BROWSE_CHROME_MIRROR=https://chrome.ohmygh.com browse chrome install "$eng" \
-            || { echo "!! clean-chrome 托管面安装失败"; return 1; }
-    fi
-    browse --version >/dev/null 2>&1 || { echo "!! browse 未装上"; return 1; }
-    echo "browse $ver 就位:/opt/browse/$ver(入口 /usr/local/bin/browse;引擎托管 pin $CHROME_VERSION)"
+    # 基座口径单副本:引擎复用 chrome 组的 /opt/clean-chrome(不另装 browse 托管面副本);
+    # 显式指路走 profile.d(BROWSE_CHROME 发现序首位)。chrome 组须先跑
+    local eng_bin=/opt/clean-chrome/CURRENT/chrome
+    [ -x "$eng_bin" ] || { echo "!! chrome 组缺席($eng_bin);browse 组依赖 chrome 组先跑"; return 1; }
+    printf '# browse 引擎单副本指路(chrome 组 /opt/clean-chrome)\nexport BROWSE_CHROME=%s\n' "$eng_bin" > /etc/profile.d/browse.sh
+    BROWSE_CHROME="$eng_bin" browse --version >/dev/null 2>&1 || { echo "!! browse 未装上"; return 1; }
+    echo "browse $ver 就位:/opt/browse/$ver(入口 /usr/local/bin/browse;引擎单副本指 $eng_bin)"
 }
 
 # ---- VNC 桌面面(xfce4 + TigerVNC + noVNC;浏览器经 incus proxy 6080 进) -------
