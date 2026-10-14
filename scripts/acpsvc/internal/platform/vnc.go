@@ -21,6 +21,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/coder/websocket"
@@ -523,24 +524,30 @@ func (st *vncStack) Bridge(sess *session.Session, w http.ResponseWriter, r *http
 		_ = conn.Close(websocket.StatusInternalError, "显示面日志不可写")
 		return nil
 	}
+	// -inetd 只认 socket 不认管道(getpeername 类检查,管道下连横幅都不吐,shell 实测):
+	// 造 unix socketpair,子端同时挂 fd0/fd1——正是 inetd 的真形态
+	fds, serr := syscall.Socketpair(syscall.AF_UNIX, syscall.SOCK_STREAM, 0)
+	if serr != nil {
+		_ = lf.Close()
+		_ = conn.Close(websocket.StatusInternalError, "socketpair 失败")
+		return nil
+	}
+	childEnd := os.NewFile(uintptr(fds[0]), "x11vnc-sock")
+	parentEnd := os.NewFile(uintptr(fds[1]), "bridge-sock")
 	cmd := exec.Command(st.mgr.x11vncBin, "-inetd", "-q", "-norc", "-nopw",
 		"-display", fmt.Sprintf(":%d", st.display), "-auth", filepath.Join(st.dir, "xauth"),
 		"-nosel", "-noprimary", "-noncache", "-cursor", "arrow",
 		"-wait", "10", "-defer", "10", "-speeds", "lan", "-threads",
 		"-o", xvfbLogPath)
-	stdin, err1 := cmd.StdinPipe()
-	stdout, err2 := cmd.StdoutPipe()
-	cmd.Stderr = lf
-	if err1 != nil || err2 != nil {
-		_ = lf.Close()
-		_ = conn.Close(websocket.StatusInternalError, "x11vnc 管道失败")
-		return nil
-	}
+	cmd.Stdin, cmd.Stdout, cmd.Stderr = childEnd, childEnd, lf
 	if err := cmd.Start(); err != nil {
+		_ = childEnd.Close()
+		_ = parentEnd.Close()
 		_ = lf.Close()
 		_ = conn.Close(websocket.StatusInternalError, "x11vnc 起失败")
 		return nil
 	}
+	_ = childEnd.Close() // 父侧不再用(子进程持有副本)
 	go func() { _ = cmd.Wait(); _ = lf.Close() }()
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -549,13 +556,13 @@ func (st *vncStack) Bridge(sess *session.Session, w http.ResponseWriter, r *http
 
 	st.mu.Lock()
 	if st.prevEnd != nil {
-		st.prevEnd() // 替换前一条桥:关其 x11vnc stdin,随旧 WS 自退
+		st.prevEnd() // 替换前一条桥:断其 socketpair,随旧 WS 自退
 	}
 	var once sync.Once
 	end := func() {
 		once.Do(func() {
 			cancel()
-			_ = stdin.Close() // -inetd 在 stdin EOF 自退
+			_ = parentEnd.Close() // 子端 socketpair EOF,-inetd 自退
 			_ = wsNet.Close()
 			_ = conn.CloseNow()
 		})
@@ -564,8 +571,8 @@ func (st *vncStack) Bridge(sess *session.Session, w http.ResponseWriter, r *http
 	st.mu.Unlock()
 	defer end()
 
-	go func() { defer end(); _, _ = io.Copy(stdin, wsNet) }()  // noVNC → x11vnc
-	go func() { defer end(); _, _ = io.Copy(wsNet, stdout) }() // x11vnc → noVNC
+	go func() { defer end(); _, _ = io.Copy(parentEnd, wsNet) }() // noVNC → x11vnc
+	go func() { defer end(); _, _ = io.Copy(wsNet, parentEnd) }() // x11vnc → noVNC
 
 	// 保活:ping 30s(中间盒空闲掐线);touch 隔拍(看画面不动键不逐出)
 	go func() {
