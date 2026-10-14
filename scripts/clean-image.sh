@@ -40,6 +40,13 @@ rm -rf /var/lib/gems/*/cache/*
 rm -rf /home/ubuntu/.cache/go-build /home/ubuntu/.cache/uv /home/ubuntu/.cache/pip \
        /home/ubuntu/.cache/ccache /home/ubuntu/.npm/_cacache 2>/dev/null || true
 
+log "裁定不烤面(2026-10-14:trivy-db/SecLists/C2 参考仓/BOF 参考树/ref 仓非功能子面;exploitdb 与 PoC 索引是 poc-search 依赖保留)"
+rm -rf /opt/trivy-db /opt/SecLists /opt/c2dev-ref /opt/tradecraft-ref /opt/payload-ref \
+       /opt/data-ref/LOLBAS /opt/data-ref/webappanalyzer /opt/data-ref/gtfobins /opt/data-ref/hacktricks \
+       /opt/recon-ref/hickory-dns /opt/recon-ref/mac-tracker /opt/recon-ref/recog
+# trivy wrapper/profile 若是旧道产物(指向已删 db),还原真身直通
+[ -L /usr/local/bin/trivy ] || rm -f /usr/local/bin/trivy /etc/profile.d/trivy.sh
+
 log "一次性残留(nuclei 模板迁移备份/msf 首跑目录/nimble 缓存/crash)"
 rm -rf /root/nuclei-templates.bak /home/ubuntu/nuclei-templates.bak
 rm -rf /root/.msf4 /root/.nimble /var/crash/* 2>/dev/null || true

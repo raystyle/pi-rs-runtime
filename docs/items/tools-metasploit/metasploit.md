@@ -1,6 +1,6 @@
 # metasploit-framework:msf
 
-> 渗透测试框架整套(msfconsole 等) ｜ 状态:已装 ｜ 组:`install-tools.sh metasploit`
+> 渗透测试框架整套(msfconsole 等) ｜ 状态:未装(组保留;按 2026-10-14 瘦身批 移出镜像与默认全量,显式跑组可复得) ｜ 组:`install-tools.sh metasploit`
 
 ## 版本
 

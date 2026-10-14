@@ -1,6 +1,6 @@
 # wine:PE 验证路径
 
-> 在 Linux 下跑交叉编译出的 Windows PE,例如 COFFLoader64.exe ｜ 状态:已装 ｜ 组:`install-tools.sh bof`
+> 在 Linux 下跑交叉编译出的 Windows PE ｜ 状态:已装 ｜ 组:`install-tools.sh bof`
 
 ## 版本
 

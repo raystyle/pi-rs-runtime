@@ -20,9 +20,11 @@
 | ghidra / re | [ghidra](../items/tools-ghidra/ghidra.md) · [re(逆向稳定链)](../items/tools-reverse/reverse.md) |
 | pd / secgo / secrust | [pd(20 CLI)](../items/tools-discovery/discovery.md) · [nuclei](../items/tools-discovery/nuclei.md) · [secgo(18 CLI)](../items/tools-go-security/go-security.md) · [trufflehog](../items/tools-go-security/trufflehog.md) · [secrust(3 件)](../items/tools-rust-security/rust-security.md) |
 | pivot / analysis | [pivot(6 件)](../items/tools-pivot/pivot.md) · [p0(apt 20 包)](../items/analysis/analysis.md) · [nasm](../items/analysis/nasm.md) · [impacket](../items/analysis/impacket.md) · [apktool](../items/analysis/apktool.md) · [capa](../items/analysis/capa.md) · [pwndbg](../items/analysis/pwndbg.md) · [jadx](../items/analysis/jadx.md) |
-| c2 / bof / pz | [c2(7 仓参考)](../items/tools-c2/c2.md) · [bof](../items/tools-bof/bof.md) · [wine](../items/tools-bof/wine.md) · [bof-launcher](../items/tools-bof/bof-launcher.md) · [coffee-ldr](../items/tools-bof/coffee-ldr.md) · [pz(4 仓)](../items/tools-projectzero/projectzero.md) |
-| maldev / recon / nu | [maldev(41 仓+官网 tgz)](../items/tools-maldev/maldev.md) · [recon(4 仓)](../items/tools-recon/recon.md) · [poc-search](../items/tools-recon/poc-search.md) · [nu](../items/tools-nu/nu.md) |
+| bof / pz | [bof](../items/tools-bof/bof.md) · [wine](../items/tools-bof/wine.md) · [bof-launcher](../items/tools-bof/bof-launcher.md) · [coffee-ldr](../items/tools-bof/coffee-ldr.md) · [pz(4 仓)](../items/tools-projectzero/projectzero.md) |
+| recon / nu | [recon(PoC 索引面)](../items/tools-recon/recon.md) · [poc-search](../items/tools-recon/poc-search.md) · [nu](../items/tools-nu/nu.md) |
 | browse | [browse(浏览器 CLI+clean-chrome 引擎托管面)](../items/tools-chrome/browse.md) · [clean-chrome(组保留不默认装)](../items/tools-chrome/clean-chrome.md) |
+
+组保留不默认装(显式跑组可复得;2026-10-14 瘦身批):chrome、c2、maldev、metasploit;被裁数据面(词表/漏洞库/参考仓)后续走 MCP 服务。
 | pentest / redteam / metasploit / vnc | [pentest(36 apt+接线)](../items/tools-pentest/pentest.md) · [hashcat](../items/tools-pentest/hashcat.md) · [responder](../items/tools-pentest/responder.md) · [donut](../items/tools-pentest/donut.md) · [frida](../items/tools-pentest/frida.md) · [red(24 件)](../items/tools-redteam/redteam.md) · [bloodhound-ce](../items/tools-redteam/bloodhound-ce.md) · [enum4linux-ng](../items/tools-redteam/enum4linux-ng.md) · [evil-winrm](../items/tools-redteam/evil-winrm.md) · [cyberchef](../items/tools-redteam/cyberchef.md) · [trivy](../items/tools-redteam/trivy.md) · [msf](../items/tools-metasploit/metasploit.md) · [vnc(桌面+noVNC Web 面)](../items/tools-vnc/vnc.md) |
 
 返回 [安装面清单](index.md)。

@@ -11,7 +11,7 @@
 
 ## 来源与安装
 
-- 脚本:`scripts/install-tools.sh` 的 `install_bof`;源码克隆到 `/opt/payload-ref/loaders/inproc/bof-launcher`;未安装时先 `rm -rf`,再重新克隆。
+- 脚本:`scripts/install-tools.sh` 的 `install_bof`;源码克隆到 `/opt/payload-ref/loaders/inproc/bof-launcher` 构建出二进制;构建树随 clean-image 清(2026-10-14 瘦身批),`/usr/local/bin/bof-launcher` 常驻。
 - 构建命令是 `/opt/zig-0.15.2/zig build -Doptimize=ReleaseSafe`。
 - 上游是库,提供 C API 与 Zig API,不是 CLI;可以运行的 BOF 执行器是示例二进制 `bof_lin_<arch>`;`install -m755` 把它装成 `/usr/local/bin/bof-launcher`;幂等判据是 `have bof-launcher`。已安装则整段跳过;zig 副本的判据是 `-x /opt/zig-0.15.2/zig`。
 
@@ -23,7 +23,7 @@
 ## 文件
 
 - 入口是 `/usr/local/bin/bof-launcher`。
-- 源码与构建树在 `/opt/payload-ref/loaders/inproc/bof-launcher`。
+- 源码与构建树构建期在 `/opt/payload-ref/loaders/inproc/bof-launcher`,成品镜像不随(瘦身批 2026-10-14)。
 - 该目录属于 inproc 轴;zig 0.15.2 的专用副本在 `/opt/zig-0.15.2`;构建产物在源码树的 `zig-out/bin/`,随 inproc 轴一起归档。
 
 ## 配置

@@ -13,29 +13,22 @@
 
 ## 文件
 
-- `/usr/bin/trivy` 是被包装的程序;`/usr/local/bin/trivy` 是 wrapper;`/usr/local/bin` 在 PATH 前段,wrapper 压过被包装的程序;漏洞库与 Java 库在 `/opt/trivy-db`。
+- `/usr/bin/trivy` 直通(无 wrapper);漏洞库不烤镜像(2026-10-14 瘦身批,2.9G;后续走 MCP 漏洞库服务),首扫在线拉到默认缓存位。
 
 ## 配置
 
-- 构建期用 `--download-db-only` 把漏洞库烘焙到 `/opt/trivy-db`;构建期用 `--download-java-db-only` 把 Java 库烘焙到同一目录。
-- 烘焙调用 `/usr/bin/trivy`。wrapper 会注入跳过更新,与 `--download-*-only` 冲突。
-- 0.75 没有 `--download-checks-only`;`TRIVY_SKIP_CHECK_UPDATE` 留给识别该变量的版本;wrapper 默认 `TRIVY_CACHE_DIR=/opt/trivy-db`;wrapper 默认 `TRIVY_SKIP_DB_UPDATE=true`;wrapper 默认 `TRIVY_SKIP_JAVA_DB_UPDATE=true`;wrapper 默认 `TRIVY_SKIP_CHECK_UPDATE=true`。
-- 参数中出现精确的 `--download-*` 时,wrapper 改为直接执行 `/usr/bin/trivy`。
-- `/etc/profile.d/trivy.sh` 只导出 `TRIVY_CACHE_DIR=/opt/trivy-db`。
-- 该文件是 export 的备份。跳过更新由 wrapper 注入。
+- 无 wrapper 与 profile 面(db 不烤后旧道全撤);需要固化库时自设 `TRIVY_CACHE_DIR`。
 
 ## 离线行为
 
-- 支持扫描。
-- 关闭 eth0 后,`trivy fs --scanners vuln /etc/hostname` 退 0。
-- `/opt/trivy-db` 是构建日的快照;回到有网环境后,重跑 redteam 组会刷新该库。
+- 二进制本地;漏洞扫描需库,离线首扫会快失败(库不烤,2026-10-14 瘦身批)。
+- 断网判定改为 `trivy --version` 退 0;在线环境首扫自动拉库。
 
 ## 限制
 
 - `.deb` 无校验和。见 [known-issues.md](../../known-issues.md)。
 - alias 在非交互 shell(`incus exec`)中不生效。
-- 没有 wrapper 时,离线首次运行返回 FATAL `first run cannot skip downloading DB`。
-- 跳过数据库下载的行为写在 wrapper 文件里;0.75 起,`--skip-db-update` 不是 root 级持久旗标,只能用环境变量;`--download-*` 按完整旗标匹配;按子串匹配会把路径 `fs ./download-db-only-notes` 误判成下载旗标。
+- 离线首次运行返回 FATAL `first run cannot skip downloading DB`(库不烤后属预期快失败);要离线扫,先用有网环境拉库或后续接 MCP 漏洞库服务。
 
 ## 参见
 
@@ -47,4 +40,4 @@
 
 这些行是 catalog 投影声明,也是 audit 豁免依据。
 
-- rctl: trivy-db kind=data path=/opt/trivy-db note=漏洞库快照(缺它 trivy 离线 FATAL;构建日快照)
+- rctl: trivy-db kind=data path=/opt/trivy-db note=漏洞库(不烤镜像,2026-10-14 瘦身批;后续 MCP)

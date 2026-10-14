@@ -1,6 +1,6 @@
 # BOF 工具链:bof 组册
 
-> Beacon Object File 工具链。mingw 交叉编译与脱离 C2 的加载器已装,源码是参考克隆 ｜ 状态:已装 ｜ 组:`install-tools.sh bof`
+> Beacon Object File 工具链。mingw 交叉编译与脱离 C2 的加载器已装;参考源码树按 2026-10-14 瘦身批 不烤镜像 ｜ 状态:已装 ｜ 组:`install-tools.sh bof`
 
 ## 版本
 
@@ -17,7 +17,7 @@
 
 ## 文件
 
-- `inproc` 是 `/opt/payload-ref/loaders/inproc`;COFFLoader 与 bof-launcher 的源码在该目录内原地构建;`bofref` 是 `/opt/tradecraft-ref/bof`;这里放 atomic-bofs、TrustedSec 两套源码,以及目录文件;克隆的幂等判据是 `-d <目录>/.git`;COFFLoader 的判据是存在 `COFFLoader64.exe`;该文件不在时,`rm -rf` 后重新克隆并重新编译;`BOF-CATALOG.md` 每次重跑都重新下载;这次下载失败不影响工具链;脚本给出的用法是 `x86_64-w64-mingw32-gcc -c bof.c -o bof.o`;然后执行 `coffee run bof.o`,或 `bof-launcher run bof.o`;Windows 侧执行 `wine64 COFFLoader64.exe <bof.o>`。
+- bof-launcher 构建树在 `/opt/payload-ref/loaders/inproc`(构建完由 clean-image 清,二进制落 `/usr/local/bin/bof-launcher`);COFFLoader/atomic-bofs/TrustedSec BOF 源码集按 2026-10-14 瘦身批 不烤镜像(显式克隆可复得);用法是 `x86_64-w64-mingw32-gcc -c bof.c -o bof.o`;然后执行 `coffee run bof.o`,或 `bof-launcher run bof.o`(Windows 侧 COFFLoader 路径已随参考树移出)。
 
 ## 配置
 
@@ -31,8 +31,7 @@
 
 ## 限制
 
-- COFFLoader 的 standalone 依赖 Windows 类型 `BOOL` 与 `InternalFunctions`。
-- Linux 上直接编译通不过。上游也不支持这条路径;Windows 版用交叉编译,在 wine 下使用;Linux 上直接跑 BOF 用 coffee 或 bof-launcher;atomic-bofs 是 rasta-mouse 的 COFF 独立运行 harness,带打包参数;TrustedSec 两套现役 BOF 源码仍在发布构建;atomic-bofs 的示例集替代不了这两套;wine64 包没有 PATH 命令的问题见 [wine.md](wine.md)。
+- Linux 上直接跑 BOF 用 coffee 或 bof-launcher;mingw 交叉编出的 Windows PE 用 wine 跑;wine64 包没有 PATH 命令的问题见 [wine.md](wine.md)。COFFLoader/atomic-bofs/TrustedSec 参考面已随瘦身批移出(后续走 MCP 数据服务)。
 - coffee-ldr 的 nightly 构建失败见 [coffee-ldr.md](coffee-ldr.md)。
 
 ## 参见
@@ -51,8 +50,8 @@
 |---|---|---|---|
 | mingw-w64 | noble 随源 | Ubuntu noble 源(tuna) | /usr/bin/x86_64-w64-mingw32-gcc(交叉编译器) |
 | wine | noble 随源( 9.0) | 见 [wine.md](wine.md) | /usr/bin/wine + /usr/local/bin/wine64 |
-| COFFLoader | GIT_PIN 锁定 sha | [trustedsec/COFFLoader](https://github.com/trustedsec/COFFLoader) | /opt/payload-ref/loaders/inproc/COFFLoader(`make bof` 交叉编出 COFFLoader64.exe) |
-| atomic-bofs | GIT_PIN 锁定 sha | [rasta-mouse/atomic-bofs](https://github.com/rasta-mouse/atomic-bofs) | /opt/tradecraft-ref/bof/atomic-bofs |
+| COFFLoader | GIT_PIN 锁定 sha | [trustedsec/COFFLoader](https://github.com/trustedsec/COFFLoader) | /opt/payload-ref/loaders/inproc/COFFLoader(`make bof` 交叉编出 COFFLoader64.exe) |(参考面不烤镜像,显式克隆可复得)
+| atomic-bofs | GIT_PIN 锁定 sha | [rasta-mouse/atomic-bofs](https://github.com/rasta-mouse/atomic-bofs) | /opt/tradecraft-ref/bof/atomic-bofs |(参考面不烤镜像,显式克隆可复得)
 | CS-Situational-Awareness-BOF | GIT_PIN 锁定 sha | [trustedsec/CS-Situational-Awareness-BOF](https://github.com/trustedsec/CS-Situational-Awareness-BOF) | /opt/tradecraft-ref/bof/CS-Situational-Awareness-BOF |
 | CS-Remote-OPs-BOF | GIT_PIN 锁定 sha | [trustedsec/CS-Remote-OPs-BOF](https://github.com/trustedsec/CS-Remote-OPs-BOF) | /opt/tradecraft-ref/bof/CS-Remote-OPs-BOF |
 | coffee-ldr | cargo nightly + CRATE_PIN 0.2.2 | 见 [coffee-ldr.md](coffee-ldr.md) | 未装上(构建失败留档) |

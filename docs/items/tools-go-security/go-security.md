@@ -29,7 +29,7 @@
 
 ## 离线行为
 
-- 支持版本面与帮助面。这些是纯 Go 静态二进制;渗透工具面的断网规定见 [offline.md](../../offline.md);关闭 eth0 后,`gitleaks version` 退 0;未验证:gitleaks 扫描本地仓,以及 chisel 在内网两端互连。两者都只走本地或内网流量;判定:断网后 `gitleaks git /opt/c2dev-ref/sliver` 能跑完并给出输出。
+- 支持版本面与帮助面。这些是纯 Go 静态二进制;渗透工具面的断网规定见 [offline.md](../../offline.md);关闭 eth0 后,`gitleaks version` 退 0;未验证:gitleaks 扫描本地仓,以及 chisel 在内网两端互连。两者都只走本地或内网流量;判定:断网后 `gitleaks git /root/scripts` 能跑完并给出输出(c2dev-ref 已按瘦身批不烤)。
 - 历史库、云 API、被动源在断网时失败,这是设计边界。包括 waybackurls、gau、azurehound、云枚举,以及 trufflehog 的 verify。见 [offline.md](../../offline.md)。
 
 ## 限制

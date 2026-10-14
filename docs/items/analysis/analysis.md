@@ -24,7 +24,7 @@
 - uv tool 的 shim 在 `/usr/local/bin`。本体在 `/opt/uv-tools/<名>`。
 - re-venv 件的本体在 `/opt/re-venv/bin`。
 - floss、olevba、oleid、netexec 四个入口用 `ln -sf` 链到 `/usr/local/bin`。
-- GitHub 批锁定在 `/opt/<名>` 的有:jadx、apktool、capa、capa-rules、yara-rules、SecLists。
+- GitHub 批锁定在 `/opt/<名>` 的有:jadx、apktool、capa、capa-rules、yara-rules(SecLists 按 2026-10-14 瘦身批 不烤镜像)。
 - GitHub 批直接拷到 `/usr/local/bin` 的有:pdfid.py、pdf-parser.py。
 
 ## 配置

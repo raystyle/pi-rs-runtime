@@ -498,14 +498,13 @@ install_analysis() {
             && sed -i '1s|^#!.*|#!/usr/bin/env python3|' /usr/local/bin/pdfid.py /usr/local/bin/pdf-parser.py
         rm -rf /tmp/dss
     fi
-    # SecLists 词表(大,depth 1)
-    clone_pin danielmiessler/SecLists /opt/SecLists
+    # SecLists 词表按用户裁定 2026-10-14 不烤镜像(要词表显式:git clone --depth 1 danielmiessler/SecLists)
 
     echo "P0 核对:"
     for b in gdb-multiarch checksec patchelf nasm ROPgadget nmap sqlmap tshark capa jadx apktool john hashid; do
         have "$b" && printf '  %s\n' "$b"
     done
-    ls -d /opt/SecLists /opt/capa-rules /opt/yara-rules >/dev/null 2>&1 && echo "  词表与规则库就位(/opt/{SecLists,capa-rules,yara-rules})"
+    ls -d /opt/capa-rules /opt/yara-rules >/dev/null 2>&1 && echo "  规则库就位(/opt/{capa-rules,yara-rules};SecLists 按裁定不烤)"
     true
 }
 
@@ -539,24 +538,10 @@ install_bof() {
     apt-get install -y --no-install-recommends mingw-w64 wine64 wine || true
     have wine64 || { have wine && ln -sf "$(command -v wine)" /usr/local/bin/wine64; }
     wine64 --version 2>/dev/null || echo "wine64 未装上(PE 验证路径缺,下轮补)"
-    # COFFLoader/bof-launcher 是进程内执行基底(grok 裁定)→ payload-ref/loaders/inproc;
-    # atomic-bofs/BOF-CATALOG 是后渗透内容 → tradecraft-ref/bof
-    local inproc=/opt/payload-ref/loaders/inproc bofref=/opt/tradecraft-ref/bof
-    install -d "$inproc" "$bofref"
-    # COFFLoader 的 standalone 仍依赖 Windows 类型(BOOL/InternalFunctions),
-    # Linux 直编过不了上游也没支持;交叉编 Windows 版(wine 下可用),
-    # Linux 上跑 BOF 用 coffee / bof-launcher
-    if [ ! -f "$inproc/COFFLoader/COFFLoader64.exe" ]; then
-        clone_pin trustedsec/COFFLoader "$inproc/COFFLoader" \
-            && ( cd "$inproc/COFFLoader" && make bof ) || echo "coffloader mingw 构建失败"
-    fi
-    # atomic-bofs:rasta-mouse 的 COFF 独立运行 harness(带打包参数)
-    clone_pin rasta-mouse/atomic-bofs "$bofref/atomic-bofs"
-    # TrustedSec 现役 BOF 源码两套(2026-09 仍在出构建;atomic-bofs 是示例集替代不了)
-    local tb
-    for tb in CS-Situational-Awareness-BOF CS-Remote-OPs-BOF; do
-        clone_pin "trustedsec/$tb" "$bofref/$tb" || echo "$tb 克隆失败"
-    done
+    # 参考树按用户裁定 2026-10-14 不烤镜像(COFFLoader/atomic-bofs/TrustedSec BOF 源码集);
+    # bof-launcher 是装进 /usr/local/bin 的执行器,构建树保留到安装末步由 clean-image 清
+    local inproc=/opt/payload-ref/loaders/inproc
+    install -d "$inproc"
     # Coffee(hakaioffsec):Rust 现代 COFF loader,crate 名 coffee-ldr(锁定版本)
     # 上游 lib.rs 用 #![feature(c_variadic/core_intrinsics)],stable 编不过,需 nightly
     if ! have coffee-ldr; then
@@ -569,7 +554,7 @@ install_bof() {
         [ -e /opt/cargo/bin/coffee-ldr ] && ln -sf /opt/cargo/bin/coffee-ldr /usr/local/bin/coffee-ldr
         [ -e "$HOME/.cargo/bin/coffee-ldr" ] && ln -sf "$HOME/.cargo/bin/coffee-ldr" /usr/local/bin/coffee-ldr
     fi
-    have coffee-ldr && echo "coffee-ldr 就绪" || echo "coffee-ldr 未装上(BOF 运行还有 bof-launcher 与 mingw/wine 路径)"
+    have coffee-ldr && echo "coffee-ldr 就绪" || echo "coffee-ldr 未装上(BOF 运行还有 bof-launcher 与 mingw/wine 路径;COFFLoader 参考面按裁定不烤)"
     # bof-launcher(The-Z-Labs):Zig 写的 BOF 加载器;仓库锁定 zig 0.15.2,
     # 系统 zig 0.16 可能编不过,专用副本构建;源码随 inproc 归档
     if ! have bof-launcher; then
@@ -776,14 +761,11 @@ install_maldev() {
 
 # ---- 侦察指纹参考(recon):指纹库与 DNS 源码,只克隆归档,供指纹类工具对照 ----------
 install_recon() {
-    log "recon 指纹参考(只克隆,归档 /opt/recon-ref): mac-tracker/recog/hickory-dns/PoC-in-GitHub"
+    log "recon 面(用户裁定 2026-10-14 只保 poc-search 依赖的 PoC-in-GitHub 索引;指纹参考 mac-tracker/recog/hickory-dns 不烤)"
     local gh="${GITHUB_MIRROR}https://github.com"
     install -d /opt/recon-ref
-    local r
-    for r in runZeroInc/mac-tracker rapid7/recog hickory-dns/hickory-dns nomi-sec/PoC-in-GitHub; do
-        local d="/opt/recon-ref/$(basename "$r")"
-        clone_pin "$r" "$d" || clone_pin "$r" "$d" || echo "$r 克隆失败(2 次,下轮补)"
-    done
+    clone_pin nomi-sec/PoC-in-GitHub /opt/recon-ref/PoC-in-GitHub \
+        || clone_pin nomi-sec/PoC-in-GitHub /opt/recon-ref/PoC-in-GitHub || echo "PoC-in-GitHub 克隆失败(2 次,下轮补)"
     # poc-search:PoC-in-GitHub 索引查询 wrapper(只查索引信息,不拉任何 PoC 代码;
     # 索引仓 README 明示混有恶意样本,下载执行是使用者自己的裁量)
     cat > /usr/local/bin/poc-search <<'POC_EOF'
@@ -1066,20 +1048,9 @@ install_pentest() {
             echo "capa 二进制未找到(analysis 组先跑)"
         fi
     fi
-    # 词表约定:/usr/share/wordlists 软链入口 + rockyou 解包(chmod 644 供 hashcat/john)
-    install -d /usr/share/wordlists
-    ln -sfn /opt/SecLists /usr/share/wordlists/SecLists
-    if [ ! -f /usr/share/wordlists/rockyou.txt ]; then
-        local ry; ry="$(find /opt/SecLists/Passwords -name 'rockyou.txt*' 2>/dev/null | head -1)"
-        if [ -n "$ry" ]; then
-            case "$ry" in
-                *.tar.gz|*.tgz) tar -C /usr/share/wordlists -xzf "$ry" rockyou.txt 2>/dev/null || true ;;
-                *) cp "$ry" /usr/share/wordlists/rockyou.txt || true ;;
-            esac
-            chmod 644 /usr/share/wordlists/rockyou.txt 2>/dev/null || true
-        fi
-    fi
-    ls -l /usr/share/wordlists/rockyou.txt 2>/dev/null || echo "rockyou 未解出(SecLists 路径变了再查)"
+    # 词表面(rockyou/SecLists)按用户裁定 2026-10-14 不烤镜像,后续走 MCP 服务(方向记档);
+    # 调用方自带词表或接 MCP 字典服务
+    true
     # pwndbg 系统 gdbinit:不接线则 gdb 静默降级为裸 gdb
     local gdbinit_py; gdbinit_py="$(find /opt/uv-tools -name gdbinit.py -path '*pwndbg*' 2>/dev/null | head -1)"
     if [ -n "$gdbinit_py" ]; then
@@ -1298,29 +1269,8 @@ install_redteam() {
                 && dpkg -i "/tmp/${tdeb}" && rm "/tmp/${tdeb}" || echo "trivy deb 失败"
         fi
     fi
-    if [ -x /usr/bin/trivy ]; then
-        install -d /opt/trivy-db
-        # 烘焙用真身:/usr/local/bin wrapper 会注入 skip 行为,与 --download-*-only 冲突。
-        # 漏洞库+Java 库全烘(0.75 无 --download-checks-only,实证;skip-check env 留给认它的版本)
-        for dl in --download-db-only --download-java-db-only; do
-            TRIVY_CACHE_DIR=/opt/trivy-db /usr/bin/trivy image "$dl" >/dev/null 2>&1 || echo "trivy $dl 烘焙失败(可重跑)"
-        done
-        # alias 在非交互 shell(incus exec)不生效,离线期 trivy 找不到烘焙库会 FATAL
-        # "first run cannot skip downloading DB";改 wrapper 指烘焙库。
-        # 0.75 起 --skip-db-update 不是 root 持久旗标(实证 unknown flag),只能走 env 注入;
-        # --download-* 按精确旗标直通真身(子串匹配会把 ./download-db-only-notes 误判,grok G1)
-        printf '%s\n' '#!/bin/sh' \
-            'export TRIVY_CACHE_DIR="${TRIVY_CACHE_DIR:-/opt/trivy-db}"' \
-            'for a in "$@"; do case "$a" in --download-*) exec /usr/bin/trivy "$@";; esac; done' \
-            'export TRIVY_SKIP_DB_UPDATE="${TRIVY_SKIP_DB_UPDATE:-true}"' \
-            'export TRIVY_SKIP_JAVA_DB_UPDATE="${TRIVY_SKIP_JAVA_DB_UPDATE:-true}"' \
-            'export TRIVY_SKIP_CHECK_UPDATE="${TRIVY_SKIP_CHECK_UPDATE:-true}"' \
-            'exec /usr/bin/trivy "$@"' > /usr/local/bin/trivy
-        chmod +x /usr/local/bin/trivy
-        cat > /etc/profile.d/trivy.sh <<'EOF'
-export TRIVY_CACHE_DIR=/opt/trivy-db
-EOF
-    fi
+    # trivy 漏洞库按用户裁定 2026-10-14 不烘进镜像(2.9G;首扫在线拉,TRIVY_CACHE_DIR 默认位)
+    true
     # awscli v2:官方 zip 安装器(无国内镜像,构建期直连)
     if ! have aws; then
         curl -fSL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o /tmp/awscliv2.zip 2>/dev/null \
@@ -1368,11 +1318,9 @@ install_metasploit() {
 
 # ---- data(数据信息资产:PoC/规则/指纹库;clone 锁定 sha,构建日快照,离线直读)----
 install_data() {
-    log "数据资产(LOLBAS/webappanalyzer/exploit-db;GTFOBins 通道暂拒挂起)"
+    log "数据资产(exploit-db:poc-search --deep 与 searchsploit 依赖;LOLBAS/webappanalyzer/gtfobins/hacktricks 按用户裁定 2026-10-14 不烤)"
     local gh="${GITHUB_MIRROR}https://github.com"
     mkdir -p /opt/data-ref
-    clone_pin LOLBAS-Project/LOLBAS /opt/data-ref/LOLBAS || echo "LOLBAS 克隆失败"
-    clone_pin enthec/webappanalyzer /opt/data-ref/webappanalyzer || echo "webappanalyzer 克隆失败"
     # exploit-db 走 GitLab 直连(grok prt-08 实证:GITHUB_MIRROR 不代理 GitLab,直连可达);同 clone_pin 语义的锁定克隆
     local ed_sha="${GIT_PIN[exploit-database/exploitdb]:-}"
     if [ -n "$ed_sha" ]; then
@@ -1385,9 +1333,6 @@ install_data() {
     else
         echo "!! exploit-db 缺 git 钵(exploit-database/exploitdb)"
     fi
-    # GTFOBins:主仓被代理 403,走 .github.io 网页源仓(实测可达;_gtfobins/ 478 条全量语料 1.9M,含 _data)
-    clone_pin GTFOBins/GTFOBins.github.io /opt/data-ref/gtfobins || echo "gtfobins 克隆失败"
-    [ -d /opt/data-ref/gtfobins/_gtfobins ] && echo "gtfobins: $(ls /opt/data-ref/gtfobins/_gtfobins | wc -l) 条 Unix 滥用基线"
     # HackTricks 文本面:浅克隆后剔 .git 与配图,只留 md(实测 310M 浅克隆 = 144M .git + 150M 图 + 18M 文本;
     # agent 读文本不读截图,18M 文本面进镜像,2026-10-11 用户裁定「文本没那么大」)
     local ht_sha="${GIT_PIN[HackTricks-wiki/hacktricks]:-}"
@@ -1815,7 +1760,7 @@ install_vnc() {
     true
 }
 
-# chrome 组不在默认全量:上游修 bug 期用户裁定先不装(2026-10-10);要装显式跑 install-tools.sh chrome。
+# 不在默认全量(组保留,显式装):chrome(2026-10-10 裁定)、c2/maldev/metasploit(2026-10-14 瘦身裁定,参考/重框架不烤镜像,数据面后续走 MCP)。
 # browse 组(2026-10-14 用户放行)在默认全量:CLI + browse 托管面 clean-chrome(与 chrome 组互不搬动)
-TOOLS_ALL=(filesearch astgrep cli herdr ghidra rea reverse discovery go-security rust-security pivot analysis c2 bof projectzero maldev recon nu cloud data pentest redteam metasploit vnc browse agents acp ctl)
+TOOLS_ALL=(filesearch astgrep cli herdr ghidra rea reverse discovery go-security rust-security pivot analysis bof projectzero recon nu cloud data pentest redteam vnc browse agents acp ctl)
 run_category TOOLS_ALL "$@"

@@ -72,7 +72,7 @@ nasm gdb gdb-multiarch qemu-x86_64-static checksec patchelf xxd unsquashfs nmap 
 jadx apktool capa donut pdfid.py pdf-parser.py \
 dig whois socat nc telnet ftp snmpwalk proxychains4 ldapsearch smbclient mysql psql redis-cli sqlite3 xfreerdp sshuttle openvpn wg masscan hashcat hydra adb fastboot fls testdisk pdftotext unar cabextract qpdf zbarimg aircrack-ng steghide osslsigncode sasquatch responder cewl \
 ghauri kerbrute wafw00f arjun bloodhound-python mitm6 objection apkleaks certipy bloodyAD bofhound semgrep coercer enum4linux-ng krbrelayx jwt-tool linkfinder evil-winrm feroxbuster trivy \
-ghidraRun analyzeHeadless msfconsole frida \
+ghidraRun analyzeHeadless frida \
 nu vncserver Xvfb x11vnc websockify startxfce4 \
 rctl acpsup rea phpggc commix sstimap zg overthrone ovt"
 miss=0
@@ -128,14 +128,17 @@ chk "NuGet fallbackPackageFolders 配置在" bash -c '[ -r "$HOME/.nuget/NuGet/N
 rm -rf "$T"
 
 section "[$VIEW] F. 参考库与数据在位"
-[ -d /opt/SecLists ] && n=$(find /opt/SecLists -maxdepth 2 | wc -l) && [ "$n" -gt 50 ] && ok "SecLists($n 条目)" || bad "SecLists 缺"
-rock="$(find /opt /usr/share -maxdepth 4 -name 'rockyou*' 2>/dev/null | head -1)"
-[ -n "$rock" ] && ok "rockyou 在($rock)" || bad "rockyou 未找到"
-chk "trivy-db 非空" bash -c '[ -n "$(ls -A /opt/trivy-db)" ]'
+# 裁定不烤面(2026-10-14 瘦身:SecLists/rockyou/trivy-db/参考仓/msf)不再点名;残留即坏
+[ -e /opt/SecLists ] && bad "SecLists 应已删(裁定不烤)"
+[ -e /opt/trivy-db ] && bad "trivy-db 应已删(裁定不烤)"
+[ -e /opt/c2dev-ref ] && bad "c2dev-ref 应已删(裁定不烤)"
 n=$(find /opt/nuclei-templates -name '*.yaml' 2>/dev/null | wc -l); [ "$n" -gt 5000 ] && ok "nuclei 模板($n)" || bad "nuclei 模板 $n"
 chk "capa-rules 非空" bash -c '[ -d /opt/capa-rules ] && [ -n "$(ls -A /opt/capa-rules)" ]'
 n=$(find /opt/frida-server -mindepth 2 -maxdepth 2 -type f 2>/dev/null | wc -l); [ "$n" -ge 8 ] && ok "frida-server 平台件($n)" || bad "frida-server $n 件"
-for d in payload-ref tradecraft-ref c2dev-ref recon-ref pz-sandbox-tools windows-logical-eop-workshop yara-rules cyberchef metasploit-framework ghidra; do
+# poc-search 依赖面保留:exploitdb 与 PoC 索引
+chk "exploitdb(poc-search --deep/searchsploit 依赖)" bash -c '[ -f /opt/data-ref/exploitdb/files_exploits.csv ]'
+chk "PoC-in-GitHub 索引" bash -c '[ -f /opt/recon-ref/poc-index.parquet ] || [ -d /opt/recon-ref/PoC-in-GitHub ]'
+for d in pz-sandbox-tools windows-logical-eop-workshop yara-rules cyberchef ghidra; do
     [ -d "/opt/$d" ] && ok "参考/大件 $d" || bad "参考/大件 $d 缺"
 done
 

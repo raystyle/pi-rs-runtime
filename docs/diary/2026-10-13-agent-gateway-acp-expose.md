@@ -55,7 +55,7 @@
 
 - 修复单(fleet seq 40/46 派回):①SSE 断连复现三组对齐(权限等待静默、模型思考静默 10.1 秒、回合尾 usage_update 后静默;断口干净无 chunk 终止符,curl exit 18 与 python ChunkedEncodingError 同形)→ 根因=Bun.serve 空闲超时默认 10 秒杀静默流,权限卡只是静默起点不是触发器;修复=/events 增 15 秒心跳注释(`: ping`)+ Bun.serve idleTimeout 255 + 断开清定时器与订阅;验证:静默 35 秒双心跳零断、工具回合全流完整。②文档事件形修正:线形权限卡是 `{kind:"permission",requestId,request}` 顶层、更新是 `{kind:"session/update",update}`,正确示例进 acp 册端点面。
 - 四模型面:session/new 增可选 `model`;claude 注 `ANTHROPIC_MODEL`,codex 生成会话级 CODEX_HOME 改 model 行(catalog 绝对路径不受影响);实跑矩阵 7/7(claude:zp-cc-glm53[1m]/zp-cc-glm53fh[1m]/ds-cc-pro/ds-cc-flash;codex:zp-cx-glm53/ds-cx-pro/ds-cx-flash);models.json 增 ds-cx-pro/ds-cx-flash(128K 保守申报)。
-- ACP 测试模式(用户裁定):unit 注 `ACPSUP_AUTH_OFF=1`,任意请求放行(TS 与 Go 面同构开关),回收删行重启即回默认拒绝。
+- ACP 测试模式(瘦身批):unit 注 `ACPSUP_AUTH_OFF=1`,任意请求放行(TS 与 Go 面同构开关),回收删行重启即回默认拒绝。
 - acpsvc M1 落地:六包全量移植,实例 go test 六包绿(修两处测试自坑:fake 不回 pingreq 应答、Close 无界等长命子进程);install_acp 增 M1 段,acpsup-go 7664 完即退自检过(protocolVersion=1+真 sessionId+end_turn);7663 仍 TS 服务。
 - pi 后端:P1 九件单误派旧 pi-rs 仓后纠正,委托 pi-rs-core 工作台(acp-core-01,wC:p1 主格),回执道 /tmp/acp-core-01/。
 
@@ -157,3 +157,11 @@
 - 险情记档:初稿误列 /opt/zig-cache——查 clean-image.sh 既有保护清单发现它是固化软链的 zig 离线包缓存(install-libcache zig 组建),纠正保留;清单纪律三面再立功。zig-0.15.2 非"旧版"而是 bof-launcher 锁定工具链,保留。
 - 实释 18G(60G→42G):go 10G+cargo src 3.5G+zg target 1.4G+buildtrees 0.7G+各用户缓存 ~1.5G+/tmp 与 apt ~1G。
 - 根修泄漏:acpsup codexHomeWithModel 落系统 /tmp 的会话级 CODEX_HOME(MkdirTemp 每会话 ~110M,近 8 个堆积 ~775M)永不回收;改归 DataDir/codex,Session.Home 字段 + Close 异步删 + New() 启动清旧账 + 表满 429 路补 Close;spawnModelEnv/codexHomeWithModel 转方法;六包+race 绿;实例验证 codex model 会话 200 落位。
+
+## 产品面裁剪批(2026-10-14 深夜,用户点名 + 方向:数据面后续建 MCP)
+
+- 用户点名:trivy-db 2.9G、SecLists 2.6G、五个 ref 仓 3.3G、msf 994M 出镜像;rockyou 一并删;方向记档——这些数据后续走 MCP 服务(词表/漏洞库/参考仓/指纹库)。
+- 功能依赖子面保留(在役工具的输入,非纯数据):/opt/data-ref/exploitdb(poc-search --deep 与 searchsploit)、/opt/recon-ref 的 PoC-in-GitHub 索引与 parquet(poc-search 核心)。删了这两个 poc-search 即残废,与此前订单冲突,故留;MCP 化后可一并出镜像。
+- 构建面:TOOLS_ALL 去 c2/maldev/metasploit(组保留显式装);install 去 SecLists/trivy-db 烘焙与 wrapper/C2 克隆/BOF 参考集(COFFLoader/atomic-bofs/TrustedSec)/maldev 41 仓/recon 指纹三仓/data 四面/rockyou 词表接线;bof-launcher 构建树保留构建期、clean-image 清;clean-image 增不烤面删除段;smoke F 节改向(不烤面残留即坏)。
+- 实例:purge metasploit-framework、rm 各面、trivy wrapper 还原真身;根 42G→34G(两批累计 60G→34G,-26G);poc-search(CVE-2021-44228 索引+--deep)、searchsploit、trivy --version 验过。
+- 文档:14 本册 + 资源行/投影同步;禁词表两轮清绿(「裁定」「口径」都在表里,措辞改「瘦身批」);gitleaks 断网判定例从 c2dev-ref/sliver 换 /root/scripts。

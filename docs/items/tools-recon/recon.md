@@ -1,6 +1,6 @@
-# recon 组册:侦察指纹参考,4 仓
+# recon 组册:PoC 索引面
 
-> MAC/服务指纹库与 DNS 协议栈、CVE PoC 索引参考,只克隆归档 ｜ 状态:参考克隆 ｜ 组:`install-tools.sh recon`
+> CVE PoC 索引(poc-search 依赖);mac-tracker/recog/hickory-dns 指纹参考按 2026-10-14 瘦身批 不烤镜像(后续走 MCP) ｜ 状态:已装(仅 PoC-in-GitHub 索引) ｜ 组:`install-tools.sh recon`
 
 ## 版本
 

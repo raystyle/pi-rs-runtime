@@ -23,7 +23,7 @@
 - rustscan 与 feroxbuster 安装到 `/opt/cargo/bin`。
 - 构建时 `RUSTUP_HOME=/opt/rustup`,`CARGO_HOME=/opt/cargo`。
 - 这两件再 `ln -sf` 到 `/usr/local/bin`。
-- RustHound-CE 源码在 `/opt/tradecraft-ref/ad/RustHound-CE`。
+- RustHound-CE 源码构建期在 `/opt/tradecraft-ref/ad/RustHound-CE`(构建树随 clean-image 清,2026-10-14 瘦身批);二进制 `/usr/local/bin/rusthound-ce` 常驻。
 - release 二进制用 `install -m755` 装到 `/usr/local/bin/rusthound-ce`。
 
 ## 配置
@@ -36,8 +36,8 @@
 ## 离线行为
 
 - 支持。三个二进制在断网时可以启动。规定见 [offline.md](../../offline.md);关闭 eth0 后,`rustscan --version` 退 0;未验证:断网扫描本机或内网目标;rustscan 的后端调用本机 nmap。
-- feroxbuster 使用本地词表。`/usr/share/wordlists` 有 `rockyou.txt`,以及 SecLists 软链。
-- 判定:断网后 `python3 -m http.server 8000 &`,再执行 `feroxbuster -u http://127.0.0.1:8000 -w /usr/share/wordlists/SecLists/Discovery/Web-Content/common.txt -n`。
+- feroxbuster 支持本地词表;内置词表库(rockyou/SecLists)按 2026-10-14 瘦身批 不烤镜像,`-w` 由调用方自带。
+- 判定:断网后自造小词表(`printf 'a\nb\n' >/tmp/w.txt`)跑 `feroxbuster -u http://127.0.0.1:8000 -w /tmp/w.txt -n`。
 - 未验证:rusthound-ce 的采集。它走内网 LDAP 与 Kerberos,断外网不改变这条协议路径。
 - 镜像里没有域环境,采集本身未验证;判定入口:`rusthound-ce --help` 退 0。
 

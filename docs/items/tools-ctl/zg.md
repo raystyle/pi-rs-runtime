@@ -14,7 +14,7 @@
 
 ## 文件
 
-- 二进制是 `/usr/local/bin/zg`;共享库是 `/usr/local/lib/libzvec_c_api.so`;缺少该库时 zg 起不来。它与二进制一起安装;模型烤库是 `/opt/zg-models`;它属于构建日快照,与 trivy-db 同一类。
+- 二进制是 `/usr/local/bin/zg`;共享库是 `/usr/local/lib/libzvec_c_api.so`;缺少该库时 zg 起不来。它与二进制一起安装;模型烤库是 `/opt/zg-models`,构建日快照(rctl search 在役依赖,瘦身批保留;trivy-db 已按瘦身批不烤)。
 - `/root/.zvec-grep/config.json` 与 `/home/ubuntu/.zvec-grep/config.json` 形状相同。
 - 内容是 `{"defaults":{"embedding":"local/qwen3-embedding-0.6b"},"version":1}`。
 

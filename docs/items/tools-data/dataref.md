@@ -1,6 +1,6 @@
 # dataref:数据信息资产
 
-> PoC、规则与指纹库的克隆。kind=data。构建日快照,离线直读 ｜ 状态:已装 ｜ 组:`install-tools.sh data`
+> PoC、规则与指纹库的克隆。kind=data。构建日快照,离线直读;LOLBAS/webappanalyzer/gtfobins/hacktricks 按 2026-10-14 瘦身批 不烤镜像(后续走 MCP),只余 exploitdb(poc-search --deep 与 searchsploit 的在役依赖) ｜ 状态:已装 ｜ 组:`install-tools.sh data`
 
 ## 版本
 
