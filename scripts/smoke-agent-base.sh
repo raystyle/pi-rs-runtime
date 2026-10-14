@@ -98,7 +98,7 @@ if [ "$VIEW" = root ]; then
 fi
 
 section "[$VIEW] F. VNC 直显与桌面面"
-chkout "Xvfb" "X.Org|Xvfb|the X server" 15 Xvfb -version
+chk "Xvfb" command -v Xvfb   # 此版 Xvfb 无 -version 旗标,验在位即可
 chk "x11vnc" x11vnc -version
 chk "xauth" xauth -v
 [ -d /var/lib/acpsup/vnc ] && ok "acpsup vnc 基目录在" || bad "vnc 基目录缺"
