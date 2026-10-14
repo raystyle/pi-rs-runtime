@@ -26,6 +26,98 @@ import (
 	"golang.org/x/time/rate"
 )
 
+// modelCatalog 是各 agent 的合法模型别名与默认(三端别名表 + pi-rs-core 0.3.0 模型锁;
+// pi 中会话换模待 pi-rs-core 支持 set_config_option 后开放)。
+var modelCatalog = map[string]struct {
+	Models       []string // 建会话 model 参数合法面(spawn env 道,全清单)
+	SwitchModels []string // 中会话换模合法面(ACP set_config_option 道,实验界定的子集)
+	Default      string
+}{
+	// claude 运行时换模只认网关 /v1/models 在列名(zp-cc-* 在列;ds-cc-* 网关未列,
+	// set 后静默回落默认——ds 档建会话时经 ANTHROPIC_MODEL 全通,实验 2026-10-13)
+	"claude": {Models: []string{"zp-cc-glm53[1m]", "zp-cc-glm53fh[1m]", "ds-cc-pro", "ds-cc-flash"},
+		SwitchModels: []string{"zp-cc-glm53[1m]", "zp-cc-glm53fh[1m]"}, Default: "zp-cc-glm53[1m]"},
+	"codex": {Models: []string{"zp-cx-glm53", "ds-cx-pro", "ds-cx-flash"},
+		SwitchModels: []string{"zp-cx-glm53", "ds-cx-pro", "ds-cx-flash"}, Default: "ds-cx-pro"},
+	"pi": {Models: []string{"ds-cx-flash", "zp-cx-chat", "ds-cx-pro", "zp-cc-glm53fh"},
+		SwitchModels: nil, Default: "ds-cx-flash"},
+}
+
+// handleModels 出各 agent 合法模型别名与默认(桥动态取用,免硬编码)。
+func (s *Server) handleModels(w http.ResponseWriter, r *http.Request) {
+	agent := r.URL.Query().Get("agent")
+	out := map[string]any{}
+	for a, c := range modelCatalog {
+		if agent != "" && a != agent {
+			continue
+		}
+		out[a] = map[string]any{"models": c.Models, "default": c.Default,
+			"switchable": len(c.SwitchModels) > 0, "switch_models": c.SwitchModels}
+	}
+	if agent != "" && len(out) == 0 {
+		jsonWrite(w, 400, map[string]any{"error": "未知 agent:" + agent})
+		return
+	}
+	jsonWrite(w, 200, out)
+}
+
+// handleSessionModel 中会话换模:转发 ACP 原生 session/set_config_option(configId=model)。
+// 回合在途 409(不排队);非法别名 400 带合法清单;适配器未实现(如 pi)400 明示。
+func (s *Server) handleSessionModel(w http.ResponseWriter, r *http.Request) {
+	var body struct {
+		SessionID string `json:"sessionId"`
+		Model     string `json:"model"`
+	}
+	if !readBody(w, r, &body) {
+		return
+	}
+	sess := s.table.Get(body.SessionID)
+	if sess == nil {
+		jsonWrite(w, 404, map[string]any{"error": "无此会话"})
+		return
+	}
+	cat, ok := modelCatalog[sess.Agent]
+	if !ok || len(cat.SwitchModels) == 0 {
+		jsonWrite(w, 400, map[string]any{"error": "该后端暂不支持中会话换模:" + sess.Agent})
+		return
+	}
+	legal := false
+	for _, m := range cat.SwitchModels {
+		if m == body.Model {
+			legal = true
+			break
+		}
+	}
+	if !legal {
+		jsonWrite(w, 400, map[string]any{"error": "该别名仅支持建会话时指定,中会话换模可用:" +
+			strings.Join(cat.SwitchModels, ", "), "legal": cat.SwitchModels})
+		return
+	}
+	if sess.PromptInFlight() {
+		jsonWrite(w, 409, map[string]any{"error": "prompt_in_flight"})
+		return
+	}
+	ctx, cancel := context.WithTimeout(r.Context(), handshakeTO)
+	defer cancel()
+	res, err := sess.Ag.Request(ctx, "session/set_config_option", map[string]any{
+		"sessionId": sess.ID, "configId": "model", "value": body.Model,
+	})
+	if err != nil {
+		jsonWrite(w, 502, map[string]any{"error": err.Error(), "adapterStderr": sess.Ag.StderrTail()})
+		return
+	}
+	if s.log != nil {
+		s.log.Info("session_model", "cat", "audit", "action", "session/model",
+			"session_id", sess.ID, "agent", sess.Agent, "model", body.Model)
+	}
+	var out struct {
+		ConfigOptions json.RawMessage `json:"configOptions"`
+	}
+	_ = json.Unmarshal(res, &out)
+	jsonWrite(w, 200, map[string]any{"ok": true, "sessionId": sess.ID, "model": body.Model,
+		"configOptions": out.ConfigOptions})
+}
+
 // modelLineRe 匹配烤库 codex config 的 model 行(会话级模型覆盖用)。
 var modelLineRe = regexp.MustCompile(`(?m)^model = ".*"$`)
 
@@ -75,6 +167,11 @@ func New(cfg Config) *Server {
 		cfg.DataDir = "/var/lib/acpsup"
 	}
 	perKeyMax := 4
+	if v := os.Getenv("ACPSUP_KEY_SESSIONS"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n >= 0 {
+			perKeyMax = n
+		}
+	}
 	if testAuthOff {
 		perKeyMax = 0
 	}
@@ -270,6 +367,8 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /events", s.auth(s.handleEvents, false, false))
 	mux.HandleFunc("POST /permission", s.auth(s.handlePermission, false, true))
 	mux.HandleFunc("GET /file", s.auth(s.handleFile, false, true))
+	mux.HandleFunc("GET /models", s.auth(s.handleModels, false, true))
+	mux.HandleFunc("POST /session/model", s.auth(s.handleSessionModel, false, true))
 	mux.HandleFunc("POST /shutdown", s.auth(s.handleShutdown, true, true))
 	mux.HandleFunc("POST /keys", s.auth(s.handleKeyCreate, true, true))
 	mux.HandleFunc("GET /keys", s.auth(s.handleKeyList, true, true))
@@ -421,7 +520,8 @@ func (s *Server) handleSessionNew(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var sn struct {
-		SessionID string `json:"sessionId"`
+		SessionID     string          `json:"sessionId"`
+		ConfigOptions json.RawMessage `json:"configOptions"`
 	}
 	if err := json.Unmarshal(snRes, &sn); err != nil || sn.SessionID == "" {
 		ag.Close()
@@ -440,7 +540,8 @@ func (s *Server) handleSessionNew(w http.ResponseWriter, r *http.Request) {
 		s.log.Info("session_new", "cat", "audit", "action", "session/new",
 			"key_id", key.ID, "session_id", sess.ID, "agent", def.Name, "cwd", clipStr(cwd, 256))
 	}
-	jsonWrite(w, 200, map[string]any{"sessionId": sess.ID, "agent": def.Name, "model": body.Model, "initialize": json.RawMessage(initRes)})
+	jsonWrite(w, 200, map[string]any{"sessionId": sess.ID, "agent": def.Name, "model": body.Model,
+		"initialize": json.RawMessage(initRes), "configOptions": sn.ConfigOptions})
 }
 
 // wire 装配一个会话的回调:事件入环、fs/terminal 真实现、权限桥 120 秒。

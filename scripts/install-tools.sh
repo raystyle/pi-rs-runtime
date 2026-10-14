@@ -1561,8 +1561,8 @@ After=network.target
 
 [Service]
 ExecStart=/usr/local/bin/acpsup
-Environment=ACPSUP_AUTH_OFF=1
 Environment=ACPSUP_SESSION_MAX=16
+Environment=ACPSUP_KEY_SESSIONS=12
 Environment=ACPSUP_BUILD=__BUILD_TS__
 Restart=on-failure
 

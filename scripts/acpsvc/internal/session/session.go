@@ -196,6 +196,13 @@ func (s *Session) TryPrompt() (release func(), ok bool) {
 	}, true
 }
 
+// PromptInFlight 报本会话是否有在途回合(换模等面判 409 用)。
+func (s *Session) PromptInFlight() bool {
+	s.promptsMu.Lock()
+	defer s.promptsMu.Unlock()
+	return s.promptInFlight
+}
+
 // Close 结束会话:关适配器 stdin 等自退,幂等。
 func (s *Session) Close() {
 	select {

@@ -35,7 +35,9 @@
 - token 自取:`incus exec <实例> -- cat /var/lib/acpsup/token`;调用示例:`curl -H "Authorization: Bearer <token>" http://<宿主>:7663/health`。
 - 端点面:`GET /health`(含 `build` 构建指纹,换档滞留检测用);`POST /session/new` {agent,cwd,model?};`POST /session/prompt` {sessionId,text};`POST /session/cancel`;`GET /events?sessionId=`(SSE,先回放后订阅,15 秒心跳注释保活);`POST /permission` {requestId,optionId};`GET /file?sessionId=&path=`(文件承接面,限该会话 cwd 子树,4MiB 封顶,空闲逐出后失效);`POST /shutdown`。
 - cwd 语义(桥面对齐):调用方传容器内绝对路径;目录不存在时在白名单前缀下自动建(`ACPSUP_CWD_ALLOW` 逗号分隔,默认 `/tmp/,/srv/work/`),之外 400;产物落容器内,平台侧经 `/file` 取。
-- 模型选择(四模型面):`session/new` 的可选 `model` 给网关别名;claude 注 `ANTHROPIC_MODEL`(可用 `zp-cc-glm53[1m]`、`zp-cc-glm53fh[1m]`、`ds-cc-pro`、`ds-cc-flash`),codex 生成会话级 `CODEX_HOME` 改 model 行(可用 `zp-cx-glm53`、`ds-cx-pro`、`ds-cx-flash` 等);未给用烤库默认;别名与档位以网关侧表为准。
+- 模型清单与换模(2026-10-14 双面):`GET /models?agent=` 出各 agent 合法别名、默认与可换子清单(`models` 建会话全清单,`switch_models` 中会话可换子集,`switchable` 总开关);`POST /session/model` {sessionId,model} 中会话换模,转发 ACP 原生 `session/set_config_option`(configId=model),会话号不变。
+- 两道语义:建会话 `model` 参数走 spawn env 道(claude 注 `ANTHROPIC_MODEL`,codex 会话级 `CODEX_HOME`),全清单生效;中会话换模走 set_config_option 道,claude 只认网关 `/v1/models` 在列名(`zp-cc-glm53[1m]`、`zp-cc-glm53fh[1m]`;ds 档别名 set 后静默回落默认,故列外),codex 认目录全别名,pi 待 pi-rs-core 支持后开放(暂 400 明示)。
+- 换模边界:回合在途 409(不排队);非法别名 400 带合法清单;`session/new` 响应透传后端 `configOptions`(桥拼下拉用);`config_option_update` 通知经事件流回推。
 - 事件线形(调用方按此匹配):更新是 `{"kind":"session/update","update":{"sessionUpdate":"…"}}`;权限卡是 `{"kind":"permission","requestId":"perm-…","request":{…}}`,`requestId` 顶层取,应答走 `POST /permission`。
 
 ## 离线行为

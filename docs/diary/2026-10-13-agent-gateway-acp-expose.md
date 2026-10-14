@@ -107,3 +107,8 @@
 - install_pi_rs:sha256 锚、解包 /opt/pi-rs(dist/bundle 布局)、wrapper 指 /opt/node/bin/node、--help 含 acp 作闸;挂 agents 组尾部;踩坑:改了 install-tools.sh 忘推 common.sh,unbound variable 静默跳段(实跑尾输出定位)。
 - 实例换装:临时道(宿主构建 bundle)被正式发行件替;ACP initialize 报 0.3.0、prompt end_turn;/health pi ready 探针直取新件。
 - 文档面:新册 tools-agents/pi-rs.md(八签)、resources.json 增件、params 版本锁定行、surfaces agents 行、items README 与 software-inventory 计数同步(89 册 498 件)。
+
+## 模型双面(2026-10-14 收尾)
+
+- GET /models 与 POST /session/model 落地;机制实证:claude 运行时换模只认网关 /v1_models 在列名(ds-cc-* 网关未列,set 后静默回落默认——建会话 env 道则全通),codex set_config_option 吃目录全别名,pi 待 core 支持;据此收敛「建会话全清单、中会话换模子清单」双面,五态 e2e 全绿(claude 换 glm53fh 实跑对、claude 拒 ds-cc 带清单、codex 换 ds-cx-flash 实跑对、pi 400、建会话 ds-cc 实跑对)。
+- 踩坑记档:python 补丁脚本断言失败时整段未落盘(后段看似已部署实为半件),以 /models 404 与 build 指纹定位补齐。
