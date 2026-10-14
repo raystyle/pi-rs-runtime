@@ -50,6 +50,8 @@ type vncStack struct {
 	chrome   *exec.Cmd
 	xvfbDone chan struct{}
 	chromeDn chan struct{}
+	xvfbLog  *os.File // 子进程 stdout/stderr 的 fd 必须由栈持有:局部变量被 GC 关 fd 后子进程写日志即 SIGPIPE 死
+	chromeLg *os.File
 	leaky    bool
 	prevEnd  func() // 前一条桥的收尾(关其 x11vnc stdin;第二条 WS 替换第一条)
 }
@@ -274,6 +276,7 @@ func (st *vncStack) start() error {
 	if err := os.MkdirAll(st.dir, 0o700); err != nil {
 		return err
 	}
+	var err error
 	// MIT-MAGIC-COOKIE-1(目录 0700、文件 0600;不 -ac)
 	ck := make([]byte, 16)
 	if _, err := rand.Read(ck); err != nil {
@@ -286,16 +289,17 @@ func (st *vncStack) start() error {
 	}
 	_ = os.Chmod(xauthPath, 0o600)
 
-	xvfbLog, err := os.OpenFile(filepath.Join(st.dir, "xvfb.log"), os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o600)
+	st.xvfbLog, err = os.OpenFile(filepath.Join(st.dir, "xvfb.log"), os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o600)
 	if err != nil {
 		return err
 	}
 	st.xvfb = exec.Command(st.mgr.xvfbBin, fmt.Sprintf(":%d", st.display),
 		"-screen", "0", vncScreen, "-nolisten", "tcp", "-auth", xauthPath,
 		"+extension", "DAMAGE", "+extension", "RANDR", "-terminate")
-	st.xvfb.Stdout, st.xvfb.Stderr = xvfbLog, xvfbLog
+	st.xvfb.Stdout, st.xvfb.Stderr = st.xvfbLog, st.xvfbLog
 	if err := st.xvfb.Start(); err != nil {
-		xvfbLog.Close()
+		st.xvfbLog.Close()
+		st.xvfbLog = nil
 		return fmt.Errorf("Xvfb 起: %v", err)
 	}
 	go func() { _ = st.xvfb.Wait(); close(st.xvfbDone) }()
@@ -303,7 +307,7 @@ func (st *vncStack) start() error {
 		return err
 	}
 
-	chromeLog, err := os.OpenFile(filepath.Join(st.dir, "chrome.log"), os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o600)
+	st.chromeLg, err = os.OpenFile(filepath.Join(st.dir, "chrome.log"), os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o600)
 	if err != nil {
 		return err
 	}
@@ -317,9 +321,10 @@ func (st *vncStack) start() error {
 		"--disable-gpu", "--disable-dev-shm-usage", "--disable-extensions",
 		"about:blank")
 	st.chrome.Env = append(os.Environ(), fmt.Sprintf("DISPLAY=:%d", st.display), "XAUTHORITY="+xauthPath)
-	st.chrome.Stdout, st.chrome.Stderr = chromeLog, chromeLog
+	st.chrome.Stdout, st.chrome.Stderr = st.chromeLg, st.chromeLg
 	if err := st.chrome.Start(); err != nil {
-		chromeLog.Close()
+		st.chromeLg.Close()
+		st.chromeLg = nil
 		return fmt.Errorf("chrome 起: %v", err)
 	}
 	go func() { _ = st.chrome.Wait(); close(st.chromeDn) }()
@@ -406,6 +411,14 @@ func (st *vncStack) teardown() {
 	case <-st.xvfbDone:
 	case <-time.After(2 * time.Second):
 		st.leaky = true
+	}
+	if st.xvfbLog != nil {
+		_ = st.xvfbLog.Close()
+		st.xvfbLog = nil
+	}
+	if st.chromeLg != nil {
+		_ = st.chromeLg.Close()
+		st.chromeLg = nil
 	}
 	if st.leaky {
 		if st.mgr.log != nil {
