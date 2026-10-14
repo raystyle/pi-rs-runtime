@@ -95,7 +95,12 @@ if [ "$VIEW" = root ]; then
     printf '%s' "$out" | grep -qiE "ENOTCACHED|offline" && ok "npm 快失败" || bad "npm 快失败异常"
 fi
 
-section "[$VIEW] F. VNC 轻量面(裁定保留)"
+section "[$VIEW] F. VNC 直显与桌面面"
+chk "Xvfb" Xvfb -version
+chk "x11vnc" x11vnc -version
+chk "xauth" xauth -v
+[ -d /var/lib/acpsup/vnc ] && ok "acpsup vnc 基目录在" || bad "vnc 基目录缺"
+# 直显面二进制与显示口纪律(主动桥面在 E2E 阶段验,冒烟只验在位)
 [ -d /usr/share/novnc ] && ok "noVNC 在" || bad "noVNC 缺"
 have vncserver && ok "tigervnc 在" || bad "tigervnc 缺"
 [ "$VIEW" = ubuntu ] && { [ -x /usr/local/bin/vnc-screen ] && ok "vnc-screen 启动面在" || bad "vnc-screen 缺"; }
