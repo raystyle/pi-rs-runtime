@@ -1699,7 +1699,10 @@ install_chrome() {
         echo "${sha}  /tmp/${zip}" | sha256sum -c - || { echo "!! chrome 资产 sha256 不符"; return 1; }
         rm -rf "$dest" && install -d /opt/clean-chrome
         unzip -q "/tmp/${zip}" -d /opt/clean-chrome && rm "/tmp/${zip}"
-        mv "/opt/clean-chrome/chromium-${ver}-x86_64-unknown-linux-gnu" "$dest"
+        # 归档顶层目录名不带 -genN-rN 版本段(155 实测):按 glob 取唯一顶层目录归位
+        local top
+        top="$(find /opt/clean-chrome -maxdepth 1 -mindepth 1 -type d -name 'chromium-*' | head -1)"
+        [ -n "$top" ] && mv "$top" "$dest"
         printf '%s' "$ver" > "$dest/.version"
     fi
     # 容器里 chrome 必须 --no-sandbox(browse spawn 恒加;直调也带上),有头/无头由调用方给 DISPLAY
