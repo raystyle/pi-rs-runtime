@@ -19,6 +19,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -52,6 +53,8 @@ type vncStack struct {
 	chromeDn chan struct{}
 	xvfbLog  *os.File // 子进程 stdout/stderr 的 fd 必须由栈持有:局部变量被 GC 关 fd 后子进程写日志即 SIGPIPE 死
 	chromeLg *os.File
+	holder   *exec.Cmd // 显示持有者(x11vnc -inetd,stdin 在本栈手里):-terminate 服务器在客户端数 1→0 即自退,探针这类瞬态客户端会带走服务器,须有常驻客户端撑到 chrome 接上
+	holderIn io.WriteCloser
 	leaky    bool
 	prevEnd  func() // 前一条桥的收尾(关其 x11vnc stdin;第二条 WS 替换第一条)
 }
@@ -335,6 +338,9 @@ func (st *vncStack) start() error {
 	if err := waitXReady(st, vncXWait); err != nil {
 		return err
 	}
+	if err := st.startHolder(); err != nil {
+		return fmt.Errorf("显示持有者起: %v", err)
+	}
 
 	st.chromeLg, err = os.OpenFile(filepath.Join(st.dir, "chrome.log"), os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o600)
 	if err != nil {
@@ -350,6 +356,7 @@ func (st *vncStack) start() error {
 		"--disable-gpu", "--disable-dev-shm-usage", "--disable-extensions",
 		"about:blank")
 	st.chrome.Env = append(os.Environ(), fmt.Sprintf("DISPLAY=:%d", st.display), "XAUTHORITY="+xauthPath)
+	_ = os.WriteFile(filepath.Join(st.dir, "spawn-env.txt"), []byte(fmt.Sprintf("display=%d cdp=%d\n", st.display, st.cdpPort)+strings.Join(st.chrome.Env, "\n")), 0o600)
 	st.chrome.Stdout, st.chrome.Stderr = st.chromeLg, st.chromeLg
 	if err := st.chrome.Start(); err != nil {
 		st.chromeLg.Close()
@@ -367,7 +374,7 @@ func (st *vncStack) start() error {
 		}
 		select {
 		case <-st.chromeDn:
-			return errors.New("chrome 启动即退(查 chrome.log)")
+			return fmt.Errorf("chrome 启动即退: %s", clipFileHead(filepath.Join(st.dir, "chrome.log")))
 		default:
 		}
 		time.Sleep(300 * time.Millisecond)
@@ -392,13 +399,23 @@ func (st *vncStack) start() error {
 	return nil
 }
 
+func clipFileHead(p string) string {
+	b, err := os.ReadFile(p)
+	if err != nil {
+		return "(日志不可读:" + err.Error() + ")"
+	}
+	if len(b) > 400 {
+		b = b[:400]
+	}
+	return string(b)
+}
+
 func waitXReady(st *vncStack, wait time.Duration) error {
+	// 就绪判定只用套接字文件,零客户端:-terminate 服务器在客户端 1→0 即自退,
+	// 连了就走的探针会把刚起的服务器带走(实测病根)
 	dl := time.Now().Add(wait)
 	for time.Now().Before(dl) {
-		// 就绪探针必须带 cookie:-auth 服务器对无 XAUTHORITY 的客户端一律拒绝
-		probe := exec.Command(st.mgr.xdpyinfo, "-display", fmt.Sprintf(":%d", st.display))
-		probe.Env = append(os.Environ(), "XAUTHORITY="+filepath.Join(st.dir, "xauth"))
-		if err := probe.Run(); err == nil {
+		if _, err := os.Stat(xSocket(st.display)); err == nil {
 			return nil
 		}
 		select {
@@ -409,6 +426,24 @@ func waitXReady(st *vncStack, wait time.Duration) error {
 		time.Sleep(100 * time.Millisecond)
 	}
 	return errors.New("Xvfb 套接字 3 秒未就绪")
+}
+
+// startHolder 起显示持有者(x11vnc -inetd,stdin 由栈持有):作为常驻 X 客户端
+// 撑住 -terminate 服务器;shell 包装做套接字文件轮询重试(同样零瞬态客户端)。
+func (st *vncStack) startHolder() error {
+	script := fmt.Sprintf("i=0; while [ ! -e %s ] && [ $i -lt 100 ]; do sleep 0.1; i=$((i+1)); done; exec %s -inetd -q -norc -nopw -display :%d -auth %s -nosel -noprimary -noncache -cursor arrow -wait 10 -defer 10 -speeds lan -threads -o %s",
+		xSocket(st.display), st.mgr.x11vncBin, st.display, filepath.Join(st.dir, "xauth"), filepath.Join(st.dir, "holder.log"))
+	cmd := exec.Command("/bin/sh", "-c", script)
+	in, err := cmd.StdinPipe()
+	if err != nil {
+		return err
+	}
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+	st.holder, st.holderIn = cmd, in
+	go func() { _ = cmd.Wait() }()
+	return nil
 }
 
 // teardown 自退链:chrome 走 CDP Browser.close(等 3 秒)→ Xvfb -terminate 随之自退
@@ -438,7 +473,11 @@ func (st *vncStack) teardown() {
 			st.leaky = true
 		}
 	}
-	// Xvfb:-terminate 在末个 X 客户端(chrome)离开时自退
+	// 关显示持有者:末个 X 客户端离开 → -terminate 服务器自退(回收链的收束点)
+	if st.holderIn != nil {
+		_ = st.holderIn.Close()
+		st.holderIn = nil
+	}
 	select {
 	case <-st.xvfbDone:
 	case <-time.After(2 * time.Second):
@@ -568,6 +607,9 @@ func (s *Server) handleVNC(w http.ResponseWriter, r *http.Request) {
 	}
 	st, err := s.vnc.Ensure(sess)
 	if err != nil {
+		if s.log != nil {
+			s.log.Warn("vnc_ensure_fail", "cat", "audit", "session_id", sess.ID, "err", err.Error())
+		}
 		jsonWrite(w, 503, map[string]any{"error": "display_unavailable"})
 		return
 	}
