@@ -38,6 +38,7 @@
 | [tools-bof/coffee-ldr.md](tools-bof/coffee-ldr.md) | coffee-ldr |
 | [tools-bof/entropia.md](tools-bof/entropia.md) | entropia:entc |
 | [tools-bof/wine.md](tools-bof/wine.md) | wine:PE 验证路径 |
+| [tools-chrome/browse.md](tools-chrome/browse.md) | browse |
 | [tools-chrome/clean-chrome.md](tools-chrome/clean-chrome.md) | clean-chrome |
 | [tools-cloud/cloud.md](tools-cloud/cloud.md) | cloud:云厂商 CLI |
 | [tools-ctl/rctl.md](tools-ctl/rctl.md) | rctl |
@@ -178,7 +179,7 @@
 | --- | --- | --- | --- |
 | analysis 9 | compilers 6 | libcache 8 | runtimes 16 |
 | tools-acp 1 | tools-agents 3 | tools-astgrep 1 | tools-bof 5 |
-| tools-c2 1 | tools-chrome 1 | tools-cli 1 | tools-cloud 1 |
+| tools-c2 1 | tools-chrome 2 | tools-cli 1 | tools-cloud 1 |
 | tools-ctl 2 | tools-data 4 | tools-discovery 2 | tools-filesearch 1 |
 | tools-ghidra 1 | tools-go-security 2 | tools-herdr 1 | tools-maldev 1 |
 | tools-metasploit 1 | tools-nu 1 | tools-pentest 5 | tools-pivot 1 |

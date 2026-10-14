@@ -36,13 +36,14 @@
 
 ## 限制
 
-- 本件跨机派单;browse CLI 因仓不可达(v0.34.0 资产 404,git 要凭证)暂缓。「browse chrome install」语义由本组复刻。
-- 152-r5 与 155 的云端版本记录曾漂移;以 latest 指针实查为准(2026-10-10 时 155 已上云)。
+- browse CLI 已合入(2026-10-14,独立 [browse](browse.md) 组在默认全量),自带 `browse chrome install` 托管面(同源 chrome.ohmygh.com,落 ~/.browse-rs);本组保持系统级单副本道,两组互不搬动,复用系统副本设 `BROWSE_CHROME=/opt/clean-chrome/CURRENT/chrome`。
+- 152-r5 与 155 的云端版本记录曾漂移;以 latest 指针实查为准(2026-10-14 时 155.0.8059.39-gen8-r5 已上云,pins 已随)。
 - clean-chrome 155 挂 `--remote-debugging-address` 时绑不了 CDP 端口(隔离变量);裸 `--remote-debugging-port` 默认绑回环,浏览面照走。
 - Chrome 136+ 无独立 `--user-data-dir` 时 CDP 静默不开。
 
 ## 参见
 
+- [browse.md](browse.md)
 - [../tools-vnc/vnc.md](../tools-vnc/vnc.md)
 - [docs/params.md](../../params.md)
 

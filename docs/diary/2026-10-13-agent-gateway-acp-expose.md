@@ -140,3 +140,12 @@
 - codex 第四别名 zp-cx-glm5t(共享目录在册),set_config_option 直通不变。
 - 采集教训:SSE 回放读块大于在途字节时 python read 阻塞到超时并丢已收字节(65536 读块吞小回放,4096+心跳容忍 curl -N 才稳);诊断期加 update_mismatch/rebuild_swapped 审计行(留存,零 mismatch 全程)。
 - E2E:claude 三别名(ds-cc-flash/zp-cc-glm53fh[1m]/ds-cc-pro)换模 200 rebuilt、暗号跨换模续答、模型标识随 env、同名 noop、非法别名 400 带清单;codex 空会话直通 zp-cx-glm5t + prompt end_turn;acpsup 0.2.0 上线,go.sum 入仓。
+
+## browse 组合入(2026-10-14 深夜,用户放行)
+
+- browse_rs v0.35.5(browse_rs GitHub Release):浏览器 CLI(自研 Chromium 内核 + 油猴标准 userscript 运行时 + Rune 编排,daemon 保会话,CDP 直达);pins 标量 BROWSE_VERSION/BROWSE_SHA256,resolve-pins 增 browse_latest(GitHub API)与 browse_sha(Release 边车)进 SCALARS 与 sha 二段解析。
+- 下载三链:GITHUB_MIRROR 前置 → GitHub 直连 → 宿主预推 /root(README 记的 browse.ohmygh.com 镜像实测资产 404,镜像道缺席记档)。
+- 引擎:browse chrome install 155.0.8059.39-gen8-r5(browse 托管面,~/.browse-rs/chrome,云端道 chrome.ohmygh.com 同源,BROWSE_CHROME_MIRROR 指路);与 chrome 组(/opt/clean-chrome 系统级单副本,ADR-0007)互不搬动;chrome 组 pins 已随 gen8-r5。
+- 组进默认全量 TOOLS_ALL(chrome 组仍保留不默认);实例已部署:fetch 网关 /v1/models 200 via engine,/health 无凭证 401 诚实报 net::ERR_HTTP_RESPONSE_CODE_FAILURE。
+- 两个 shell 坑:set -u 下 `local a=x b=$a` 前项不可见(declaration builtin 先展参后赋值,pi-rs 道分行写是对的,同款一行版实测必炸);grep 图样引号失衡 host bash -n 放行、实例 bash 炸在后续行(跨机语法门要两边 -n)。
+- pins 全量刷新积压:--check 记录漂移面 UV 0.13.1/FRP v0.71.1/TRIVY v0.76.0/CLAUDE_CODE 2.1.299/CLAUDE_ACP 0.90.0,归专门升级批(版本纪律:跑解析器审 diff 再增量发布)。

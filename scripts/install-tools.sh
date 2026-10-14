@@ -1756,6 +1756,46 @@ install_chrome() {
     true
 }
 
+# ---- browse(浏览器 CLI:browse_rs GitHub Release;引擎 clean-chrome 走 browse 托管面) ----
+# CLI 自管 chromium 托管 pin(browse chrome install 落 ~/.browse-rs/chrome/<ver>,
+# 云端道 chrome.ohmygh.com 同源);chrome 组(/opt/clean-chrome 系统级单副本,ADR-0007)
+# 与本组互不搬动,要复用系统副本时设 BROWSE_CHROME=/opt/clean-chrome/CURRENT/chrome
+install_browse() {
+    log "browse ${BROWSE_VERSION:-?}(browse_rs Release;sha256 锚;引擎 clean-chrome ${CHROME_VERSION:-?})"
+    local ver="${BROWSE_VERSION:?pins.sh 缺 BROWSE_VERSION,跑 resolve-pins.sh}"
+    local sha="${BROWSE_SHA256:?pins.sh 缺 BROWSE_SHA256}"
+    local dest="/opt/browse/$ver"
+    if [ -x "$dest/browse" ] && [ -f "$dest/.version" ] && [ "$(cat "$dest/.version")" = "$ver" ]; then
+        echo "browse $ver 已装,跳过"
+    else
+        # Linux 运行期依赖(README libnss3/libasound2t64 族;chrome 组同款兜底)
+        apt-get update -qq
+        apt-get install -y --no-install-recommends             libnss3 libnspr4 libgbm1 libasound2t64 libxkbcommon0 libxrandr2             libxcomposite1 libxdamage1 libxfixes3 libcups2 libdrm2 libpango-1.0-0             libcairo2 libatk1.0-0 libatk-bridge2.0-0 fonts-liberation >/dev/null 2>&1 || true
+        local asset="browse-v${ver}-x86_64-unknown-linux-gnu.tar.gz"
+        local tgz="/tmp/${asset}" ok=0 u
+        for u in "${GITHUB_MIRROR}https://github.com/raystyle/browse_rs/releases/download/v${ver}/${asset}" \
+                 "https://github.com/raystyle/browse_rs/releases/download/v${ver}/${asset}"; do
+            curl -fsSL -m 300 -o "$tgz" "$u" 2>/dev/null && { ok=1; break; }
+        done
+        if [ "$ok" != 1 ] && [ -s "/root/${asset}" ]; then cp "/root/${asset}" "$tgz"; ok=1; fi
+        [ "$ok" = 1 ] || { echo "!! browse 发行件三道皆败(可宿主下载后推 /root/${asset})"; return 1; }
+        echo "${sha}  ${tgz}" | sha256sum -c - >/dev/null || { echo "!! browse 发行件 sha256 不符"; rm -f "$tgz"; return 1; }
+        rm -rf "$dest" && install -d /opt/browse
+        tar xzf "$tgz" -C /opt/browse && rm -f "$tgz"
+        mv "/opt/browse/browse-v${ver}-x86_64-unknown-linux-gnu" "$dest"
+        printf '%s' "$ver" > "$dest/.version"
+    fi
+    ln -sf "$dest/browse" /usr/local/bin/browse
+    # 引擎:browse 托管面装锁定版 clean-chrome(云端道;同版已装即跳)
+    local eng="${CHROME_VERSION:?pins.sh 缺 CHROME_VERSION}"
+    if ! browse chrome list 2>/dev/null | grep -qF "\"version\": \"${eng}\""; then
+        BROWSE_CHROME_MIRROR=https://chrome.ohmygh.com browse chrome install "$eng" \
+            || { echo "!! clean-chrome 托管面安装失败"; return 1; }
+    fi
+    browse --version >/dev/null 2>&1 || { echo "!! browse 未装上"; return 1; }
+    echo "browse $ver 就位:/opt/browse/$ver(入口 /usr/local/bin/browse;引擎托管 pin $CHROME_VERSION)"
+}
+
 # ---- VNC 桌面面(xfce4 + TigerVNC + noVNC;浏览器经 incus proxy 6080 进) -------
 # 设计:桌面栈烘焙进镜像,启动面在 vnc-screen.sh(口令首启生成,不落库);
 # websockify 绑 127.0.0.1:6080(回环纪律),宿主经 proxy 设备引 6080
@@ -1775,6 +1815,7 @@ install_vnc() {
     true
 }
 
-# chrome 组不在默认全量:上游修 bug 期用户裁定先不装(2026-10-10);要装显式跑 install-tools.sh chrome
-TOOLS_ALL=(filesearch astgrep cli herdr ghidra rea reverse discovery go-security rust-security pivot analysis c2 bof projectzero maldev recon nu cloud data pentest redteam metasploit vnc agents acp ctl)
+# chrome 组不在默认全量:上游修 bug 期用户裁定先不装(2026-10-10);要装显式跑 install-tools.sh chrome。
+# browse 组(2026-10-14 用户放行)在默认全量:CLI + browse 托管面 clean-chrome(与 chrome 组互不搬动)
+TOOLS_ALL=(filesearch astgrep cli herdr ghidra rea reverse discovery go-security rust-security pivot analysis c2 bof projectzero maldev recon nu cloud data pentest redteam metasploit vnc browse agents acp ctl)
 run_category TOOLS_ALL "$@"

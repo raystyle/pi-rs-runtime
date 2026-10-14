@@ -133,6 +133,10 @@ nuget_latest() {
     if [ -n "$stable" ]; then printf '%s\n' "$stable" | tail -1; else printf '%s\n' "$all" | tail -1; fi
 }
 
+# ---- browse(browse_rs GitHub Release;公开仓 API 无凭证) ------------------------
+browse_latest() { curl -fsSL -m 15 "https://api.github.com/repos/raystyle/browse_rs/releases/latest" 2>/dev/null | grep -o '"tag_name": *"[^"]*"' | head -1 | cut -d'"' -f4 | sed 's/^v//' || true; }
+browse_sha() { curl -fsSL -m 15 "https://github.com/raystyle/browse_rs/releases/download/v$1/browse-v$1-x86_64-unknown-linux-gnu.tar.gz.sha256" 2>/dev/null | grep -oE '^[0-9a-f]{64}' || true; }
+
 # ---- clean-chrome 云端道(chrome.ohmygh.com;非 GitHub 系不走 GITHUB_MIRROR) --------
 chrome_latest() { curl -fsSL -m 15 "https://chrome.ohmygh.com/latest" 2>/dev/null | tr -d ' \r\n' || true; }
 chrome_sha() { curl -fsSL -m 15 "https://chrome.ohmygh.com/$1/chromium-$1-x86_64-unknown-linux-gnu.zip.sha256" 2>/dev/null | grep -oE '^[0-9a-f]{64}' || true; }
@@ -291,6 +295,7 @@ SCALARS=(
     AWSCLI_VERSION:awscli_soft:
     MSF_VERSION:msf_soft:
     CHROME_VERSION:chrome_latest:
+    BROWSE_VERSION:browse_latest:
 )
 kubectl_stable() { curl -fsSL -m 15 "https://dl.k8s.io/release/stable.txt" 2>/dev/null || true; }
 bun_latest() { curl -fsSL -m 15 "https://registry.npmmirror.com/bun/latest" 2>/dev/null | grep -o '"version":"[^"]*"' | cut -d'"' -f4 || true; }
@@ -423,6 +428,12 @@ main() {
             if [ "${SCALARS[$si]%%:*}" = CHROME_VERSION ]; then cv="$(read_pin "scalar.$si")"; break; fi
         done
         if [ -n "$cv" ]; then printf 'CHROME_SHA256="%s"\n' "$(chrome_sha "$cv")"; else echo 'CHROME_SHA256=""'; fi
+        # browse:Release 资产 sha256 边车(随 BROWSE_VERSION 二段解析)
+        local bv="" bi
+        for bi in "${!SCALARS[@]}"; do
+            if [ "${SCALARS[$bi]%%:*}" = BROWSE_VERSION ]; then bv="$(read_pin "scalar.$bi")"; break; fi
+        done
+        if [ -n "$bv" ]; then printf 'BROWSE_SHA256="%s"\n' "$(browse_sha "$bv")"; else echo 'BROWSE_SHA256=""'; fi
     } > "$out"
     if [ "${1:-}" = "--check" ]; then
         diff -u "$PINS" "$out" || true

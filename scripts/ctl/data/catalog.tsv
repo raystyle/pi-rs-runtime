@@ -86,6 +86,7 @@ bof	tool	`install-tools.sh bof`	已装	Beacon Object File 工具链:mingw 交叉
 bof-launcher	tool	`install-tools.sh bof`	已装	Zig 写的 BOF 加载器,Linux 下脱离 C2 直跑 BOF	GIT_PIN[The-Z-Labs/bof-launcher]=c9b600a93c72…;解析日 2026-10-10	/usr/local/bin/bof-launcher	支持。源码在位属断网冒烟「参考库在位」覆盖	docs/items/tools-bof/bof-launcher.md		工具环境
 bofhound	tool	`install-tools.sh redteam`	已装	[coffeegist/bofhound](https://github.com/coffeegist/bofhound),PyPI 经 tuna				docs/items/tools-redteam/redteam.md		工具环境
 bore	tool	`install-tools.sh pivot`	已装	Rust 隧道客户端 bore-cli,CRATE_PIN 按锁定版本构建				docs/items/tools-pivot/pivot.md		工具环境
+browse	tool	`install-tools.sh browse`	已装	浏览器 CLI(自研 Chromium 内核 + 油猴标准 userscript 运行时 + Rune 编排;daemon 保会话,CDP 652 方法直达)	GitHub Release 锁定(pins.sh BROWSE_VERSION+SHA256)	/usr/local/bin/browse	支持。本地二进制;页面加载是运行期网络	docs/items/tools-chrome/browse.md		工具环境
 brutus	tool	`install-tools.sh go-security`	已装	协议口令爆破				docs/items/tools-go-security/go-security.md		工具环境
 bsdmainutils	tool	`install-tools.sh reverse`	已装	构建/分析杂项依赖				docs/items/tools-reverse/reverse.md		逆向环境
 build-essential	compiler	`install-compilers.sh c`	已装	元包,带入 gcc/g++/make/dpkg-dev				docs/items/compilers/c-toolchain.md		编程环境

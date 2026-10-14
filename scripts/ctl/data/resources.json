@@ -977,6 +977,19 @@
    "env": "工具环境"
   },
   {
+   "id": "browse",
+   "kind": "tool",
+   "group": "`install-tools.sh browse`",
+   "status": "已装",
+   "desc": "浏览器 CLI(自研 Chromium 内核 + 油猴标准 userscript 运行时 + Rune 编排;daemon 保会话,CDP 652 方法直达)",
+   "pin": "GitHub Release 锁定(pins.sh BROWSE_VERSION+SHA256)",
+   "path": "/usr/local/bin/browse",
+   "offline": "支持。本地二进制;页面加载是运行期网络",
+   "book": "docs/items/tools-chrome/browse.md",
+   "alias": "",
+   "env": "工具环境"
+  },
+  {
    "id": "cli",
    "kind": "tool",
    "group": "`install-tools.sh cli`",
