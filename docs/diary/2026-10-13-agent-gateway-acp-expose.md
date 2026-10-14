@@ -180,3 +180,11 @@
 - 落码:internal/platform/vnc.go(管理器+栈+桥+自退链+bootSweep 口映射清孤儿)、server.go(statusRecorder Hijack/Unwrap、路由 shortRoute、New 接线)、session.go(Touch 导出、OnClose 钩子);statusRecorder 是内嵌 http.ResponseWriter,不是字段名 w——首版 Hijack 写错编译才现。
 - 测试坑三枚:coder Read 回三元组(MessageType 在前);fake chrome 要解析等号形 --remote-debugging-port=N;假 Xvfb 得自己 touch X 套接字(健检按真路径查)。锁序坑两枚:alloc 持锁调 markLeak 死锁(测试挂 60s 定位)、Ensure 重构丢 slots 注册导致健检扫描找不着(直调 healthy=true 而 Ensure 返回新栈的矛盾暴露)。
 - 基座构建连跑五轮的坑链也记档:run_category 对未知项静默软失败(入口加落位自检硬门)、/var/lib/rctl 目录由 ctl 组建(zg 独立跑自建)、ZG_MODEL 标量在 pins 再生时丢(git 历史抄回+固定块)、zg 无 --model 旗标(ZVEC_GREP_EMBEDDING env)、容器内 HF 超时/ModelScope 403(宿主预推件三链)。
+
+## 基座实例建成(2026-10-15 晨,十一轮安装 + 七层 VNC 病根)
+
+- 安装链六坑(全修入脚本):zg 不是注册项(run_category 校验拒)/var/lib/rctl 目录由 ctl 组建、ZG_MODEL 标量在 pins 再生时丢(git 历史抄回)、zg 无 --model 旗标(ZVEC_GREP_EMBEDDING env)、容器内 HF 超时+ModelScope 403(宿主预推件三链,模型 639M sha 锚验)、chrome 归档顶层目录不带 -genN-rN 段(glob 归位)、CURRENT 从版本文件改版本目录软链(browse/vnc 单副本指路全线按 CURRENT/chrome 接)。
+- VNC 七层病根(每层都有实测证据):①局部 os.File 被 GC 关 fd→子进程写日志 SIGPIPE 死(fd 归栈持有);②bootSweep 同步跑拖死启动验收+异步跑与 Ensure 竞态 RemoveAll 抽走活栈(持锁整程串行+零孤儿才清);③xauth 只写 :N 条目客户端不认(hostname/unix:N 形才是 unix 套接字客户端的匹配键);④就绪探针 xdpyinfo 无 XAUTHORITY 永远被拒;⑤-terminate 服务器客户端 1→0 即自退——连了就走的探针会把刚起的服务器带走(就绪判定改纯套接字文件+常驻 holder x11vnc 撑住,teardown 关 holder 即全链自退收束);⑥-inetd 只认 socket 不认管道(getpeername 类,unix socketpair 子端同挂 fd0/fd1 即 inetd 真形态);⑦-threads 与 -inetd 组合此版不吐 RFB 横幅(逐旗二分)。
+- 实操坑:写 /usr/local/bin/browse wrapper 时它还是指向 ELF 的软链,printf 穿链把 41MB 二进制盖成 100 字节自引用 wrapper(无限 exec 环吃满 CPU;text file busy 是它的影子)——install_browse 补 rm -f 先拆链;xauth -v 无参挂等 stdin(ubuntu 视角 --user 执行面);ELF 修复=宿主重下同版推送。
+- 验收:十一轮后落位自检 14/14;E2E-BASE-PASS(三后端回环、换模重建道、VNC 桥 WS 升级+RFB 003.008、重连画面保留、404 语义);离线 smoke 双视角 root 40/0 + ubuntu 28/0;jieba 词表(FTS 中文面)从预编译包 data/jieba_dict 落 /usr/local/share/zvec + profile.d 注 env。
+- 待用户放行:发布前删凭证(rm token/keys.json,安全闸要人工点头)与 incus publish。
