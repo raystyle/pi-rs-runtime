@@ -36,11 +36,13 @@ type Def struct {
 // Registry 返回三行,顺序即 /health 的 agents 顺序;pi 的就绪是运行期判定。
 // pi 模型面默认走 overcast 网关(pi-rs-core 5b63ec3):PI_GATEWAY_BASE_URL 未设即网关,
 // 凭证任意非空即过(关鉴权期 canon overcast);走官方 API 时 spawn env 覆盖 PI_GATEWAY_BASE_URL=off。
+// --approve 统一信任项目本地件(2026-10-14 契约②:pi install 扩展或 .pi-rs/settings.json
+// 出现后,无 UI 的 ACP 重启会静默不加载项目面;平台持久区 /srv/work 语义下信任合理)。
 func Registry() []Def {
 	return []Def{
 		{Name: "claude", Kind: KindAdapter, Pkg: "claude-agent-acp", Env: []string{"DISABLE_UPDATES=1"}, FS: true, Terminal: true},
 		{Name: "codex", Kind: KindAdapter, Pkg: "codex-acp", Env: []string{"CODEX_PATH=/usr/local/bin/codex", "NO_BROWSER=1"}, FS: true, Terminal: true},
-		{Name: "pi", Kind: KindNative, Argv: []string{"/usr/local/bin/pi-rs", "--mode", "acp"}, Env: []string{"DEEPSEEK_API_KEY=overcast"}, FS: false, Terminal: false},
+		{Name: "pi", Kind: KindNative, Argv: []string{"/usr/local/bin/pi-rs", "--approve", "--mode", "acp"}, Env: []string{"DEEPSEEK_API_KEY=overcast"}, FS: false, Terminal: false},
 	}
 }
 

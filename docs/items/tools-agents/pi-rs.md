@@ -21,7 +21,7 @@
 ## 配置
 
 - 模型面(pi-rs-core 0.3.0 起):默认走 overcast 网关四模型(`PI_GATEWAY_BASE_URL` 未设即网关,默认别名 ds-cx-flash);凭证 env `DEEPSEEK_API_KEY` 任意非空即过(关鉴权期);走官方 API 设 `PI_GATEWAY_BASE_URL=off`。
-- 监督进程注册表 pi 行:argv `/usr/local/bin/pi-rs --mode acp`,env 注 `DEEPSEEK_API_KEY`;就绪探针是 `--help` 含 acp。
+- 监督进程注册表 pi 行:argv `/usr/local/bin/pi-rs --approve --mode acp`(`--approve` 统一信任项目本地件:无 UI 的 ACP 重启遇 pi install 扩展或 `.pi-rs/settings.json` 时不再静默不加载项目面),env 注 `DEEPSEEK_API_KEY`;就绪探针是 `--help` 含 acp。
 - 不连 `--mode rpc`(那是另一套私有 JSONL,设计研究已否定)。
 
 ## 离线行为
