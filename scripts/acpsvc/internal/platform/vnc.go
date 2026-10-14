@@ -432,7 +432,7 @@ func waitXReady(st *vncStack, wait time.Duration) error {
 // startHolder 起显示持有者(x11vnc -inetd,stdin 由栈持有):作为常驻 X 客户端
 // 撑住 -terminate 服务器;shell 包装做套接字文件轮询重试(同样零瞬态客户端)。
 func (st *vncStack) startHolder() error {
-	script := fmt.Sprintf("i=0; while [ ! -e %s ] && [ $i -lt 100 ]; do sleep 0.1; i=$((i+1)); done; exec %s -inetd -q -norc -nopw -display :%d -auth %s -nosel -noprimary -noncache -cursor arrow -wait 10 -defer 10 -speeds lan -threads -o %s",
+	script := fmt.Sprintf("i=0; while [ ! -e %s ] && [ $i -lt 100 ]; do sleep 0.1; i=$((i+1)); done; exec %s -inetd -q -norc -nopw -display :%d -auth %s -nosel -noprimary -noncache -cursor arrow -wait 10 -defer 10 -speeds lan -o %s",
 		xSocket(st.display), st.mgr.x11vncBin, st.display, filepath.Join(st.dir, "xauth"), filepath.Join(st.dir, "holder.log"))
 	cmd := exec.Command("/bin/sh", "-c", script)
 	in, err := cmd.StdinPipe()
@@ -537,7 +537,7 @@ func (st *vncStack) Bridge(sess *session.Session, w http.ResponseWriter, r *http
 	cmd := exec.Command(st.mgr.x11vncBin, "-inetd", "-q", "-norc", "-nopw",
 		"-display", fmt.Sprintf(":%d", st.display), "-auth", filepath.Join(st.dir, "xauth"),
 		"-nosel", "-noprimary", "-noncache", "-cursor", "arrow",
-		"-wait", "10", "-defer", "10", "-speeds", "lan", "-threads",
+		"-wait", "10", "-defer", "10", "-speeds", "lan",
 		"-o", xvfbLogPath)
 	cmd.Stdin, cmd.Stdout, cmd.Stderr = childEnd, childEnd, lf
 	if err := cmd.Start(); err != nil {
