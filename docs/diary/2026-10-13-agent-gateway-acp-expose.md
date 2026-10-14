@@ -188,3 +188,11 @@
 - 实操坑:写 /usr/local/bin/browse wrapper 时它还是指向 ELF 的软链,printf 穿链把 41MB 二进制盖成 100 字节自引用 wrapper(无限 exec 环吃满 CPU;text file busy 是它的影子)——install_browse 补 rm -f 先拆链;xauth -v 无参挂等 stdin(ubuntu 视角 --user 执行面);ELF 修复=宿主重下同版推送。
 - 验收:十一轮后落位自检 14/14;E2E-BASE-PASS(三后端回环、换模重建道、VNC 桥 WS 升级+RFB 003.008、重连画面保留、404 语义);离线 smoke 双视角 root 40/0 + ubuntu 28/0;jieba 词表(FTS 中文面)从预编译包 data/jieba_dict 落 /usr/local/share/zvec + profile.d 注 env。
 - 待用户放行:发布前删凭证(rm token/keys.json,安全闸要人工点头)与 incus publish。
+
+## 架构对线(2026-10-15 上午,pi-web+pi-rs-core 双线)
+
+- 用户三连裁:皓玄重定位为渗透测试智能体平台;容器管理并入皓玄网关(本地自管 incus,非远控出版方宿主);pi-rs-runtime 收窄为纯发布面。镜像分发:文件道引导(tar over tailnet)→ OCI registry 目标态(registry 落出版方单向推)。
+- 用户新裁追加:一个 agent 一个完整桌面 Ubuntu 容器(不共享);右侧 VNC 显示完整桌面,默认视图=桌面里的浏览器。三问答毕:agent 收窄走编排约定(env 白名单下批)、桌面自启 unit 下批、双形变体镜像跟验收后定。
+- 镜像 2e5c3342 tar.gz(3.8GB)HTTP 面递皓玄拉取中(shares put 3.8GB 大件超时 60s 是 s5 内部闸,走 HTTP 面);sha256 边车 shares 递;消费方 runbook 入仓(docs/runbooks/agent-base-consumer.md)。
+- pi-rs-core 需求面清单核对:A3/B1/C 组/D1D3 全在镜像零增量;A1(JDK)/A2(zigbuild 链)/B3(pi_ocr 模型)缺需补;A5 词表进 MCP 不烤(与被裁数据面批衔接);D2 入站回连转皓玄编排侧。
+- acpsup 契约面回执(pi-rs-core 六条硬契约):A2 首选(现 acpsup 形平移)、zg 610M 模型烤库 ✓、cwd 白名单 ✓、--approve ✓、凭证不烤 ✓、PI_GATEWAY_BASE_URL 缺省对齐(pi-rs-core 出码后我 env 可简化)。
