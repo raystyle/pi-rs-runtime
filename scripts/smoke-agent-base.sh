@@ -100,7 +100,7 @@ fi
 section "[$VIEW] F. VNC 直显与桌面面"
 chk "Xvfb" command -v Xvfb   # 此版 Xvfb 无 -version 旗标,验在位即可
 chk "x11vnc" x11vnc -version
-chk "xauth" xauth -v
+chk "xauth" xauth info   # -v 无参会挂等 stdin(--user 执行面实测)
 if [ "$VIEW" = root ]; then [ -d /var/lib/acpsup/vnc ] && ok "acpsup vnc 基目录在" || bad "vnc 基目录缺"; fi   # 0700 root
 # 直显面二进制与显示口纪律(主动桥面在 E2E 阶段验,冒烟只验在位)
 [ -d /usr/share/novnc ] && ok "noVNC 在" || bad "noVNC 缺"
