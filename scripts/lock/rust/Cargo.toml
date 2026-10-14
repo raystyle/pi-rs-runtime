@@ -35,3 +35,14 @@ windows-sys = "0.61.2"
 x25519-dalek = "3.0.0"
 x509-parser = "0.18.1"
 zip = "9.0.1"
+# pi-rs rust-script 预热(pi_rust_lib 0.5.0 依赖闭包顶,pi-rs-core 发行件随带;
+# 前九件 + jaq-all + cancel-this 离线缺缓存会硬失败,2026-10-14 pi 会话反推)
+serde_json = "1"
+jaq-all = { version = "0.3", default-features = false, features = ["std-all"] }
+duct = "0.13"
+cancel-this = { version = "0.6", features = ["liveness"] }
+tokio = { version = "1", features = ["rt", "rt-multi-thread", "time", "macros", "sync", "io-util", "fs", "net", "process", "signal"] }
+tokio-util = "0.7"
+tokio-stream = "0.1"
+bytes = "1"
+sha1 = "0.10"

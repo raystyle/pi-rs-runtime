@@ -147,11 +147,10 @@ index = "sparse+${CRATES_INDEX}/"
 
 [net]
 git-fetch-with-cli = true
-# 在线为默认(2026-10-14 收敛,实例运行期实证):offline 下 sparse index 缓存缺新依赖
-# (cancel-this 0.6.0 等)运行期 cargo 解析硬失败,镜像底座救不了增量依赖;
-# 需要离线时 CARGO_NET_OFFLINE=true 单次覆盖(env 优先于 config),离线构建走 lock 缓存面
-# offline = true
-offline = false
+# 离线优先默认(2026-10-14 适配收口):pi_rust_lib 0.5.0 依赖闭包顶(jaq-all/duct/cancel-this/
+# tokio 族/serde_json/bytes/sha1 等)已进 scripts/lock/rust 预热锁与 /opt/cargo 缓存,
+# 离线解析不再缺件;构建脚本经 common.sh export CARGO_NET_OFFLINE=false 拿回在线面
+offline = true
 EOF
     # rustup 更新通道持久化(tuna 帮助口径),否则 rustup update 回官方源
     # RUSTUP_HOME/CARGO_HOME 一并导出:不导出则 ubuntu 会在自己家目录再下一套,断网即挂
