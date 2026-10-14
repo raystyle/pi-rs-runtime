@@ -1757,6 +1757,7 @@ install_browse() {
         mv "/opt/browse/browse-v${ver}-x86_64-unknown-linux-gnu" "$dest"
         printf '%s' "$ver" > "$dest/.version"
     fi
+    rm -f /usr/local/bin/browse   # 先拆旧链/旧件:printf 穿软链会覆盖目标 ELF(实例踩过)
     printf '#!/bin/sh\nexport BROWSE_CHROME=/opt/clean-chrome/CURRENT/chrome\nexec %s/browse "$@"\n' "$dest" > /usr/local/bin/browse
     chmod +x /usr/local/bin/browse
     # 基座口径单副本:引擎复用 chrome 组的 /opt/clean-chrome(不另装 browse 托管面副本);
