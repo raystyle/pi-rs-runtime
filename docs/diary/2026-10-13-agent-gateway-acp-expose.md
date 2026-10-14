@@ -125,3 +125,9 @@
 - 分析 pi 全部会话(/root/.pi-rs/agent/sessions/ 按工作区分目录):皓玄 tour e2e 全通;真实痛点两条——rust-scripts 编译撞 cargo 离线默认(sparse index 缺新依赖硬失败,实例上 10-13 已热改 online 但仓模板仍是 offline,重建即回归),CVE 检索靠 sh_run 手扒五步(poc-search+exploitdb+nuclei+msf 逐个翻)。
 - 三件落:cargo online 收敛进仓;poc-search --deep 五源一发(14750 实测:PoC 库 2 条+nuclei 模板命中,Exploit-DB/msf 对 14750 无直接引用属诚实输出——真实关联在 14882,与 pi 会话结论一致);searchsploit 进 PATH;caps 增 poc 检索行,rctl 语义双查询首中。
 - 此批只动在役实例与仓,已发镜像未含,下批 publish 随收。
+
+## session/resume 与换档凭证事故(2026-10-14 晚)
+
+- 契约③接线:POST /session/resume {agent,sessionId,cwd,model?}——spawn+initialize+ACP 原生 resume;cwd fail-closed,未知 id 502,在表 409;E2E:claude 会话横跨监督进程重启续接,暗号问答回「樱桃原子」(记忆真续);pi 会话 -32601 属版本时序(resume 晚于 v0.3.0 发行),下版升 PI_RS_CORE_VERSION 即通,已更正告知 pi-rs-core。
+- 换档凭证事故与根修:发布期删 token 文件后,换档脚本的停机/验收 bearer 全空 → 验收三连假红 → 回滚闸消费 tsbak(本实例 TS 回滚锚失,镜像内仍有)。恢复道:journal 抓 admin 键重建 token 文件。根修:EnsureKeys 首启同步把新 admin 键写进 token 文件(操作者 bearer 约定),新实例不再重蹈。
+- resume 测试三态落地(fake 适配器增 resume 分支);全套件六包绿。

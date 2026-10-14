@@ -27,6 +27,8 @@ while IFS= read -r line; do
     *'"session/prompt"'*)
       printf '{"jsonrpc":"2.0","method":"session/update","params":{"sessionId":"fake-sess","update":{"sessionUpdate":"agent_message_chunk"}}}\n'
       printf '{"jsonrpc":"2.0","id":%s,"result":{"stopReason":{"stopReason":"end_turn"}}}\n' "$id" ;;
+    *'"session/resume"'*)
+      case "$line" in *"resume-sid-ok"*) printf '{"jsonrpc":"2.0","id":%s,"result":{}}\n' "$id" ;; *) printf '{"jsonrpc":"2.0","id":%s,"error":{"code":-32000,"message":"unknown session"}}\n' "$id" ;; esac ;;
   esac
 done
 `
@@ -194,6 +196,26 @@ func TestPromptInFlight409(t *testing.T) {
 		t.Fatalf("并发 prompt = %d, want 409", resp.StatusCode)
 	}
 	rel()
+}
+
+func TestSessionResume(t *testing.T) {
+	s, tok := newTestServer(t)
+	h := s.Handler()
+	// 未知 id:适配器 fail-closed,502 透传
+	resp, body := doJSON(t, h, "POST", "/session/resume", tok, map[string]any{"agent": "claude", "sessionId": "nope", "cwd": "/tmp"})
+	if resp.StatusCode != 502 || !strings.Contains(string(body), "resume 失败") {
+		t.Fatalf("未知 id resume = %d %s, want 502", resp.StatusCode, body)
+	}
+	// 成功道:fake 只认 resume-sid-ok
+	resp, body = doJSON(t, h, "POST", "/session/resume", tok, map[string]any{"agent": "claude", "sessionId": "resume-sid-ok", "cwd": "/tmp"})
+	if resp.StatusCode != 200 || !strings.Contains(string(body), `"resumed":true`) {
+		t.Fatalf("resume = %d %s", resp.StatusCode, body)
+	}
+	// 同 id 已在表:409 复用语义
+	resp, _ = doJSON(t, h, "POST", "/session/resume", tok, map[string]any{"agent": "claude", "sessionId": "resume-sid-ok", "cwd": "/tmp"})
+	if resp.StatusCode != 409 {
+		t.Fatalf("重复 resume = %d, want 409", resp.StatusCode)
+	}
 }
 
 func TestUnknownAgent400(t *testing.T) {

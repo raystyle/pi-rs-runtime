@@ -240,6 +240,11 @@ func (s *Server) EnsureKeys() error {
 	if err := s.saveKeysLocked(); err != nil {
 		return err
 	}
+	// token 文件同步写新 admin 键(操作者 bearer 约定):换档脚本的停机/验收从该文件取凭证,
+	// 缺它会连锁假红+回滚(2026-10-14 实例实证);首启必写,后续换档保真
+	if err := os.WriteFile(s.TokenPath(), []byte(newTok+"\n"), 0o600); err != nil {
+		return fmt.Errorf("token 文件写失败:%w", err)
+	}
 	fmt.Fprintf(os.Stderr, "acpsup 新管理密钥(打印一次):%s\n", newTok)
 	return nil
 }
