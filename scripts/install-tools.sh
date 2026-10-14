@@ -1629,8 +1629,16 @@ install_zg() {
     if [ ! -f "$mf" ]; then
         local T; T="$(mktemp -d /tmp/zg-modelprobe-XXXXXX)"
         printf 'id: probe\ndesc: 语义模型烤库探针\n' > "$T/a.txt"
-        ( cd "$T" && ZVEC_GREP_EMBEDDING="$mref" zg --index --mode direct --model-cache /opt/zg-models ) \
-            || { echo "!! 模型下载或探针索引失败(构建期在线面)"; return 1; }
+        if ! ( cd "$T" && ZVEC_GREP_EMBEDDING="$mref" zg --index --mode direct --model-cache /opt/zg-models ); then
+            # 容器内 HF/ModelScope 双道失败时的宿主预推件(hf-mirror/HF 直下后推 /root/;sha 锚兜验)
+            local hostsrc="/root/hf_Qwen_Qwen3-Embedding-0.6B-Q8_0.gguf"
+            if [ -s "$hostsrc" ]; then
+                echo "模型走宿主预推件 $hostsrc"
+                install -m644 "$hostsrc" "$mf"
+            else
+                echo "!! 模型下载失败且无宿主预推件(可宿主 hf-mirror 下后推 $hostsrc)"; return 1
+            fi
+        fi
         rm -rf "$T"
     fi
     echo "${ZG_MODEL_SHA256:?pins.sh 缺 ZG_MODEL_SHA256}  $mf" | sha256sum -c - \
