@@ -1710,7 +1710,7 @@ install_chrome() {
     chmod +x /usr/local/bin/clean-chrome
     ln -sf /usr/local/bin/clean-chrome /usr/local/bin/chrome
     ln -sf /usr/local/bin/clean-chrome /usr/local/bin/chromium
-    echo "$ver" > /opt/clean-chrome/CURRENT   # 云端道 manifest 的最小复刻(browse 合入前)
+    ln -sfn "$ver" /opt/clean-chrome/CURRENT   # 目录软链:browse/vnc 经 CURRENT/chrome 单副本指路(基座口径)
     clean-chrome --version 2>/dev/null | head -1 || echo "!! chrome 未装上"
     true
 }
