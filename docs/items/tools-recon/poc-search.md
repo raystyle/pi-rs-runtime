@@ -17,6 +17,9 @@
 - `/usr/local/bin/poc-search` 是 wrapper,也是入口;`/opt/recon-ref/poc-index.parquet` 是离线索引。
 - 数据仓是 `/opt/recon-ref/PoC-in-GitHub`。见 [recon.md](recon.md)。
 
+- `poc-search --deep <CVE-ID>` 是多源深查(2026-10-14 增,pi 会话反推):PoC-in-GitHub 索引、Exploit-DB 快照(csv 索引与 PoC 正文引用)、nuclei 模板、metasploit 模块,分节输出命中路径;五源一发,替代此前 agent 手扒多步。
+- Exploit-DB 快照自带的官方检索器 `searchsploit` 同批链进 `/usr/local/bin`(与 exploits 目录同位自定位),提供全文检索面。
+
 ## 配置
 
 - 无配置文件;`POC_DIR` 默认 `/opt/recon-ref/PoC-in-GitHub`;`POC_INDEX` 默认 `/opt/recon-ref/poc-index.parquet`;`LIMIT` 默认 20;`poc-search <CVE-ID>` 做精确查询;精确查询先用 `tr` 把输入转成大写;格式必须是 `CVE-<年4位>-<编号>`;命中时直接读 `$POC_DIR/<年>/<CVE>.json`;该路径没有文件时,用 `find` 兜底;输出用 `jq` 美化打印;`poc-search -k <关键词>` 对索引做全文搜索;搜索命令是 `rg -il --glob '*.json'`;只取前 `LIMIT` 条;每个文件用 `jq -c` 压缩打印;`jq` 失败时,用 `head -c 400` 兜底。

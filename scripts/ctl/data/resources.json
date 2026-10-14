@@ -6720,6 +6720,16 @@
    ],
    "example": "ls /opt/windows-logical-eop-workshop",
    "note": "EOP 教材参考;linux 面走内核漏洞库"
+  },
+  {
+   "task": "poc检索 CVE利用代码 PoC搜索 exploit查找",
+   "ids": [
+    "poc-search",
+    "exploitdb",
+    "nuclei-templates",
+    "metasploit"
+   ],
+   "note": "poc-search --deep 一发多源;searchsploit 全文检索 Exploit-DB 快照"
   }
  ]
 }

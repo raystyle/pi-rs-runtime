@@ -119,3 +119,9 @@
 - 发布后:acpsup 复启(新键首启打印一次)→ 造桥 caller 键 → shares 取用行递 pi-web(明文不进消息)。
 - 契约吸收:pi-rs-core 四条(fleet seq 96 闭环),②--approve 落 pi 行 argv(build 1791946173 实证)。
 - 模型双面五态 e2e 全绿 + pi-web 终验 8/8(zacp UI 模型下拉真通)。
+
+## pi 会话反推批(2026-10-14 下午)
+
+- 分析 pi 全部会话(/root/.pi-rs/agent/sessions/ 按工作区分目录):皓玄 tour e2e 全通;真实痛点两条——rust-scripts 编译撞 cargo 离线默认(sparse index 缺新依赖硬失败,实例上 10-13 已热改 online 但仓模板仍是 offline,重建即回归),CVE 检索靠 sh_run 手扒五步(poc-search+exploitdb+nuclei+msf 逐个翻)。
+- 三件落:cargo online 收敛进仓;poc-search --deep 五源一发(14750 实测:PoC 库 2 条+nuclei 模板命中,Exploit-DB/msf 对 14750 无直接引用属诚实输出——真实关联在 14882,与 pi 会话结论一致);searchsploit 进 PATH;caps 增 poc 检索行,rctl 语义双查询首中。
+- 此批只动在役实例与仓,已发镜像未含,下批 publish 随收。

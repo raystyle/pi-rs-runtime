@@ -799,6 +799,7 @@ usage() {
   poc-search <CVE-ID>      按 CVE 精确查(如 CVE-2024-38077)
   poc-search -k <关键词>   索引全文搜(rg -i,前 LIMIT=20 条)
   poc-search --ch '<SQL>'  clickhouse local 查 parquet 索引(视图名 poc,单列 json)
+  poc-search --deep <CVE-ID>  多源深查:PoC-in-GitHub 索引 + Exploit-DB 快照 + nuclei 模板 + metasploit 模块,分节输出命中路径
   poc-search --reindex     重建 parquet 索引
 环境: POC_DIR POC_INDEX LIMIT
 U
@@ -809,6 +810,32 @@ case "$1" in
     --reindex)
         clickhouse local -q "SELECT * FROM file('${POC_DIR}/*/*.json','JSONAsObject') INTO OUTFILE '${POC_INDEX}' FORMAT Parquet"
         clickhouse local -q "SELECT count() FROM file('${POC_INDEX}','Parquet')" ;;
+    --deep)
+        [ $# -ge 2 ] || { usage; exit 1; }
+        cve="$(echo "$2" | tr '[:lower:]' '[:upper:]')"
+        case "$cve" in CVE-[0-9][0-9][0-9][0-9]-*) ;; *) echo "格式应为 CVE-<年>-<编号>: $2" >&2; exit 1 ;; esac
+        year="${cve:4:4}"
+        echo "### PoC-in-GitHub 索引"
+        f="$POC_DIR/$year/$cve.json"
+        [ -f "$f" ] || f="$(find "$POC_DIR" -name "$cve.json" 2>/dev/null | head -1 || true)"
+        if [ -n "$f" ] && [ -f "$f" ]; then jq -r '.[] | "\(.full_name)  \(.html_url)"' "$f" | head -n "$LIMIT"; else echo "(无命中)"; fi
+        echo; echo "### Exploit-DB 快照(csv 索引)"
+        if [ -f /opt/data-ref/exploitdb/files_exploits.csv ]; then
+            grep -i "$cve" /opt/data-ref/exploitdb/files_exploits.csv 2>/dev/null | head -n "$LIMIT" || echo "(无命中)"
+        else echo "(快照缺席)"; fi
+        echo; echo "### Exploit-DB PoC 正文(CVE 引用)"
+        if [ -d /opt/data-ref/exploitdb/exploits ]; then
+            rg -il -- "$cve" /opt/data-ref/exploitdb/exploits 2>/dev/null | head -n "$LIMIT" || echo "(无命中)"
+        else echo "(exploits 目录缺席)"; fi
+        echo; echo "### nuclei 模板"
+        if [ -d /opt/nuclei-templates ]; then
+            rg -l --glob '*.yaml' -- "$cve" /opt/nuclei-templates 2>/dev/null | head -n "$LIMIT" || echo "(无命中)"
+        else echo "(模板库缺席)"; fi
+        echo; echo "### metasploit 模块"
+        msfdir=/opt/metasploit-framework/embedded/framework/modules
+        if [ -d "$msfdir" ]; then
+            rg -l -- "$cve" "$msfdir" 2>/dev/null | head -n "$LIMIT" || echo "(无命中)"
+        else echo "(msf 目录缺席)"; fi ;;
     --ch)
         [ $# -ge 2 ] || { usage; exit 1; }
         clickhouse local --multiquery -q "CREATE VIEW poc AS SELECT * FROM file('${POC_INDEX}','Parquet'); $2" ;;
@@ -832,6 +859,8 @@ case "$1" in
 esac
 POC_EOF
     chmod +x /usr/local/bin/poc-search
+    # searchsploit:Exploit-DB 快照自带的官方检索器(与 exploits/ 同目录自定位),链进 PATH
+    [ -f /opt/data-ref/exploitdb/searchsploit ] && ln -sfn /opt/data-ref/exploitdb/searchsploit /usr/local/bin/searchsploit
     # clickhouse parquet 索引:每 CVE 一个 JSON(多行美化格式),JSONAsObject 按文件整读成单列,
     # 灌成单文件落 /opt/recon-ref,离线毫秒查;重建:poc-search --reindex
     if [ ! -f /opt/recon-ref/poc-index.parquet ] && have clickhouse && [ -d /opt/recon-ref/PoC-in-GitHub ]; then
