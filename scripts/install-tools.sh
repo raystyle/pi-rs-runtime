@@ -1629,7 +1629,7 @@ install_zg() {
     if [ ! -f "$mf" ]; then
         local T; T="$(mktemp -d /tmp/zg-modelprobe-XXXXXX)"
         printf 'id: probe\ndesc: 语义模型烤库探针\n' > "$T/a.txt"
-        ( cd "$T" && zg --index --mode direct --model "$mref" --model-cache /opt/zg-models ) \
+        ( cd "$T" && ZVEC_GREP_EMBEDDING="$mref" zg --index --mode direct --model-cache /opt/zg-models ) \
             || { echo "!! 模型下载或探针索引失败(构建期在线面)"; return 1; }
         rm -rf "$T"
     fi

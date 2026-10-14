@@ -27,4 +27,18 @@ bash "$HERE/install-libcache.sh" rust
 bash "$HERE/install-tools.sh" zg chrome browse vnc agents acp
 # 收尾卫生(不烤面删除段 + 可再生缓存)
 bash "$HERE/clean-image.sh"
+
+# 落位自检:分类脚本对未知项/组内失败是软失败哲学(下轮补),入口必须硬验关键面,
+# 拒绝静默半成品(基座构建连跑四轮才全绿的教训)
+miss=0
+for b in zg clean-chrome browse claude codex pi-rs vncserver websockify; do
+    command -v "$b" >/dev/null 2>&1 && echo "  ok $b" || { echo "  !! 缺 $b"; miss=$((miss+1)); }
+done
+command -v go >/dev/null 2>&1 && echo "  ok go" || { echo "  !! 缺 go"; miss=$((miss+1)); }
+[ -x /opt/node/bin/node ] && echo "  ok node(/opt/node)" || { echo "  !! 缺 /opt/node"; miss=$((miss+1)); }
+[ -f /opt/zg-models/hf_Qwen_Qwen3-Embedding-0.6B-Q8_0.gguf ] && echo "  ok zg 模型烤库" || { echo "  !! 缺 zg 模型"; miss=$((miss+1)); }
+[ -x /opt/clean-chrome/CURRENT/chrome ] && echo "  ok chrome 单副本" || { echo "  !! 缺 chrome 单副本"; miss=$((miss+1)); }
+systemctl is-active --quiet acpsup && echo "  ok acpsup(active)" || { echo "  !! acpsup 未激活"; miss=$((miss+1)); }
+[ -f /var/lib/acpsup/token ] && echo "  ok acpsup token" || { echo "  !! 缺 token"; miss=$((miss+1)); }
+[ "$miss" -gt 0 ] && { echo "!! 基座自检缺 ${miss} 件,拒绝视为完成"; exit 1; }
 echo "agent 基座安装完成:$0"
