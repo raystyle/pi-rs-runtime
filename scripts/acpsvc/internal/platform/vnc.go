@@ -291,9 +291,13 @@ func (st *vncStack) start() error {
 	}
 	cookie := hex.EncodeToString(ck)
 	xauthPath := filepath.Join(st.dir, "xauth")
-	if out, err := exec.Command(st.mgr.xauthBin, "-f", xauthPath, "add", fmt.Sprintf(":%d", st.display), ".", cookie).CombinedOutput(); err != nil {
+	// 双条目:客户端(unix 套接字)按 "<hostname>/unix:N" 匹配,":N" 兜底(实测只写 ":N" 客户端不认)
+	host, _ := os.Hostname()
+	if out, err := exec.Command(st.mgr.xauthBin, "-f", xauthPath, "add",
+		fmt.Sprintf("%s/unix:%d", host, st.display), ".", cookie).CombinedOutput(); err != nil {
 		return fmt.Errorf("xauth add: %v: %s", err, out)
 	}
+	_ = exec.Command(st.mgr.xauthBin, "-f", xauthPath, "add", fmt.Sprintf(":%d", st.display), ".", cookie).Run()
 	_ = os.Chmod(xauthPath, 0o600)
 
 	st.xvfbLog, err = os.OpenFile(filepath.Join(st.dir, "xvfb.log"), os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o600)
@@ -379,7 +383,10 @@ func (st *vncStack) start() error {
 func waitXReady(st *vncStack, wait time.Duration) error {
 	dl := time.Now().Add(wait)
 	for time.Now().Before(dl) {
-		if err := exec.Command(st.mgr.xdpyinfo, "-display", fmt.Sprintf(":%d", st.display)).Run(); err == nil {
+		// 就绪探针必须带 cookie:-auth 服务器对无 XAUTHORITY 的客户端一律拒绝
+		probe := exec.Command(st.mgr.xdpyinfo, "-display", fmt.Sprintf(":%d", st.display))
+		probe.Env = append(os.Environ(), "XAUTHORITY="+filepath.Join(st.dir, "xauth"))
+		if err := probe.Run(); err == nil {
 			return nil
 		}
 		select {
