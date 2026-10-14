@@ -1621,6 +1621,19 @@ install_zg() {
         ldconfig
         printf '%s' "$sha" > /var/lib/rctl/.zg-built-sha
     fi
+    # jieba 词表:FTS 中文分词必需(缺它 fts/hybrid 面开不了);源码构建不带,
+    # 预编译包内置 data/jieba_dict(zvec-rust Releases,版本随锁闭包的 zvec 0.7.2)
+    if [ ! -d /usr/local/share/zvec/jieba_dict ]; then
+        local zpre="zvec-prebuilt-x86_64-unknown-linux-gnu.tar.gz"
+        curl -fSL --retry 3 "${GITHUB_MIRROR}https://github.com/zvec-ai/zvec-rust/releases/download/v0.7.2/${zpre}" -o "/tmp/${zpre}" \
+            && tar -xzf "/tmp/${zpre}" -C /tmp ./data/jieba_dict \
+            && install -d /usr/local/share/zvec \
+            && mv /tmp/data/jieba_dict /usr/local/share/zvec/jieba_dict \
+            && rm -rf /tmp/data "/tmp/${zpre}" \
+            || echo "!! jieba 词表获取失败(fts 面将不可用,可重跑)"
+    fi
+    printf 'export ZVEC_JIEBA_DICT_DIR=/usr/local/share/zvec/jieba_dict\n' > /etc/profile.d/zg.sh
+
     # 模型烤库:zg 自下载器拉(标记文件自理),sha256 锚;已缓存则只校验。
     # 探针显式指 qwen 模型:默认模型未配置时 zg 会自选最小模型(potion-code),
     # 与烤库锚(qwen3-embedding-0.6b)不同模
@@ -1744,7 +1757,8 @@ install_browse() {
         mv "/opt/browse/browse-v${ver}-x86_64-unknown-linux-gnu" "$dest"
         printf '%s' "$ver" > "$dest/.version"
     fi
-    ln -sf "$dest/browse" /usr/local/bin/browse
+    printf '#!/bin/sh\nexport BROWSE_CHROME=/opt/clean-chrome/CURRENT/chrome\nexec %s/browse "$@"\n' "$dest" > /usr/local/bin/browse
+    chmod +x /usr/local/bin/browse
     # 基座口径单副本:引擎复用 chrome 组的 /opt/clean-chrome(不另装 browse 托管面副本);
     # 显式指路走 profile.d(BROWSE_CHROME 发现序首位)。chrome 组须先跑
     local eng_bin=/opt/clean-chrome/CURRENT/chrome

@@ -73,8 +73,9 @@ fi
 if [ "$VIEW" = root ]; then
     T="$(mktemp -d)"
     printf 'id: probe-one\ndesc: 樱桃原子语义探针\n' > "$T/a.txt"
+    export ZVEC_JIEBA_DICT_DIR=/usr/local/share/zvec/jieba_dict
     ( cd "$T" && zg --index --mode direct --model-cache /opt/zg-models ) && ok "zg 离线索引" || bad "zg 索引失败"
-    zg_out="$(cd "$T" && zg --search "水果原子" --mode direct --model-cache /opt/zg-models 2>&1)" || true
+    zg_out="$(cd "$T" && zg "水果原子" --mode direct --model-cache /opt/zg-models 2>&1)" || true
     printf '%s' "$zg_out" | grep -q "probe-one" && ok "zg 语义命中" || bad "zg 语义未命中:$(printf '%s' "$zg_out" | head -c 80)"
     rm -rf "$T"
 fi
@@ -84,6 +85,7 @@ if [ "$VIEW" = root ]; then
     L="${LOCKDIR:-/root/scripts/lock}/rust/Cargo.lock"
     if [ -f "$L" ]; then
         P="$(mktemp -d)"; cp "${L%/*}/Cargo.toml" "$L" "$P/"
+        mkdir -p "$P/src"; printf 'fn main(){}\n' > "$P/src/main.rs"
         ( cd "$P" && cargo fetch --locked ) && ok "pi 锁定闭包 cargo fetch --locked(离线)" || bad "锁定闭包 fetch 失败"
         rm -rf "$P"
     else
@@ -96,7 +98,7 @@ if [ "$VIEW" = root ]; then
 fi
 
 section "[$VIEW] F. VNC 直显与桌面面"
-chk "Xvfb" Xvfb -version
+chkout "Xvfb" "X.Org|Xvfb|the X server" 15 Xvfb -version
 chk "x11vnc" x11vnc -version
 chk "xauth" xauth -v
 [ -d /var/lib/acpsup/vnc ] && ok "acpsup vnc 基目录在" || bad "vnc 基目录缺"
