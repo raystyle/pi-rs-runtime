@@ -112,3 +112,10 @@
 
 - GET /models 与 POST /session/model 落地;机制实证:claude 运行时换模只认网关 /v1_models 在列名(ds-cc-* 网关未列,set 后静默回落默认——建会话 env 道则全通),codex set_config_option 吃目录全别名,pi 待 core 支持;据此收敛「建会话全清单、中会话换模子清单」双面,五态 e2e 全绿(claude 换 glm53fh 实跑对、claude 拒 ds-cc 带清单、codex 换 ds-cx-flash 实跑对、pi 400、建会话 ds-cc 实跑对)。
 - 踩坑记档:python 补丁脚本断言失败时整段未落盘(后段看似已部署实为半件),以 /models 404 与 build 指纹定位补齐。
+
+## 皓玄正式启用(2026-10-14,publish 链)
+
+- 转正链序:正式鉴权部署(build 1791946548,无 token/乱 token 401、legacy 200;unit 环境 SESSION_MAX=16+KEY_SESSIONS=12,无 AUTH_OFF)→ smoke 双视角全绿(root 81/0、ubuntu 68/0;两坑:首跑漏了调用方预降 eth0 的头注约定致 4 败,且带网首跑真装了 sl 还留了 .deb 缓存可离线复装——purge+清缓存后 81/0)→ 凭证删(token+keys.json 不烤进镜像,新实例首启自生)→ clean-image → publish pi-rs-runtime-20261014-1102(快照道零预停;incus publish 压缩期冻结实例约 10 分钟为固有窗口,ACP 面该窗不可达,运营知悉);浮动别名已指 705990d1eaf6。发布后链:复启产新键(旧 legacy 内存键走 /shutdown,新 admin 首启打印一次)→桥 caller 键 k_4c194344(三态实证)→shares 取用行递 pi-web。
+- 发布后:acpsup 复启(新键首启打印一次)→ 造桥 caller 键 → shares 取用行递 pi-web(明文不进消息)。
+- 契约吸收:pi-rs-core 四条(fleet seq 96 闭环),②--approve 落 pi 行 argv(build 1791946173 实证)。
+- 模型双面五态 e2e 全绿 + pi-web 终验 8/8(zacp UI 模型下拉真通)。
