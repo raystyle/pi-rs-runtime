@@ -4,8 +4,8 @@
 
 ## 版本
 
-- common.sh 标量 `PI_RS_CORE_VERSION` = 0.3.0(pi-rs-core GitHub Release 锚);`PI_RS_SHA256` 是发行件 sha256 边车锚,换版本两值同改。
-- CLI `--version` 与 ACP initialize 同源,均报真实版本(0.3.0 实测六路径一致:wrapper 与裸 node、多 cwd)。
+- common.sh 标量 `PI_RS_CORE_VERSION` = 0.4.0(pi-rs-core GitHub Release 锚);`PI_RS_SHA256` 是发行件 sha256 边车锚,换版本两值同改。
+- CLI `--version` 与 ACP initialize 同源,均报真实版本(实测 wrapper 与裸 node、多 cwd 一致);0.4.0 起 `session/resume` 原生在(initialize 广告 `sessionCapabilities.resume:{}`,cwd fail-closed),经监督进程 `POST /session/resume` 横跨重启续接实证(旧会话文件名问答续答)。
 
 ## 来源与安装
 
