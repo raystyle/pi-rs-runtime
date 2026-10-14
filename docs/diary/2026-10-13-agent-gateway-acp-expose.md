@@ -173,3 +173,10 @@
 - 入口 install-agent-base.sh:c(gcc/cmake)golang(acpsup)rust(pi)→ node → libcache rust(scripts/lock/rust 锁闭包,pi 离线锚)→ zg chrome browse vnc agents acp → clean-image。
 - 基座瘦身:golang 去三件套+跳板预热;rust 去交叉 target×9/组件面/zigbuild/audit(留 llvm-tools=rust-lld + rust-script);node 全局面只留 typescript;browse 单副本(BROWSE_CHROME→/opt/clean-chrome/CURRENT/chrome,profile.d + acpsup backend env 双道,ACP 拉起的 agent 不读 profile.d 所以 env 注入是主道)。
 - smoke-agent-base.sh:A 断网自证、B 版本面+不装面点名(zig/dotnet/bun/rctl 装上即错)、C 五面孔+引擎+模型烤库在位、D 实跑(browse daemon headless/about:blank、zg 离线索引+语义命中)、E 离线闭包 fetch --locked 与 go/npm 快失败、F VNC 轻量面。
+
+## VNC 直显面(2026-10-15 凌晨,grok 研究单落码)
+
+- 用户令:皓玄网关右侧直显容器内 Chrome,要最稳最快最安全,派 grok 研究;回执六点全收:轻量栈(Xvfb+有头 chrome+x11vnc -inetd,不用 TigerVNC/websockify)、自退回收链(kill EACCES 与 systemd-run 收割失败均实证;chrome=CDP Browser.close、Xvfb=-terminate、x11vnc=stdin EOF、泄漏槽不复用)、coder/websocket v1.8.13(gorilla 停更且写需外锁;手写 RFC6455 会踩掩码/分片/ping 插入/子协议/压缩六坑)、KeyID 收紧、升级前 Ensure 语义、browse 会师口(cdp.ws 落盘,后续 BROWSE_CDP_WS 钉死,不靠 9222 扫描)。
+- 落码:internal/platform/vnc.go(管理器+栈+桥+自退链+bootSweep 口映射清孤儿)、server.go(statusRecorder Hijack/Unwrap、路由 shortRoute、New 接线)、session.go(Touch 导出、OnClose 钩子);statusRecorder 是内嵌 http.ResponseWriter,不是字段名 w——首版 Hijack 写错编译才现。
+- 测试坑三枚:coder Read 回三元组(MessageType 在前);fake chrome 要解析等号形 --remote-debugging-port=N;假 Xvfb 得自己 touch X 套接字(健检按真路径查)。锁序坑两枚:alloc 持锁调 markLeak 死锁(测试挂 60s 定位)、Ensure 重构丢 slots 注册导致健检扫描找不着(直调 healthy=true 而 Ensure 返回新栈的矛盾暴露)。
+- 基座构建连跑五轮的坑链也记档:run_category 对未知项静默软失败(入口加落位自检硬门)、/var/lib/rctl 目录由 ctl 组建(zg 独立跑自建)、ZG_MODEL 标量在 pins 再生时丢(git 历史抄回+固定块)、zg 无 --model 旗标(ZVEC_GREP_EMBEDDING env)、容器内 HF 超时/ModelScope 403(宿主预推件三链)。
