@@ -98,6 +98,22 @@ type Session struct {
 	permSeq int
 
 	closed chan struct{}
+
+	closerMu sync.Mutex
+	closers  []func()
+}
+
+// OnClose 注册会话级拆卸钩子(VNC 显示栈等);已在关闭后注册则立即异步执行。
+func (s *Session) OnClose(f func()) {
+	select {
+	case <-s.closed:
+		go f()
+		return
+	default:
+	}
+	s.closerMu.Lock()
+	s.closers = append(s.closers, f)
+	s.closerMu.Unlock()
 }
 
 // NewSession 建会话;广播环与会话同生命周期。
@@ -135,6 +151,9 @@ func (s *Session) AcpSessionID() string {
 	s.agentMu.Unlock()
 	return id
 }
+
+// Touch 记活动(空闲逐出判据;VNC 桥存活期间周期调用,看画面不动键也不逐出)。
+func (s *Session) Touch() { s.touch() }
 
 // touch 记最近活动(空闲逐出判据)。
 func (s *Session) touch() {
@@ -256,6 +275,13 @@ func (s *Session) Close() {
 		return
 	default:
 		close(s.closed)
+	}
+	s.closerMu.Lock()
+	closers := s.closers
+	s.closers = nil
+	s.closerMu.Unlock()
+	for _, f := range closers {
+		go f()
 	}
 	if s.Adapter() != nil {
 		go s.Adapter().Close()

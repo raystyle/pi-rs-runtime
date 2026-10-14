@@ -3,13 +3,16 @@
 package platform
 
 import (
+	"bufio"
 	"context"
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -276,7 +279,9 @@ type Server struct {
 	limiters map[string]*rate.Limiter
 
 	permIdxMu sync.Mutex
-	permIdx   map[string]*session.Slot // 权限槽全局簿(requestId -> 槽)
+
+	vnc     *vncManager
+	permIdx map[string]*session.Slot // 权限槽全局簿(requestId -> 槽)
 
 	httpSrv *http.Server
 }
@@ -302,6 +307,10 @@ func New(cfg Config) *Server {
 			globalMax = n
 		}
 	}
+	// VNC 直显面:重启清孤儿栈(确定性口映射走 CDP Browser.close 自退道)
+	vncMgr := newVNCManager(filepath.Join(cfg.DataDir, "vnc"), cfg.Log)
+	vncMgr.bootSweep()
+
 	// 会话级 CODEX_HOME 基目录:重启旧账兜底清空(表空,存留即残件)
 	_ = os.RemoveAll(filepath.Join(cfg.DataDir, "codex"))
 	_ = os.MkdirAll(filepath.Join(cfg.DataDir, "codex"), 0o700)
@@ -313,6 +322,7 @@ func New(cfg Config) *Server {
 		reg:      backend.Registry(),
 		limiters: make(map[string]*rate.Limiter),
 		permIdx:  make(map[string]*session.Slot),
+		vnc:      vncMgr,
 	}
 }
 
@@ -452,6 +462,17 @@ type statusRecorder struct {
 	code int
 }
 
+func (r *statusRecorder) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	h, ok := r.ResponseWriter.(http.Hijacker)
+	if !ok {
+		return nil, nil, errors.New("内层 ResponseWriter 不支持 Hijack")
+	}
+	return h.Hijack()
+}
+
+// Unwrap 暴露内层(coder/websocket 经 Unwrap 探测 http.Hijacker)。
+func (r *statusRecorder) Unwrap() http.ResponseWriter { return r.ResponseWriter }
+
 func (r *statusRecorder) WriteHeader(code int) {
 	r.code = code
 	r.ResponseWriter.WriteHeader(code)
@@ -492,6 +513,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("POST /session/new", s.auth(s.handleSessionNew, false, true))
 	mux.HandleFunc("POST /session/prompt", s.auth(s.handlePrompt, false, false))
 	mux.HandleFunc("POST /session/cancel", s.auth(s.handleCancel, false, true))
+	mux.HandleFunc("GET /vnc", s.auth(s.handleVNC, false, true))
 	mux.HandleFunc("GET /events", s.auth(s.handleEvents, false, false))
 	mux.HandleFunc("POST /permission", s.auth(s.handlePermission, false, true))
 	mux.HandleFunc("GET /file", s.auth(s.handleFile, false, true))
