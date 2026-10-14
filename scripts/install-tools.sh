@@ -1621,21 +1621,24 @@ install_zg() {
         ldconfig
         printf '%s' "$sha" > /var/lib/rctl/.zg-built-sha
     fi
-    # 模型烤库:zg 自下载器拉(标记文件自理),sha256 锚;已缓存则只校验
+    # 模型烤库:zg 自下载器拉(标记文件自理),sha256 锚;已缓存则只校验。
+    # 探针显式指 qwen 模型:默认模型未配置时 zg 会自选最小模型(potion-code),
+    # 与烤库锚(qwen3-embedding-0.6b)不同模
     local mf=/opt/zg-models/hf_Qwen_Qwen3-Embedding-0.6B-Q8_0.gguf
+    local mref="${ZG_MODEL_REF:-local/qwen3-embedding-0.6b}"
     if [ ! -f "$mf" ]; then
         local T; T="$(mktemp -d /tmp/zg-modelprobe-XXXXXX)"
         printf 'id: probe\ndesc: 语义模型烤库探针\n' > "$T/a.txt"
-        ( cd "$T" && zg --index --mode direct --model-cache /opt/zg-models ) \
+        ( cd "$T" && zg --index --mode direct --model "$mref" --model-cache /opt/zg-models ) \
             || { echo "!! 模型下载或探针索引失败(构建期在线面)"; return 1; }
         rm -rf "$T"
     fi
     echo "${ZG_MODEL_SHA256:?pins.sh 缺 ZG_MODEL_SHA256}  $mf" | sha256sum -c - \
         || { echo "!! 模型 sha256 不符(漂移!重新锁定 ZG_MODEL_SHA256)"; return 1; }
     # 默认模型双家指名(root 家由 zg 写,ubuntu 家同形拷贝;查询侧还有 --model-cache 兜)
-    zg --config model set "${ZG_MODEL_REF:?pins.sh 缺 ZG_MODEL_REF}" --default
+    zg --config model set "$mref" --default
     install -d -m755 -o 1000 -g 1000 /home/ubuntu/.zvec-grep
-    printf '{\n  "defaults": {\n    "embedding": "%s"\n  },\n  "version": 1\n}\n' "$ZG_MODEL_REF" > /home/ubuntu/.zvec-grep/config.json
+    printf '{\n  "defaults": {\n    "embedding": "%s"\n  },\n  "version": 1\n}\n' "$mref" > /home/ubuntu/.zvec-grep/config.json
     chown 1000:1000 /home/ubuntu/.zvec-grep/config.json
     zg --help >/dev/null 2>&1 && echo "zg 装好(/usr/local/bin/zg;模型 $(du -sh /opt/zg-models 2>/dev/null | cut -f1))"
 }
