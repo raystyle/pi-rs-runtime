@@ -33,7 +33,7 @@
 - agent 环境:claude 适配器 `DISABLE_UPDATES=1`;codex 适配器 `CODEX_PATH=/usr/local/bin/codex`(指镜像内锁定版本,禁用适配器自带)加 `NO_BROWSER=1`;模型道沿 agents 批的网关接线(见 claude-code 与 codex 册),acpsup 不经手凭证。
 - 对外引出(宿主执行):`incus config device add <实例> acp proxy listen=tcp:10.10.10.13:7663 connect=tcp:127.0.0.1:7663`;listen 绑宿主 tailnet 地址(tailscale0),只对 tailnet 开,LAN 面不开;全端点先过 Bearer(无 token 401),不裸奔;要放开别的面改 listen。
 - token 自取:`incus exec <实例> -- cat /var/lib/acpsup/token`;调用示例:`curl -H "Authorization: Bearer <token>" http://<宿主>:7663/health`。
-- 端点面:`GET /health`(含 `build` 构建指纹,换档滞留检测用);`POST /session/new` {agent,cwd,model?};`POST /session/prompt` {sessionId,text};`POST /session/cancel`;`GET /events?sessionId=`(SSE,先回放后订阅,15 秒心跳注释保活);`POST /permission` {requestId,optionId};`GET /file?sessionId=&path=`(文件承接面,限该会话 cwd 子树,4MiB 封顶,空闲逐出后失效);`POST /shutdown`。
+- 端点面:`GET /health`(含 `build` 构建指纹,换档滞留检测用);`POST /session/new` {agent,cwd,model?};`POST /session/resume` {agent,sessionId,cwd,model?}(跨监督进程重启续会话;cwd 须等会话记录的 cwd,后端 fail-closed;未知 id 502,已在表 409);`POST /session/prompt` {sessionId,text};`POST /session/model` {sessionId,model};`POST /session/cancel`;`GET /events?sessionId=`(SSE,先回放后订阅,15 秒心跳注释保活);`POST /permission` {requestId,optionId};`GET /file?sessionId=&path=`(文件承接面,限该会话 cwd 子树,4MiB 封顶,空闲逐出后失效);`POST /shutdown`。
 - cwd 语义(桥面对齐):调用方传容器内绝对路径;目录不存在时在白名单前缀下自动建(`ACPSUP_CWD_ALLOW` 逗号分隔,默认 `/tmp/,/srv/work/`),之外 400;产物落容器内,平台侧经 `/file` 取。
 - 模型清单与换模(2026-10-14 双面):`GET /models?agent=` 出各 agent 合法别名、默认与可换子清单(`models` 建会话全清单,`switch_models` 中会话可换子集,`switchable` 总开关);`POST /session/model` {sessionId,model} 中会话换模,转发 ACP 原生 `session/set_config_option`(configId=model),会话号不变。
 - 两道语义:建会话 `model` 参数走 spawn env 道(claude 注 `ANTHROPIC_MODEL`,codex 会话级 `CODEX_HOME`),全清单生效;中会话换模走 set_config_option 道,claude 只认网关 `/v1/models` 在列名(`zp-cc-glm53[1m]`、`zp-cc-glm53fh[1m]`;ds 档别名 set 后静默回落默认,故列外),codex 认目录全别名,pi 待 pi-rs-core 支持后开放(暂 400 明示)。
@@ -51,7 +51,7 @@
 - `GET /events` 每事件带 `id:` 行,断线重连带 `Last-Event-ID` 头或 `after=` 参数断点重放;事件滑出环(2000 条)从最旧重放;15 秒 `: ping` 心跳。
 - 权限确认在 120 秒内没有应答则取消,不提供「始终允许」;平台请求没有 token 时响应 401;监督进程由 `/shutdown` 或 `--selftest` 结束。
 - codex-acp 的 session/new 要凭证;网关接线后全通(2026-10-13 双视角回环过)。
-- 会话全局上限默认 8 活,unit 环境变量 `ACPSUP_SESSION_MAX` 可调(测试期 16);无 close 面(MVP 边界),空闲自动回收兜底:`ACPSUP_SESSION_IDLE` 分钟无活动逐出(默认 30,关适配器 stdin 自退),服务重启清表;同会话并发第二个 prompt 回 409。
+- 会话全局上限默认 8 活,unit 环境变量 `ACPSUP_SESSION_MAX` 可调(测试期 16);空闲自动回收兜底:`ACPSUP_SESSION_IDLE` 分钟无活动逐出(默认 30,关适配器 stdin 自退),服务重启表清但 transcript 落盘不丢——续接走 `POST /session/resume`;同会话并发第二个 prompt 回 409。
 - proxy 设备属实例配置,不进镜像;新实例按配置节命令一条复现。
 - 测试模式(unit 注 `ACPSUP_AUTH_OFF=1`,2026-10-13 起):任意请求放行,身份记 test/admin;限流与每密钥会话上限随鉴权一起旁路(全员共桶无意义),全局会话上限 8 仍护机;回收时删该环境变量重启即回默认拒绝。
 

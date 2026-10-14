@@ -369,6 +369,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /file", s.auth(s.handleFile, false, true))
 	mux.HandleFunc("GET /models", s.auth(s.handleModels, false, true))
 	mux.HandleFunc("POST /session/model", s.auth(s.handleSessionModel, false, true))
+	mux.HandleFunc("POST /session/resume", s.auth(s.handleSessionResume, false, true))
 	mux.HandleFunc("POST /shutdown", s.auth(s.handleShutdown, true, true))
 	mux.HandleFunc("POST /keys", s.auth(s.handleKeyCreate, true, true))
 	mux.HandleFunc("GET /keys", s.auth(s.handleKeyList, true, true))
@@ -717,6 +718,94 @@ func mkdirAllowlisted(cwd string) error {
 		}
 	}
 	return fmt.Errorf("cwd 无效(需存在的绝对路径目录,或在自动建白名单 %v 下):%s", cwdAllowRoots(), cwd)
+}
+
+// handleSessionResume 续会话(契约③,pi-rs-core 5bfe832):spawn 后 initialize →
+// session/resume {sessionId, cwd, mcpServers: []};cwd 由调用方给(须等会话记录的 cwd,
+// 后端 fail-closed 校验);后端不支持的请求原样 502 透传错误面。
+func (s *Server) handleSessionResume(w http.ResponseWriter, r *http.Request) {
+	var body struct {
+		Agent     string `json:"agent"`
+		SessionID string `json:"sessionId"`
+		Cwd       string `json:"cwd"`
+		Model     string `json:"model"`
+	}
+	if !readBody(w, r, &body) {
+		return
+	}
+	if body.SessionID == "" {
+		jsonWrite(w, 400, map[string]any{"error": "sessionId 必填"})
+		return
+	}
+	if s.table.Get(body.SessionID) != nil {
+		jsonWrite(w, 409, map[string]any{"error": "session_exists(该 id 已在表,复用即可)"})
+		return
+	}
+	def, ok := backend.Find(body.Agent)
+	if !ok {
+		jsonWrite(w, 400, map[string]any{"error": "未知 agent:" + body.Agent})
+		return
+	}
+	cwd := body.Cwd
+	if !strings.HasPrefix(cwd, "/") {
+		jsonWrite(w, 400, map[string]any{"error": "resume 需绝对 cwd(须等会话记录的 cwd)"})
+		return
+	}
+	if fi, err := os.Stat(cwd); err == nil && fi.IsDir() {
+	} else if err := mkdirAllowlisted(cwd); err != nil {
+		jsonWrite(w, 400, map[string]any{"error": err.Error()})
+		return
+	}
+	env := append([]string(nil), def.Env...)
+	if body.Model != "" {
+		switch def.Name {
+		case "claude":
+			env = append(env, "ANTHROPIC_MODEL="+body.Model)
+		case "codex":
+			home, err := codexHomeWithModel(body.Model)
+			if err != nil {
+				jsonWrite(w, 500, map[string]any{"error": err.Error()})
+				return
+			}
+			env = append(env, "CODEX_HOME="+home)
+		}
+	}
+	ctx, cancel := context.WithTimeout(r.Context(), handshakeTO)
+	defer cancel()
+	ag, err := s.spawn(def, env, cwd)
+	if err != nil {
+		jsonWrite(w, 400, map[string]any{"error": "agent 未就绪:" + err.Error()})
+		return
+	}
+	caps := map[string]any{
+		"fs":       map[string]any{"readTextFile": def.FS, "writeTextFile": def.FS},
+		"terminal": def.Terminal,
+	}
+	if _, err := ag.Request(ctx, "initialize", map[string]any{"protocolVersion": 1, "clientCapabilities": caps}); err != nil {
+		ag.Close()
+		jsonWrite(w, 502, map[string]any{"error": err.Error(), "adapterStderr": ag.StderrTail()})
+		return
+	}
+	if _, err := ag.Request(ctx, "session/resume", map[string]any{
+		"sessionId": body.SessionID, "cwd": cwd, "mcpServers": []any{},
+	}); err != nil {
+		ag.Close()
+		jsonWrite(w, 502, map[string]any{"error": "resume 失败(未知 id 或 cwd 错配):" + err.Error(), "adapterStderr": ag.StderrTail()})
+		return
+	}
+	key, _ := r.Context().Value(keyCtx).(Key)
+	sess := session.NewSession(body.SessionID, def.Name, cwd, key.ID, ag)
+	if err := s.table.Add(sess); err != nil {
+		ag.Close()
+		jsonWrite(w, 429, map[string]any{"error": "session_limited"})
+		return
+	}
+	s.wire(sess)
+	if s.log != nil {
+		s.log.Info("session_resume", "cat", "audit", "action", "session/resume",
+			"key_id", key.ID, "session_id", sess.ID, "agent", def.Name, "cwd", clipStr(cwd, 256))
+	}
+	jsonWrite(w, 200, map[string]any{"sessionId": sess.ID, "agent": def.Name, "model": body.Model, "resumed": true})
 }
 
 // handleFile 是文件承接面:取该会话 cwd 子树内的一个文件(桥/平台读不到容器 FS 的补面)。
