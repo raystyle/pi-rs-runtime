@@ -1772,5 +1772,5 @@ install_vnc() {
 
 # 不在默认全量(组保留,显式装):chrome(2026-10-10 裁定)、c2/maldev/metasploit(2026-10-14 瘦身裁定,参考/重框架不烤镜像,数据面后续走 MCP)。
 # browse 组(2026-10-14 用户放行)在默认全量:CLI + browse 托管面 clean-chrome(与 chrome 组互不搬动)
-TOOLS_ALL=(filesearch astgrep cli herdr ghidra rea reverse discovery go-security rust-security pivot analysis bof projectzero recon nu cloud data pentest redteam vnc browse agents acp ctl zg)
+TOOLS_ALL=(filesearch astgrep cli herdr ghidra rea reverse discovery go-security rust-security pivot analysis bof projectzero recon nu cloud data pentest redteam vnc chrome browse agents acp ctl zg)
 run_category TOOLS_ALL "$@"
