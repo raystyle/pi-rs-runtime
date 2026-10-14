@@ -137,6 +137,13 @@ func cdpVersion(port int, timeout time.Duration) (string, error) {
 // bootSweep 重启旧账:acpsup 重启后孤儿 chrome 还在旧显示上;用确定性的口映射
 // (:100+N ↔ 19200+N)走 CDP Browser.close 优雅收掉,Xvfb 随 -terminate 自退;
 // 收不掉的槽标泄漏(不发信号)。之后清基目录。
+func (m *vncManager) bootSweepAsync() {
+	go func() {
+		defer func() { _ = recover() }()
+		m.bootSweep()
+	}()
+}
+
 func (m *vncManager) bootSweep() {
 	for i := 0; i < vncSlotCount; i++ {
 		display := vncDisplayBase + i
@@ -302,7 +309,13 @@ func (st *vncStack) start() error {
 		st.xvfbLog = nil
 		return fmt.Errorf("Xvfb 起: %v", err)
 	}
-	go func() { _ = st.xvfb.Wait(); close(st.xvfbDone) }()
+	go func() {
+		werr := st.xvfb.Wait()
+		if werr != nil && st.mgr.log != nil {
+			st.mgr.log.Warn("xvfb_exit", "cat", "audit", "err", werr.Error())
+		}
+		close(st.xvfbDone)
+	}()
 	if err := waitXReady(st, vncXWait); err != nil {
 		return err
 	}

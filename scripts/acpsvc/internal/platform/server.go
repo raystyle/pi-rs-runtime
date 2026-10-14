@@ -309,7 +309,7 @@ func New(cfg Config) *Server {
 	}
 	// VNC 直显面:重启清孤儿栈(确定性口映射走 CDP Browser.close 自退道)
 	vncMgr := newVNCManager(filepath.Join(cfg.DataDir, "vnc"), cfg.Log)
-	vncMgr.bootSweep()
+	vncMgr.bootSweepAsync() // 孤儿清不阻塞启动(占槽最多吃 30s+,验收窗等不起)
 
 	// 会话级 CODEX_HOME 基目录:重启旧账兜底清空(表空,存留即残件)
 	_ = os.RemoveAll(filepath.Join(cfg.DataDir, "codex"))
