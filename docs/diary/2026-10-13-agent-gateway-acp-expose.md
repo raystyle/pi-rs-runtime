@@ -149,3 +149,11 @@
 - 组进默认全量 TOOLS_ALL(chrome 组仍保留不默认);实例已部署:fetch 网关 /v1/models 200 via engine,/health 无凭证 401 诚实报 net::ERR_HTTP_RESPONSE_CODE_FAILURE。
 - 两个 shell 坑:set -u 下 `local a=x b=$a` 前项不可见(declaration builtin 先展参后赋值,pi-rs 道分行写是对的,同款一行版实测必炸);grep 图样引号失衡 host bash -n 放行、实例 bash 炸在后续行(跨机语法门要两边 -n)。
 - pins 全量刷新积压:--check 记录漂移面 UV 0.13.1/FRP v0.71.1/TRIVY v0.76.0/CLAUDE_CODE 2.1.299/CLAUDE_ACP 0.90.0,归专门升级批(版本纪律:跑解析器审 diff 再增量发布)。
+
+## 镜像瘦身批(2026-10-14 深夜,用户裁定:保留运行时与编程环境)
+
+- 盘面:实例根 60G;/opt 46G(go pkg/mod 10G、cargo 4.2G、rustup 3.4G、trivy-db 2.9G、SecLists 2.6G、nuget 2G、zig 双版…)。
+- 裁定:保运行时与编程环境;删构建缓存;go 模块缓存删。clean-image.sh 扩:go pkg/mod+sumdb、cargo registry/src(保 cache+git+index,离线编译实测过)、zg target、vcpkg buildtrees、rust-script/ort 缓存。
+- 险情记档:初稿误列 /opt/zig-cache——查 clean-image.sh 既有保护清单发现它是固化软链的 zig 离线包缓存(install-libcache zig 组建),纠正保留;清单纪律三面再立功。zig-0.15.2 非"旧版"而是 bof-launcher 锁定工具链,保留。
+- 实释 18G(60G→42G):go 10G+cargo src 3.5G+zg target 1.4G+buildtrees 0.7G+各用户缓存 ~1.5G+/tmp 与 apt ~1G。
+- 根修泄漏:acpsup codexHomeWithModel 落系统 /tmp 的会话级 CODEX_HOME(MkdirTemp 每会话 ~110M,近 8 个堆积 ~775M)永不回收;改归 DataDir/codex,Session.Home 字段 + Close 异步删 + New() 启动清旧账 + 表满 429 路补 Close;spawnModelEnv/codexHomeWithModel 转方法;六包+race 绿;实例验证 codex model 会话 200 落位。

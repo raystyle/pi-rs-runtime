@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"sync"
 	"time"
 
@@ -74,6 +75,7 @@ type Session struct {
 	KeyID string
 	Model string
 	AcpID string // 适配器侧会话号(空会话换模重建底层时更换;对外号 ID 恒不变)
+	Home  string // 会话级家目录(codex CODEX_HOME;Close 自回收)
 
 	agentMu sync.Mutex
 	Ag      *acpclient.Agent
@@ -257,6 +259,9 @@ func (s *Session) Close() {
 	}
 	if s.Adapter() != nil {
 		go s.Adapter().Close()
+	}
+	if s.Home != "" {
+		go os.RemoveAll(s.Home)
 	}
 }
 

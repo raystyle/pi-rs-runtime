@@ -278,3 +278,19 @@ func TestUnknownAgent400(t *testing.T) {
 		t.Fatalf("未知 agent = %d, want 400", resp.StatusCode)
 	}
 }
+
+// 服务重启清 codex 家目录旧账(旧版落 /tmp 每会话 ~110M 不回收的根修面)。
+func TestCodexHomeBootSweep(t *testing.T) {
+	dir := t.TempDir()
+	stale := filepath.Join(dir, "codex", "codex-legacy")
+	if err := os.MkdirAll(stale, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	_ = New(Config{DataDir: dir})
+	if _, err := os.Stat(stale); !os.IsNotExist(err) {
+		t.Fatalf("重启应清 codex 基目录旧账: %v", err)
+	}
+	if fi, err := os.Stat(filepath.Join(dir, "codex")); err != nil || !fi.IsDir() {
+		t.Fatalf("codex 基目录应在: %v", err)
+	}
+}

@@ -3,6 +3,8 @@ package session
 import (
 	"context"
 	"encoding/json"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -86,5 +88,27 @@ func TestBroadcastSubscribeCarriesID(t *testing.T) {
 	}
 	if id2 != id1+1 {
 		t.Fatalf("id 应单调: %d -> %d", id1, id2)
+	}
+}
+
+// Home 目录随 Close 回收(codex 会话级 CODEX_HOME 不再泄漏)。
+func TestHomeCleanupOnClose(t *testing.T) {
+	home := t.TempDir()
+	sess := NewSession("s1", "codex", "/tmp", "k", nil)
+	sess.Home = home
+	marker := filepath.Join(home, "config.toml")
+	if err := os.WriteFile(marker, []byte("x"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	sess.Close()
+	deadline := time.Now().Add(2 * time.Second)
+	for {
+		if _, err := os.Stat(home); os.IsNotExist(err) {
+			return
+		}
+		if time.Now().After(deadline) {
+			t.Fatalf("Home 未被回收: %s", home)
+		}
+		time.Sleep(20 * time.Millisecond)
 	}
 }

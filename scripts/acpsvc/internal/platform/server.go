@@ -135,7 +135,7 @@ func (s *Server) handleSessionModel(w http.ResponseWriter, r *http.Request) {
 
 // spawnModelEnv 在注册表 env 上叠加模型道:claude 注 ANTHROPIC_MODEL(spawn env 直达,
 // 任意网关别名生效),codex 生成会话级 CODEX_HOME;model 空返回烤库默认 env。
-func spawnModelEnv(def backend.Def, model string) ([]string, error) {
+func (s *Server) spawnModelEnv(def backend.Def, model string) ([]string, error) {
 	env := append([]string(nil), def.Env...)
 	if model == "" {
 		return env, nil
@@ -144,13 +144,23 @@ func spawnModelEnv(def backend.Def, model string) ([]string, error) {
 	case "claude":
 		env = append(env, "ANTHROPIC_MODEL="+model)
 	case "codex":
-		home, err := codexHomeWithModel(model)
+		home, err := s.codexHomeWithModel(model)
 		if err != nil {
 			return nil, err
 		}
 		env = append(env, "CODEX_HOME="+home)
 	}
 	return env, nil
+}
+
+// codexHomeFromEnv 从 spawn env 抽 CODEX_HOME(会话 Close 自回收用;非 codex 空)。
+func codexHomeFromEnv(env []string) string {
+	for _, kv := range env {
+		if strings.HasPrefix(kv, "CODEX_HOME=") {
+			return strings.TrimPrefix(kv, "CODEX_HOME=")
+		}
+	}
+	return ""
 }
 
 // rebuildModel 是 claude 中会话换模的重建道:适配器 set_config_option 只认 SDK 档位词,
@@ -169,7 +179,7 @@ func (s *Server) rebuildModel(w http.ResponseWriter, r *http.Request, sess *sess
 		return
 	}
 	defer rel()
-	env, err := spawnModelEnv(def, model)
+	env, err := s.spawnModelEnv(def, model)
 	if err != nil {
 		jsonWrite(w, 500, map[string]any{"error": "模型面生成失败:" + err.Error()})
 		return
@@ -292,6 +302,9 @@ func New(cfg Config) *Server {
 			globalMax = n
 		}
 	}
+	// 会话级 CODEX_HOME 基目录:重启旧账兜底清空(表空,存留即残件)
+	_ = os.RemoveAll(filepath.Join(cfg.DataDir, "codex"))
+	_ = os.MkdirAll(filepath.Join(cfg.DataDir, "codex"), 0o700)
 	return &Server{
 		cfg:      cfg,
 		log:      cfg.Log,
@@ -551,15 +564,19 @@ func (s *Server) spawn(def backend.Def, env []string, cwd string) (*acpclient.Ag
 	return acpclient.Spawn(def.Name, argv, env, cwd)
 }
 
+// codexHomeBase 是会话级 CODEX_HOME 的基目录(DataDir/codex);重启即旧账兜底清空。
+func (s *Server) codexHomeBase() string { return filepath.Join(s.cfg.DataDir, "codex") }
+
 // codexHomeWithModel 生成会话级 CODEX_HOME:烤库 config 改 model 行(四模型面)。
-// 目录留在系统临时目录,随实例生命周期;catalog 用绝对路径不受影响。
-func codexHomeWithModel(model string) (string, error) {
+// 目录归 DataDir/codex(会话 Close 自回收;旧版落系统 /tmp 每会话 ~110M 不回收,已根修);
+// catalog 用绝对路径不受影响。
+func (s *Server) codexHomeWithModel(model string) (string, error) {
 	base, err := os.ReadFile("/root/.codex/config.toml")
 	if err != nil {
 		return "", err
 	}
 	replaced := modelLineRe.ReplaceAll(base, []byte("model = \""+model+"\""))
-	home, err := os.MkdirTemp("", "acpsup-codex-*")
+	home, err := os.MkdirTemp(s.codexHomeBase(), "codex-*")
 	if err != nil {
 		return "", err
 	}
@@ -596,7 +613,7 @@ func (s *Server) handleSessionNew(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// 四模型面(2026-10-13):可选 model 指定网关别名,叠加道见 spawnModelEnv;未给用烤库默认
-	env, err := spawnModelEnv(def, body.Model)
+	env, err := s.spawnModelEnv(def, body.Model)
 	if err != nil {
 		jsonWrite(w, 500, map[string]any{"error": "模型面生成失败:" + err.Error()})
 		return
@@ -637,8 +654,9 @@ func (s *Server) handleSessionNew(w http.ResponseWriter, r *http.Request) {
 	key, _ := r.Context().Value(keyCtx).(Key)
 	sess := session.NewSession(sn.SessionID, def.Name, cwd, key.ID, ag)
 	sess.Model = body.Model
+	sess.Home = codexHomeFromEnv(env)
 	if err := s.table.Add(sess); err != nil {
-		ag.Close()
+		sess.Close()
 		jsonWrite(w, 429, map[string]any{"error": "session_limited"})
 		return
 	}
@@ -868,7 +886,7 @@ func (s *Server) handleSessionResume(w http.ResponseWriter, r *http.Request) {
 		jsonWrite(w, 400, map[string]any{"error": err.Error()})
 		return
 	}
-	env, err := spawnModelEnv(def, body.Model)
+	env, err := s.spawnModelEnv(def, body.Model)
 	if err != nil {
 		jsonWrite(w, 500, map[string]any{"error": err.Error()})
 		return
@@ -899,8 +917,9 @@ func (s *Server) handleSessionResume(w http.ResponseWriter, r *http.Request) {
 	key, _ := r.Context().Value(keyCtx).(Key)
 	sess := session.NewSession(body.SessionID, def.Name, cwd, key.ID, ag)
 	sess.Model = body.Model
+	sess.Home = codexHomeFromEnv(env)
 	if err := s.table.Add(sess); err != nil {
-		ag.Close()
+		sess.Close()
 		jsonWrite(w, 429, map[string]any{"error": "session_limited"})
 		return
 	}
