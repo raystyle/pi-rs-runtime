@@ -1548,7 +1548,8 @@ install_pi_rs() {
     python3 - <<'B7EOF' || { echo "!! B7 件 selftest 有败(编译面坏,拒绝视为完成)"; return 1; }
 import os, re, subprocess, sys
 root = "/opt/pi-rs"
-scripts_dir = os.path.join(root, "rust-scripts", "scripts")
+# 工件实树:套件直挂 rust-scripts/<suite>/(契约 §2 的 scripts/<suite> 展平形,实例实查)
+scripts_dir = os.path.join(root, "rust-scripts")
 lib_dir = os.path.join(root, "rust-lib", "pi-rust-lib")
 cdp_dir = os.path.join(root, "extensions", "rust_script", "vendor", "cdp")
 ocr_dir = os.path.join(root, "rust-lib", "ocr")
