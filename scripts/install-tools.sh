@@ -2008,19 +2008,30 @@ PY
     echo "pi_ocr tiny 烤库就位:$root(tiny-det + tiny-rec 各 4 文件,pin 全绿;消费口 PI_OCR_CACHE_DIR)"
 }
 
-# ---- desktop(一 agent 一完整桌面:常驻 Xvfb :99 + xfce,浏览器由 agent 按需起)----
-# 共识②默认视图=完整 Ubuntu 桌面(2026-10-15 用户修订:chrome 全屏自启撤,面板看纯桌面);
-# x11vnc 常驻 5900 仅回环(消费道 acpsup /vnc?display=desktop 桥 + 按需 proxy device 直连);
-# 凭证一生一次不烤镜像(X cookie + VNC 口令,desktop-auth-gen 首启自生)。
+# ---- desktop(一 agent 一完整桌面:常驻 Xvnc :99 + xfce,浏览器由 agent 按需起)----
+# 共识②默认视图=完整 Ubuntu 观感桌面(2026-10-16 用户实操反馈:Yaru 主题/官方壁纸/Ubuntu
+# 字体;GNOME 无 GPU 软渲染否决)。VNC 面用 Xvnc(X 服务器即 VNC 服务器,SetDesktopSize
+# 原生任意客户端尺寸,noVNC resizeSession 直中;替旧 Xvfb+x11vnc 双件——单模式 resize
+# prohibited 病根);口令/网关/桥面全零动(Xvnc 直读口令哈希件,桥透明 5900)。
 install_desktop() {
-    log "agent 桌面(Xvfb :99 + xfce + x11vnc 5900;依赖 vnc 组的 xfce4/xvfb/x11vnc)"
-    have Xvfb && have x11vnc && have startxfce4 \
+    log "agent 桌面(Xvnc :99 + xfce + Ubuntu 观感面;依赖 vnc 组的 xfce4/tigervnc)"
+    have Xvnc && have startxfce4 \
         || { echo "!! 桌面依赖缺(先跑 vnc 组)"; return 1; }
+    # Ubuntu 观感件:Yaru GTK/图标(含 xfwm4 装饰)+官方壁纸+Ubuntu 字体
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update -qq
+    apt-get install -y --no-install-recommends \
+        yaru-theme-gtk yaru-theme-icon ubuntu-wallpapers fonts-ubuntu \
+        || { echo "!! Yaru 观感件装失败"; return 1; }
+    # 旧栈迁移:Xvfb+x11vnc 双件(单模式 resize 面受限)拆,切 Xvnc 单件
+    systemctl disable --now xvfb99.service x11vnc99.service >/dev/null 2>&1 || true
+    rm -f /etc/systemd/system/xvfb99.service /etc/systemd/system/x11vnc99.service
     # 凭证生成器:X 授权双键(hostname/unix:N + :N,x11 实测匹配形,同 acpsup vnc.go start())
     cat > /usr/local/bin/desktop-auth-gen <<'GENEOF'
 #!/bin/sh
 # agent 桌面凭证一生一次:X 授权(hostname/unix:N + :N 双键)+ VNC 口令
-# (明文 0600 供 acpsup /vnc/desktop 出;x11vnc -storepasswd 哈希件)。均不烤镜像。
+# (明文 0600 供 acpsup /vnc/desktop 出;哈希件 Xvnc -rfbauth 直读,与 x11vnc 同格式)。
+# 均不烤镜像。
 set -e
 DIR=/var/lib/desktop
 AUTH="$DIR/x99.auth"; PW="$DIR/vnc.passwd"; PWP="$DIR/vnc.passwd.plain"
@@ -2039,14 +2050,61 @@ if [ ! -s "$PWP" ] || [ ! -s "$PW" ]; then
 fi
 GENEOF
     chmod 755 /usr/local/bin/desktop-auth-gen
-    # 三 unit:Xvfb(无 -terminate:常驻桌面,agent chrome 随意进出)→ xfce 会话 → x11vnc
-    cat > /etc/systemd/system/xvfb99.service <<'EOF'
+    # Ubuntu 观感预置(Xvnc 会话首启前烤 XML,通道 overlay 最小覆写;xfce 4.20 默认
+    # 已含底栏+浮动 dock,观感病纯在主题/字体/壁纸——用户实操实证)
+    local X=/root/.config/xfce4/xfconf/xfce-perchannel-xml
+    install -d "$X"
+    cat > "$X/xsettings.xml" <<'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<channel name="xsettings" version="1.0">
+  <property name="Net" type="empty">
+    <property name="ThemeName" type="string" value="Yaru"/>
+    <property name="IconThemeName" type="string" value="Yaru"/>
+  </property>
+  <property name="Gtk" type="empty">
+    <property name="FontName" type="string" value="Ubuntu 10"/>
+    <property name="MonospaceFontName" type="string" value="Ubuntu Mono 10"/>
+  </property>
+  <property name="Xft" type="empty">
+    <property name="Antialias" type="int" value="1"/>
+    <property name="Hinting" type="int" value="1"/>
+    <property name="HintStyle" type="string" value="hintslight"/>
+    <property name="RGBA" type="string" value="rgb"/>
+  </property>
+</channel>
+EOF
+    cat > "$X/xfwm4.xml" <<'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<channel name="xfwm4" version="1.0">
+  <property name="general" type="empty">
+    <property name="theme" type="string" value="Yaru"/>
+    <property name="title_font" type="string" value="Ubuntu Bold 9"/>
+  </property>
+</channel>
+EOF
+    cat > "$X/xfce4-desktop.xml" <<'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<channel name="xfce4-desktop" version="1.0">
+  <property name="backdrop" type="empty">
+    <property name="screen0" type="empty">
+      <property name="monitorscreen" type="empty">
+        <property name="workspace0" type="empty">
+          <property name="last-image" type="string" value="/usr/share/backgrounds/warty-final-ubuntu.png"/>
+          <property name="image-style" type="int" value="5"/>
+        </property>
+      </property>
+    </property>
+  </property>
+</channel>
+EOF
+    # 两 unit:Xvnc(常驻,VNC 原生 SetDesktopSize 任意客户端尺寸)→ xfce 会话
+    cat > /etc/systemd/system/xvnc99.service <<'EOF'
 [Unit]
-Description=agent desktop X server (Xvfb :99)
+Description=agent desktop X+VNC server (Xvnc :99 -> 5900, loopback, client-resizable)
 After=local-fs.target
 [Service]
 ExecStartPre=/usr/local/bin/desktop-auth-gen
-ExecStart=/usr/bin/Xvfb :99 -screen 0 1920x1080x24 -dpi 96 -nolisten tcp -auth /var/lib/desktop/x99.auth +extension DAMAGE +extension RANDR
+ExecStart=/usr/bin/Xvnc :99 -geometry 1920x1080 -depth 24 -localhost yes -rfbport 5900 -rfbauth /var/lib/desktop/vnc.passwd -auth /var/lib/desktop/x99.auth
 Restart=on-failure
 RestartSec=1
 [Install]
@@ -2055,8 +2113,8 @@ EOF
     cat > /etc/systemd/system/xfce-desktop.service <<'EOF'
 [Unit]
 Description=agent desktop session (xfce4 on :99; browser on demand by agent)
-Requires=xvfb99.service
-After=xvfb99.service
+Requires=xvnc99.service
+After=xvnc99.service
 [Service]
 Environment=DISPLAY=:99
 Environment=XAUTHORITY=/var/lib/desktop/x99.auth
@@ -2067,25 +2125,11 @@ RestartSec=2
 [Install]
 WantedBy=multi-user.target
 EOF
-    cat > /etc/systemd/system/x11vnc99.service <<'EOF'
-[Unit]
-Description=agent desktop VNC (x11vnc :99 -> 5900, loopback only)
-Requires=xvfb99.service
-After=xvfb99.service
-[Service]
-ExecStartPre=/usr/local/bin/desktop-auth-gen
-ExecStart=/usr/bin/x11vnc -display :99 -auth /var/lib/desktop/x99.auth -rfbport 5900 -localhost -forever -shared -rfbauth /var/lib/desktop/vnc.passwd -nosel -noprimary -noncache -cursor arrow -wait 10 -defer 10 -speeds lan -o /var/log/x11vnc99.log
-Restart=on-failure
-RestartSec=1
-[Install]
-WantedBy=multi-user.target
-EOF
     systemctl daemon-reload
-    systemctl enable --now xvfb99.service xfce-desktop.service x11vnc99.service
-    systemctl is-active --quiet xvfb99 && systemctl is-active --quiet x11vnc99 \
-        && echo "桌面栈起:Xvfb :99 + xfce + x11vnc 5900" \
-        || { echo "!! 桌面栈未起(xvfb99/xfce-desktop/x11vnc99 查 journal)"; return 1; }
-    ss -ltn 2>/dev/null | grep -q ':5900 ' || echo "  (ss 未见 5900 监听行,以 unit 活性为准)"
+    systemctl enable --now xvnc99.service xfce-desktop.service
+    systemctl is-active --quiet xvnc99 && systemctl is-active --quiet xfce-desktop \
+        && echo "桌面栈起:Xvnc :99(5900,可 resize)+ xfce(Yaru)" \
+        || { echo "!! 桌面栈未起(xvnc99/xfce-desktop 查 journal)"; return 1; }
     true
 }
 

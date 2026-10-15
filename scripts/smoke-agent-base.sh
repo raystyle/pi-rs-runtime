@@ -207,12 +207,12 @@ if [ "$VIEW" = root ]; then [ -d /var/lib/acpsup/vnc ] && ok "acpsup vnc 基目�
 [ -d /usr/share/novnc ] && ok "noVNC 在" || bad "noVNC 缺"
 have vncserver && ok "tigervnc 在" || bad "tigervnc 缺"
 [ "$VIEW" = ubuntu ] && { [ -x /usr/local/bin/vnc-screen ] && ok "vnc-screen 启动面在" || bad "vnc-screen 缺"; }
-# 补面批:常驻桌面栈(desktop 组三 unit,Xvfb :99 + xfce + x11vnc 5900)
+# 补面批:常驻桌面栈(desktop 组,Xvnc :99 单件=VNC 原生可 resize + xfce)
 if [ "$VIEW" = root ]; then
-    chk "systemd xvfb99"       systemctl is-active xvfb99
+    chk "systemd xvnc99"       systemctl is-active xvnc99
     chk "systemd xfce-desktop" systemctl is-active xfce-desktop
-    chk "systemd x11vnc99"     systemctl is-active x11vnc99
     [ -S /tmp/.X11-unix/X99 ] && ok "X99 套接字在" || bad "X99 套接字缺"
+    grep -q '"ThemeName" type="string" value="Yaru"' /root/.config/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml && ok "Yaru 主题预置" || bad "Yaru 预置缺"
     # RFB 横幅:5900 回环直读(bash /dev/tcp;超时饿死=任何阻塞交互即红)
     out="$(timeout 5 bash -c 'exec 3<>/dev/tcp/127.0.0.1/5900; head -c 12 <&3' 2>&1)" || true
     printf '%s' "$out" | grep -q "RFB 003\." && ok "RFB 横幅(5900 回环)" || bad "RFB 横幅未吐:$(printf '%s' "$out" | head -c 60)"

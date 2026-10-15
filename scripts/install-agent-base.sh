@@ -67,7 +67,7 @@ command -v go >/dev/null 2>&1 && echo "  ok go" || { echo "  !! 缺 go"; miss=$(
 [ -x /opt/clean-chrome/CURRENT/chrome ] && echo "  ok chrome 单副本" || { echo "  !! 缺 chrome 单副本"; miss=$((miss+1)); }
 systemctl is-active --quiet acpsup && echo "  ok acpsup(active)" || { echo "  !! acpsup 未激活"; miss=$((miss+1)); }
 [ -f /var/lib/acpsup/token ] && echo "  ok acpsup token" || { echo "  !! 缺 token"; miss=$((miss+1)); }
-systemctl is-active --quiet xvfb99 && systemctl is-active --quiet x11vnc99 \
-    && echo "  ok 桌面栈(:99 + 5900)" || { echo "  !! 桌面栈未起"; miss=$((miss+1)); }
+systemctl is-active --quiet xvnc99 && systemctl is-active --quiet xfce-desktop \
+    && echo "  ok 桌面栈(Xvnc :99 + 5900)" || { echo "  !! 桌面栈未起"; miss=$((miss+1)); }
 [ "$miss" -gt 0 ] && { echo "!! 基座自检缺 ${miss} 件,拒绝视为完成"; exit 1; }
 echo "agent 基座安装完成:$0"
