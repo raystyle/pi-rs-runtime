@@ -97,6 +97,16 @@ if [ "$VIEW" = root ]; then
     printf '%s' "$out" | grep -qiE "ENOTCACHED|offline" && ok "npm 快失败" || bad "npm 快失败异常"
 fi
 
+section "[$VIEW] E2. pi-rs 引擎面探针(core G1:防 jieba/模型静默降级)"
+if [ "$VIEW" = root ]; then
+    # F2 类缺陷盲区:rctl zg CLI 面绿不等于 pi-rs 发行件内嵌引擎绿——直接调 pi-rs 面验
+    T2="$(mktemp -d)"
+    printf 'id: probe-sem\ndesc: 樱桃原子语义探针\n' > "$T2/a.txt"
+    out="$(cd "$T2" && timeout 90 pi-rs -p '在当前目录搜「樱桃原子」,直接给文件名,不要其他内容' 2>&1)" || true
+    printf '%s' "$out" | grep -q "a.txt" && ok "pi-rs rs_search 中文语义命中" || bad "pi-rs 搜索未命中(jieba/模型落位疑):$(printf '%s' "$out" | head -c 120)"
+    rm -rf "$T2"
+fi
+
 section "[$VIEW] F. VNC 直显与桌面面"
 chk "Xvfb" command -v Xvfb   # 此版 Xvfb 无 -version 旗标,验在位即可
 chk "x11vnc" x11vnc -version

@@ -42,7 +42,18 @@ func Registry() []Def {
 	return []Def{
 		{Name: "claude", Kind: KindAdapter, Pkg: "claude-agent-acp", Env: []string{"DISABLE_UPDATES=1", "BROWSE_CHROME=/opt/clean-chrome/CURRENT/chrome"}, FS: true, Terminal: true},
 		{Name: "codex", Kind: KindAdapter, Pkg: "codex-acp", Env: []string{"CODEX_PATH=/usr/local/bin/codex", "NO_BROWSER=1", "BROWSE_CHROME=/opt/clean-chrome/CURRENT/chrome"}, FS: true, Terminal: true},
-		{Name: "pi", Kind: KindNative, Argv: []string{"/usr/local/bin/pi-rs", "--approve", "--mode", "acp"}, Env: []string{"DEEPSEEK_API_KEY=overcast", "BROWSE_CHROME=/opt/clean-chrome/CURRENT/chrome"}, FS: false, Terminal: false},
+		{Name: "pi", Kind: KindNative, Argv: []string{"/usr/local/bin/pi-rs", "--approve", "--mode", "acp"},
+			Env: []string{
+				"DEEPSEEK_API_KEY=overcast",
+				"BROWSE_CHROME=/opt/clean-chrome/CURRENT/chrome",
+				// 模型烤库指路(core 对抗 review F1):缺则 pi-rs 首用向 agent 目录重下 610M(离线坏)
+				"ZVEC_GREP_MODEL_CACHE=/opt/zg-models",
+				"PI_OCR_CACHE_DIR=/opt/pi-ocr-models",
+				// 词表指路(F2 面的 runtime 侧注记:04836e8 后随包发行,外部预置仍赢)
+				"ZVEC_JIEBA_DICT_DIR=/usr/local/share/zvec/jieba_dict",
+				// 桌面过渡形(needface v2 §五):有 DISPLAY 则 agent chrome headed 上屏;正道=会师批 BROWSE_CDP_WS
+				"DISPLAY=:99",
+			}, FS: false, Terminal: false},
 	}
 }
 
