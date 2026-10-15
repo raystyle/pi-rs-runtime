@@ -1854,7 +1854,7 @@ install_chrome() {
         apt-get update -qq
         apt-get install -y --no-install-recommends             libnss3 libnspr4 libgbm1 libasound2t64 libxss1 libxkbcommon0             libxrandr2 libxcomposite1 libxdamage1 libxfixes3 libcups2 libdrm2             libpango-1.0-0 libcairo2 libatk1.0-0 libatk-bridge2.0-0 fonts-liberation || true
         local zip="chromium-${ver}-x86_64-unknown-linux-gnu.zip"
-        curl -fSL --retry 3 "https://chrome.ohmygh.com/${ver}/${zip}" -o "/tmp/${zip}"
+        curl -fSL --retry 5 --retry-delay 3 -C - "https://chrome.ohmygh.com/${ver}/${zip}" -o "/tmp/${zip}"
         echo "${sha}  /tmp/${zip}" | sha256sum -c - || { echo "!! chrome 资产 sha256 不符"; return 1; }
         rm -rf "$dest" && install -d /opt/clean-chrome
         unzip -q "/tmp/${zip}" -d /opt/clean-chrome && rm "/tmp/${zip}"
