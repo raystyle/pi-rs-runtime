@@ -51,8 +51,10 @@ func Registry() []Def {
 				"PI_OCR_CACHE_DIR=/opt/pi-ocr-models",
 				// 词表指路(F2 面的 runtime 侧注记:04836e8 后随包发行,外部预置仍赢)
 				"ZVEC_JIEBA_DICT_DIR=/usr/local/share/zvec/jieba_dict",
-				// 桌面过渡形(needface v2 §五):有 DISPLAY 则 agent chrome headed 上屏;正道=会师批 BROWSE_CDP_WS
-				"DISPLAY=:99",
+				// DISPLAY 注入撤回(反向 review F-R1):display_present() 只探 env 不探 X 套接字
+				// (vendor/cdp/src/spawn.rs:170-176),设 DISPLAY=:99 而无活 X 时 headless_fallback
+				// 不补 --headless → headed chrome 连不上 X 直接死(agent browse 面断)。桌面 unit
+				// (Xvfb :99+xfce)落地时与 DISPLAY 原子同批回加;正道=会师批 BROWSE_CDP_WS。
 			}, FS: false, Terminal: false},
 	}
 }
