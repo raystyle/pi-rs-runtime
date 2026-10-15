@@ -1553,6 +1553,7 @@ scripts_dir = os.path.join(root, "rust-scripts")
 lib_dir = os.path.join(root, "rust-lib", "pi-rust-lib")
 cdp_dir = os.path.join(root, "extensions", "rust_script", "vendor", "cdp")
 ocr_dir = os.path.join(root, "rust-lib", "ocr")
+example_dir = os.path.join(root, "rust-lib", "example")
 rsbin = os.path.join(root, "vendor", "rust-script", "x86_64-unknown-linux-gnu", "rust-script")
 tmp = "/tmp/pi-rs-b7"
 os.makedirs(tmp, exist_ok=True)
@@ -1574,6 +1575,11 @@ def materialize(src):
         deps.append('cdp = { path = "%s" }' % cdp_dir)
     if re.search(r"pi_ocr::", src) and not re.search(r"^//!\s*pi_ocr\s*=", src, re.M) and os.path.isdir(ocr_dir):
         deps.append('pi_ocr = { path = "%s" }' % ocr_dir)
+    # 第四注入:example lib(phpser/race_send 两件引用;工件补树位 rust-lib/example,
+    # 缺树时跳过——两件将编不过,由 B7 闸红出来而非静默)
+    if "pi_project_example" in src and not re.search(r"^//!\s*pi_project_example\s*=", src, re.M) \
+            and os.path.isdir(example_dir):
+        deps.append('pi_project_example = { path = "%s" }' % example_dir)
     if not deps:
         return src
     lines = src.split("\n")
