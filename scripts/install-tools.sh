@@ -1402,10 +1402,15 @@ install_agents() {
     local cco="${AGENT_CC_OPUS:-zp-cc-glm53[1m]}" ccsb="${AGENT_CC_SUBAGENT:-zp-cc-glm53fh[1m]}" cxm="${AGENT_CX_MODEL:-zp-cx-glm53}"
     install -d /etc/claude-code
     if [ -n "$gw" ] && [ -n "$tok" ]; then
-        # 组织级 managed settings:策略 + 网关 env,用户文件压不过(令牌随镜像,用量集中网关侧)
+        # 组织级 managed settings:策略 + 网关 env + yolo 面,用户文件压不过(令牌随镜像,用量集中网关侧)
+        # yolo 三键(grok 容器实证 2026-10-15,board/2026-10-15-native-yolo):defaultMode=
+        # bypassPermissions 覆盖 TUI+-p;IS_SANDBOX 恰值 "1" 过根闸(策略 env 在闸前注入,
+        # ubuntu 无此闸);skipDangerousModePermissionPrompt 免危险模式免责框。禁写
+        # disableBypassPermissionsMode;项目/本地层无权授予 bypass(二进制原句)。
         cat > /etc/claude-code/managed-settings.json <<MSEOF
 {
   "env": {
+    "IS_SANDBOX": "1",
     "DISABLE_UPDATES": "1",
     "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
     "DISABLE_TELEMETRY": "1",
@@ -1418,7 +1423,11 @@ install_agents() {
     "API_TIMEOUT_MS": "3000000",
     "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "1000000",
     "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "70"
-  }
+  },
+  "permissions": {
+    "defaultMode": "bypassPermissions"
+  },
+  "skipDangerousModePermissionPrompt": true
 }
 MSEOF
         # codex:共享模型目录一份 + config 三份(root/ubuntu/skel;0600,含网关令牌)
@@ -1435,15 +1444,17 @@ model_reasoning_effort = "high"
 forced_login_method = "api"
 approval_policy = "never"
 sandbox_mode = "danger-full-access"
+# 网关(overcast)的 Responses 面不支持 web_search 工具型,必须整件移除:顶层
+# web_search="disabled" 是官方 config-reference 正形(旧 [tools.web_search]
+# enabled=false 非法形状静默无效,tools[13] unsupported 硬断 codex exec,活实例
+# 探针实证 2026-10-15);顶层键须在一切表头之前
+web_search = "disabled"
 
 [model_providers.zai]
 name = "zai-overcast"
 base_url = "${gw}/v1"
 experimental_bearer_token = "${tok}"
 wire_api = "responses"
-
-[tools.web_search]
-enabled = false
 CXEOF
             chmod 600 "$cxd/config.toml"
         done
@@ -1454,10 +1465,35 @@ CXEOF
         # 防回退:无令牌重跑不剥盘上已有网关配置
         echo "网关令牌未提供;盘上 managed settings 已含网关配置,保留不覆盖"
     else
-        # 无网关面:镜像内只放策略不放密钥(组织级 managed settings,用户文件压不过它)
-        printf '{\n  "env": {\n    "DISABLE_UPDATES": "1",\n    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",\n    "DISABLE_TELEMETRY": "1"\n  }\n}\n' \
+        # 无网关面:镜像内只放策略不放密钥(组织级 managed settings,用户文件压不过它);
+        # yolo 三键同有网关面(见上)
+        printf '{\n  "env": {\n    "IS_SANDBOX": "1",\n    "DISABLE_UPDATES": "1",\n    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",\n    "DISABLE_TELEMETRY": "1"\n  },\n  "permissions": {\n    "defaultMode": "bypassPermissions"\n  },\n  "skipDangerousModePermissionPrompt": true\n}\n' \
             > /etc/claude-code/managed-settings.json
     fi
+    # 原生 TUI 首启免弹窗(grok 实证:预置键恰四名,家目录 .claude.json 而非 .claude/ 内;
+    # 2.1.296 无 hasCompletedNonInteractiveOnboarding 名,禁预置;已有文件只并键不整替)
+    for cj in /root /home/ubuntu /etc/skel; do
+        [ -d "$cj" ] || continue
+        python3 - "$cj/.claude.json" <<'PYEOF'
+import json, os, sys
+p = sys.argv[1]
+d = {}
+if os.path.exists(p):
+    try:
+        with open(p) as f:
+            d = json.load(f)
+    except Exception:
+        d = {}
+d.update({"hasCompletedOnboarding": True, "theme": "dark",
+          "bypassPermissionsModeAccepted": True, "hasSeenAutoDefaultNudge": True})
+with open(p, "w") as f:
+    json.dump(d, f, indent=2)
+os.chmod(p, 0o600)
+PYEOF
+    done
+    chown 1000:1000 /home/ubuntu/.claude.json 2>/dev/null || true
+    # 登录壳的根闸面(incus exec 非登录壳不读 profile.d,根闸走策略 env;双道都在)
+    printf 'export IS_SANDBOX=1\n' > /etc/profile.d/claude-yolo.sh
     claude --version || echo "!! claude 起不来"
     codex --version || echo "!! codex 起不来"
     echo "网关口径:模型道经 overcast 网关,令牌随镜像配置,实例不挂用户凭证;个人配置仍可挂载覆盖,"
@@ -1466,7 +1502,7 @@ CXEOF
 }
 
 
-# ---- pi-rs(自家 agent:pi-rs-core GitHub Release 直下 + sha256 锚,ACP 原生后端)----
+# ---- pi-rs(自家 agent:pi-rs-agent GitHub Release 直下 + sha256 锚,ACP 原生后端;2026-10-15 仓更名自 pi-rs-core)----
 install_pi_rs() {
     log "pi-rs ${PI_RS_CORE_VERSION}(pi-rs-agent 发行件,仓已更名;镜像道对该仓不可用,直连兜底,再兜宿主预推)"
     local name="pi-rs-dist-${PI_RS_CORE_VERSION}-x86_64-unknown-linux-gnu.tar.gz"

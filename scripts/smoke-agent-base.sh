@@ -68,6 +68,17 @@ chk   "systemd acpsup" systemctl is-active acpsup
 [ -x /opt/clean-chrome/CURRENT/chrome ] && ok "chrome 单副本在(/opt/clean-chrome/CURRENT)" || bad "chrome 单副本缺席"
 [ ! -e "$HOME/.browse-rs/chrome" ] && ok "browse 无托管副本(单副本口径)" || bad "browse 托管副本存在(应复用 chrome 组)"
 [ -f /opt/zg-models/hf_Qwen_Qwen3-Embedding-0.6B-Q8_0.gguf ] && ok "zg 向量模型烤库在" || bad "zg 模型缺席"
+# 原生 yolo 面配置断言(用户令:原生无阻塞交互;键名 grok 容器实证,行为探针在
+# E2E 在线阶段——runbook §5,断网冒烟只验配置面)
+if [ "$VIEW" = root ]; then H=/root; else H=/home/ubuntu; fi
+grep -q '"defaultMode": "bypassPermissions"' /etc/claude-code/managed-settings.json && ok "claude 策略 bypassPermissions" || bad "managed-settings 缺 bypass"
+grep -q '"IS_SANDBOX": "1"' /etc/claude-code/managed-settings.json && ok "claude 根闸 IS_SANDBOX=1(策略 env)" || bad "managed-settings 缺 IS_SANDBOX"
+grep -q '"skipDangerousModePermissionPrompt": true' /etc/claude-code/managed-settings.json && ok "claude 免责框跳过键" || bad "缺 skipDangerousModePermissionPrompt"
+grep -q 'hasCompletedOnboarding' "$H/.claude.json" && grep -q 'bypassPermissionsModeAccepted' "$H/.claude.json" && ok "claude TUI 首启预置键($H)" || bad "$H/.claude.json 预置缺"
+[ -f /etc/profile.d/claude-yolo.sh ] && ok "profile.d 根闸面(登录壳)" || bad "profile.d/claude-yolo.sh 缺"
+grep -q '^web_search = "disabled"' "$H/.codex/config.toml" && ok "codex web_search 移除(顶层正形)" || bad "codex web_search 形错($H)"
+grep -q '^\[tools\.web_search\]' "$H/.codex/config.toml" && bad "codex 旧非法表残存($H)" || ok "codex 无旧表($H)"
+grep -q '^approval_policy = "never"' "$H/.codex/config.toml" && grep -q '^sandbox_mode = "danger-full-access"' "$H/.codex/config.toml" && ok "codex never+全权($H)" || bad "codex approval/sandbox 形错($H)"
 
 section "[$VIEW] D. 实跑面"
 # browse 经引擎取内网面(网关);网关在 eth0 之外可达(incusbr0 NAT 是外网道,eth0 down 不拦)

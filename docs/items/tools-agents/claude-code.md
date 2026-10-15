@@ -19,6 +19,7 @@
 ## 配置
 
 - 网关部署已进镜像:managed settings 的 env 带 `ANTHROPIC_BASE_URL`(overcast 网关)、`ANTHROPIC_AUTH_TOKEN`(网关令牌)、模型映射(haiku 与子代理是 `zp-cc-glm53fh[1m]`,sonnet 与 opus 是 `zp-cc-glm53[1m]`)、`API_TIMEOUT_MS=3000000` 与自动压缩参数;它的优先级高于用户 token;实例不挂用户 OAuth;用量集中在网关侧。
+- **原生 yolo 面**(用户令 2026-10-15:原生无阻塞交互;grok 容器实证,研究档案 board `2026-10-15-native-yolo`):策略层三键 `permissions.defaultMode = "bypassPermissions"`(TUI 与 `-p` 全覆盖,Bash 免 allow;项目/本地层无权授予 bypass)、`env.IS_SANDBOX = "1"`(根闸恰值,策略 env 在闸前注入;ubuntu 无此闸;`"true"` 不放行)、`skipDangerousModePermissionPrompt = true`(免危险模式免责框);`/etc/profile.d/claude-yolo.sh` 供登录壳;家目录 `.claude.json` 预置四键 `hasCompletedOnboarding`/`theme`/`bypassPermissionsModeAccepted`/`hasSeenAutoDefaultNudge`(TUI 首启零弹窗;2.1.296 无 `hasCompletedNonInteractiveOnboarding` 名,禁预置;已有文件只并键)。`-p` 面天然零弹窗且非交互会话直接视为已信任。禁写 `disableBypassPermissionsMode`。
 - 网关 URL 与模型映射经环境变量覆盖(`AGENT_GATEWAY_URL`、`AGENT_CC_*`);令牌经 `AGENT_GATEWAY_TOKEN` 或令牌文件(默认 `/root/.agent-gateway-token`)给,消费后删除,不进仓库;网关关鉴权期统一用占位串 `overcast`(2026-10-13 起),鉴权重开时换真令牌重跑即可;缺令牌重跑时,盘上已有网关配置保留不覆盖。
 - 个人凭证面:无头登录在有浏览器的机器执行 `claude setup-token`,再注入长效 token;`CLAUDE_CODE_OAUTH_TOKEN` 环境变量旧道保留;root 与 ubuntu 共用挂载时,设 `CLAUDE_CONFIG_DIR=/home/ubuntu/.claude`;挂载个人 `~/.claude` 覆盖用户层,压不过组织级策略。
 
