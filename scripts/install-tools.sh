@@ -1468,11 +1468,11 @@ CXEOF
 
 # ---- pi-rs(自家 agent:pi-rs-core GitHub Release 直下 + sha256 锚,ACP 原生后端)----
 install_pi_rs() {
-    log "pi-rs ${PI_RS_CORE_VERSION}(pi-rs-core 发行件;镜像道对该仓不可用,直连兜底,再兜宿主预推)"
+    log "pi-rs ${PI_RS_CORE_VERSION}(pi-rs-agent 发行件,仓已更名;镜像道对该仓不可用,直连兜底,再兜宿主预推)"
     local name="pi-rs-dist-${PI_RS_CORE_VERSION}-x86_64-unknown-linux-gnu.tar.gz"
     local tgz="/tmp/${name}" ok=0 u
-    for u in "${GITHUB_MIRROR}https://github.com/raystyle/pi-rs-core/releases/download/v${PI_RS_CORE_VERSION}/${name}" \
-             "https://github.com/raystyle/pi-rs-core/releases/download/v${PI_RS_CORE_VERSION}/${name}"; do
+    for u in "${GITHUB_MIRROR}https://github.com/raystyle/pi-rs-agent/releases/download/v${PI_RS_CORE_VERSION}/${name}" \
+             "https://github.com/raystyle/pi-rs-agent/releases/download/v${PI_RS_CORE_VERSION}/${name}"; do
         curl -fsSL -m 600 -o "$tgz" "$u" 2>/dev/null && { ok=1; break; }
     done
     # 直连也败时吃宿主预推的 /root/<name>(构建机网络受限道的落盘件)
