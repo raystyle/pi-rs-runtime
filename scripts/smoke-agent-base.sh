@@ -60,6 +60,12 @@ section "[$VIEW] C. 五面孔与引擎"
 chkout "claude"        "claude" 30 claude --version
 chkout "codex"         "codex" 30 codex --version
 chkout "pi-rs"         "[0-9]+\.[0-9]+" 30 pi-rs --version
+# v0.5.0 形(契约 881ca7b):bun 单二进制 + vendor 三落位(镜像构建产物)
+[ -x /opt/pi-rs/pi-rs ] && ok "bun 单二进制在(/opt/pi-rs/pi-rs)" || bad "bun 二进制缺"
+[ -x /opt/pi-rs/vendor/rust-script/x86_64-unknown-linux-gnu/rust-script ] && ok "vendor rust-script(B1)" || bad "vendor rust-script 缺"
+[ -x /opt/pi-rs/vendor/zg/x86_64-unknown-linux-gnu/zg ] && ok "vendor zg(B2)" || bad "vendor zg 缺"
+[ -f /opt/pi-rs/vendor/zg/x86_64-unknown-linux-gnu/libzvec_c_api.so ] && ok "vendor 伴生库(B2)" || bad "vendor libzvec_c_api.so 缺"
+[ -d /opt/pi-rs/vendor/zg/x86_64-unknown-linux-gnu/jieba_dict ] && ok "vendor jieba 词表(B3)" || bad "vendor jieba_dict 缺"
 if [ "$VIEW" = root ]; then chkout "acpsup(自检)" "selftest PASS" 90 acpsup --selftest claude; fi   # 自检写 keys.json(0600 root),仅 root 视角
 chk   "clean-chrome" clean-chrome --version
 chk   "browse 版本"   browse --version
@@ -124,7 +130,12 @@ if [ "$VIEW" = root ]; then
     fi
     rm -rf "$Z"
     # piocr 烤库 pin 全绿(install_piocr 同源抽析,smoke 不硬编码锚——与所装 pi-rs 自洽)
-    O=/opt/pi-rs/dist/extensions/rust_script/lib/ocr/src/lib.rs
+    # pin 表源:v0.5.0 契约在 rust-lib/ocr;0.4.0 旧形在 dist/…(过渡期双探)
+    O=""
+    for O in /opt/pi-rs/rust-lib/ocr/src/lib.rs \
+             /opt/pi-rs/dist/extensions/rust_script/lib/ocr/src/lib.rs; do
+        [ -f "$O" ] && break
+    done
     if [ -f "$O" ] && [ -x /usr/bin/python3 ]; then
         python3 - "$O" <<'PY' > /tmp/piocr-smoke.sha
 import re, sys

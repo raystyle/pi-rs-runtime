@@ -44,6 +44,7 @@ command -v go >/dev/null 2>&1 && echo "  ok go" || { echo "  !! 缺 go"; miss=$(
 [ -x /opt/node/bin/node ] && echo "  ok node(/opt/node)" || { echo "  !! 缺 /opt/node"; miss=$((miss+1)); }
 [ -f /opt/zg-models/hf_Qwen_Qwen3-Embedding-0.6B-Q8_0.gguf ] && echo "  ok zg 模型烤库" || { echo "  !! 缺 zg 模型"; miss=$((miss+1)); }
 [ -f /opt/pi-ocr-models/tiny-rec/model.safetensors ] && echo "  ok pi_ocr 烤库" || { echo "  !! 缺 pi_ocr 模型"; miss=$((miss+1)); }
+[ -x /opt/pi-rs/vendor/zg/x86_64-unknown-linux-gnu/zg ] && echo "  ok pi-rs vendor zg" || { echo "  !! 缺 vendor zg(v0.5.0 落位)"; miss=$((miss+1)); }
 [ -x /opt/clean-chrome/CURRENT/chrome ] && echo "  ok chrome 单副本" || { echo "  !! 缺 chrome 单副本"; miss=$((miss+1)); }
 systemctl is-active --quiet acpsup && echo "  ok acpsup(active)" || { echo "  !! acpsup 未激活"; miss=$((miss+1)); }
 [ -f /var/lib/acpsup/token ] && echo "  ok acpsup token" || { echo "  !! 缺 token"; miss=$((miss+1)); }

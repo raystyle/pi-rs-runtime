@@ -1516,11 +1516,121 @@ install_pi_rs() {
     [ "$ok" = 1 ] || { echo "!! pi-rs 发行件三道皆败(可宿主 gh release download 后推 /root/${name})"; return 1; }
     echo "${PI_RS_SHA256}  ${tgz}" | sha256sum -c - >/dev/null || { echo "!! pi-rs 发行件 sha256 不符"; rm -f "$tgz"; return 1; }
     rm -rf /opt/pi-rs && mkdir -p /opt/pi-rs
-    tar xzf "$tgz" -C /opt/pi-rs && rm -f "$tgz"
-    printf '#!/bin/sh\nexec /opt/node/bin/node /opt/pi-rs/dist/bundle/cli.js "$@"\n' > /usr/local/bin/pi-rs
+    # v0.5.0 形(契约 881ca7b):bun 单二进制+源码随包;tar 顶层同名目录一层,strip 直落
+    tar xzf "$tgz" -C /opt/pi-rs --strip-components=1 && rm -f "$tgz"
+    chmod +x /opt/pi-rs/pi-rs
+    printf '#!/bin/sh\nexec /opt/pi-rs/pi-rs "$@"\n' > /usr/local/bin/pi-rs
     chmod 755 /usr/local/bin/pi-rs
+    # vendor 落位构建(契约 §3/§4,工件零 blob 镜像侧填):B1 rust-script + B2 zg/so + B3 jieba
+    local triple=x86_64-unknown-linux-gnu
+    local vs=/opt/pi-rs/extensions/rust_script/vendor
+    local vd=/opt/pi-rs/vendor
+    ( cd "$vs/rust-script" && CARGO_NET_OFFLINE=false cargo build --release ) \
+        || { echo "!! rust-script 构建失败(B1)"; return 1; }
+    install -d "$vd/rust-script/$triple" "$vd/zg/$triple"
+    install -m755 "$vs/rust-script/target/release/rust-script" "$vd/rust-script/$triple/rust-script"
+    # zg:fork 树形同上游(rust/ 工作区 -p zg;伴生库 RUNPATH $ORIGIN,二进制+so 须同目录)
+    ( cd "$vs/zvec-grep/rust" && CARGO_NET_OFFLINE=false cargo build --release -p zg ) \
+        || { echo "!! vendor zg 构建失败(B2)"; return 1; }
+    install -m755 "$vs/zvec-grep/rust/target/release/zg" "$vd/zg/$triple/zg"
+    install -m644 "$vs/zvec-grep/rust/target/release/libzvec_c_api.so" "$vd/zg/$triple/libzvec_c_api.so"
+    # jieba 词表:zg 组镜像面复制进落位区(零 env 直中;acpsup env 预置恒赢双保险)
+    if [ -d /usr/local/share/zvec/jieba_dict ]; then
+        cp -r /usr/local/share/zvec/jieba_dict "$vd/zg/$triple/jieba_dict"
+    else
+        echo "!! jieba 镜像面缺(B3 落位空);确认 zg 组先跑(fts 面靠 env 兜底)"
+    fi
+    # 原生 CLI 面(非 acpsup spawn)模型指路:登录壳道;acpsup 行 env 由 backend.go 注(双道)
+    printf 'export ZVEC_GREP_MODEL_CACHE=/opt/zg-models\nexport PI_OCR_CACHE_DIR=/opt/pi-ocr-models\n' > /etc/profile.d/pi-rs-models.sh
+    # B7 件预编译(core 回执②正道):136 件 materialize 同形注入(pi_rust_lib/cdp/pi_ocr
+    # path deps,与运行时 materializeScript 同绝对路径=字节一致,rust-script 缓存首用零编译)
+    # + rust-script <件> --selftest 全循环(预热缓存兼验全件可编译,core smoke 闸同机制)
+    python3 - <<'B7EOF' || { echo "!! B7 件 selftest 有败(编译面坏,拒绝视为完成)"; return 1; }
+import os, re, subprocess, sys
+root = "/opt/pi-rs"
+scripts_dir = os.path.join(root, "rust-scripts", "scripts")
+lib_dir = os.path.join(root, "rust-lib", "pi-rust-lib")
+cdp_dir = os.path.join(root, "extensions", "rust_script", "vendor", "cdp")
+ocr_dir = os.path.join(root, "rust-lib", "ocr")
+rsbin = os.path.join(root, "vendor", "rust-script", "x86_64-unknown-linux-gnu", "rust-script")
+tmp = "/tmp/pi-rs-b7"
+os.makedirs(tmp, exist_ok=True)
+
+def walk(d):
+    out = []
+    for e in os.scandir(d):
+        if e.is_dir():
+            out += walk(e.path)
+        elif e.path.endswith(".rs"):
+            out.append(e.path)
+    return out
+
+def materialize(src):
+    deps = []
+    if "pi_rust_lib" in src and not re.search(r"^//!\s*pi_rust_lib\s*=", src, re.M):
+        deps.append('pi_rust_lib = { path = "%s" }' % lib_dir)
+    if "cdp::" in src and not re.search(r"^//!\s*cdp\s*=", src, re.M) and os.path.isdir(cdp_dir):
+        deps.append('cdp = { path = "%s" }' % cdp_dir)
+    if re.search(r"pi_ocr::", src) and not re.search(r"^//!\s*pi_ocr\s*=", src, re.M) and os.path.isdir(ocr_dir):
+        deps.append('pi_ocr = { path = "%s" }' % ocr_dir)
+    if not deps:
+        return src
+    lines = src.split("\n")
+    has_deps = any(re.match(r"^//!\s*\[dependencies\]", l) for l in lines)
+    cargo_open = next((i for i, l in enumerate(lines) if l.strip() == "//! ```cargo"), -1)
+    if has_deps or cargo_open >= 0:
+        if has_deps:
+            at = next(i for i, l in enumerate(lines) if re.match(r"^//!\s*\[dependencies\]", l))
+            lines[at+1:at+1] = ["//! " + d for d in deps]
+        else:
+            lines[cargo_open+1:cargo_open+1] = ["//! [dependencies]"] + ["//! " + d for d in deps]
+    else:
+        insert_at = len(lines)
+        for i, line in enumerate(lines):
+            if (i == 0 and line.startswith("#!")) or line.startswith("//!"):
+                continue
+            insert_at = i
+            break
+        lines[insert_at:insert_at] = ["//! ```cargo", "//! [dependencies]"] + ["//! " + d for d in deps] + ["//! ```"]
+    return "\n".join(lines) + "\n"
+
+files = sorted(walk(scripts_dir))
+if not files:
+    sys.exit("rust-scripts/scripts 空(工件布局不符契约?)")
+failed = []
+for n, f in enumerate(files, 1):
+    mat = os.path.join(tmp, f.replace("/", "_") + ".mat.rs")
+    with open(mat, "w") as w:
+        w.write(materialize(open(f).read()))
+    try:
+        p = subprocess.run([rsbin, mat, "--selftest"], capture_output=True, text=True,
+                           timeout=240, stdin=subprocess.DEVNULL)
+        out = (p.stdout or "") + "\n" + (p.stderr or "")
+        if re.search(r"error\[E\d+\]|could not compile|error: could not", out, re.I):
+            failed.append(f)
+    except subprocess.TimeoutExpired:
+        failed.append(f)
+    if n % 20 == 0:
+        print("  B7 进度:%d/%d(败 %d)" % (n, len(files), len(failed)), flush=True)
+print("B7 件 selftest:%d 件,%d 败" % (len(files), len(failed)))
+if failed:
+    for f in failed[:5]:
+        print("  败:" + f)
+    sys.exit(1)
+B7EOF
+    rm -rf /tmp/pi-rs-b7
+    # B4 闭包预热兜底:七源码树各自 fetch 进 /opt/cargo(B1/B2/B7 编译已顺带热大半;
+    # iwe/jc 等未被件依赖的树在此兜底,doc_ocr 离线编译的 hayro/candle 面由此闭)
+    local t
+    for t in "$vs/rust-script" "$vs/zvec-grep/rust" "$vs/cdp" "$vs/iwe" \
+             /opt/pi-rs/rust-lib/pi-rust-lib /opt/pi-rs/rust-lib/jc /opt/pi-rs/rust-lib/ocr; do
+        [ -d "$t" ] || continue
+        ( cd "$t" && CARGO_NET_OFFLINE=false bash -c 'cargo fetch --locked >/dev/null 2>&1 || cargo fetch >/dev/null 2>&1' ) \
+            || echo "  (B4 兜底 fetch 软败:$t;B7 编译面或已覆盖)"
+    done
+    pi-rs --version 2>&1 | grep -q "${PI_RS_CORE_VERSION}" || { echo "!! pi-rs --version 非 ${PI_RS_CORE_VERSION}"; return 1; }
     pi-rs --help 2>&1 | grep -q "acp" || { echo "!! pi-rs --help 未列 acp 模式"; return 1; }
-    echo "pi-rs ${PI_RS_CORE_VERSION} 就位:/opt/pi-rs(入口 /usr/local/bin/pi-rs,ACP 模式在列;模型面默认网关,走官方设 PI_GATEWAY_BASE_URL=off)"
+    echo "pi-rs ${PI_RS_CORE_VERSION} 就位:/opt/pi-rs(bun 单二进制 + vendor 三落位;ACP 模式在列;模型 env 双道:acpsup 行 + profile.d)"
 }
 
 # ---- acp(标准 agent 接入通道:ACP 适配器锁定版本 + 监督进程 acpsup,S-0002/REQ-0002)----
@@ -1832,8 +1942,14 @@ install_vnc() {
 # lib.rs file_urls 同形;环境缺模型时 pi-rs 会向网拉(离线容器坏)——此烤库即断它。
 install_piocr() {
     log "pi_ocr tiny 模型烤库(/opt/pi-ocr-models;pin 抽自所装 pi-rs dist)"
-    local librs=/opt/pi-rs/dist/extensions/rust_script/lib/ocr/src/lib.rs
-    [ -f "$librs" ] || { echo "!! pi-rs dist 缺 lib.rs(先跑 agents 组装 pi-rs)"; return 1; }
+    # pin 表源:v0.5.0 契约在 rust-lib/ocr;0.4.0 旧形在 dist/…(过渡期双探)
+    local librs=""
+    local cands
+    for cands in /opt/pi-rs/rust-lib/ocr/src/lib.rs \
+                 /opt/pi-rs/dist/extensions/rust_script/lib/ocr/src/lib.rs; do
+        [ -f "$cands" ] && librs="$cands" && break
+    done
+    [ -n "$librs" ] || { echo "!! pi-rs 缺 ocr lib.rs(先跑 agents 组装 pi-rs)"; return 1; }
     local root=/opt/pi-ocr-models
     install -d "$root"
     # pin 表抽析(仅 tiny 两包;python3 云镜像自带):pkg repo rev file bytes sha
