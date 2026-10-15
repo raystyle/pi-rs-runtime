@@ -1,6 +1,8 @@
 # 皓玄宿主影子跑 runbook:镜像消费方,agent-base 分支契约
 
-> 镜像:pi-rs-runtime-agent-20261015-0659(fingerprint 2e5c3342aef2…89468,3.6GiB)
+> 镜像:pi-rs-runtime-agent-20261015-2051(fingerprint 62b19f01b945…8be61,4.0GiB)
+> 本版含:pi-rs v0.5.1(bun 单二进制+vendor 落位)、常驻桌面(xfce,:99+5900,浏览器按需)、
+> 原生 CLI yolo 面、JDK21/zig+zigbuild/piocr 烤库、ACPSUP_AGENTS 白名单、/vnc desktop 模式。
 > 落点:皓玄网关宿主 10.10.10.16 本地 incus;本文即镜像消费契约,改动须同步出版方。
 
 ## 1. 宿主前置:一次性
@@ -16,13 +18,15 @@
 ## 2. 镜像导入
 
 ```
-# 出版方递来的 tar.gz 约 3.6GB;sha256 随件,先验后导
-incus image import pi-rs-runtime-agent-20261015-0659.tar.gz \
-  --alias pi-rs-runtime-agent-20261015-0659
+# 出版方递来的 tar.gz 约 4.2GB;sha256 随件,先验后导
+incus image import pi-rs-runtime-agent-20261015-2051.tar.gz \
+  --alias pi-rs-runtime-agent-20261015-2051 \
+  --alias pi-rs-agent-current
 ```
 
 - 版本契约:每次出版双别名,版本别名 `pi-rs-runtime-agent-<ts>` + 浮动 `pi-rs-agent-current`;fingerprint/sha256 随件出 VERSION 清单。
 - 消费方验:`incus image list | grep agent`;摘要不符拒导。
+- 本版取用道:HTTP 面 `http://10.10.10.13:8090/pi-rs-runtime-agent-20261015-2051.tar.gz`(+ `.sha256` 边车);旧版 2e5c3342 到位即删。
 
 ## 3. 起影子实例
 
