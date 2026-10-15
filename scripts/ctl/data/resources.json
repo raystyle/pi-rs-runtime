@@ -6480,7 +6480,7 @@
    "kind": "tool",
    "group": "`install-tools.sh agents`",
    "status": "已装",
-   "desc": "自家 agent(pi-rs-core 产品仓),ACP 原生后端",
+   "desc": "自家 agent(pi-rs-agent 产品仓,2026-10-15 更名自 pi-rs-core),ACP 原生后端",
    "pin": "PI_RS_CORE_VERSION=0.3.0(GitHub Release + PI_RS_SHA256 锚)",
    "path": "/usr/local/bin/pi-rs",
    "offline": "未验证。`--help` 与 ACP 握手是本地面,推理经网关属运行期网络",

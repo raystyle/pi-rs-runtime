@@ -29,8 +29,8 @@ import (
 	"golang.org/x/time/rate"
 )
 
-// modelCatalog 是各 agent 的合法模型别名与默认(三端别名表 + pi-rs-core 0.3.0 模型锁;
-// pi 中会话换模待 pi-rs-core 支持 set_config_option 后开放)。
+// modelCatalog 是各 agent 的合法模型别名与默认(三端别名表 + pi-rs-agent 0.3.0 模型锁;
+// pi 中会话换模待 pi-rs-agent 支持 set_config_option 后开放)。
 var modelCatalog = map[string]struct {
 	Models       []string // 建会话 model 参数合法面(spawn env 道,全清单)
 	SwitchModels []string // 中会话换模合法面(四模型面,与 Models 全等)
@@ -883,7 +883,7 @@ func mkdirAllowlisted(cwd string) error {
 	return fmt.Errorf("cwd 无效(需存在的绝对路径目录,或在自动建白名单 %v 下):%s", cwdAllowRoots(), cwd)
 }
 
-// handleSessionResume 续会话(契约③,pi-rs-core 5bfe832):spawn 后 initialize →
+// handleSessionResume 续会话(契约③,pi-rs-agent 仓 5bfe832):spawn 后 initialize →
 // session/resume {sessionId, cwd, mcpServers: []};cwd 由调用方给(须等会话记录的 cwd,
 // 后端 fail-closed 校验);后端不支持的请求原样 502 透传错误面。
 func (s *Server) handleSessionResume(w http.ResponseWriter, r *http.Request) {

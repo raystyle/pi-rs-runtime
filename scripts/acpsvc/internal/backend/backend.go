@@ -34,7 +34,7 @@ type Def struct {
 }
 
 // Registry 返回三行,顺序即 /health 的 agents 顺序;pi 的就绪是运行期判定。
-// pi 模型面默认走 overcast 网关(pi-rs-core 5b63ec3):PI_GATEWAY_BASE_URL 未设即网关,
+// pi 模型面默认走 overcast 网关(pi-rs-agent 仓 5b63ec3,时名 pi-rs-core):PI_GATEWAY_BASE_URL 未设即网关,
 // 凭证任意非空即过(关鉴权期 canon overcast);走官方 API 时 spawn env 覆盖 PI_GATEWAY_BASE_URL=off。
 // --approve 统一信任项目本地件(2026-10-14 契约②:pi install 扩展或 .pi-rs/settings.json
 // 出现后,无 UI 的 ACP 重启会静默不加载项目面;平台持久区 /srv/work 语义下信任合理)。
