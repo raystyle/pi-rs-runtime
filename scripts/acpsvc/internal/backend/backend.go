@@ -51,10 +51,11 @@ func Registry() []Def {
 				"PI_OCR_CACHE_DIR=/opt/pi-ocr-models",
 				// 词表指路(F2 面的 runtime 侧注记:04836e8 后随包发行,外部预置仍赢)
 				"ZVEC_JIEBA_DICT_DIR=/usr/local/share/zvec/jieba_dict",
-				// DISPLAY 注入撤回(反向 review F-R1):display_present() 只探 env 不探 X 套接字
-				// (vendor/cdp/src/spawn.rs:170-176),设 DISPLAY=:99 而无活 X 时 headless_fallback
-				// 不补 --headless → headed chrome 连不上 X 直接死(agent browse 面断)。桌面 unit
-				// (Xvfb :99+xfce)落地时与 DISPLAY 原子同批回加;正道=会师批 BROWSE_CDP_WS。
+				// 桌面上屏(F-R1 原子同批律:与 desktop 组三 unit 同批落——Xvfb :99 在役,
+				// agent 起的 chrome headed 上桌面,VNC 可见;X 授权双键文件由 desktop-auth-gen 自生)。
+				// 双保险:core display_present 已加固套接字实证,万一桌面栈亡自动落无头不挂。
+				"DISPLAY=:99",
+				"XAUTHORITY=/var/lib/desktop/x99.auth",
 			}, FS: false, Terminal: false},
 	}
 }
@@ -69,6 +70,39 @@ func (d Def) Resolve() ([]string, error) {
 		return nil, err
 	}
 	return append([]string{"node"}, bin), nil
+}
+
+// Allowed 按 ACPSUP_AGENTS env 过滤注册表(room/hx-arch 共识①:一 agent 一容器收窄,
+// 编排层给实例 env 即得单面容器)。未设=全量(过渡);设了=白名单交集,
+// 名单含未注册名即硬错——打错字静默清空比启动失败更坏。
+func Allowed() ([]Def, error) {
+	all := Registry()
+	raw := strings.TrimSpace(os.Getenv("ACPSUP_AGENTS"))
+	if raw == "" {
+		return all, nil
+	}
+	byName := make(map[string]Def, len(all))
+	for _, d := range all {
+		byName[d.Name] = d
+	}
+	var out []Def
+	for _, n := range strings.FieldsFunc(raw, func(r rune) bool {
+		return r == ',' || r == ' ' || r == '\t'
+	}) {
+		d, ok := byName[n]
+		if !ok {
+			names := make([]string, 0, len(all))
+			for _, d := range all {
+				names = append(names, d.Name)
+			}
+			return nil, fmt.Errorf("ACPSUP_AGENTS 含未注册的 %q(可用:%s)", n, strings.Join(names, ","))
+		}
+		out = append(out, d)
+	}
+	if len(out) == 0 {
+		return nil, errors.New("ACPSUP_AGENTS 解析后为零名单")
+	}
+	return out, nil
 }
 
 // Find 按对外名取一行。

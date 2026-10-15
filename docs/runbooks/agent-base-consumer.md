@@ -16,7 +16,7 @@
 ## 2. 镜像导入
 
 ```
-# 出版方递来的 tar.gz(约 3.6GB;sha256 随件,先验后导)
+# 出版方递来的 tar.gz 约 3.6GB;sha256 随件,先验后导
 incus image import pi-rs-runtime-agent-20261015-0659.tar.gz \
   --alias pi-rs-runtime-agent-20261015-0659
 ```
@@ -53,10 +53,12 @@ incus exec haoxuan-agent-1 -- systemctl is-active acpsup   # = active
 - 出版方验收脚本:`scripts/smoke-agent-base.sh`(root+ubuntu 双视角;断网自证/版本面/五面孔/VNC 栈/实跑;40+28 项)。
 - E2E 最小集:三后端(claude/codex/pi)`/session/new`+`/session/prompt` 回环;claude 换模 ds-cc-flash(重建道 {ok,rebuilt});`GET /vnc?sessionId=` 升级后 RFB 003.008 横幅。
 - 语义在册:换模 claude=重建道(resume 续接),codex=set 直通;会话空闲 30 分钟逐出(逐出后 /vnc 404 属预期)。
+- 常驻桌面(2026-10-15 补面批,desktop 组):三 unit `xvfb99`/`xfce-desktop`/`x11vnc99` 自起,`systemctl is-active` 三绿 + X99 套接字 + 5900 回环 RFB 横幅为过闸项;**VncPanel 主道 = b 道 `GET /vnc?display=desktop`**(WS 桥,同 7663 端点同键权同 binary 子协议;RFB 鉴权口令先经 admin `GET /vnc/desktop` 取 {password});a 道 proxy device 直连 127.0.0.1:5900 备用(原生 RFB 客户端)。按需会话栈(:100-:131)保留为回退道。桌面里浏览器不预启,agent 按需起(agent spawn env 已注 DISPLAY=:99+XAUTHORITY,agent 起的 chrome 上桌面可见)。
+- 单 agent 实例(一 agent 一容器):`incus config set <实例> environment.ACPSUP_AGENTS=pi`(逗号/空格分隔多名;未设=全量;未注册名=启动硬错)。
 
 ## 6. 已知边界:消费方须知
 
 - 容器内 kill 族 EACCES(宿主安全策略):进程回收全走自退道(acpsup 内建;勿引入依赖信号杀进程的编排逻辑)。
 - `incus publish` 压缩期实例冻结约 10 分钟(固有窗口;出版方发起时预告)。
-- 凭证不烤镜像:token/keys.json 首启自生, publish 前由出版方删净;消费方镜像里永远无键。
+- 凭证不烤镜像:token/keys.json 首启自生, publish 前由出版方删净;消费方镜像里永远无键。桌面凭证同律:`/var/lib/desktop/` 下 X 授权与 VNC 口令由 `desktop-auth-gen` 首启自生,publish 前一并删净。
 - 尾网可达性:容器内模型推理走 10.10.10.9:8317(尾网),宿主必须常驻尾网。

@@ -598,10 +598,19 @@ func (st *vncStack) Bridge(sess *session.Session, w http.ResponseWriter, r *http
 	return nil
 }
 
-// handleVNC 是 GET /vnc?sessionId= 的 WS 升级面:鉴权同业务路由(caller 键),
-// 且收紧到「caller 只能开自己建的会话」(VNC 能看能点;跨键与会话缺失同一 404 正文,
-// 不暴露他人会话存在;admin 可开任一)。升级前先 Ensure 显示栈(失败 503 不升级)。
+// handleVNC 是 GET /vnc 的 WS 升级面,双形:?display=desktop 桥常驻桌面(x11vnc99 5900,
+// 容器级、无会话);缺省按 ?sessionId= 起会话栈。鉴权同业务路由(caller 键),会话形收紧到
+//「caller 只能开自己建的会话」(VNC 能看能点;跨键与会话缺失同一 404 正文,不暴露他人会话
+// 存在;admin 可开任一)。升级前先 Ensure 显示栈(失败 503 不升级)。
 func (s *Server) handleVNC(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Query().Get("display") == "desktop" {
+		key, _ := r.Context().Value(keyCtx).(Key)
+		if s.log != nil {
+			s.log.Info("vnc_bridge", "cat", "audit", "action", "vnc/desktop", "key_id", key.ID)
+		}
+		_ = s.vnc.BridgeDesktop(w, r) // 阻塞到桥结束;帧内容永不落日志(里面是按键)
+		return
+	}
 	sess := s.table.Get(r.URL.Query().Get("sessionId"))
 	if sess == nil {
 		jsonWrite(w, 404, map[string]any{"error": "无此会话"})
@@ -625,4 +634,85 @@ func (s *Server) handleVNC(w http.ResponseWriter, r *http.Request) {
 			"session_id", sess.ID, "key_id", key.ID, "slot", st.slot)
 	}
 	_ = st.Bridge(sess, w, r, s.log) // 阻塞到桥结束;帧内容永不落日志(里面是按键)
+}
+
+// BridgeDesktop 是 ?display=desktop 的桥面:WS ↔ 127.0.0.1:5900(x11vnc99 常驻,desktop 组
+// 三 unit 起)。与会话栈桥同构(binary 子协议 + ping 保活),但容器级常驻无会话、无 sess.Touch;
+// RFB 鉴权由 x11vnc -rfbauth 承担(口令经 GET /vnc/desktop 出),桥透明直通——面板/原生客户端
+// 同一道挑战应答,单桥不并存旧栈语义。
+func (m *vncManager) BridgeDesktop(w http.ResponseWriter, r *http.Request) error {
+	conn, err := websocket.Accept(w, r, &websocket.AcceptOptions{
+		Subprotocols:       []string{"binary"},
+		InsecureSkipVerify: true, // 鉴权是 Bearer;网关可能转发浏览器 Origin,默认校验会 403
+	})
+	if err != nil {
+		return err
+	}
+	if conn.Subprotocol() != "binary" {
+		_ = conn.Close(websocket.StatusPolicyViolation, "子协议须 binary")
+		return nil
+	}
+	conn.SetReadLimit(4 << 20)
+
+	tcp, err := net.DialTimeout("tcp", "127.0.0.1:5900", 3*time.Second)
+	if err != nil {
+		_ = conn.Close(websocket.StatusTryAgainLater, "desktop_vnc_unreachable")
+		return nil
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	wsNet := websocket.NetConn(ctx, conn, websocket.MessageBinary)
+
+	var once sync.Once
+	end := func() {
+		once.Do(func() {
+			cancel()
+			_ = tcp.Close()
+			_ = wsNet.Close()
+			_ = conn.CloseNow()
+		})
+	}
+	defer end()
+
+	go func() { defer end(); _, _ = io.Copy(tcp, wsNet) }() // noVNC → x11vnc99
+	go func() { defer end(); _, _ = io.Copy(wsNet, tcp) }() // x11vnc99 → noVNC
+
+	// 保活:ping 30s(中间盒空闲掐线);常驻桌面无会话,不 Touch
+	go func() {
+		t := time.NewTicker(vncPingEvery)
+		defer t.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-t.C:
+				if err := conn.Ping(ctx); err != nil {
+					end()
+					return
+				}
+			}
+		}
+	}()
+	<-ctx.Done()
+	return nil
+}
+
+// desktopVNCPasswordPath 是常驻桌面 RFB 口令明文件(desktop-auth-gen 一生一次,
+// 0600 root;哈希件 vnc.passwd 归 x11vnc,明件仅供此端点出给消费方)。
+const desktopVNCPasswordPath = "/var/lib/desktop/vnc.passwd.plain"
+
+// handleVNCDesktopKey 是 GET /vnc/desktop:出常驻桌面 RFB 口令 + 端口(仅 admin——
+// 口令即桌面全控)。b 道(WS 桥)与 a 道(proxy device 直连)共用此口令过 RFB 鉴权。
+func (s *Server) handleVNCDesktopKey(w http.ResponseWriter, r *http.Request) {
+	b, err := os.ReadFile(desktopVNCPasswordPath)
+	if err != nil {
+		jsonWrite(w, 503, map[string]any{"error": "desktop_vnc_password_missing",
+			"hint": "desktop-auth-gen 未跑(desktop 组未装或桌面栈未起)"})
+		return
+	}
+	if pw := strings.TrimSpace(string(b)); pw != "" {
+		jsonWrite(w, 200, map[string]any{"display": ":99", "rfb_port": 5900, "password": pw})
+		return
+	}
+	jsonWrite(w, 503, map[string]any{"error": "desktop_vnc_password_empty"})
 }

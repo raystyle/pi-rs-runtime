@@ -287,9 +287,14 @@ type Server struct {
 }
 
 // New 装配服务;会话上限取建议默认(全局 8、每密钥 4)。
-func New(cfg Config) *Server {
+// agent 白名单错配(ACPSUP_AGENTS 含未注册名/零名单)即装配失败——启动期硬错。
+func New(cfg Config) (*Server, error) {
 	if cfg.DataDir == "" {
 		cfg.DataDir = "/var/lib/acpsup"
+	}
+	reg, err := backend.Allowed()
+	if err != nil {
+		return nil, fmt.Errorf("agent 白名单:%w", err)
 	}
 	perKeyMax := 4
 	if v := os.Getenv("ACPSUP_KEY_SESSIONS"); v != "" {
@@ -319,11 +324,11 @@ func New(cfg Config) *Server {
 		log:      cfg.Log,
 		table:    session.NewTable(globalMax, perKeyMax),
 		terms:    fsimpl.NewTerminals(),
-		reg:      backend.Registry(),
+		reg:      reg,
 		limiters: make(map[string]*rate.Limiter),
 		permIdx:  make(map[string]*session.Slot),
 		vnc:      vncMgr,
-	}
+	}, nil
 }
 
 // testAuthOff 是测试模式(ACPSUP_AUTH_OFF=1):任意请求放行,身份记 test/admin;
@@ -514,6 +519,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("POST /session/prompt", s.auth(s.handlePrompt, false, false))
 	mux.HandleFunc("POST /session/cancel", s.auth(s.handleCancel, false, true))
 	mux.HandleFunc("GET /vnc", s.auth(s.handleVNC, false, true))
+	mux.HandleFunc("GET /vnc/desktop", s.auth(s.handleVNCDesktopKey, true, true))
 	mux.HandleFunc("GET /events", s.auth(s.handleEvents, false, false))
 	mux.HandleFunc("POST /permission", s.auth(s.handlePermission, false, true))
 	mux.HandleFunc("GET /file", s.auth(s.handleFile, false, true))

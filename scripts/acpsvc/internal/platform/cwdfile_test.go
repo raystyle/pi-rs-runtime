@@ -55,12 +55,15 @@ func TestFileFaceJailAndRead(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(dataDir, "token"), []byte(tok+"\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	s := New(Config{
+	s, err := New(Config{
 		DataDir: dataDir,
 		SpawnFunc: func(def backend.Def, env []string, cwd string) (*acpclient.Agent, error) {
 			return acpclient.Spawn(def.Name, []string{script}, env, cwd)
 		},
 	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
 	if err := s.EnsureKeys(); err != nil {
 		t.Fatal(err)
 	}

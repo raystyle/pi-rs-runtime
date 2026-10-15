@@ -50,12 +50,15 @@ func newTestServer(t *testing.T) (*Server, string) {
 		t.Fatal(err)
 	}
 	callerTok := "acp_caller_test"
-	s := New(Config{
+	s, err := New(Config{
 		DataDir: filepath.Join(dir, "data"),
 		SpawnFunc: func(def backend.Def, env []string, cwd string) (*acpclient.Agent, error) {
 			return acpclient.Spawn(def.Name, []string{script}, env, cwd)
 		},
 	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
 	if err := s.EnsureKeys(); err != nil {
 		t.Fatalf("keys: %v", err)
 	}
@@ -286,7 +289,9 @@ func TestCodexHomeBootSweep(t *testing.T) {
 	if err := os.MkdirAll(stale, 0o700); err != nil {
 		t.Fatal(err)
 	}
-	_ = New(Config{DataDir: dir})
+	if _, err := New(Config{DataDir: dir}); err != nil {
+		t.Fatalf("New: %v", err)
+	}
 	if _, err := os.Stat(stale); !os.IsNotExist(err) {
 		t.Fatalf("重启应清 codex 基目录旧账: %v", err)
 	}

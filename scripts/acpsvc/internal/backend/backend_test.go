@@ -60,6 +60,37 @@ func TestRegistryThreeRows(t *testing.T) {
 	}
 }
 
+func TestAllowedWhitelist(t *testing.T) {
+	// 未设=全量(过渡)
+	t.Setenv("ACPSUP_AGENTS", "")
+	got, err := Allowed()
+	if err != nil || len(got) != 3 {
+		t.Fatalf("未设应全量: got=%d err=%v", len(got), err)
+	}
+	// 单面(一 agent 一容器):交集
+	t.Setenv("ACPSUP_AGENTS", "pi")
+	got, err = Allowed()
+	if err != nil || len(got) != 1 || got[0].Name != "pi" {
+		t.Fatalf("单面过滤错: got=%v err=%v", got, err)
+	}
+	// 多名分隔符(逗号/空格混排)
+	t.Setenv("ACPSUP_AGENTS", "claude, codex")
+	got, err = Allowed()
+	if err != nil || len(got) != 2 {
+		t.Fatalf("混排分隔符错: got=%d err=%v", len(got), err)
+	}
+	// 未注册名=硬错(打错字静默清空比失败更坏)
+	t.Setenv("ACPSUP_AGENTS", "pi,typo")
+	if _, err := Allowed(); err == nil {
+		t.Fatal("未注册名应硬错")
+	}
+	// 零名单=硬错
+	t.Setenv("ACPSUP_AGENTS", ", ,")
+	if _, err := Allowed(); err == nil {
+		t.Fatal("零名单应硬错")
+	}
+}
+
 func TestPiReadyModes(t *testing.T) {
 	// 就绪:假二进制 --help 列出 acp
 	okBin := filepath.Join(t.TempDir(), "pi-fake")

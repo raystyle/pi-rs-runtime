@@ -1788,7 +1788,150 @@ install_vnc() {
     true
 }
 
+# ---- piocr(pi_ocr tiny 模型烤库:pi-rs doc_ocr 件的模型面,needface v2 P0)----
+# 布局/pin/三镜像链全按发行件码内契约(/opt/pi-rs/dist/.../lib/ocr/src/lib.rs):
+#   <root>/{tiny-det,tiny-rec}/ 各 4 文件,逐文件 bytes+sha256 硬锚;sha 从所装 dist
+#   现抽——与所装 pi-rs 版本自洽,免另立锚漂移(core 回执③:models-v6 资产不动)。
+# 链:READER_MIRROR(缺省 reader.ohmygh.com)→ huggingface → github models-v6,与
+# lib.rs file_urls 同形;环境缺模型时 pi-rs 会向网拉(离线容器坏)——此烤库即断它。
+install_piocr() {
+    log "pi_ocr tiny 模型烤库(/opt/pi-ocr-models;pin 抽自所装 pi-rs dist)"
+    local librs=/opt/pi-rs/dist/extensions/rust_script/lib/ocr/src/lib.rs
+    [ -f "$librs" ] || { echo "!! pi-rs dist 缺 lib.rs(先跑 agents 组装 pi-rs)"; return 1; }
+    local root=/opt/pi-ocr-models
+    install -d "$root"
+    # pin 表抽析(仅 tiny 两包;python3 云镜像自带):pkg repo rev file bytes sha
+    local tsv=/tmp/piocr-pins.tsv
+    python3 - "$librs" > "$tsv" <<'PY' || { echo "!! pin 表抽析失败"; return 1; }
+import re, sys
+src = open(sys.argv[1], encoding="utf-8").read()
+m = re.search(r"const PACKAGES:.*?=\s*&\[(.*?)\n\];", src, re.S)
+if not m:
+    sys.exit("PACKAGES 表不在")
+for blk in re.finditer(r"PackagePin \{(.*?)\n    \},", m.group(1), re.S):
+    b = blk.group(1)
+    name = re.search(r'name:\s*"([^"]+)"', b)
+    if not name or name.group(1) not in ("tiny-det", "tiny-rec"):
+        continue
+    repo = re.search(r'repo:\s*"([^"]+)"', b).group(1)
+    rev = re.search(r'revision:\s*"([^"]+)"', b).group(1)
+    for f in re.finditer(r'FilePin \{ name: "([^"]+)", bytes: (\d[\d_]*), sha256: "([0-9a-f]+)" \}', b):
+        # rust 数字面量带下划线(1_786_412),剥后按字节锚
+        print("\t".join((name.group(1), repo, rev, f.group(1), f.group(2).replace("_", ""), f.group(3))))
+PY
+    # 链参数同码内缺省(READER_MIRROR/GH tag 也从 dist 抽,自洽)
+    local mirror tag
+    mirror="$(grep -oP 'DEFAULT_MIRROR: &str = "\K[^"]+' "$librs")"
+    tag="$(grep -oP 'GH_MODELS_TAG: &str = "\K[^"]+' "$librs")"
+    [ -n "$mirror" ] && [ -n "$tag" ] || { echo "!! dist 缺链参数(DEFAULT_MIRROR/GH_MODELS_TAG)"; return 1; }
+    mirror="${READER_MIRROR:-$mirror}"
+    [ "$(wc -l < "$tsv")" -eq 8 ] || { echo "!! pin 行数非 8(抽析口径漂移?)"; return 1; }
+    local pkg repo rev f bytes sha dest ok url
+    while IFS=$'\t' read -r pkg repo rev f bytes sha; do
+        install -d "$root/$pkg"   # lib.rs download_file 同律:create_dir_all(parent) 先于落盘
+        dest="$root/$pkg/$f"
+        if [ -f "$dest" ] && [ "$(stat -c%s "$dest")" = "$bytes" ] && \
+           [ "$(sha256sum "$dest" | cut -d' ' -f1)" = "$sha" ]; then
+            continue   # 幂等:已烤且 pin 全对即跳
+        fi
+        ok=0
+        for url in "$mirror/models/$repo/$rev/$f" \
+                   "https://huggingface.co/$repo/resolve/$rev/$f" \
+                   "https://github.com/raystyle/reader_rs/releases/download/$tag/$pkg-${rev%${rev#????????????}}-$f"; do
+            curl -fsSL -m 300 -o "$dest.part" "$url" 2>/dev/null && { ok=1; break; }
+        done
+        [ "$ok" = 1 ] || { echo "!! $pkg/$f 三链皆败"; rm -f "$dest.part"; return 1; }
+        echo "$sha  $dest.part" | sha256sum -c - >/dev/null && [ "$(stat -c%s "$dest.part")" = "$bytes" ] \
+            || { echo "!! $pkg/$f 内容不符 pin(链污染?)"; rm -f "$dest.part"; return 1; }
+        mv "$dest.part" "$dest"
+    done < "$tsv"
+    rm -f "$tsv"
+    echo "pi_ocr tiny 烤库就位:$root(tiny-det + tiny-rec 各 4 文件,pin 全绿;消费口 PI_OCR_CACHE_DIR)"
+}
+
+# ---- desktop(一 agent 一完整桌面:常驻 Xvfb :99 + xfce,浏览器由 agent 按需起)----
+# 共识②默认视图=完整 Ubuntu 桌面(2026-10-15 用户修订:chrome 全屏自启撤,面板看纯桌面);
+# x11vnc 常驻 5900 仅回环(消费道 acpsup /vnc?display=desktop 桥 + 按需 proxy device 直连);
+# 凭证一生一次不烤镜像(X cookie + VNC 口令,desktop-auth-gen 首启自生)。
+install_desktop() {
+    log "agent 桌面(Xvfb :99 + xfce + x11vnc 5900;依赖 vnc 组的 xfce4/xvfb/x11vnc)"
+    have Xvfb && have x11vnc && have startxfce4 \
+        || { echo "!! 桌面依赖缺(先跑 vnc 组)"; return 1; }
+    # 凭证生成器:X 授权双键(hostname/unix:N + :N,x11 实测匹配形,同 acpsup vnc.go start())
+    cat > /usr/local/bin/desktop-auth-gen <<'GENEOF'
+#!/bin/sh
+# agent 桌面凭证一生一次:X 授权(hostname/unix:N + :N 双键)+ VNC 口令
+# (明文 0600 供 acpsup /vnc/desktop 出;x11vnc -storepasswd 哈希件)。均不烤镜像。
+set -e
+DIR=/var/lib/desktop
+AUTH="$DIR/x99.auth"; PW="$DIR/vnc.passwd"; PWP="$DIR/vnc.passwd.plain"
+install -d -m 700 "$DIR"
+if [ ! -s "$AUTH" ]; then
+    cookie="$(dd if=/dev/urandom bs=16 count=1 2>/dev/null | od -An -tx1 | tr -d ' \n')"
+    xauth -f "$AUTH" add "$(hostname)/unix:99" . "$cookie"
+    xauth -f "$AUTH" add ":99" . "$cookie"
+    chmod 600 "$AUTH"
+fi
+if [ ! -s "$PWP" ] || [ ! -s "$PW" ]; then
+    pw="$(dd if=/dev/urandom bs=4 count=1 2>/dev/null | od -An -tx1 | tr -d ' \n')"
+    printf '%s' "$pw" > "$PWP"
+    x11vnc -storepasswd "$pw" "$PW"
+    chmod 600 "$PWP" "$PW"
+fi
+GENEOF
+    chmod 755 /usr/local/bin/desktop-auth-gen
+    # 三 unit:Xvfb(无 -terminate:常驻桌面,agent chrome 随意进出)→ xfce 会话 → x11vnc
+    cat > /etc/systemd/system/xvfb99.service <<'EOF'
+[Unit]
+Description=agent desktop X server (Xvfb :99)
+After=local-fs.target
+[Service]
+ExecStartPre=/usr/local/bin/desktop-auth-gen
+ExecStart=/usr/bin/Xvfb :99 -screen 0 1920x1080x24 -dpi 96 -nolisten tcp -auth /var/lib/desktop/x99.auth +extension DAMAGE +extension RANDR
+Restart=on-failure
+RestartSec=1
+[Install]
+WantedBy=multi-user.target
+EOF
+    cat > /etc/systemd/system/xfce-desktop.service <<'EOF'
+[Unit]
+Description=agent desktop session (xfce4 on :99; browser on demand by agent)
+Requires=xvfb99.service
+After=xvfb99.service
+[Service]
+Environment=DISPLAY=:99
+Environment=XAUTHORITY=/var/lib/desktop/x99.auth
+ExecStartPre=/bin/sh -c 'for i in $(seq 1 50); do [ -S /tmp/.X11-unix/X99 ] && exit 0; sleep 0.1; done; exit 1'
+ExecStart=/usr/bin/dbus-run-session -- /usr/bin/xfce4-session
+Restart=on-failure
+RestartSec=2
+[Install]
+WantedBy=multi-user.target
+EOF
+    cat > /etc/systemd/system/x11vnc99.service <<'EOF'
+[Unit]
+Description=agent desktop VNC (x11vnc :99 -> 5900, loopback only)
+Requires=xvfb99.service
+After=xvfb99.service
+[Service]
+ExecStartPre=/usr/local/bin/desktop-auth-gen
+ExecStart=/usr/bin/x11vnc -display :99 -auth /var/lib/desktop/x99.auth -rfbport 5900 -localhost -forever -shared -rfbauth /var/lib/desktop/vnc.passwd -nosel -noprimary -noncache -cursor arrow -wait 10 -defer 10 -speeds lan -o /var/log/x11vnc99.log
+Restart=on-failure
+RestartSec=1
+[Install]
+WantedBy=multi-user.target
+EOF
+    systemctl daemon-reload
+    systemctl enable --now xvfb99.service xfce-desktop.service x11vnc99.service
+    systemctl is-active --quiet xvfb99 && systemctl is-active --quiet x11vnc99 \
+        && echo "桌面栈起:Xvfb :99 + xfce + x11vnc 5900" \
+        || { echo "!! 桌面栈未起(xvfb99/xfce-desktop/x11vnc99 查 journal)"; return 1; }
+    ss -ltn 2>/dev/null | grep -q ':5900 ' || echo "  (ss 未见 5900 监听行,以 unit 活性为准)"
+    true
+}
+
 # 不在默认全量(组保留,显式装):chrome(2026-10-10 裁定)、c2/maldev/metasploit(2026-10-14 瘦身裁定,参考/重框架不烤镜像,数据面后续走 MCP)。
 # browse 组(2026-10-14 用户放行)在默认全量:CLI + browse 托管面 clean-chrome(与 chrome 组互不搬动)
-TOOLS_ALL=(filesearch astgrep cli herdr ghidra rea reverse discovery go-security rust-security pivot analysis bof projectzero recon nu cloud data pentest redteam vnc chrome browse agents acp ctl zg)
+# piocr(模型烤库,须在 agents 后:pin 抽自 pi-rs dist)与 desktop(常驻桌面,须在 vnc 后:依赖其 xfce4/xvfb/x11vnc)
+TOOLS_ALL=(filesearch astgrep cli herdr ghidra rea reverse discovery go-security rust-security pivot analysis bof projectzero recon nu cloud data pentest redteam vnc desktop chrome browse agents piocr acp ctl zg)
 run_category TOOLS_ALL "$@"

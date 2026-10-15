@@ -133,16 +133,20 @@ EOF
     shared_writable_cache /opt/cargo-zigbuild-cache
     . /opt/cargo/env
     # 基座口径:llvm-tools(rust-lld,pi-rs 件执行链链接器)+ rust-script;
-    # fmt/clippy/rust-analyzer 组件、九交叉 target、cargo-zigbuild/cargo-audit 不装
-    # (产品道 install-all.sh 面,main 分支)
+    # fmt/clippy/rust-analyzer 组件、其余八支交叉 target、cargo-audit 不装(产品道面,main 分支)
+    # + postex_build 面(core 回执②:零版本敏感旗标,恒 cargo zigbuild --release --target musl):
+    #   musl 单 target + cargo-zigbuild(pins.sh CRATE_PIN 0.23.4;上游无 zig 版本矩阵,
+    #   配对唯一证法 = smoke zigbuild 1-2-3 实跑出件,zig 本体由 zig 组装 0.16.0)
     rustup component add llvm-tools
     have rust-script      || cargo_install_pin rust-script
+    rustup target add x86_64-unknown-linux-musl
+    have cargo-zigbuild   || cargo_install_pin cargo-zigbuild
     # rust-lld 进 PATH(pi-rs 件执行链直接当链接器用)
     # 注意:ls 多操作数有一个不存在即返回 2,pipefail 下会让赋值语句整个失败退出;
     # 末尾 || true 兜底,两个布局(新版 /opt/rustup、旧版 /root/.rustup)都探
     local rlld; rlld="$(ls /opt/rustup/toolchains/*/lib/rustlib/*/bin/rust-lld /root/.rustup/toolchains/*/lib/rustlib/*/bin/rust-lld 2>/dev/null | head -1 || true)"
     [ -n "$rlld" ] && ln -sf "$rlld" /usr/local/bin/rust-lld
-    for b in rustc cargo rustup rust-script; do
+    for b in rustc cargo rustup rust-script cargo-zigbuild; do
         [ -e /opt/cargo/bin/$b ] && ln -sf /opt/cargo/bin/$b "/usr/local/bin/$b"
     done
     # 家目录兼容链:非登录 shell(incus exec/systemd/cron)不读 profile.d,

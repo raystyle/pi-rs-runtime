@@ -38,7 +38,11 @@ func main() {
 	}
 	log := logx.New(w, "ACPSUP_LOG_LEVEL")
 
-	srv := platform.New(platform.Config{Port: *port, DataDir: *dataDir, Log: log})
+	srv, err := platform.New(platform.Config{Port: *port, DataDir: *dataDir, Log: log})
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "!! 服务面装不了: %v\n", err)
+		os.Exit(1)
+	}
 	if err := srv.EnsureKeys(); err != nil {
 		fmt.Fprintf(os.Stderr, "!! 密钥面装不了: %v\n", err)
 		os.Exit(1)
