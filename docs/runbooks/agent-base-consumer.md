@@ -46,7 +46,7 @@ incus exec haoxuan-agent-1 -- systemctl is-active acpsup   # = active
 
 - acpsup 在容器内 127.0.0.1:7663;端点 /health /session/new /session/prompt /session/model /session/resume /events /permission /file /vnc;Bearer 鉴权。
 - 网关(Go)对它的调用即「容器内 agent 壳」的 HTTP 面:桥侧行为不变,镜像内组件零改动。
-- 会话 cwd 白名单 `/tmp/,/srv/work/` 前缀;持久卷建议挂 `/srv/work/`(会话工作目录)与 `/root/.pi-rs`(resume 会话文件)。
+- 会话 cwd 白名单 `/srv/work/<案件>` 前缀(R5 收紧:去 /tmp 调试遗留,共识 room/hx-arch seq49;ACPSUP_CWD_ALLOW env 可扩);前缀匹配后 EvalSymlinks 防逃逸。持久卷建议挂 `/srv/work/`(案件工作目录)与 `/root/.pi-rs`(resume 会话文件),卷寿=案件。
 
 ## 5. 验收面:影子跑过闸标准
 

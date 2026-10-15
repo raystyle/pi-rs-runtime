@@ -844,7 +844,7 @@ func (s *Server) serverRequest(sess *session.Session, method string, params json
 func cwdAllowRoots() []string {
 	v := os.Getenv("ACPSUP_CWD_ALLOW")
 	if v == "" {
-		return []string{"/tmp/", "/srv/work/"}
+		return []string{"/srv/work/"} // R5 收紧:去 /tmp 调试遗留(共识 hx-arch,与 fleet#91 /srv/work/<agent> 对齐)
 	}
 	var out []string
 	for _, p := range strings.Split(v, ",") {
@@ -862,12 +862,17 @@ func cwdAllowRoots() []string {
 // mkdirAllowlisted 在白名单前缀下建目录(含父目录);之外返回可读错误。
 func mkdirAllowlisted(cwd string) error {
 	for _, root := range cwdAllowRoots() {
-		if strings.HasPrefix(cwd, root) {
-			if err := os.MkdirAll(cwd, 0o755); err != nil {
-				return fmt.Errorf("cwd 建不了(%s):%v", cwd, err)
-			}
-			return nil
+		if !strings.HasPrefix(cwd, root) {
+			continue
 		}
+		// R5/kimi:前缀匹配后 EvalSymlinks 防逃逸——/srv/work/<agent>/ln -> / 会绕过前缀判定
+		if resolved, err := filepath.EvalSymlinks(cwd); err == nil && !strings.HasPrefix(resolved+"/", root) {
+			return fmt.Errorf("cwd 解析出白名单(%s -> %s):%s", cwd, resolved, root)
+		}
+		if err := os.MkdirAll(cwd, 0o755); err != nil {
+			return fmt.Errorf("cwd 建不了(%s):%v", cwd, err)
+		}
+		return nil
 	}
 	return fmt.Errorf("cwd 无效(需存在的绝对路径目录,或在自动建白名单 %v 下):%s", cwdAllowRoots(), cwd)
 }
