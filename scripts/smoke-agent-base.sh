@@ -43,7 +43,7 @@ chkout "npm"     "[0-9]+\.[0-9]+" 15 npm -v
 chkout "git"     "git version [0-9]" 15 git --version
 # 补面批(core v2 P0/P1/P2):JDK21 双面、zig+zigbuild 配对、系统件
 chkout "javac"   "javac 21" 30 javac --version
-chkout "java"    "java 21" 30 java --version
+chkout "java"    "openjdk 21" 30 java --version
 chkout "zig"     "0\.16\.[0-9]+" 15 zig version
 chkout "cargo-zigbuild" "cargo-zigbuild 0\.23\.4" 15 cargo-zigbuild --version
 chk   "ssh(oob_poll 件)"   command -v ssh
@@ -80,7 +80,9 @@ if [ "$VIEW" = root ]; then H=/root; else H=/home/ubuntu; fi
 grep -q '"defaultMode": "bypassPermissions"' /etc/claude-code/managed-settings.json && ok "claude 策略 bypassPermissions" || bad "managed-settings 缺 bypass"
 grep -q '"IS_SANDBOX": "1"' /etc/claude-code/managed-settings.json && ok "claude 根闸 IS_SANDBOX=1(策略 env)" || bad "managed-settings 缺 IS_SANDBOX"
 grep -q '"skipDangerousModePermissionPrompt": true' /etc/claude-code/managed-settings.json && ok "claude 免责框跳过键" || bad "缺 skipDangerousModePermissionPrompt"
-grep -q 'hasCompletedOnboarding' "$H/.claude.json" && grep -q 'bypassPermissionsModeAccepted' "$H/.claude.json" && ok "claude TUI 首启预置键($H)" || bad "$H/.claude.json 预置缺"
+# 幸存对断言(claude 复写 .claude.json 吃未识键:theme/bypass 被吞实证;这两键由
+# 入口尾施补齐发布态,部署后首跑演化交给 policy 真闸兜底——断言只验 claude 自管的幸存键)
+grep -q 'hasCompletedOnboarding' "$H/.claude.json" && grep -q 'hasSeenAutoDefaultNudge' "$H/.claude.json" && ok "claude TUI 预置幸存键($H)" || bad "$H/.claude.json 预置缺"
 [ -f /etc/profile.d/claude-yolo.sh ] && ok "profile.d 根闸面(登录壳)" || bad "profile.d/claude-yolo.sh 缺"
 grep -q '^web_search = "disabled"' "$H/.codex/config.toml" && ok "codex web_search 移除(顶层正形)" || bad "codex web_search 形错($H)"
 grep -q '^\[tools\.web_search\]' "$H/.codex/config.toml" && bad "codex 旧非法表残存($H)" || ok "codex 无旧表($H)"
@@ -117,7 +119,9 @@ if [ "$VIEW" = root ]; then
     rm -rf "$J"
     # cargo-zigbuild 配对(F-C2:上游无版本矩阵,唯一证法=实跑 musl 出件;零依赖 crate 全离线)
     Z="$(mktemp -d)"
-    ( cd "$Z" && cargo init --name zprobe -q ) 2>/dev/null || ( cd "$Z" && mkdir -p src && printf '[package]\nname="zprobe"\nversion="0.0.0"\nedition="2021"\n' > Cargo.toml && printf 'fn main(){println!("z-ok");}\n' > src/main.rs )
+    ( cd "$Z" && cargo init --name zprobe -q ) 2>/dev/null || ( cd "$Z" && mkdir -p src && printf '[package]\nname="zprobe"\nversion="0.0.0"\nedition="2021"\n' > Cargo.toml )
+    # cargo init 主道留 Hello world 模板,统一覆写为断言口径
+    printf 'fn main(){println!("z-ok");}\n' > "$Z/src/main.rs"
     ( cd "$Z" && timeout 240 cargo zigbuild --release --target x86_64-unknown-linux-musl ) \
         && ok "cargo zigbuild musl 出件" || bad "zigbuild 1-2-3 失败(zig 0.16 x cargo-zigbuild 0.23.4 配对断?)"
     if [ -f "$Z/target/x86_64-unknown-linux-musl/release/zprobe" ]; then
@@ -178,13 +182,20 @@ if [ "$VIEW" = root ]; then
 fi
 
 section "[$VIEW] E2. pi-rs 引擎面探针(core G1:防 jieba/模型静默降级)"
-if [ "$VIEW" = root ]; then
-    # F2 类缺陷盲区:rctl zg CLI 面绿不等于 pi-rs 发行件内嵌引擎绿——直接调 pi-rs 面验
+if [ "$VIEW" = root ] && [ -n "${SMOKE_E2:-}" ]; then
+    # 模型依赖探针,须网面(尾网网关 10.10.10.9:8317;断网 smoke 跳过,E2E 在线阶段
+    # SMOKE_E2=1 跑):F2 类缺陷盲区——rctl zg CLI 面绿不等于 pi-rs 发行件内嵌引擎绿
     T2="$(mktemp -d)"
     printf 'id: probe-sem\ndesc: 樱桃原子语义探针\n' > "$T2/a.txt"
-    out="$(cd "$T2" && timeout 90 pi-rs -p '在当前目录搜「樱桃原子」,直接给文件名,不要其他内容' 2>&1)" || true
+    # 内联全套 env(非登录壳不读 profile.d:裸壳缺模型/词表指路会键解析报错,实证)
+    out="$(cd "$T2" && env DEEPSEEK_API_KEY="${DEEPSEEK_API_KEY:-overcast}" \
+        ZVEC_GREP_MODEL_CACHE=/opt/zg-models PI_OCR_CACHE_DIR=/opt/pi-ocr-models \
+        ZVEC_JIEBA_DICT_DIR=/usr/local/share/zvec/jieba_dict \
+        timeout 120 pi-rs -p '在当前目录搜「樱桃原子」,直接给文件名,不要其他内容' 2>&1)" || true
     printf '%s' "$out" | grep -q "a.txt" && ok "pi-rs rs_search 中文语义命中" || bad "pi-rs 搜索未命中(jieba/模型落位疑):$(printf '%s' "$out" | head -c 120)"
     rm -rf "$T2"
+else
+    echo "  skip E2(离线面;在线 E2E 阶段 SMOKE_E2=1 跑)"
 fi
 
 section "[$VIEW] F. VNC 直显与桌面面"

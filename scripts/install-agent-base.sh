@@ -30,6 +30,25 @@ bash "$HERE/install-libcache.sh" rust
 # 面孔组:chrome→browse(单副本指路)→vnc(桌面依赖)→desktop(常驻桌面)→agents(pi-rs)
 # →piocr(pin 抽自 pi-rs dist,须在 agents 后)→acp(监督进程收尾)
 bash "$HERE/install-tools.sh" zg chrome browse vnc desktop agents piocr acp
+# .claude.json 预置重施(构建期任何 claude 跑动会复写文件吃掉未识键:theme/
+# bypassPermissionsModeAccepted 实证被吞;真闸在 policy 层不受影响。尾施保证
+# 发布态四键齐,用户首跑后的演化交给 policy 面兜底)
+python3 - <<'PEOF'
+import json, os
+for home in ("/root", "/home/ubuntu", "/etc/skel"):
+    p = home + "/.claude.json"
+    d = {}
+    if os.path.exists(p):
+        try:
+            d = json.load(open(p))
+        except Exception:
+            d = {}
+    d.update({"hasCompletedOnboarding": True, "theme": "dark",
+              "bypassPermissionsModeAccepted": True, "hasSeenAutoDefaultNudge": True})
+    json.dump(d, open(p, "w"), indent=2)
+    os.chmod(p, 0o600)
+os.chown("/home/ubuntu/.claude.json", 1000, 1000)
+PEOF
 # 收尾卫生(不烤面删除段 + 可再生缓存)
 bash "$HERE/clean-image.sh"
 
