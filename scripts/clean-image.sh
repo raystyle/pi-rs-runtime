@@ -26,6 +26,24 @@ log "构建中间树(zg 源仓 target/vcpkg buildtrees;产物已装)"
 rm -rf /opt/zvec-grep-src/rust/target
 rm -rf /opt/vcpkg/buildtrees
 
+log "镜像最小化(2026-10-16 用户令:pi-rs only;~3.2GB 目标)"
+# zg 源码仓+vendor 源码树删除(产物 zg+libzvec_c_api.so 已落 vendor 落位区;
+# 升级走 install 时拉→建→删三步,实例有外网成立)
+rm -rf /opt/zvec-grep-src
+rm -rf /opt/pi-rs/extensions/rust_script/vendor/zvec-grep/rust/target
+rm -rf /opt/pi-rs/extensions/rust_script/vendor/rust-script/target
+# node 全树(cc/codex 平台剔除;install-agent-base 不装,此为幂等兜底)
+rm -rf /opt/node
+# go 工具链(acpsup 编译完即弃;install-agent-base 已删,此为幂等兜底)
+rm -rf /usr/local/go /opt/go
+# cc/codex 零碎面(注意:pi-rs-models.sh 是 pi-rs 自身的模型指路,保留)
+rm -f /etc/profile.d/claude-yolo.sh
+rm -rf /etc/claude-code /etc/codex
+rm -f /root/.claude.json /root/.codex/config.toml
+rm -f /home/ubuntu/.claude.json /home/ubuntu/.codex/config.toml
+rm -f /etc/skel/.claude.json /etc/skel/.codex/config.toml
+rm -rf /root/.codex /home/ubuntu/.codex /etc/skel/.codex
+
 log "构建期可再生缓存(go-build/rust-script/ort/uv/npm/pip/ccache/vcpkg 下载/NuGet http-cache/gem)"
 rm -rf /root/.cache/go-build /root/.cache/uv /root/.cache/pip \
        /root/.cache/ccache /root/.cache/vcpkg \
