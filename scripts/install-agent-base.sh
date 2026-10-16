@@ -20,11 +20,10 @@ apt-get install -y --no-install-recommends \
 
 # .NET SDK(官方 tarball 版本钉死;apt 无 dotnet 源,tarball 免依赖污染)
 if [ ! -d /opt/dotnet ]; then
-    curl -fsSL https://builds.dotnet.microsoft.com/dotnet/Sdk/8.0.412/dotnet-sdk-8.0.412-linux-x64.tar.gz \
-        | tar -xz -C /opt-dotnet-stage 2>/dev/null || {
-        mkdir -p /opt-dotnet-stage && curl -fsSL -o /tmp/dotnet.tar.gz \
+    mkdir -p /opt-dotnet-stage
+    curl -fsSL -o /tmp/dotnet.tar.gz \
         https://builds.dotnet.microsoft.com/dotnet/Sdk/8.0.412/dotnet-sdk-8.0.412-linux-x64.tar.gz \
-        && tar -xzf /tmp/dotnet.tar.gz -C /opt-dotnet-stage && rm -f /tmp/dotnet.tar.gz; }
+        && tar -xzf /tmp/dotnet.tar.gz -C /opt-dotnet-stage && rm -f /tmp/dotnet.tar.gz
     mkdir -p /opt/dotnet && mv /opt-dotnet-stage/* /opt/dotnet/ && rmdir /opt-dotnet-stage
     printf '%s\n' 'export DOTNET_ROOT=/opt/dotnet' 'export PATH=$PATH:/opt/dotnet' \
         > /etc/profile.d/dotnet.sh
