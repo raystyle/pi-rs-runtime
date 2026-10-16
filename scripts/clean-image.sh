@@ -65,6 +65,23 @@ rm -rf /opt/trivy-db /opt/SecLists /opt/c2dev-ref /opt/tradecraft-ref /opt/paylo
 # trivy wrapper/profile 若是旧道产物(指向已删 db),还原真身直通
 [ -L /usr/local/bin/trivy ] || rm -f /usr/local/bin/trivy /etc/profile.d/trivy.sh
 
+log "深度最小化(2026-10-16 用户令三则:工具链 rust+zig 足够 / 浏览器只 browse+clean-chrome / 基座除桌面外瘦身)"
+# 工具链:cmake 是 zg/llama.cpp 构建期工具,产物已装即退役;gcc 保留(rust-script
+# 按需编译的链接器,删了 136 件全瘫);golang 上段已删
+command -v cmake >/dev/null 2>&1 && apt-get purge -y -qq cmake >/dev/null 2>&1 || true
+# 浏览器:只留 browse(插件)+ clean-chrome(单副本);apt 侧浏览器件若有则净
+apt-get purge -y -qq 'firefox*' 'chromium*' >/dev/null 2>&1 || true
+# 基座瘦身:cloud-init(实例经编排器 incus exec 直配,首启自动化不需要;网络
+# 配置已落 /etc/systemd/network 随卷)/snapd(~150MB)/pro 体检/打印/蓝牙/固件/
+# 崩溃上报/遥测,plymouth 容器无启动画面。xfce 面与 zg/pi-rs 依赖不动。
+apt-get purge -y -qq cloud-init snapd ubuntu-advantage-tools ubuntu-pro-client \
+  'cups*' 'bluez*' 'fwupd*' modemmanager apport whoopsie popularity-contest \
+  landscape-common 'plymouth*' >/dev/null 2>&1 || true
+apt-get autoremove -y -qq --purge >/dev/null 2>&1 || true
+rm -rf /var/lib/snapd /var/snap /snap /var/lib/cloud /var/cache/snapd \
+       /etc/cloud /etc/apt/apt.conf.d/20snapd.conf 2>/dev/null || true
+systemctl disable --now snapd.service snapd.socket >/dev/null 2>&1 || true
+
 log "一次性残留(nuclei 模板迁移备份/msf 首跑目录/nimble 缓存/crash)"
 rm -rf /root/nuclei-templates.bak /home/ubuntu/nuclei-templates.bak
 rm -rf /root/.msf4 /root/.nimble /var/crash/* 2>/dev/null || true
