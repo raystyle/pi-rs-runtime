@@ -2136,7 +2136,7 @@ Requires=xvfb99.service
 After=xvfb99.service
 [Service]
 ExecStartPre=/usr/local/bin/desktop-auth-gen
-ExecStart=/usr/bin/x11vnc -display :99 -auth /var/lib/desktop/x99.auth -rfbport 5900 -localhost -forever -shared -rfbauth /var/lib/desktop/vnc.passwd -nosel -noprimary -noncache -cursor arrow -wait 10 -defer 10 -speeds lan -o /var/log/x11vnc99.log
+ExecStart=/usr/bin/x11vnc -display :99 -auth /var/lib/desktop/x99.auth -rfbport 5900 -localhost -forever -shared -rfbauth /var/lib/desktop/vnc.passwd -nosel -noprimary -noncache -cursor arrow -wait 10 -defer 10 -speeds lan -xrandr -o /var/log/x11vnc99.log
 Restart=on-failure
 RestartSec=1
 [Install]
@@ -2179,7 +2179,7 @@ Requires=xvfb99.service
 After=xvfb99.service
 [Service]
 ExecStartPre=/usr/local/bin/desktop-auth-gen
-ExecStart=/usr/bin/x11vnc -display :99 -auth /var/lib/desktop/x99.auth -rfbport 5900 -localhost -forever -shared -rfbauth /var/lib/desktop/vnc.passwd -nosel -noprimary -noncache -cursor arrow -wait 10 -defer 10 -speeds lan -o /var/log/x11vnc99.log
+ExecStart=/usr/bin/x11vnc -display :99 -auth /var/lib/desktop/x99.auth -rfbport 5900 -localhost -forever -shared -rfbauth /var/lib/desktop/vnc.passwd -nosel -noprimary -noncache -cursor arrow -wait 10 -defer 10 -speeds lan -xrandr -o /var/log/x11vnc99.log
 Restart=on-failure
 RestartSec=1
 [Install]
@@ -2190,6 +2190,33 @@ EOF
     systemctl is-active --quiet xvfb99 && systemctl is-active --quiet x11vnc99 \
         && echo "桌面栈起:Xvfb :99 2560x1440 + xfce + x11vnc 5900" \
         || { echo "!! 桌面栈未起(xvfb99/xfce-desktop/x11vnc99 查 journal)"; return 1; }
+    # fontconfig CJK 通用族修(pi-web 实证:70-fonts-noto-cjk.conf 只有 ja/ko 无 zh,
+    # fc-match sans-serif:lang=zh 错排到 LiberationMono,浏览器中文全豆腐)
+    cat > /etc/fonts/conf.d/71-zh-generic.conf <<'EOF'
+<?xml version="1.0"?>
+<!DOCTYPE fontconfig SYSTEM "fonts.dtd">
+<fontconfig>
+    <match target="pattern">
+        <test name="lang"><string>zh</string></test>
+        <test name="family"><string>sans-serif</string></test>
+        <edit name="family" mode="prepend"><string>Noto Sans CJK SC</string></edit>
+    </match>
+    <match target="pattern">
+        <test name="lang"><string>zh</string></test>
+        <test name="family"><string>serif</string></test>
+        <edit name="family" mode="prepend"><string>Noto Serif CJK SC</string></edit>
+    </match>
+    <match target="pattern">
+        <test name="lang"><string>zh</string></test>
+        <test name="family"><string>monospace</string></test>
+        <edit name="family" mode="prepend"><string>Noto Sans Mono CJK SC</string></edit>
+    </match>
+</fontconfig>
+EOF
+    fc-cache -fs >/dev/null 2>&1
+    fc-match sans-serif:lang=zh | grep -q "Noto Sans CJK" \
+        && echo "fontconfig CJK 通用族:zh → Noto Sans CJK SC ✓" \
+        || echo "!! fontconfig zh 匹配仍错排(查 conf.d 优先级)"
     true
 }
 
