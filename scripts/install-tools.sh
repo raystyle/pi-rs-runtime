@@ -2142,46 +2142,54 @@ RestartSec=1
 [Install]
 WantedBy=multi-user.target
 EOF
-    # resize watcher(x11vnc 客户端 SetDesktopSize 请求 → xrandr newmode + 切;
-    # pi-web 五行配方验证像素级贴合;Xvfb 单模式无动态 resize 是本 watcher 存在的因)
-    cat > /usr/local/bin/desktop-resize-watch <<'RWEOF'
-#!/bin/bash
-# x11vnc resize 请求监听:日志尾随「Client requested resolution change WxH」→ cvt
-# newmode + xrandr 切(pi-web 验证配方)。只在 Xvfb 初始最大(2560x1440)内生效。
-LOG=/var/log/x11vnc99.log
-export DISPLAY=:99 XAUTHORITY=/var/lib/desktop/x99.auth
-tail -F "$LOG" 2>/dev/null | while IFS= read -r line; do
-    wh="$(printf '%s' "$line" | grep -oP 'Client requested resolution change \K[0-9]+x[0-9]+')"
-    [ -z "$wh" ] && continue
-    set -- $(echo "$wh" | tr 'x' ' ')
-    W=$1; H=$2
-    MODE="${W}x${H}_60.00"
-    # 幂等 + 上限校验(Xvfb 初始 screen 即最大)
-    [ "$W" -gt 2560 ] || [ "$H" -gt 1440 ] && continue
-    xrandr 2>/dev/null | grep -q "\"$MODE\"" && continue
-    cvt "$W" "$H" 60 2>/dev/null | sed -n 's/^Modeline //p' | sed "s/^/xrandr --newmode /; s/$/ 2>&1/" | bash 2>/dev/null
-    xrandr --addmode screen "$MODE" 2>/dev/null
-    xrandr --output screen --mode "$MODE" 2>/dev/null
-done
-RWEOF
-    chmod 755 /usr/local/bin/desktop-resize-watch
-    cat > /etc/systemd/system/desktop-resize.service <<'EOF'
+    # 三 unit:Xvfb(常驻 2560x1440)→ xfce 会话 → x11vnc
+    # resize 面:x11vnc 0.9.16 无 SetDesktopSize 客户端消息(watcher 病根是哑炮);
+    # 现实解=noVNC scaleViewport(pi-web 已验可用);真 1:1 需 KasmVNC 或新 libvncserver(另批)
+    cat > /etc/systemd/system/xvfb99.service <<'EOF'
 [Unit]
-Description=agent desktop VNC resize watcher (x11vnc requests -> xrandr newmode)
-After=x11vnc99.service
-Requires=x11vnc99.service
+Description=agent desktop X server (Xvfb :99 2560x1440)
+After=local-fs.target
 [Service]
-ExecStart=/usr/local/bin/desktop-resize-watch
+ExecStartPre=/usr/local/bin/desktop-auth-gen
+ExecStart=/usr/bin/Xvfb :99 -screen 0 2560x1440x24 -dpi 96 -nolisten tcp -auth /var/lib/desktop/x99.auth +extension DAMAGE +extension RANDR
+Restart=on-failure
+RestartSec=1
+[Install]
+WantedBy=multi-user.target
+EOF
+    cat > /etc/systemd/system/xfce-desktop.service <<'EOF'
+[Unit]
+Description=agent desktop session (xfce4 on :99; browser on demand by agent)
+Requires=xvfb99.service
+After=xvfb99.service
+[Service]
+Environment=DISPLAY=:99
+Environment=XAUTHORITY=/var/lib/desktop/x99.auth
+ExecStartPre=/bin/sh -c 'for i in $(seq 1 50); do [ -S /tmp/.X11-unix/X99 ] && exit 0; sleep 0.1; done; exit 1'
+ExecStart=/usr/bin/dbus-run-session -- /usr/bin/xfce4-session
 Restart=on-failure
 RestartSec=2
 [Install]
 WantedBy=multi-user.target
 EOF
+    cat > /etc/systemd/system/x11vnc99.service <<'EOF'
+[Unit]
+Description=agent desktop VNC (x11vnc :99 -> 5900, loopback only)
+Requires=xvfb99.service
+After=xvfb99.service
+[Service]
+ExecStartPre=/usr/local/bin/desktop-auth-gen
+ExecStart=/usr/bin/x11vnc -display :99 -auth /var/lib/desktop/x99.auth -rfbport 5900 -localhost -forever -shared -rfbauth /var/lib/desktop/vnc.passwd -nosel -noprimary -noncache -cursor arrow -wait 10 -defer 10 -speeds lan -o /var/log/x11vnc99.log
+Restart=on-failure
+RestartSec=1
+[Install]
+WantedBy=multi-user.target
+EOF
     systemctl daemon-reload
-    systemctl enable --now xvfb99.service xfce-desktop.service x11vnc99.service desktop-resize.service
+    systemctl enable --now xvfb99.service xfce-desktop.service x11vnc99.service
     systemctl is-active --quiet xvfb99 && systemctl is-active --quiet x11vnc99 \
-        && echo "桌面栈起:Xvfb :99 2560x1440 + xfce + x11vnc 5900 + resize watcher" \
-        || { echo "!! 桌面栈未起(xvfb99/xfce-desktop/x11vnc99/desktop-resize 查 journal)"; return 1; }
+        && echo "桌面栈起:Xvfb :99 2560x1440 + xfce + x11vnc 5900" \
+        || { echo "!! 桌面栈未起(xvfb99/xfce-desktop/x11vnc99 查 journal)"; return 1; }
     true
 }
 
