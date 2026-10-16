@@ -72,14 +72,16 @@ func (d Def) Resolve() ([]string, error) {
 	return append([]string{"node"}, bin), nil
 }
 
-// Allowed 按 ACPSUP_AGENTS env 过滤注册表(room/hx-arch 共识①:一 agent 一容器收窄,
-// 编排层给实例 env 即得单面容器)。未设=全量(过渡);设了=白名单交集,
+// Allowed 按 ACPSUP_AGENTS env 过滤注册表(room/hx-arch 共识①:一 agent 一容器收窄)。
+// 未设=仅 pi(core 裁定 2026-10-16:平台剔除 cc/codex,默认面与部署现实一致;
+// 闭合剔除镜像忘设 env 时 CLI 缺席的启动硬错洞);设了=白名单交集,
 // 名单含未注册名即硬错——打错字静默清空比启动失败更坏。
+// 源码保留 claude/codex 行:显式 ACPSUP_AGENTS=claude 等在有 CLI 的环境照常可用(零成本回滚面)。
 func Allowed() ([]Def, error) {
 	all := Registry()
 	raw := strings.TrimSpace(os.Getenv("ACPSUP_AGENTS"))
 	if raw == "" {
-		return all, nil
+		raw = "pi" // 默认翻为 pi 单面(2026-10-16 core 裁定,原『全量过渡』收口)
 	}
 	byName := make(map[string]Def, len(all))
 	for _, d := range all {

@@ -61,11 +61,11 @@ func TestRegistryThreeRows(t *testing.T) {
 }
 
 func TestAllowedWhitelist(t *testing.T) {
-	// 未设=全量(过渡)
+	// 未设=仅 pi(2026-10-16 core 裁定:默认翻为 pi 单面)
 	t.Setenv("ACPSUP_AGENTS", "")
 	got, err := Allowed()
-	if err != nil || len(got) != 3 {
-		t.Fatalf("未设应全量: got=%d err=%v", len(got), err)
+	if err != nil || len(got) != 1 || got[0].Name != "pi" {
+		t.Fatalf("未设应 pi 单面: got=%d err=%v", len(got), err)
 	}
 	// 单面(一 agent 一容器):交集
 	t.Setenv("ACPSUP_AGENTS", "pi")

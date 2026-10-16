@@ -36,6 +36,8 @@ done
 
 func newTestServer(t *testing.T) (*Server, string) {
 	t.Helper()
+	// 测试面:显式开三后端(默认翻为 pi 单面 2026-10-16,测试仍验多后端面)
+	t.Setenv("ACPSUP_AGENTS", "claude,codex,pi")
 	dir := t.TempDir()
 	script := filepath.Join(dir, "fake.sh")
 	if err := os.WriteFile(script, []byte(fakeAdapter), 0o755); err != nil {
