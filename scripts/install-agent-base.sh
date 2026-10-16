@@ -46,7 +46,7 @@ bash "$HERE/clean-image.sh"
 
 # 落位自检
 miss=0
-for b in zg clean-chrome browse pi-rs vncserver websockify zig javac java ssh pkill; do
+for b in zg clean-chrome browse pi-rs Xvfb x11vnc openbox-session zig javac java ssh pkill node php dotnet; do
     command -v "$b" >/dev/null 2>&1 && echo "  ok $b" || { echo "  !! 缺 $b"; miss=$((miss+1)); }
 done
 command -v cargo-zigbuild >/dev/null 2>&1 && echo "  ok cargo-zigbuild" || { echo "  !! 缺 cargo-zigbuild"; miss=$((miss+1)); }

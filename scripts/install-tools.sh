@@ -1816,18 +1816,13 @@ install_browse() {
 # 设计:桌面栈烘焙进镜像,启动面在 vnc-screen.sh(口令首启生成,不落库);
 # websockify 绑 127.0.0.1:6080(回环纪律),宿主经 proxy 设备引 6080
 install_vnc() {
-    log "VNC 桌面面(xfce4+tigervnc+noVNC+websockify;阿里云 apt)"
+    # 2026-10-16 用户令重做:Xvnc(tigervnc)三面病谱已否(epoll 去注册/协议错位/
+    # 闲置静默,kimi 实锤);noVNC/websockify 在网关侧代理,容器内不需要。最小基座:
+    log "VNC 基座件(Xvfb+x11vnc+xauth+dbus;极简面)"
     apt-get update -qq
     apt-get install -y --no-install-recommends \
-        xfce4 xfce4-terminal dbus-x11 \
-        tigervnc-standalone-server tigervnc-common tigervnc-tools \
-        novnc websockify fonts-noto-cjk \
-        xvfb x11vnc x11-utils xterm || true
-    # 验收:noVNC 页面与 tigervnc 本体在
-    ls /usr/share/novnc/vnc.html >/dev/null && echo "noVNC 就位" || echo "!! noVNC 缺 vnc.html"
-    have vncserver && have websockify && echo "tigervnc+websockify 就位" || echo "!! vnc 栈缺件"
-    # 启动面脚本装公共位(/root/scripts 是 0700,ubuntu 够不着)
-    install -m755 "$HERE/vnc-screen.sh" /usr/local/bin/vnc-screen
+        xvfb x11vnc x11-utils xauth dbus-x11 xterm fonts-noto-cjk || true
+    have Xvfb && have x11vnc && have xauth && echo "VNC 基座就位" || echo "!! VNC 基座缺件"
     true
 }
 
@@ -1905,18 +1900,22 @@ PY
 # watcher xrandr newmode+切模式实现,pi-web 五行配方验证像素级贴合)。
 # 初始分辨率 2560x1440(最大模式余量,watcher 只在 ≤max 内生效;pi-web 建议)。
 install_desktop() {
-    log "agent 桌面(Xvfb :99 2560x1440 + xfce + x11vnc 5900 + resize watcher;依赖 vnc 组)"
-    have Xvfb && have x11vnc && have startxfce4 \
+    # 2026-10-16 用户令重做:openbox 纯窗口管理器换 xfce 全桌面(桌面只伺候
+    # clean-chrome 与 xterm,观感面让位极简);Xvfb+x11vnc 栈与 -xrandr 保留
+    log "agent 桌面(Xvfb :99 2560x1440 + openbox + x11vnc 5900;依赖 vnc 组)"
+    have Xvfb && have x11vnc \
         || { echo "!! 桌面依赖缺(先跑 vnc 组)"; return 1; }
-    # Ubuntu 观感件:Yaru GTK/图标(含 xfwm4 装饰)+官方壁纸+Ubuntu 字体
     export DEBIAN_FRONTEND=noninteractive
     apt-get update -qq
-    apt-get install -y --no-install-recommends \
-        yaru-theme-gtk yaru-theme-icon ubuntu-wallpapers fonts-ubuntu \
-        || { echo "!! Yaru 观感件装失败"; return 1; }
-    # 旧栈迁移:Xvfb+x11vnc 双件(单模式 resize 面受限)拆,切 Xvnc 单件
-    systemctl disable --now xvfb99.service x11vnc99.service >/dev/null 2>&1 || true
-    rm -f /etc/systemd/system/xvfb99.service /etc/systemd/system/x11vnc99.service
+    apt-get install -y --no-install-recommends openbox \
+        || { echo "!! openbox 装失败"; return 1; }
+    # 旧栈残留幂等清(xfce 全家/Yaru 观感/旧 Xvnc 单元)
+    systemctl disable --now xfce-desktop.service xvfb99.service x11vnc99.service >/dev/null 2>&1 || true
+    apt-get purge -y -qq 'xfce4*' 'yaru-theme*' ubuntu-wallpapers fonts-ubuntu >/dev/null 2>&1 || true
+    apt-get autoremove -y -qq --purge >/dev/null 2>&1 || true
+    rm -rf /root/.config/xfce4
+    rm -f /etc/systemd/system/xvfb99.service /etc/systemd/system/x11vnc99.service \
+          /etc/systemd/system/xfce-desktop.service /etc/systemd/system/xvnc99.service
     # 凭证生成器:X 授权双键(hostname/unix:N + :N,x11 实测匹配形,同 acpsup vnc.go start())
     cat > /usr/local/bin/desktop-auth-gen <<'GENEOF'
 #!/bin/sh
@@ -1941,29 +1940,6 @@ if [ ! -s "$PWP" ] || [ ! -s "$PW" ]; then
 fi
 GENEOF
     chmod 755 /usr/local/bin/desktop-auth-gen
-    # Ubuntu 观感预置(Xvnc 会话首启前烤 XML,通道 overlay 最小覆写;xfce 4.20 默认
-    # 已含底栏+浮动 dock,观感病纯在主题/字体/壁纸——用户实操实证)
-    local X=/root/.config/xfce4/xfconf/xfce-perchannel-xml
-    install -d "$X"
-    cat > "$X/xsettings.xml" <<'EOF'
-<?xml version="1.0" encoding="UTF-8"?>
-<channel name="xsettings" version="1.0">
-  <property name="Net" type="empty">
-    <property name="ThemeName" type="string" value="Yaru"/>
-    <property name="IconThemeName" type="string" value="Yaru"/>
-  </property>
-  <property name="Gtk" type="empty">
-    <property name="FontName" type="string" value="Ubuntu 10"/>
-    <property name="MonospaceFontName" type="string" value="Ubuntu Mono 10"/>
-  </property>
-  <property name="Xft" type="empty">
-    <property name="Antialias" type="int" value="1"/>
-    <property name="Hinting" type="int" value="1"/>
-    <property name="HintStyle" type="string" value="hintslight"/>
-    <property name="RGBA" type="string" value="rgb"/>
-  </property>
-</channel>
-EOF
     cat > "$X/xfwm4.xml" <<'EOF'
 <?xml version="1.0" encoding="UTF-8"?>
 <channel name="xfwm4" version="1.0">
@@ -1988,9 +1964,6 @@ EOF
   </property>
 </channel>
 EOF
-    # 旧 Xvnc 迁移:如遇(v2 遗留实例)拆
-    systemctl disable --now xvnc99.service >/dev/null 2>&1 || true
-    rm -f /etc/systemd/system/xvnc99.service
     # 三 unit:Xvfb(常驻 2560x1440,watcher 上限)→ xfce 会话 → x11vnc
     cat > /etc/systemd/system/xvfb99.service <<'EOF'
 [Unit]
@@ -2004,16 +1977,16 @@ RestartSec=1
 [Install]
 WantedBy=multi-user.target
 EOF
-    cat > /etc/systemd/system/xfce-desktop.service <<'EOF'
+    cat > /etc/systemd/system/openbox-desktop.service <<'EOF'
 [Unit]
-Description=agent desktop session (xfce4 on :99; browser on demand by agent)
+Description=agent desktop session (openbox on :99; browser on demand by agent)
 Requires=xvfb99.service
 After=xvfb99.service
 [Service]
 Environment=DISPLAY=:99
 Environment=XAUTHORITY=/var/lib/desktop/x99.auth
 ExecStartPre=/bin/sh -c 'for i in $(seq 1 50); do [ -S /tmp/.X11-unix/X99 ] && exit 0; sleep 0.1; done; exit 1'
-ExecStart=/usr/bin/dbus-run-session -- /usr/bin/xfce4-session
+ExecStart=/usr/bin/dbus-run-session -- /usr/bin/openbox-session
 Restart=on-failure
 RestartSec=2
 [Install]
@@ -2047,16 +2020,16 @@ RestartSec=1
 [Install]
 WantedBy=multi-user.target
 EOF
-    cat > /etc/systemd/system/xfce-desktop.service <<'EOF'
+    cat > /etc/systemd/system/openbox-desktop.service <<'EOF'
 [Unit]
-Description=agent desktop session (xfce4 on :99; browser on demand by agent)
+Description=agent desktop session (openbox on :99; browser on demand by agent)
 Requires=xvfb99.service
 After=xvfb99.service
 [Service]
 Environment=DISPLAY=:99
 Environment=XAUTHORITY=/var/lib/desktop/x99.auth
 ExecStartPre=/bin/sh -c 'for i in $(seq 1 50); do [ -S /tmp/.X11-unix/X99 ] && exit 0; sleep 0.1; done; exit 1'
-ExecStart=/usr/bin/dbus-run-session -- /usr/bin/xfce4-session
+ExecStart=/usr/bin/dbus-run-session -- /usr/bin/openbox-session
 Restart=on-failure
 RestartSec=2
 [Install]
@@ -2076,10 +2049,10 @@ RestartSec=1
 WantedBy=multi-user.target
 EOF
     systemctl daemon-reload
-    systemctl enable --now xvfb99.service xfce-desktop.service x11vnc99.service
+    systemctl enable --now xvfb99.service openbox-desktop.service x11vnc99.service
     systemctl is-active --quiet xvfb99 && systemctl is-active --quiet x11vnc99 \
-        && echo "桌面栈起:Xvfb :99 2560x1440 + xfce + x11vnc 5900" \
-        || { echo "!! 桌面栈未起(xvfb99/xfce-desktop/x11vnc99 查 journal)"; return 1; }
+        && echo "桌面栈起:Xvfb :99 2560x1440 + openbox + x11vnc 5900" \
+        || { echo "!! 桌面栈未起(xvfb99/openbox-desktop/x11vnc99 查 journal)"; return 1; }
     # fontconfig CJK 通用族修(pi-web 实证:70-fonts-noto-cjk.conf 只有 ja/ko 无 zh,
     # fc-match sans-serif:lang=zh 错排到 LiberationMono,浏览器中文全豆腐)
     cat > /etc/fonts/conf.d/71-zh-generic.conf <<'EOF'

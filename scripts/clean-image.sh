@@ -82,6 +82,12 @@ rm -rf /var/lib/snapd /var/snap /snap /var/lib/cloud /var/cache/snapd \
        /etc/cloud /etc/apt/apt.conf.d/20snapd.conf 2>/dev/null || true
 systemctl disable --now snapd.service snapd.socket >/dev/null 2>&1 || true
 
+log "openbox 化兜底(xfce 全家/Yaru 观感/tigervnc 残件幂等清)"
+apt-get purge -y -qq 'xfce4*' 'yaru-theme*' ubuntu-wallpapers fonts-ubuntu \
+  'tigervnc*' novnc websockify >/dev/null 2>&1 || true
+apt-get autoremove -y -qq --purge >/dev/null 2>&1 || true
+rm -rf /root/.config/xfce4 /usr/share/novnc
+
 log "一次性残留(nuclei 模板迁移备份/msf 首跑目录/nimble 缓存/crash)"
 rm -rf /root/nuclei-templates.bak /home/ubuntu/nuclei-templates.bak
 rm -rf /root/.msf4 /root/.nimble /var/crash/* 2>/dev/null || true
