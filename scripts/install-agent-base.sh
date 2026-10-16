@@ -10,10 +10,25 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 
 # 前置依赖批(与 install-all.sh 同款):极简 cloud 镜像没有 unzip/xz 等;acl 供共享可写缓存
 # + 补面批(core v2 P0/P1/P2):JDK21(java_ser)/libgmp-dev(jwt)/openssh-client(oob_poll)/procps(pkill)
+# + 反序列化四件套(2026-10-16 用户令:java/php/node/.net 要用于序列化漏洞——
+#   java=JDK21 已列;php-cli=pop 链验证;nodejs=node-serialize 类靶;dotnet-sdk=gadget 构建面)
 apt-get update -qq
 apt-get install -y --no-install-recommends \
     ca-certificates curl wget gpg unzip zip xz-utils file git acl \
-    openjdk-21-jdk-headless libgmp-dev openssh-client procps
+    openjdk-21-jdk-headless libgmp-dev openssh-client procps \
+    php-cli nodejs
+
+# .NET SDK(官方 tarball 版本钉死;apt 无 dotnet 源,tarball 免依赖污染)
+if [ ! -d /opt/dotnet ]; then
+    curl -fsSL https://builds.dotnet.microsoft.com/dotnet/Sdk/8.0.412/dotnet-sdk-8.0.412-linux-x64.tar.gz \
+        | tar -xz -C /opt-dotnet-stage 2>/dev/null || {
+        mkdir -p /opt-dotnet-stage && curl -fsSL -o /tmp/dotnet.tar.gz \
+        https://builds.dotnet.microsoft.com/dotnet/Sdk/8.0.412/dotnet-sdk-8.0.412-linux-x64.tar.gz \
+        && tar -xzf /tmp/dotnet.tar.gz -C /opt-dotnet-stage && rm -f /tmp/dotnet.tar.gz; }
+    mkdir -p /opt/dotnet && mv /opt-dotnet-stage/* /opt/dotnet/ && rmdir /opt-dotnet-stage
+    printf '%s\n' 'export DOTNET_ROOT=/opt/dotnet' 'export PATH=$PATH:/opt/dotnet' \
+        > /etc/profile.d/dotnet.sh
+fi
 
 # 构建容器不需要自动升级(抢 dpkg 锁)
 systemctl disable --now unattended-upgrades.service apt-daily.timer apt-daily-upgrade.timer >/dev/null 2>&1 || true
